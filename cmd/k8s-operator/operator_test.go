@@ -1999,16 +1999,16 @@ func Test_metricsResourceCreation(t *testing.T) {
 	expectReconciled(t, sr, "default", "test")
 	fullName, shortName := findGenName(t, fc, "default", "test", "svc")
 	opts := configOpts{
-		stsName:            shortName,
-		secretName:         fullName,
-		namespace:          "default",
-		parentType:         "svc",
-		lanhcNamespace: "operator-ns",
-		hostname:           "default-test",
-		namespaced:         true,
-		proxyType:          proxyTypeIngressService,
-		app:                kubetypes.AppIngressProxy,
-		resourceVersion:    "1",
+		stsName:         shortName,
+		secretName:      fullName,
+		namespace:       "default",
+		parentType:      "svc",
+		lanhcNamespace:  "operator-ns",
+		hostname:        "default-test",
+		namespaced:      true,
+		proxyType:       proxyTypeIngressService,
+		app:             kubetypes.AppIngressProxy,
+		resourceVersion: "1",
 	}
 
 	// 1. Enable metrics- expect metrics Service to be created

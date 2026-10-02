@@ -14,11 +14,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	discoveryv1 "k8s.io/api/discovery/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	tsoperator "lanhc.com/k8s-operator"
 	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
 	"lanhc.com/tstest"
 	"lanhc.com/tstime"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestEgressServiceReadiness(t *testing.T) {

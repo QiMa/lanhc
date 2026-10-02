@@ -36,7 +36,7 @@ var (
 	debugPort    = flag.Int("debug-port", 80, "Listening port for debug/metrics endpoint")
 	upstreamAddr = flag.String("upstream-addr", "", "Address of the upstream Postgres server, in host:port format")
 	upstreamCA   = flag.String("upstream-ca-file", "", "File containing the PEM-encoded CA certificate for the upstream server")
-	lanhcDir = flag.String("state-dir", "", "Directory in which to store the Lanhc auth state")
+	lanhcDir     = flag.String("state-dir", "", "Directory in which to store the Lanhc auth state")
 )
 
 func main() {

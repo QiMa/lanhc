@@ -21,7 +21,7 @@ var (
 	fakeSyslog            = newVIP("syslog.lanhc", 9)
 	fakeCloudInit         = newVIP("cloud-init.lanhc", 5) // serves cloud-init metadata/userdata per node
 	fakeFiles             = newVIP("files.lanhc", 6)      // serves binary files (tta, lanhc, lanhcd) to VMs
-	fakeACME              = newVIP("acme.example", 7)         // fake ACME CA for vmtests
+	fakeACME              = newVIP("acme.example", 7)     // fake ACME CA for vmtests
 
 	// FakeDualStackWeb is a dual-stack webserver VIP used by
 	// TestExitNodeV4Only to verify that traffic works through an

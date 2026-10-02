@@ -2099,7 +2099,7 @@ func TestCleanUpOnlyTouchesTunInterface(t *testing.T) {
 	fake := NewFakeOS(t)
 	fake.ips = []string{
 		"100.64.0.99/32 dev lanhc0", // our orphan on the tun -> removed
-		"100.64.0.5/32 dev eth0",        // someone else's CGNAT on WAN -> must survive
+		"100.64.0.5/32 dev eth0",    // someone else's CGNAT on WAN -> must survive
 	}
 	slices.Sort(fake.ips)
 

@@ -46,11 +46,11 @@ type (
 		client.Client
 
 		lanhcNamespace string
-		operatorSAName     string
-		clock              tstime.Clock
-		logger             *zap.SugaredLogger
-		clientFunc         func(*tsapi.Tailnet, *corev1.Secret) tsclient.Client
-		registry           ClientRegistry
+		operatorSAName string
+		clock          tstime.Clock
+		logger         *zap.SugaredLogger
+		clientFunc     func(*tsapi.Tailnet, *corev1.Secret) tsclient.Client
+		registry       ClientRegistry
 
 		// Metrics related fields
 		mu       sync.Mutex
@@ -96,13 +96,13 @@ const reconcilerName = "tailnet-reconciler"
 // resources. The ReconcilerOptions can be used to modify the behaviour of the Reconciler.
 func NewReconciler(options ReconcilerOptions) *Reconciler {
 	return &Reconciler{
-		Client:             options.Client,
+		Client:         options.Client,
 		lanhcNamespace: options.LanhcNamespace,
-		operatorSAName:     options.OperatorSAName,
-		clock:              options.Clock,
-		logger:             options.Logger.Named(reconcilerName),
-		clientFunc:         options.ClientFunc,
-		registry:           options.Registry,
+		operatorSAName: options.OperatorSAName,
+		clock:          options.Clock,
+		logger:         options.Logger.Named(reconcilerName),
+		clientFunc:     options.ClientFunc,
+		registry:       options.Registry,
 	}
 }
 

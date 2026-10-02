@@ -18,10 +18,10 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	kube "lanhc.com/k8s-operator"
 	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
 	"lanhc.com/kube/kubetypes"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (

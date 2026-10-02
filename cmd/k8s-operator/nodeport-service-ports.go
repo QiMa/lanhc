@@ -16,16 +16,16 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	k8soperator "lanhc.com/k8s-operator"
 	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
 	"lanhc.com/kube/kubetypes"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
 	lanhcdPortMax = 65535
 	lanhcdPortMin = 1024
-	testSvcName       = "test-node-port-range"
+	testSvcName   = "test-node-port-range"
 
 	invalidSvcNodePort = 777777
 )

@@ -278,7 +278,7 @@ func TestRebindRequired(t *testing.T) {
 			s2: &State{
 				DefaultRouteInterface: "foo",
 				InterfaceIPs: map[string][]netip.Prefix{
-					"foo":        {netip.MustParsePrefix("10.0.1.2/16")},
+					"foo":    {netip.MustParsePrefix("10.0.1.2/16")},
 					"lanhc0": {netip.MustParsePrefix("100.69.4.20/32")},
 				},
 			},
@@ -290,7 +290,7 @@ func TestRebindRequired(t *testing.T) {
 			s1: &State{
 				DefaultRouteInterface: "foo",
 				InterfaceIPs: map[string][]netip.Prefix{
-					"foo":        {netip.MustParsePrefix("10.0.1.2/16")},
+					"foo":    {netip.MustParsePrefix("10.0.1.2/16")},
 					"lanhc0": {netip.MustParsePrefix("100.69.4.20/32")},
 				},
 			},

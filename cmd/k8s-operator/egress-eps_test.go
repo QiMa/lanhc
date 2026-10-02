@@ -16,12 +16,12 @@ import (
 	discoveryv1 "k8s.io/api/discovery/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
 	"lanhc.com/kube/egressservices"
 	"lanhc.com/kube/kubetypes"
 	"lanhc.com/tstest"
 	"lanhc.com/util/mak"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestLanhcEgressEndpointSlices(t *testing.T) {

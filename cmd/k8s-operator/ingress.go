@@ -33,9 +33,9 @@ import (
 )
 
 const (
-	lanhcIngressControllerName = "lanhc.com/ts-ingress"                    // ingressClass.spec.controllerName for lanhc IngressClass resource
-	ingressClassDefaultAnnotation  = "ingressclass.kubernetes.io/is-default-class" // we do not support this https://kubernetes.io/docs/concepts/services-networking/ingress/#default-ingress-class
-	indexIngressProxyClass         = ".metadata.annotations.ingress-proxy-class"
+	lanhcIngressControllerName    = "lanhc.com/ts-ingress"                        // ingressClass.spec.controllerName for lanhc IngressClass resource
+	ingressClassDefaultAnnotation = "ingressclass.kubernetes.io/is-default-class" // we do not support this https://kubernetes.io/docs/concepts/services-networking/ingress/#default-ingress-class
+	indexIngressProxyClass        = ".metadata.annotations.ingress-proxy-class"
 )
 
 type IngressReconciler struct {

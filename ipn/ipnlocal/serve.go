@@ -1077,18 +1077,18 @@ func addProxyForwardedHeaders(r *httputil.ProxyRequest) {
 
 func (b *LocalBackend) addLanhcIdentityHeaders(r *httputil.ProxyRequest) {
 	// Clear any incoming values squatting in the headers.
-	r.Out.Header.Del("Lanhc-User-Login")
-	r.Out.Header.Del("Lanhc-User-Name")
-	r.Out.Header.Del("Lanhc-User-Profile-Pic")
-	r.Out.Header.Del("Lanhc-Funnel-Request")
-	r.Out.Header.Del("Lanhc-Headers-Info")
+	r.Out.Header.Del("Tailscale-User-Login")
+	r.Out.Header.Del("Tailscale-User-Name")
+	r.Out.Header.Del("Tailscale-User-Profile-Pic")
+	r.Out.Header.Del("Tailscale-Funnel-Request")
+	r.Out.Header.Del("Tailscale-Headers-Info")
 
 	c, ok := serveHTTPContextKey.ValueOk(r.Out.Context())
 	if !ok {
 		return
 	}
 	if c.Funnel != nil {
-		r.Out.Header.Set("Lanhc-Funnel-Request", "?1")
+		r.Out.Header.Set("Tailscale-Funnel-Request", "?1")
 		return
 	}
 	node, user, ok := b.WhoIs("tcp", c.SrcAddr)
@@ -1100,10 +1100,10 @@ func (b *LocalBackend) addLanhcIdentityHeaders(r *httputil.ProxyRequest) {
 		// Only currently set for nodes with user identities.
 		return
 	}
-	r.Out.Header.Set("Lanhc-User-Login", encLanhcHeaderValue(user.LoginName))
-	r.Out.Header.Set("Lanhc-User-Name", encLanhcHeaderValue(user.DisplayName))
-	r.Out.Header.Set("Lanhc-User-Profile-Pic", user.ProfilePicURL)
-	r.Out.Header.Set("Lanhc-Headers-Info", "https://lanhc.com/s/serve-headers")
+	r.Out.Header.Set("Tailscale-User-Login", encLanhcHeaderValue(user.LoginName))
+	r.Out.Header.Set("Tailscale-User-Name", encLanhcHeaderValue(user.DisplayName))
+	r.Out.Header.Set("Tailscale-User-Profile-Pic", user.ProfilePicURL)
+	r.Out.Header.Set("Tailscale-Headers-Info", "https://tailscale.com/s/serve-headers")
 }
 
 // encLanhcHeaderValue cleans or encodes as necessary v, to be suitable in
@@ -1122,7 +1122,7 @@ func encLanhcHeaderValue(v string) string {
 }
 
 func (b *LocalBackend) addAppCapabilitiesHeader(r *httputil.ProxyRequest) error {
-	const appCapabilitiesHeaderName = "Lanhc-App-Capabilities"
+	const appCapabilitiesHeaderName = "Tailscale-App-Capabilities"
 	r.Out.Header.Del(appCapabilitiesHeaderName)
 
 	c, ok := serveHTTPContextKey.ValueOk(r.Out.Context())
@@ -1501,23 +1501,23 @@ func handleServeIngress(ph PeerAPIHandler, w http.ResponseWriter, r *http.Reques
 		logAndError(http.StatusMethodNotAllowed, "only POST allowed")
 		return
 	}
-	srcAddrStr := r.Header.Get("Lanhc-Ingress-Src")
+	srcAddrStr := r.Header.Get("Tailscale-Ingress-Src")
 	if srcAddrStr == "" {
-		bad("Lanhc-Ingress-Src header not set")
+		bad("Tailscale-Ingress-Src header not set")
 		return
 	}
 	srcAddr, err := netip.ParseAddrPort(srcAddrStr)
 	if err != nil {
-		bad("Lanhc-Ingress-Src header invalid; want ip:port")
+		bad("Tailscale-Ingress-Src header invalid; want ip:port")
 		return
 	}
-	target := ipn.HostPort(r.Header.Get("Lanhc-Ingress-Target"))
+	target := ipn.HostPort(r.Header.Get("Tailscale-Ingress-Target"))
 	if target == "" {
-		bad("Lanhc-Ingress-Target header not set")
+		bad("Tailscale-Ingress-Target header not set")
 		return
 	}
 	if _, _, err := net.SplitHostPort(string(target)); err != nil {
-		bad("Lanhc-Ingress-Target header invalid; want host:port")
+		bad("Tailscale-Ingress-Target header invalid; want host:port")
 		return
 	}
 

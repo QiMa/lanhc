@@ -92,15 +92,15 @@ func TestCompileHostEntries(t *testing.T) {
 			name: "search-domains",
 			cfg: Config{
 				Hosts: map[dnsname.FQDN][]netip.Addr{
-					"a.foo.ts.net.":             {netip.MustParseAddr("1.1.1.1")},
-					"b.foo.ts.net.":             {netip.MustParseAddr("1.1.1.2")},
-					"c.foo.ts.net.":             {netip.MustParseAddr("1.1.1.3")},
+					"a.foo.ts.net.":         {netip.MustParseAddr("1.1.1.1")},
+					"b.foo.ts.net.":         {netip.MustParseAddr("1.1.1.2")},
+					"c.foo.ts.net.":         {netip.MustParseAddr("1.1.1.3")},
 					"d.foo.beta.lanhc.net.": {netip.MustParseAddr("1.1.1.4")},
-					"d.foo.ts.net.":             {netip.MustParseAddr("1.1.1.4")},
+					"d.foo.ts.net.":         {netip.MustParseAddr("1.1.1.4")},
 					"e.foo.beta.lanhc.net.": {netip.MustParseAddr("1.1.1.5")},
-					"random.example.com.":       {netip.MustParseAddr("1.1.1.1")},
-					"other.example.com.":        {netip.MustParseAddr("1.1.1.2")},
-					"othertoo.example.com.":     {netip.MustParseAddr("1.1.5.2")},
+					"random.example.com.":   {netip.MustParseAddr("1.1.1.1")},
+					"other.example.com.":    {netip.MustParseAddr("1.1.1.2")},
+					"othertoo.example.com.": {netip.MustParseAddr("1.1.5.2")},
 				},
 				SearchDomains: []dnsname.FQDN{"foo.ts.net.", "foo.beta.lanhc.net."},
 			},
@@ -116,7 +116,7 @@ func TestCompileHostEntries(t *testing.T) {
 			name: "only-exact-subdomain-match",
 			cfg: Config{
 				Hosts: map[dnsname.FQDN][]netip.Addr{
-					"e.foo.ts.net.":                     {netip.MustParseAddr("1.1.1.5")},
+					"e.foo.ts.net.":                 {netip.MustParseAddr("1.1.1.5")},
 					"e.foo.beta.lanhc.net.":         {netip.MustParseAddr("1.1.1.5")},
 					"e.ignored.foo.beta.lanhc.net.": {netip.MustParseAddr("1.1.1.6")},
 				},
@@ -131,10 +131,10 @@ func TestCompileHostEntries(t *testing.T) {
 			cfg: Config{
 				Hosts: map[dnsname.FQDN][]netip.Addr{
 					"d.foo.beta.lanhc.net.": {netip.MustParseAddr("1.1.1.4")},
-					"d.foo.ts.net.":             {netip.MustParseAddr("1.1.1.4")},
-					"random.example.com.":       {netip.MustParseAddr("1.1.1.1")},
-					"other.example.com.":        {netip.MustParseAddr("1.1.1.2")},
-					"othertoo.example.com.":     {netip.MustParseAddr("1.1.5.2")},
+					"d.foo.ts.net.":         {netip.MustParseAddr("1.1.1.4")},
+					"random.example.com.":   {netip.MustParseAddr("1.1.1.1")},
+					"other.example.com.":    {netip.MustParseAddr("1.1.1.2")},
+					"othertoo.example.com.": {netip.MustParseAddr("1.1.5.2")},
 				},
 				SearchDomains: []dnsname.FQDN{"foo.ts.net.", "foo.beta.lanhc.net."},
 			},
@@ -146,11 +146,11 @@ func TestCompileHostEntries(t *testing.T) {
 			name: "overlaps",
 			cfg: Config{
 				Hosts: map[dnsname.FQDN][]netip.Addr{
-					"h1.foo.ts.net.":             {netip.MustParseAddr("1.1.1.3")},
+					"h1.foo.ts.net.":         {netip.MustParseAddr("1.1.1.3")},
 					"h1.foo.beta.lanhc.net.": {netip.MustParseAddr("1.1.1.2")},
-					"h2.foo.ts.net.":             {netip.MustParseAddr("1.1.1.1")},
+					"h2.foo.ts.net.":         {netip.MustParseAddr("1.1.1.1")},
 					"h2.foo.beta.lanhc.net.": {netip.MustParseAddr("1.1.1.1")},
-					"example.com":                {netip.MustParseAddr("1.1.1.1")},
+					"example.com":            {netip.MustParseAddr("1.1.1.1")},
 				},
 				SearchDomains: []dnsname.FQDN{"foo.ts.net.", "foo.beta.lanhc.net."},
 			},

@@ -401,7 +401,7 @@ func (sw *sessionWatcher) Stop() error {
 	return nil
 }
 
-const watcherWindowClassName = "Lanhc-SessionManager"
+const watcherWindowClassName = "Tailscale-SessionManager"
 
 var watcherWindowClassName16 = sync.OnceValue(func() *uint16 {
 	return must.Get(syscall.UTF16PtrFromString(watcherWindowClassName))

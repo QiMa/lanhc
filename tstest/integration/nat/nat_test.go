@@ -34,9 +34,9 @@ import (
 )
 
 var (
-	runVMTests    = flag.Bool("run-vm-tests", false, "run tests that require a VM")
-	logLanhcd = flag.Bool("log-lanhcd", false, "log lanhcd output")
-	pcapFile      = flag.String("pcap", "", "write pcap to file")
+	runVMTests = flag.Bool("run-vm-tests", false, "run tests that require a VM")
+	logLanhcd  = flag.Bool("log-lanhcd", false, "log lanhcd output")
+	pcapFile   = flag.String("pcap", "", "write pcap to file")
 )
 
 type natTest struct {

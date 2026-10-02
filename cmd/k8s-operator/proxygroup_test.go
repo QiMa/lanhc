@@ -944,11 +944,11 @@ func TestProxyGroup(t *testing.T) {
 
 	crd := &apiextensionsv1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: serviceMonitorCRD}}
 	opts := configOpts{
-		proxyType:          "proxygroup",
-		stsName:            pg.Name,
-		parentType:         "proxygroup",
-		lanhcNamespace: "lanhc",
-		resourceVersion:    "1",
+		proxyType:       "proxygroup",
+		stsName:         pg.Name,
+		parentType:      "proxygroup",
+		lanhcNamespace:  "lanhc",
+		resourceVersion: "1",
 	}
 
 	t.Run("proxyclass_not_ready", func(t *testing.T) {

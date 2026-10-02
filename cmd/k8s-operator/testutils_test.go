@@ -52,7 +52,7 @@ type configOpts struct {
 	secretName                                     string
 	hostname                                       string
 	namespace                                      string
-	lanhcNamespace                             string
+	lanhcNamespace                                 string
 	namespaced                                     bool
 	parentType                                     string
 	proxyType                                      string
@@ -238,7 +238,7 @@ func expectedSTS(t *testing.T, cl client.Client, opts configOpts) *appsv1.Statef
 						"lanhc.com/parent-resource":      "test",
 						"lanhc.com/parent-resource-ns":   opts.namespace,
 						"lanhc.com/parent-resource-type": opts.parentType,
-						"app":                                "1234-UID",
+						"app":                            "1234-UID",
 					},
 				},
 				Spec: corev1.PodSpec{
@@ -378,7 +378,7 @@ func expectedSTSUserspace(t *testing.T, cl client.Client, opts configOpts) *apps
 						"lanhc.com/parent-resource":      "test",
 						"lanhc.com/parent-resource-ns":   opts.namespace,
 						"lanhc.com/parent-resource-type": opts.parentType,
-						"app":                                "1234-UID",
+						"app":                            "1234-UID",
 					},
 				},
 				Spec: corev1.PodSpec{
@@ -458,9 +458,9 @@ func metricsLabels(opts configOpts) map[string]string {
 	labels := map[string]string{
 		"lanhc.com/managed":        "true",
 		"lanhc.com/metrics-target": opts.stsName,
-		"ts_prom_job":                  promJob,
-		"ts_proxy_type":                opts.proxyType,
-		"ts_proxy_parent_name":         "test",
+		"ts_prom_job":              promJob,
+		"ts_proxy_type":            opts.proxyType,
+		"ts_proxy_parent_name":     "test",
 	}
 	if opts.namespaced {
 		labels["ts_proxy_parent_namespace"] = "default"

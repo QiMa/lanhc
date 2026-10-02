@@ -20,8 +20,8 @@ import (
 	"time"
 
 	dbus "github.com/godbus/dbus/v5"
-	"lanhc.com/client/local"
 	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/client/local"
 	"lanhc.com/ipn"
 	"lanhc.com/ipn/ipnstate"
 	"lanhc.com/tailcfg"
@@ -115,12 +115,12 @@ func startFakeLocalAPI(t *testing.T) string {
 	t.Helper()
 
 	self := &ipnstate.PeerStatus{
-		ID:           "self",
-		PublicKey:    key.NewNode().Public(),
-		HostName:     "self-host",
-		DNSName:      "self-host.example.ts.net.",
-		LanhcIPs: []netip.Addr{netip.MustParseAddr("100.64.0.1")},
-		Online:       true,
+		ID:        "self",
+		PublicKey: key.NewNode().Public(),
+		HostName:  "self-host",
+		DNSName:   "self-host.example.ts.net.",
+		LanhcIPs:  []netip.Addr{netip.MustParseAddr("100.64.0.1")},
+		Online:    true,
 		CapMap: tailcfg.NodeCapMap{
 			tailcfg.NodeAttrSuggestExitNodeUI: nil,
 		},
@@ -130,7 +130,7 @@ func startFakeLocalAPI(t *testing.T) string {
 		PublicKey:      key.NewNode().Public(),
 		HostName:       "exit1",
 		DNSName:        "exit1.example.ts.net.",
-		LanhcIPs:   []netip.Addr{netip.MustParseAddr("100.64.0.2")},
+		LanhcIPs:       []netip.Addr{netip.MustParseAddr("100.64.0.2")},
 		Online:         true,
 		ExitNodeOption: true,
 	}

@@ -17,7 +17,7 @@ import (
 
 const (
 	DeeplinkLanhcURLScheme = "lanhc"
-	DeeplinkCommandSign        = "sign-device"
+	DeeplinkCommandSign    = "sign-device"
 )
 
 // generateHMAC computes a SHA-256 HMAC for the concatenation of components,

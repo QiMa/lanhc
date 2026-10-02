@@ -778,10 +778,10 @@ func TestServeHTTPProxyHeaders(t *testing.T) {
 			wantHeaders: []headerCheck{
 				{"X-Forwarded-Proto", "https"},
 				{"X-Forwarded-For", "100.150.151.152"},
-				{"Lanhc-User-Login", "someone@example.com"},
-				{"Lanhc-User-Name", "Some One"},
-				{"Lanhc-User-Profile-Pic", "https://example.com/photo.jpg"},
-				{"Lanhc-Headers-Info", "https://lanhc.com/s/serve-headers"},
+				{"Tailscale-User-Login", "someone@example.com"},
+				{"Tailscale-User-Name", "Some One"},
+				{"Tailscale-User-Profile-Pic", "https://example.com/photo.jpg"},
+				{"Tailscale-Headers-Info", "https://tailscale.com/s/serve-headers"},
 			},
 		},
 		{
@@ -790,10 +790,10 @@ func TestServeHTTPProxyHeaders(t *testing.T) {
 			wantHeaders: []headerCheck{
 				{"X-Forwarded-Proto", "https"},
 				{"X-Forwarded-For", "100.150.151.153"},
-				{"Lanhc-User-Login", ""},
-				{"Lanhc-User-Name", ""},
-				{"Lanhc-User-Profile-Pic", ""},
-				{"Lanhc-Headers-Info", ""},
+				{"Tailscale-User-Login", ""},
+				{"Tailscale-User-Name", ""},
+				{"Tailscale-User-Profile-Pic", ""},
+				{"Tailscale-Headers-Info", ""},
 			},
 		},
 		{
@@ -802,10 +802,10 @@ func TestServeHTTPProxyHeaders(t *testing.T) {
 			wantHeaders: []headerCheck{
 				{"X-Forwarded-Proto", "https"},
 				{"X-Forwarded-For", "100.160.161.162"},
-				{"Lanhc-User-Login", ""},
-				{"Lanhc-User-Name", ""},
-				{"Lanhc-User-Profile-Pic", ""},
-				{"Lanhc-Headers-Info", ""},
+				{"Tailscale-User-Login", ""},
+				{"Tailscale-User-Name", ""},
+				{"Tailscale-User-Profile-Pic", ""},
+				{"Tailscale-Headers-Info", ""},
 			},
 		},
 	}
@@ -918,11 +918,11 @@ func TestServeHTTPProxyGrantHeader(t *testing.T) {
 			wantHeaders: []headerCheck{
 				{"X-Forwarded-Proto", "https"},
 				{"X-Forwarded-For", "100.150.151.152"},
-				{"Lanhc-User-Login", "someone@example.com"},
-				{"Lanhc-User-Name", "Some One"},
-				{"Lanhc-User-Profile-Pic", "https://example.com/photo.jpg"},
-				{"Lanhc-Headers-Info", "https://lanhc.com/s/serve-headers"},
-				{"Lanhc-App-Capabilities", `{"example.com/cap/interesting":[{"role":"🐿"}]}`},
+				{"Tailscale-User-Login", "someone@example.com"},
+				{"Tailscale-User-Name", "Some One"},
+				{"Tailscale-User-Profile-Pic", "https://example.com/photo.jpg"},
+				{"Tailscale-Headers-Info", "https://tailscale.com/s/serve-headers"},
+				{"Tailscale-App-Capabilities", `{"example.com/cap/interesting":[{"role":"🐿"}]}`},
 			},
 		},
 		{
@@ -931,11 +931,11 @@ func TestServeHTTPProxyGrantHeader(t *testing.T) {
 			wantHeaders: []headerCheck{
 				{"X-Forwarded-Proto", "https"},
 				{"X-Forwarded-For", "100.150.151.153"},
-				{"Lanhc-User-Login", ""},
-				{"Lanhc-User-Name", ""},
-				{"Lanhc-User-Profile-Pic", ""},
-				{"Lanhc-Headers-Info", ""},
-				{"Lanhc-App-Capabilities", `{"example.com/cap/boring":[{"role":"Viewer"}]}`},
+				{"Tailscale-User-Login", ""},
+				{"Tailscale-User-Name", ""},
+				{"Tailscale-User-Profile-Pic", ""},
+				{"Tailscale-Headers-Info", ""},
+				{"Tailscale-App-Capabilities", `{"example.com/cap/boring":[{"role":"Viewer"}]}`},
 			},
 		},
 		{
@@ -944,11 +944,11 @@ func TestServeHTTPProxyGrantHeader(t *testing.T) {
 			wantHeaders: []headerCheck{
 				{"X-Forwarded-Proto", "https"},
 				{"X-Forwarded-For", "100.160.161.162"},
-				{"Lanhc-User-Login", ""},
-				{"Lanhc-User-Name", ""},
-				{"Lanhc-User-Profile-Pic", ""},
-				{"Lanhc-Headers-Info", ""},
-				{"Lanhc-App-Capabilities", ""},
+				{"Tailscale-User-Login", ""},
+				{"Tailscale-User-Name", ""},
+				{"Tailscale-User-Profile-Pic", ""},
+				{"Tailscale-Headers-Info", ""},
+				{"Tailscale-App-Capabilities", ""},
 			},
 		},
 	}
@@ -1610,8 +1610,8 @@ func TestServeWebHandlerHTTP2PreservesContentType(t *testing.T) {
 	if got, want := gotHeader.Get("Content-Type"), "application/json"; got != want {
 		t.Errorf("Content-Type at backend = %q, want %q", got, want)
 	}
-	if got := gotHeader.Get("Lanhc-Funnel-Request"); got != "?1" {
-		t.Errorf("Lanhc-Funnel-Request = %q, want %q (sanity check)", got, "?1")
+	if got := gotHeader.Get("Tailscale-Funnel-Request"); got != "?1" {
+		t.Errorf("Tailscale-Funnel-Request = %q, want %q (sanity check)", got, "?1")
 	}
 }
 

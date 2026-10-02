@@ -19,11 +19,11 @@ import (
 
 	"github.com/peterbourgon/ff/v3/ffcli"
 	"k8s.io/client-go/util/homedir"
-	"sigs.k8s.io/yaml"
 	"lanhc.com/ipn/ipnstate"
 	"lanhc.com/tailcfg"
 	"lanhc.com/util/dnsname"
 	"lanhc.com/version"
+	"sigs.k8s.io/yaml"
 )
 
 var configureKubeconfigArgs struct {

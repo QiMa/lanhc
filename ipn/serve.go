@@ -107,7 +107,7 @@ type FunnelConn struct {
 	// Conn is the underlying connection.
 	net.Conn
 
-	// Target is what was presented in the "Lanhc-Ingress-Target"
+	// Target is what was presented in the "Tailscale-Ingress-Target"
 	// HTTP header.
 	Target HostPort
 

@@ -17,13 +17,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	lanhcclient "tailscale.com/client/tailscale/v2"
 	kube "lanhc.com/k8s-operator"
 	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
 	"lanhc.com/kube/kubetypes"
 	"lanhc.com/tsnet"
 	"lanhc.com/tstest"
 	"lanhc.com/util/httpm"
+	lanhcclient "tailscale.com/client/tailscale/v2"
 )
 
 // See [TestMain] for test requirements.
@@ -517,7 +517,7 @@ func verifyProxyGroupTailnet(t *testing.T, pg *tsapi.ProxyGroup, cl *tsnet.Serve
 		if err := kubeClient.List(t.Context(), &secrets,
 			client.InNamespace("lanhc"),
 			client.MatchingLabels{
-				kubetypes.LabelSecretType:            kubetypes.LabelSecretTypeState,
+				kubetypes.LabelSecretType:        kubetypes.LabelSecretTypeState,
 				"lanhc.com/parent-resource-type": "proxygroup",
 				"lanhc.com/parent-resource":      pg.Name,
 			},

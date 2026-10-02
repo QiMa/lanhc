@@ -72,7 +72,7 @@ var MainError syncs.AtomicValue[error]
 
 // Binaries contains the paths to the lanhc and lanhcd binaries.
 type Binaries struct {
-	Dir        string
+	Dir    string
 	Lanhc  BinaryInfo
 	Lanhcd BinaryInfo
 }
@@ -169,7 +169,7 @@ func GetBinaries(tb testing.TB) *Binaries {
 		tb.Fatalf("copying lanhcd binary: %v", err)
 	}
 	return &Binaries{
-		Dir:        dir,
+		Dir:    dir,
 		Lanhc:  ts,
 		Lanhcd: tsd,
 	}
@@ -618,7 +618,7 @@ func NewTestEnv(t testing.TB, opts ...TestEnvOpt) *TestEnv {
 // Currently, the test is simplistic and user==node==machine.
 // That may grow complexity later to test more.
 type TestNode struct {
-	env              *TestEnv
+	env          *TestEnv
 	lanhcdParser *nodeOutputParser
 
 	dir          string // temp dir for sock & state

@@ -87,8 +87,8 @@ type ipnLocalBackend interface {
 }
 
 type server struct {
-	lb             ipnLocalBackend
-	logf           logger.Logf
+	lb         ipnLocalBackend
+	logf       logger.Logf
 	lanhcdPath string
 
 	timeNow func() time.Time // or nil for time.Now
@@ -117,8 +117,8 @@ func init() {
 			return nil, err
 		}
 		srv := &server{
-			lb:             lb,
-			logf:           logf,
+			lb:         lb,
+			logf:       logf,
 			lanhcdPath: tsd,
 			timeNow: func() time.Time {
 				return lb.ControlNow(time.Now())

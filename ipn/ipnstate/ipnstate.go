@@ -44,9 +44,9 @@ type Status struct {
 	// HaveNodeKey is whether the current profile has a node key configured.
 	HaveNodeKey bool `json:",omitempty"`
 
-	AuthURL      string       // current URL provided by control to authorize client
+	AuthURL  string       // current URL provided by control to authorize client
 	LanhcIPs []netip.Addr // Lanhc IP(s) assigned to this node
-	Self         *PeerStatus
+	Self     *PeerStatus
 
 	// ExitNodeStatus describes the current exit node.
 	// If nil, an exit node is not in use.
@@ -102,7 +102,7 @@ type TKAPeer struct {
 	Name             string // DNS
 	ID               tailcfg.NodeID
 	StableID         tailcfg.StableNodeID
-	LanhcIPs     []netip.Addr // Lanhc IP(s) assigned to this node
+	LanhcIPs         []netip.Addr // Lanhc IP(s) assigned to this node
 	NodeKey          key.NodePublic
 	NodeKeySignature tka.NodeKeySignature
 }

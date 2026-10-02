@@ -689,7 +689,7 @@ func TestContainerBoot(t *testing.T) {
 		"extra_args": func(env *testEnv) testCase {
 			return testCase{
 				Env: map[string]string{
-					"TS_EXTRA_ARGS":            "--widget=rotated",
+					"TS_EXTRA_ARGS":        "--widget=rotated",
 					"TS_LANHCD_EXTRA_ARGS": "--experiments=widgets",
 				},
 				Phases: []phase{
@@ -1903,11 +1903,11 @@ func newTestEnv(t *testing.T) testEnv {
 	files := map[string][]byte{
 		"usr/bin/lanhcd":                             fakeLanhcd,
 		"usr/bin/lanhc":                              fakeLanhc,
-		"usr/bin/iptables":                               fakeLanhc,
-		"usr/bin/ip6tables":                              fakeLanhc,
-		"dev/net/tun":                                    []byte(""),
-		"proc/sys/net/ipv4/ip_forward":                   []byte("0"),
-		"proc/sys/net/ipv6/conf/all/forwarding":          []byte("0"),
+		"usr/bin/iptables":                           fakeLanhc,
+		"usr/bin/ip6tables":                          fakeLanhc,
+		"dev/net/tun":                                []byte(""),
+		"proc/sys/net/ipv4/ip_forward":               []byte("0"),
+		"proc/sys/net/ipv6/conf/all/forwarding":      []byte("0"),
 		"etc/lanhcd/cap-95.hujson":                   mustJSON(t, lanhcdConf),
 		"etc/lanhcd/serve-config.json":               mustJSON(t, serveConf),
 		"etc/lanhcd/serve-config-with-services.json": mustJSON(t, serveConfWithServices),

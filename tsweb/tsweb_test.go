@@ -1254,7 +1254,7 @@ func TestCleanRedirectURL(t *testing.T) {
 		{"ftp://lanhc.com", lanhcHost, "", true},
 		{"https:/evil.com", lanhcHost, "", true},                     // regression test for lanhc/corp#892
 		{"%2Fa%2F44869c061701", lanhcHost, "/a/44869c061701", false}, // regression test for lanhc/corp#13288
-		{"https%3A%2Flanhc.com", lanhcHost, "", true},            // escaped colon-single-slash malformed URL
+		{"https%3A%2Flanhc.com", lanhcHost, "", true},                // escaped colon-single-slash malformed URL
 		{"", nil, "", false},
 	}
 

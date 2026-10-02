@@ -32,7 +32,7 @@ func TestPrefValue(t *testing.T) {
 	stWithExitPeer := &ipnstate.Status{
 		Peer: map[key.NodePublic]*ipnstate.PeerStatus{
 			peerKey: {
-				ID:           exitPeerID,
+				ID:       exitPeerID,
 				LanhcIPs: []netip.Addr{exitPeerIP},
 			},
 		},

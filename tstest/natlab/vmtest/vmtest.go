@@ -218,7 +218,7 @@ func (e *Env) initNodeStatus() {
 			OS:           n.os.Name,
 			NICs:         nics,
 			JoinsTailnet: n.joinTailnet,
-			Lanhc:    "--",
+			Lanhc:        "--",
 		}
 	}
 }

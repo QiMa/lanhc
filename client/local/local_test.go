@@ -118,7 +118,7 @@ func TestDeps(t *testing.T) {
 			// Make sure we don't again accidentally bring in a dependency on
 			// drive or its transitive dependencies
 			"testing":                        "do not use testing package in production code",
-			"lanhc.com/drive/driveimpl":  "https://github.com/lanhc/lanhc/pull/10631",
+			"lanhc.com/drive/driveimpl":      "https://github.com/lanhc/lanhc/pull/10631",
 			"github.com/studio-b12/gowebdav": "https://github.com/lanhc/lanhc/pull/10631",
 		},
 	}.Check(t)

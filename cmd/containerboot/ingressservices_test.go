@@ -21,7 +21,7 @@ func TestSyncIngressConfigs(t *testing.T) {
 		currentStatus  *ingressservices.Status
 		wantServices   map[string]struct {
 			LanhcServiceIP netip.Addr
-			ClusterIP          netip.Addr
+			ClusterIP      netip.Addr
 		}
 		wantClampedAddrs []netip.Addr // cluster IPs that should have MSS clamping applied
 	}{
@@ -33,7 +33,7 @@ func TestSyncIngressConfigs(t *testing.T) {
 			currentStatus: nil,
 			wantServices: map[string]struct {
 				LanhcServiceIP netip.Addr
-				ClusterIP          netip.Addr
+				ClusterIP      netip.Addr
 			}{
 				"svc:foo": makeWantService("100.64.0.1", "10.0.0.1"),
 			},
@@ -49,7 +49,7 @@ func TestSyncIngressConfigs(t *testing.T) {
 			currentStatus: nil,
 			wantServices: map[string]struct {
 				LanhcServiceIP netip.Addr
-				ClusterIP          netip.Addr
+				ClusterIP      netip.Addr
 			}{
 				"svc:foo": makeWantService("100.64.0.1", "10.0.0.1"),
 				"svc:bar": makeWantService("100.64.0.2", "10.0.0.2"),
@@ -69,7 +69,7 @@ func TestSyncIngressConfigs(t *testing.T) {
 			currentStatus: nil,
 			wantServices: map[string]struct {
 				LanhcServiceIP netip.Addr
-				ClusterIP          netip.Addr
+				ClusterIP      netip.Addr
 			}{
 				"svc:foo": makeWantService("2001:db8::1", "2001:db8::2"),
 			},
@@ -86,7 +86,7 @@ func TestSyncIngressConfigs(t *testing.T) {
 			currentStatus: nil,
 			wantServices: map[string]struct {
 				LanhcServiceIP netip.Addr
-				ClusterIP          netip.Addr
+				ClusterIP      netip.Addr
 			}{
 				"svc:ipv6": makeWantService("2001:db8::10", "2001:db8::20"),
 			},
@@ -105,7 +105,7 @@ func TestSyncIngressConfigs(t *testing.T) {
 			},
 			wantServices: map[string]struct {
 				LanhcServiceIP netip.Addr
-				ClusterIP          netip.Addr
+				ClusterIP      netip.Addr
 			}{},
 			wantClampedAddrs: nil, // no rules added, no clamping
 		},
@@ -126,7 +126,7 @@ func TestSyncIngressConfigs(t *testing.T) {
 			},
 			wantServices: map[string]struct {
 				LanhcServiceIP netip.Addr
-				ClusterIP          netip.Addr
+				ClusterIP      netip.Addr
 			}{
 				"svc:foo": makeWantService("100.64.0.1", "10.0.0.2"),
 				"svc:new": makeWantService("100.64.0.4", "10.0.0.4"),
@@ -143,7 +143,7 @@ func TestSyncIngressConfigs(t *testing.T) {
 				"svc:web-ipv6": {
 					IPv6Mapping: &ingressservices.Mapping{
 						LanhcServiceIP: netip.MustParseAddr("2001:db8::10"),
-						ClusterIP:          netip.MustParseAddr("2001:db8::20"),
+						ClusterIP:      netip.MustParseAddr("2001:db8::20"),
 					},
 				},
 				"svc:api": makeServiceConfig("100.64.0.20", "10.0.0.20", "", ""),
@@ -154,7 +154,7 @@ func TestSyncIngressConfigs(t *testing.T) {
 					"svc:web-ipv6": {
 						IPv6Mapping: &ingressservices.Mapping{
 							LanhcServiceIP: netip.MustParseAddr("2001:db8::10"),
-							ClusterIP:          netip.MustParseAddr("2001:db8::20"),
+							ClusterIP:      netip.MustParseAddr("2001:db8::20"),
 						},
 					},
 					"svc:old": makeServiceConfig("100.64.0.30", "10.0.0.30", "", ""),
@@ -164,7 +164,7 @@ func TestSyncIngressConfigs(t *testing.T) {
 			},
 			wantServices: map[string]struct {
 				LanhcServiceIP netip.Addr
-				ClusterIP          netip.Addr
+				ClusterIP      netip.Addr
 			}{
 				"svc:web":      makeWantService("100.64.0.10", "10.0.0.10"),
 				"svc:web-ipv6": makeWantService("2001:db8::10", "2001:db8::20"),
@@ -233,13 +233,13 @@ func makeServiceConfig(tsIP, clusterIP string, tsIP6, clusterIP6 string) ingress
 	if tsIP != "" && clusterIP != "" {
 		cfg.IPv4Mapping = &ingressservices.Mapping{
 			LanhcServiceIP: netip.MustParseAddr(tsIP),
-			ClusterIP:          netip.MustParseAddr(clusterIP),
+			ClusterIP:      netip.MustParseAddr(clusterIP),
 		}
 	}
 	if tsIP6 != "" && clusterIP6 != "" {
 		cfg.IPv6Mapping = &ingressservices.Mapping{
 			LanhcServiceIP: netip.MustParseAddr(tsIP6),
-			ClusterIP:          netip.MustParseAddr(clusterIP6),
+			ClusterIP:      netip.MustParseAddr(clusterIP6),
 		}
 	}
 	return cfg
@@ -247,13 +247,13 @@ func makeServiceConfig(tsIP, clusterIP string, tsIP6, clusterIP6 string) ingress
 
 func makeWantService(tsIP, clusterIP string) struct {
 	LanhcServiceIP netip.Addr
-	ClusterIP          netip.Addr
+	ClusterIP      netip.Addr
 } {
 	return struct {
 		LanhcServiceIP netip.Addr
-		ClusterIP          netip.Addr
+		ClusterIP      netip.Addr
 	}{
 		LanhcServiceIP: netip.MustParseAddr(tsIP),
-		ClusterIP:          netip.MustParseAddr(clusterIP),
+		ClusterIP:      netip.MustParseAddr(clusterIP),
 	}
 }

@@ -305,7 +305,7 @@ func (i *jsIPN) run(jsCallbacks js.Value) {
 								MachineKey: p.Machine().String(),
 								NodeKey:    p.Key().String(),
 							},
-							Online:              p.Online().Clone(),
+							Online:          p.Online().Clone(),
 							LanhcSSHEnabled: p.Hostinfo().LanhcSSHEnabled(),
 						}
 					}),
@@ -581,7 +581,7 @@ type jsNetMapSelfNode struct {
 
 type jsNetMapPeerNode struct {
 	jsNetMapNode
-	Online              *bool `json:"online,omitempty"`
+	Online          *bool `json:"online,omitempty"`
 	LanhcSSHEnabled bool  `json:"lanhcSSHEnabled"`
 }
 

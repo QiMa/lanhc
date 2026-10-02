@@ -262,24 +262,24 @@ func TestShutdownViaLocalAPI(t *testing.T) {
 	errAccessDeniedByPolicy := errors.New("Access denied: shutdown access denied by policy")
 
 	tests := []struct {
-		name                   string
+		name               string
 		allowLanhcdRestart *bool
-		wantErr                error
+		wantErr            error
 	}{
 		{
-			name:                   "AllowLanhcdRestart/NotConfigured",
+			name:               "AllowLanhcdRestart/NotConfigured",
 			allowLanhcdRestart: nil,
-			wantErr:                errAccessDeniedByPolicy,
+			wantErr:            errAccessDeniedByPolicy,
 		},
 		{
-			name:                   "AllowLanhcdRestart/False",
+			name:               "AllowLanhcdRestart/False",
 			allowLanhcdRestart: new(false),
-			wantErr:                errAccessDeniedByPolicy,
+			wantErr:            errAccessDeniedByPolicy,
 		},
 		{
-			name:                   "AllowLanhcdRestart/True",
+			name:               "AllowLanhcdRestart/True",
 			allowLanhcdRestart: new(true),
-			wantErr:                nil, // shutdown should be allowed
+			wantErr:            nil, // shutdown should be allowed
 		},
 	}
 

@@ -39,12 +39,12 @@ const (
 	// Keys that containerboot writes to state file that can be used to determine its state.
 	// fields set in Lanhc state Secret. These are mostly used by the Lanhc Kubernetes operator to determine
 	// the state of this lanhc device.
-	KeyDeviceID       = "device_id"        // node stable ID of the device
-	KeyDeviceFQDN     = "device_fqdn"      // device's tailnet hostname
-	KeyDeviceIPs      = "device_ips"       // device's tailnet IPs
-	KeyPodUID         = "pod_uid"          // Pod UID
-	KeyCapVer         = "lanhc_capver" // tailcfg.CurrentCapabilityVersion of this proxy instance.
-	KeyReissueAuthkey = "reissue_authkey"  // Proxies will set this to the authkey that failed, or "no-authkey", if they can't log in.
+	KeyDeviceID       = "device_id"       // node stable ID of the device
+	KeyDeviceFQDN     = "device_fqdn"     // device's tailnet hostname
+	KeyDeviceIPs      = "device_ips"      // device's tailnet IPs
+	KeyPodUID         = "pod_uid"         // Pod UID
+	KeyCapVer         = "lanhc_capver"    // tailcfg.CurrentCapabilityVersion of this proxy instance.
+	KeyReissueAuthkey = "reissue_authkey" // Proxies will set this to the authkey that failed, or "no-authkey", if they can't log in.
 	// KeyHTTPSEndpoint is a name of a field that can be set to the value of any HTTPS endpoint currently exposed by
 	// this device to the tailnet. This is used by the Kubernetes operator Ingress proxy to communicate to the operator
 	// that cluster workloads behind the Ingress can now be accessed via the given DNS name over HTTPS.

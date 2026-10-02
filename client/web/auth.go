@@ -74,7 +74,7 @@ func (s *browserSession) expires() time.Time {
 
 var (
 	errNoSession          = errors.New("no-browser-session")
-	errNotUsingLanhc  = errors.New("not-using-lanhc")
+	errNotUsingLanhc      = errors.New("not-using-lanhc")
 	errTaggedRemoteSource = errors.New("tagged-remote-source")
 	errTaggedLocalSource  = errors.New("tagged-local-source")
 	errNotOwner           = errors.New("not-owner")

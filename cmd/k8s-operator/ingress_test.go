@@ -394,15 +394,15 @@ func TestLanhcIngressWithServiceMonitor(t *testing.T) {
 	expectReconciled(t, ingR, "default", "test")
 	fullName, shortName := findGenName(t, fc, "default", "test", "ingress")
 	opts := configOpts{
-		stsName:            shortName,
-		secretName:         fullName,
-		namespace:          "default",
+		stsName:        shortName,
+		secretName:     fullName,
+		namespace:      "default",
 		lanhcNamespace: "operator-ns",
-		parentType:         "ingress",
-		hostname:           "default-test",
-		app:                kubetypes.AppIngressResource,
-		namespaced:         true,
-		proxyType:          proxyTypeIngressResource,
+		parentType:     "ingress",
+		hostname:       "default-test",
+		app:            kubetypes.AppIngressResource,
+		namespaced:     true,
+		proxyType:      proxyTypeIngressResource,
 		serveConfig: &ipn.ServeConfig{
 			TCP: map[uint16]*ipn.TCPPortHandler{443: {HTTPS: true}},
 			Web: map[ipn.HostPort]*ipn.WebServerConfig{

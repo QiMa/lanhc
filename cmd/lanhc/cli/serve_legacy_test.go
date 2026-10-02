@@ -32,11 +32,11 @@ func TestCleanMountPoint(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		{"foo", "/foo", false},              // missing prefix
-		{"/foo/", "/foo/", false},           // keep trailing slash
-		{"////foo", "", true},               // too many slashes
-		{"/foo//", "", true},                // too many slashes
-		{"", "", true},                      // empty
+		{"foo", "/foo", false},          // missing prefix
+		{"/foo/", "/foo/", false},       // keep trailing slash
+		{"////foo", "", true},           // too many slashes
+		{"/foo//", "", true},            // too many slashes
+		{"", "", true},                  // empty
 		{"https://lanhc.com", "", true}, // not a path
 	}
 	for _, tt := range tests {

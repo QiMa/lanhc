@@ -39,7 +39,7 @@ import (
 
 const (
 	lanhcNamespace = "lanhc"
-	testProxyImage     = "lanhc/lanhc:test"
+	testProxyImage = "lanhc/lanhc:test"
 )
 
 func testResolver(_ context.Context, _ string, host string) ([]netip.Addr, error) {
@@ -739,13 +739,13 @@ func TestReconciler_Reconcile(t *testing.T) {
 
 			fc := builder.Build()
 			r := peerrelay.NewReconciler(peerrelay.ReconcilerOptions{
-				Client:             fc,
+				Client:         fc,
 				LanhcNamespace: lanhcNamespace,
-				ProxyImage:         testProxyImage,
-				DefaultTags:        []string{"tag:test-peer-relay"},
-				Clients:            &fakeClientProvider{client: &fakeTSClient{}},
-				Resolver:           testResolver,
-				Logger:             logger.Sugar(),
+				ProxyImage:     testProxyImage,
+				DefaultTags:    []string{"tag:test-peer-relay"},
+				Clients:        &fakeClientProvider{client: &fakeTSClient{}},
+				Resolver:       testResolver,
+				Logger:         logger.Sugar(),
 			})
 
 			_, err = r.Reconcile(t.Context(), tc.Request)
@@ -1086,13 +1086,13 @@ func TestReconciler_LanhcdConfig(t *testing.T) {
 		Build()
 
 	r := peerrelay.NewReconciler(peerrelay.ReconcilerOptions{
-		Client:             fc,
+		Client:         fc,
 		LanhcNamespace: lanhcNamespace,
-		ProxyImage:         testProxyImage,
-		DefaultTags:        []string{"tag:test-peer-relay"},
-		Clients:            &fakeClientProvider{client: &fakeTSClient{}},
-		Resolver:           testResolver,
-		Logger:             logger.Sugar(),
+		ProxyImage:     testProxyImage,
+		DefaultTags:    []string{"tag:test-peer-relay"},
+		Clients:        &fakeClientProvider{client: &fakeTSClient{}},
+		Resolver:       testResolver,
+		Logger:         logger.Sugar(),
 	})
 
 	if _, err := r.Reconcile(t.Context(), reconcile.Request{NamespacedName: types.NamespacedName{Name: "test"}}); err != nil {
@@ -1257,13 +1257,13 @@ func TestReconciler_AuthKey_Lifecycle(t *testing.T) {
 
 		tsc := &fakeTSClient{nextKey: []string{"tskey-abc"}}
 		r := peerrelay.NewReconciler(peerrelay.ReconcilerOptions{
-			Client:             fc,
+			Client:         fc,
 			LanhcNamespace: lanhcNamespace,
-			ProxyImage:         testProxyImage,
-			DefaultTags:        []string{"tag:k8s-peer-relay"},
-			Clients:            &fakeClientProvider{client: tsc},
-			Resolver:           testResolver,
-			Logger:             logger.Sugar(),
+			ProxyImage:     testProxyImage,
+			DefaultTags:    []string{"tag:k8s-peer-relay"},
+			Clients:        &fakeClientProvider{client: tsc},
+			Resolver:       testResolver,
+			Logger:         logger.Sugar(),
 		})
 
 		if _, err := r.Reconcile(t.Context(), reconcile.Request{NamespacedName: types.NamespacedName{Name: "test"}}); err != nil {
@@ -1295,13 +1295,13 @@ func TestReconciler_AuthKey_Lifecycle(t *testing.T) {
 
 		tsc := &fakeTSClient{nextKey: []string{"tskey-first", "tskey-second"}}
 		r := peerrelay.NewReconciler(peerrelay.ReconcilerOptions{
-			Client:             fc,
+			Client:         fc,
 			LanhcNamespace: lanhcNamespace,
-			ProxyImage:         testProxyImage,
-			DefaultTags:        []string{"tag:k8s-peer-relay"},
-			Clients:            &fakeClientProvider{client: tsc},
-			Resolver:           testResolver,
-			Logger:             logger.Sugar(),
+			ProxyImage:     testProxyImage,
+			DefaultTags:    []string{"tag:k8s-peer-relay"},
+			Clients:        &fakeClientProvider{client: tsc},
+			Resolver:       testResolver,
+			Logger:         logger.Sugar(),
 		})
 
 		if _, err = r.Reconcile(t.Context(), reconcile.Request{NamespacedName: types.NamespacedName{Name: "test"}}); err != nil {
@@ -1336,13 +1336,13 @@ func TestReconciler_AuthKey_Lifecycle(t *testing.T) {
 		tsc := &fakeTSClient{}
 
 		r := peerrelay.NewReconciler(peerrelay.ReconcilerOptions{
-			Client:             fc,
+			Client:         fc,
 			LanhcNamespace: lanhcNamespace,
-			ProxyImage:         testProxyImage,
-			DefaultTags:        []string{"tag:k8s-peer-relay"},
-			Clients:            &fakeClientProvider{client: tsc},
-			Resolver:           testResolver,
-			Logger:             logger.Sugar(),
+			ProxyImage:     testProxyImage,
+			DefaultTags:    []string{"tag:k8s-peer-relay"},
+			Clients:        &fakeClientProvider{client: tsc},
+			Resolver:       testResolver,
+			Logger:         logger.Sugar(),
 		})
 
 		if _, err = r.Reconcile(t.Context(), reconcile.Request{NamespacedName: types.NamespacedName{Name: "test"}}); err != nil {
@@ -1411,13 +1411,13 @@ func TestReconciler_DeletesTailnetDevices(t *testing.T) {
 
 		tsc := &fakeTSClient{}
 		r := peerrelay.NewReconciler(peerrelay.ReconcilerOptions{
-			Client:             fc,
+			Client:         fc,
 			LanhcNamespace: lanhcNamespace,
-			ProxyImage:         testProxyImage,
-			DefaultTags:        []string{"tag:test-peer-relay"},
-			Clients:            &fakeClientProvider{client: tsc},
-			Resolver:           testResolver,
-			Logger:             logger.Sugar(),
+			ProxyImage:     testProxyImage,
+			DefaultTags:    []string{"tag:test-peer-relay"},
+			Clients:        &fakeClientProvider{client: tsc},
+			Resolver:       testResolver,
+			Logger:         logger.Sugar(),
 		})
 
 		if _, err = r.Reconcile(t.Context(), reconcile.Request{NamespacedName: types.NamespacedName{Name: "test"}}); err != nil {
@@ -1460,13 +1460,13 @@ func TestReconciler_DeletesTailnetDevices(t *testing.T) {
 
 		tsc := &fakeTSClient{}
 		r := peerrelay.NewReconciler(peerrelay.ReconcilerOptions{
-			Client:             fc,
+			Client:         fc,
 			LanhcNamespace: lanhcNamespace,
-			ProxyImage:         testProxyImage,
-			DefaultTags:        []string{"tag:test-peer-relay"},
-			Clients:            &fakeClientProvider{client: tsc},
-			Resolver:           testResolver,
-			Logger:             logger.Sugar(),
+			ProxyImage:     testProxyImage,
+			DefaultTags:    []string{"tag:test-peer-relay"},
+			Clients:        &fakeClientProvider{client: tsc},
+			Resolver:       testResolver,
+			Logger:         logger.Sugar(),
 		})
 
 		if _, err = r.Reconcile(t.Context(), reconcile.Request{NamespacedName: types.NamespacedName{Name: "test"}}); err != nil {
@@ -1514,13 +1514,13 @@ func TestReconciler_TailnetUnavailable(t *testing.T) {
 		Build()
 
 	r := peerrelay.NewReconciler(peerrelay.ReconcilerOptions{
-		Client:             fc,
+		Client:         fc,
 		LanhcNamespace: lanhcNamespace,
-		ProxyImage:         testProxyImage,
-		DefaultTags:        []string{"tag:test-peer-relay"},
-		Clients:            &fakeClientProvider{err: errors.New("tailnet missing: not ready")},
-		Resolver:           testResolver,
-		Logger:             logger.Sugar(),
+		ProxyImage:     testProxyImage,
+		DefaultTags:    []string{"tag:test-peer-relay"},
+		Clients:        &fakeClientProvider{err: errors.New("tailnet missing: not ready")},
+		Resolver:       testResolver,
+		Logger:         logger.Sugar(),
 	})
 
 	if _, err = r.Reconcile(t.Context(), reconcile.Request{NamespacedName: types.NamespacedName{Name: "test"}}); err == nil {
@@ -1570,7 +1570,7 @@ func TestReconciler_AppliesProxyClass(t *testing.T) {
 		Spec: tsapi.ProxyClassSpec{
 			StatefulSet: &tsapi.StatefulSet{
 				Labels: tsapi.Labels{
-					"team":                          "networking",
+					"team":                      "networking",
 					"lanhc.com/parent-resource": "hijack-attempt", // must NOT overwrite reconciler-managed value
 				},
 				Annotations: map[string]string{"observability.example.com/scrape": "true"},
@@ -1595,13 +1595,13 @@ func TestReconciler_AppliesProxyClass(t *testing.T) {
 		Build()
 
 	r := peerrelay.NewReconciler(peerrelay.ReconcilerOptions{
-		Client:             fc,
+		Client:         fc,
 		LanhcNamespace: lanhcNamespace,
-		ProxyImage:         testProxyImage,
-		DefaultTags:        []string{"tag:test-peer-relay"},
-		Clients:            &fakeClientProvider{client: &fakeTSClient{}},
-		Resolver:           testResolver,
-		Logger:             logger.Sugar(),
+		ProxyImage:     testProxyImage,
+		DefaultTags:    []string{"tag:test-peer-relay"},
+		Clients:        &fakeClientProvider{client: &fakeTSClient{}},
+		Resolver:       testResolver,
+		Logger:         logger.Sugar(),
 	})
 
 	if _, err = r.Reconcile(t.Context(), reconcile.Request{NamespacedName: types.NamespacedName{Name: "test"}}); err != nil {

@@ -141,8 +141,8 @@ type weight uint64
 
 const (
 	weightLanhcTraffic weight = 15
-	weightKnownTraffic     weight = 12
-	weightCatchAll         weight = 0
+	weightKnownTraffic weight = 12
+	weightCatchAll     weight = 0
 )
 
 func (f *Firewall) enable() error {

@@ -23,7 +23,7 @@ import (
 var (
 	listen            = flag.String("listen", ":8080", "Address to listen on for HTTPS proxy requests")
 	hostname          = flag.String("hostname", "localhost", "Hostname for the proxy server")
-	lanhcOnly     = flag.Bool("lanhc-only", true, "Restrict proxy to Lanhc targets only")
+	lanhcOnly         = flag.Bool("lanhc-only", true, "Restrict proxy to Lanhc targets only")
 	extraAllowedHosts = flag.String("allow-hosts", "", "Comma-separated list of allowed target hosts to additionally allow if --lanhc-only is true")
 )
 

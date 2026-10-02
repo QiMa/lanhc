@@ -17,9 +17,9 @@ func TestDeps(t *testing.T) {
 			"gvisor.dev/gvisor/pkg/cpuid":        "https://github.com/lanhc/lanhc/issues/9756",
 			"gvisor.dev/gvisor/pkg/tcpip":        "https://github.com/lanhc/lanhc/issues/9756",
 			"gvisor.dev/gvisor/pkg/tcpip/header": "https://github.com/lanhc/lanhc/issues/9756",
-			"lanhc.com/wgengine/filter":      "brings in bart, etc",
+			"lanhc.com/wgengine/filter":          "brings in bart, etc",
 			"github.com/bits-and-blooms/bitset":  "unneeded in CLI",
-			"lanhc.com/net/ipset":            "unneeded in CLI",
+			"lanhc.com/net/ipset":                "unneeded in CLI",
 		},
 	}.Check(t)
 }

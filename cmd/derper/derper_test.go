@@ -106,7 +106,7 @@ func TestDeps(t *testing.T) {
 			"gvisor.dev/gvisor/pkg/cpuid":        "https://github.com/lanhc/lanhc/issues/9756",
 			"gvisor.dev/gvisor/pkg/tcpip":        "https://github.com/lanhc/lanhc/issues/9756",
 			"gvisor.dev/gvisor/pkg/tcpip/header": "https://github.com/lanhc/lanhc/issues/9756",
-			"lanhc.com/net/packet":           "not needed in derper",
+			"lanhc.com/net/packet":               "not needed in derper",
 			"github.com/gaissmai/bart":           "not needed in derper",
 			"database/sql/driver":                "not needed in derper", // previously came in via github.com/google/uuid
 		},

@@ -1549,8 +1549,8 @@ func TestForwardUDPViaHostScoped(t *testing.T) {
 
 func TestShouldSendToHost(t *testing.T) {
 	var (
-		selfIP4             = netip.MustParseAddr("100.64.1.2")
-		selfIP6             = netip.MustParseAddr("fd7a:115c:a1e0::123")
+		selfIP4         = netip.MustParseAddr("100.64.1.2")
+		selfIP6         = netip.MustParseAddr("fd7a:115c:a1e0::123")
 		lanhcServiceIP4 = netip.MustParseAddr("100.99.55.111")
 		lanhcServiceIP6 = netip.MustParseAddr("fd7a:115c:a1e0::abcd")
 	)

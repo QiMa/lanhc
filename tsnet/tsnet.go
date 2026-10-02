@@ -438,7 +438,7 @@ func (testHooks) LocalBackend(s *Server) *ipnlocal.LocalBackend {
 //
 // The HTTP server also serves out the "LocalAPI" on /localapi.
 // As the LocalAPI is powerful, access to endpoints requires BOTH passing a
-// "Sec-Lanhc: localapi" HTTP header and passing localAPICred as basic auth.
+// "Sec-Tailscale: localapi" HTTP header and passing localAPICred as basic auth.
 //
 // If you only need to use the LocalAPI from Go, then prefer LocalClient
 // as it does not require communication via TCP.
@@ -514,9 +514,9 @@ type localSecHandler struct {
 }
 
 func (h *localSecHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get("Sec-Lanhc") != "localapi" {
+	if r.Header.Get("Sec-Tailscale") != "localapi" {
 		w.WriteHeader(403)
-		io.WriteString(w, "missing 'Sec-Lanhc: localapi' header")
+		io.WriteString(w, "missing 'Sec-Tailscale: localapi' header")
 		return
 	}
 	h.h.ServeHTTP(w, r)

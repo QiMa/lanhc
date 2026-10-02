@@ -67,7 +67,7 @@ func TestSetDNS(t *testing.T) {
 				MatchDomains:  []dnsname.FQDN{"ts.net."},
 			},
 			fileContents: map[string]string{
-				"ts.net":           macResolverFileHeader + "nameserver 100.100.100.100\n",
+				"ts.net":       macResolverFileHeader + "nameserver 100.100.100.100\n",
 				"search.lanhc": macResolverFileHeader + "search tail1234.ts.net\n",
 			},
 		},

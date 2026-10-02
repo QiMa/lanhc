@@ -76,8 +76,8 @@ const (
 	EnableIncomingConnections Key = "AllowIncomingConnections"
 	EnableServerMode          Key = "UnattendedMode"
 	ExitNodeAllowLANAccess    Key = "ExitNodeAllowLANAccess"
-	EnableLanhcDNS        Key = "UseLanhcDNSSettings"
-	EnableLanhcSubnets    Key = "UseLanhcSubnets"
+	EnableLanhcDNS            Key = "UseLanhcDNSSettings"
+	EnableLanhcSubnets        Key = "UseLanhcSubnets"
 
 	// EnableDNSRegistration is a string value that can be set to "always", "never"
 	// or "user-decides". It controls whether DNS registration and dynamic DNS

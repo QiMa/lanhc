@@ -42,8 +42,8 @@ const (
 	reasonLanhcStateLoaded       = "LanhcStateLoaded"
 	reasonLanhcStateUpdateFailed = "LanhcStateUpdateFailed"
 	reasonLanhcStateLoadFailed   = "LanhcStateLoadFailed"
-	eventTypeWarning                 = "Warning"
-	eventTypeNormal                  = "Normal"
+	eventTypeWarning             = "Warning"
+	eventTypeNormal              = "Normal"
 
 	keyTLSCert = "tls.crt"
 	keyTLSKey  = "tls.key"
@@ -520,9 +520,9 @@ func (s *Store) certSecretSelector() map[string]string {
 	}
 	pgName := s.podName[:p]
 	return map[string]string{
-		kubetypes.LabelSecretType:   kubetypes.LabelSecretTypeCerts,
-		kubetypes.LabelManaged:      "true",
-		"lanhc.com/proxy-group": pgName,
+		kubetypes.LabelSecretType: kubetypes.LabelSecretTypeCerts,
+		kubetypes.LabelManaged:    "true",
+		"lanhc.com/proxy-group":   pgName,
 	}
 }
 

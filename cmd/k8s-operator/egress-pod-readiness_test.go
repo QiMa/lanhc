@@ -20,10 +20,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
 	"lanhc.com/kube/kubetypes"
 	"lanhc.com/tstest"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestEgressPodReadiness(t *testing.T) {

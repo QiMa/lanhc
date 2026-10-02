@@ -158,7 +158,7 @@ func main() {
 		log:                           zlog,
 		tsServer:                      s,
 		tsClient:                      tsc,
-		lanhcNamespace:            tsNamespace,
+		lanhcNamespace:                tsNamespace,
 		operatorSAName:                operatorSAName,
 		restConfig:                    restConfig,
 		proxyImage:                    image,
@@ -350,12 +350,12 @@ func runReconcilers(opts reconcilerOpts) {
 	clients := tsclient.NewProvider(tsclient.Wrap(opts.tsClient))
 
 	tailnetOptions := tailnet.ReconcilerOptions{
-		Client:             mgr.GetClient(),
+		Client:         mgr.GetClient(),
 		LanhcNamespace: opts.lanhcNamespace,
-		OperatorSAName:     opts.operatorSAName,
-		Clock:              tstime.DefaultClock{},
-		Logger:             opts.log,
-		Registry:           clients,
+		OperatorSAName: opts.operatorSAName,
+		Clock:          tstime.DefaultClock{},
+		Logger:         opts.log,
+		Registry:       clients,
 	}
 
 	if err = tailnet.NewReconciler(tailnetOptions).Register(mgr); err != nil {
@@ -371,12 +371,12 @@ func runReconcilers(opts reconcilerOpts) {
 	}
 
 	peerRelayOptions := peerrelay.ReconcilerOptions{
-		Client:             mgr.GetClient(),
+		Client:         mgr.GetClient(),
 		LanhcNamespace: opts.lanhcNamespace,
-		ProxyImage:         opts.proxyImage,
-		DefaultTags:        strings.Split(opts.proxyTags, ","),
-		Clients:            clients,
-		Logger:             opts.log,
+		ProxyImage:     opts.proxyImage,
+		DefaultTags:    strings.Split(opts.proxyTags, ","),
+		Clients:        clients,
+		Logger:         opts.log,
 	}
 
 	if err = peerrelay.NewReconciler(peerRelayOptions).Register(mgr); err != nil {
@@ -793,13 +793,13 @@ func runReconcilers(opts reconcilerOpts) {
 }
 
 type reconcilerOpts struct {
-	log                *zap.SugaredLogger
-	tsServer           *tsnet.Server
-	tsClient           *lanhcclient.Client
+	log            *zap.SugaredLogger
+	tsServer       *tsnet.Server
+	tsClient       *lanhcclient.Client
 	lanhcNamespace string       // namespace in which operator resources will be deployed
-	restConfig         *rest.Config // config for connecting to the kube API server
-	proxyImage         string       // <proxy-image-repo>:<proxy-image-tag>
-	k8sProxyImage      string       // <k8s-proxy-image-repo>:<k8s-proxy-image-tag>
+	restConfig     *rest.Config // config for connecting to the kube API server
+	proxyImage     string       // <proxy-image-repo>:<proxy-image-tag>
+	k8sProxyImage  string       // <k8s-proxy-image-repo>:<k8s-proxy-image-tag>
 	// proxyPriorityClassName isPriorityClass to be set for proxy Pods. This
 	// is a legacy mechanism for cluster resource configuration options -
 	// going forward use ProxyClass.

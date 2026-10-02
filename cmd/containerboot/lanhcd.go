@@ -199,9 +199,9 @@ func lanhcSet(ctx context.Context, cfg *settings) error {
 
 func watchLanhcdConfigChanges(ctx context.Context, path string, lc *local.Client, errCh chan<- error) {
 	var (
-		tickChan          <-chan time.Time
-		eventChan         <-chan fsnotify.Event
-		errChan           <-chan error
+		tickChan      <-chan time.Time
+		eventChan     <-chan fsnotify.Event
+		errChan       <-chan error
 		lanhcdCfgDir  = filepath.Dir(path)
 		prevLanhcdCfg []byte
 	)

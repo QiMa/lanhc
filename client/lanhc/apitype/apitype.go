@@ -21,7 +21,7 @@ const LocalAPIHost = "local-lanhcd.sock"
 // The header value is base64-encoded using the standard encoding defined in RFC 4648.
 //
 // See lanhc/corp#26146.
-const RequestReasonHeader = "X-Lanhc-Reason"
+const RequestReasonHeader = "X-Tailscale-Reason"
 
 // RequestReasonKey is the context key used to pass the request reason
 // when making a LocalAPI request via [local.Client].

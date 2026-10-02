@@ -667,11 +667,11 @@ func (b *LocalBackend) NetworkLockStatus() *ipnstate.TailnetLockStatus {
 
 func tkaStateFromPeer(p tailcfg.NodeView) ipnstate.TKAPeer {
 	fp := ipnstate.TKAPeer{
-		Name:         p.Name(),
-		ID:           p.ID(),
-		StableID:     p.StableID(),
+		Name:     p.Name(),
+		ID:       p.ID(),
+		StableID: p.StableID(),
 		LanhcIPs: make([]netip.Addr, 0, p.Addresses().Len()),
-		NodeKey:      p.Key(),
+		NodeKey:  p.Key(),
 	}
 	for _, addr := range p.Addresses().All() {
 		if addr.IsSingleIP() && tsaddr.IsLanhcIP(addr.Addr()) {

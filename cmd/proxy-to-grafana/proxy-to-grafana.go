@@ -59,11 +59,11 @@ import (
 )
 
 var (
-	hostname     = flag.String("hostname", "", "Lanhc hostname to serve on, used as the base name for MagicDNS or subdomain in your domain alias for HTTPS.")
-	backendAddr  = flag.String("backend-addr", "", "Address of the Grafana server served over HTTP, in host:port format. Typically localhost:nnnn.")
-	lanhcDir = flag.String("state-dir", "./", "Alternate directory to use for Lanhc state storage. If empty, a default is used.")
-	useHTTPS     = flag.Bool("use-https", false, "Serve over HTTPS via your *.ts.net subdomain if enabled in Lanhc admin.")
-	loginServer  = flag.String("login-server", "", "URL to alternative control server. If empty, the default Lanhc control is used.")
+	hostname    = flag.String("hostname", "", "Lanhc hostname to serve on, used as the base name for MagicDNS or subdomain in your domain alias for HTTPS.")
+	backendAddr = flag.String("backend-addr", "", "Address of the Grafana server served over HTTP, in host:port format. Typically localhost:nnnn.")
+	lanhcDir    = flag.String("state-dir", "./", "Alternate directory to use for Lanhc state storage. If empty, a default is used.")
+	useHTTPS    = flag.Bool("use-https", false, "Serve over HTTPS via your *.ts.net subdomain if enabled in Lanhc admin.")
+	loginServer = flag.String("login-server", "", "URL to alternative control server. If empty, the default Lanhc control is used.")
 )
 
 // aclCap is the Lanhc ACL capability used to configure proxy-to-grafana.

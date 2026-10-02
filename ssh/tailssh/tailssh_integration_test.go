@@ -840,10 +840,10 @@ func testClient(t *testing.T, forceV1Behavior bool, allowSendEnv bool, authMetho
 
 func testServer(t *testing.T, username string, forceV1Behavior bool, allowSendEnv bool) string {
 	srv := &server{
-		lb:             &testBackend{localUser: username, forceV1Behavior: forceV1Behavior, allowSendEnv: allowSendEnv},
-		logf:           log.Printf,
+		lb:         &testBackend{localUser: username, forceV1Behavior: forceV1Behavior, allowSendEnv: allowSendEnv},
+		logf:       log.Printf,
 		lanhcdPath: os.Getenv("LANHCD_PATH"),
-		timeNow:        time.Now,
+		timeNow:    time.Now,
 	}
 
 	l, err := net.Listen("tcp", "127.0.0.1:0")
@@ -887,9 +887,9 @@ func testServerWithOpts(t *testing.T, opts testServerOpts) string {
 			allowLocalPortForwarding:  opts.allowLocalPortForwarding,
 			allowRemotePortForwarding: opts.allowRemotePortForwarding,
 		},
-		logf:           logf,
+		logf:       logf,
 		lanhcdPath: os.Getenv("LANHCD_PATH"),
-		timeNow:        time.Now,
+		timeNow:    time.Now,
 	}
 
 	l, err := net.Listen("tcp", "127.0.0.1:0")

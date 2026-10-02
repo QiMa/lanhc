@@ -272,11 +272,11 @@ func TestTailnetLockStatusOutput(t *testing.T) {
 					},
 					VisiblePeers: []*ipnstate.TKAPeer{
 						{
-							Name:         "authentic-associate",
-							ID:           tailcfg.NodeID(1234),
-							StableID:     tailcfg.StableNodeID("1234_AAAA_TEST"),
+							Name:     "authentic-associate",
+							ID:       tailcfg.NodeID(1234),
+							StableID: tailcfg.StableNodeID("1234_AAAA_TEST"),
 							LanhcIPs: []netip.Addr{tailnetIPv4_A, tailnetIPv6_A},
-							NodeKey:      nodeKey2,
+							NodeKey:  nodeKey2,
 							NodeKeySignature: tka.NodeKeySignature{
 								SigKind:        tka.SigDirect,
 								Pubkey:         []byte("22222222222222222222222222222222"),
@@ -288,11 +288,11 @@ func TestTailnetLockStatusOutput(t *testing.T) {
 					},
 					FilteredPeers: []*ipnstate.TKAPeer{
 						{
-							Name:         "bogus-bandit",
-							ID:           tailcfg.NodeID(5678),
-							StableID:     tailcfg.StableNodeID("5678_BBBB_TEST"),
+							Name:     "bogus-bandit",
+							ID:       tailcfg.NodeID(5678),
+							StableID: tailcfg.StableNodeID("5678_BBBB_TEST"),
 							LanhcIPs: []netip.Addr{tailnetIPv4_B, tailnetIPv6_B},
-							NodeKey:      nodeKey3,
+							NodeKey:  nodeKey3,
 						},
 					},
 					StateID: 98989898,

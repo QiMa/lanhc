@@ -49,12 +49,12 @@ type (
 		client.Client
 
 		lanhcNamespace string
-		proxyImage         string
-		defaultTags        []string
-		tsClients          lanhcd.ClientProvider
-		resolver           func(ctx context.Context, network, host string) ([]netip.Addr, error)
-		logger             *zap.SugaredLogger
-		clock              tstime.Clock
+		proxyImage     string
+		defaultTags    []string
+		tsClients      lanhcd.ClientProvider
+		resolver       func(ctx context.Context, network, host string) ([]netip.Addr, error)
+		logger         *zap.SugaredLogger
+		clock          tstime.Clock
 
 		// Metrics related fields
 		mu         sync.Mutex
@@ -121,14 +121,14 @@ func NewReconciler(options ReconcilerOptions) *Reconciler {
 	}
 
 	return &Reconciler{
-		Client:             options.Client,
+		Client:         options.Client,
 		lanhcNamespace: options.LanhcNamespace,
-		proxyImage:         options.ProxyImage,
-		defaultTags:        options.DefaultTags,
-		tsClients:          options.Clients,
-		resolver:           resolver,
-		logger:             options.Logger.Named(reconcilerName),
-		clock:              clock,
+		proxyImage:     options.ProxyImage,
+		defaultTags:    options.DefaultTags,
+		tsClients:      options.Clients,
+		resolver:       resolver,
+		logger:         options.Logger.Named(reconcilerName),
+		clock:          clock,
 	}
 }
 

@@ -37,8 +37,8 @@ import (
 
 	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
-	"lanhc.com/client/local"
 	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/client/local"
 	"lanhc.com/envknob"
 	"lanhc.com/hostinfo"
 	"lanhc.com/ipn"
@@ -75,7 +75,7 @@ var (
 	flagVerbose                       = flag.Bool("verbose", false, "be verbose")
 	flagPort                          = flag.Int("port", 443, "port to listen on")
 	flagLocalPort                     = flag.Int("local-port", -1, "allow requests from localhost")
-	flagUseLocalLanhcd            = flag.Bool("use-local-lanhcd", false, "use local lanhcd instead of tsnet")
+	flagUseLocalLanhcd                = flag.Bool("use-local-lanhcd", false, "use local lanhcd instead of tsnet")
 	flagFunnel                        = flag.Bool("funnel", false, "use Lanhc Funnel to make tsidp available on the public internet")
 	flagHostname                      = flag.String("hostname", "idp", "tsnet hostname to use instead of idp")
 	flagDir                           = flag.String("dir", "", "tsnet state directory; a default one will be created if not provided")
@@ -1469,7 +1469,7 @@ func parseID[T ~int64](input string) (_ T, ok bool) {
 func isFunnelRequest(r *http.Request) bool {
 	// If we're funneling through the local lanhcd, it will set this HTTP
 	// header.
-	if r.Header.Get("Lanhc-Funnel-Request") != "" {
+	if r.Header.Get("Tailscale-Funnel-Request") != "" {
 		return true
 	}
 

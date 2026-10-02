@@ -39,8 +39,8 @@ import (
 
 	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
-	"lanhc.com/client/local"
 	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/client/local"
 	"lanhc.com/tailcfg"
 	"lanhc.com/types/key"
 	"lanhc.com/types/opt"
@@ -1583,7 +1583,7 @@ func TestAuthorizeStrictMode(t *testing.T) {
 
 			// Set funnel header only when explicitly testing funnel behavior
 			if tt.useFunnel {
-				req.Header.Set("Lanhc-Funnel-Request", "true")
+				req.Header.Set("Tailscale-Funnel-Request", "true")
 			}
 
 			rr := httptest.NewRecorder()

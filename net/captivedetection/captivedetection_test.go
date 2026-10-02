@@ -107,16 +107,16 @@ func TestCaptivePortalRequest(t *testing.T) {
 		if got, want := q.Get("t"), strconv.Itoa(int(now.Unix())); got != want {
 			t.Errorf("timestamp param; got %v, want %v", got, want)
 		}
-		w.Header().Set("X-Lanhc-Response", "response "+r.Header.Get("X-Lanhc-Challenge"))
+		w.Header().Set("X-Tailscale-Response", "response "+r.Header.Get("X-Tailscale-Challenge"))
 
 		w.WriteHeader(http.StatusNoContent)
 	}))
 	defer s.Close()
 
 	e := Endpoint{
-		URL:                        must.Get(url.Parse(s.URL + "/generate_204")),
-		StatusCode:                 204,
-		ExpectedContent:            "",
+		URL:                    must.Get(url.Parse(s.URL + "/generate_204")),
+		StatusCode:             204,
+		ExpectedContent:        "",
 		SupportsLanhcChallenge: true,
 	}
 
@@ -137,9 +137,9 @@ func TestAgainstDERPHandler(t *testing.T) {
 	s := httptest.NewServer(http.HandlerFunc(derpserver.ServeNoContent))
 	defer s.Close()
 	e := Endpoint{
-		URL:                        must.Get(url.Parse(s.URL + "/generate_204")),
-		StatusCode:                 204,
-		ExpectedContent:            "",
+		URL:                    must.Get(url.Parse(s.URL + "/generate_204")),
+		StatusCode:             204,
+		ExpectedContent:        "",
 		SupportsLanhcChallenge: true,
 	}
 	found, err := d.verifyCaptivePortalEndpoint(ctx, e, 0)

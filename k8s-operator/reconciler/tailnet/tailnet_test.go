@@ -384,12 +384,12 @@ func TestReconciler_Reconcile(t *testing.T) {
 
 			fc := builder.Build()
 			opts := tailnet.ReconcilerOptions{
-				Client:             fc,
-				Clock:              clock,
-				Logger:             logger.Sugar(),
-				ClientFunc:         tc.ClientFunc,
+				Client:         fc,
+				Clock:          clock,
+				Logger:         logger.Sugar(),
+				ClientFunc:     tc.ClientFunc,
 				LanhcNamespace: "lanhc",
-				Registry:           tsclient.NewProvider(nil),
+				Registry:       tsclient.NewProvider(nil),
 			}
 
 			reconciler := tailnet.NewReconciler(opts)

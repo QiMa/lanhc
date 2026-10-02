@@ -31,7 +31,7 @@ var _TKAPeerCloneNeedsRegeneration = TKAPeer(struct {
 	Name             string
 	ID               tailcfg.NodeID
 	StableID         tailcfg.StableNodeID
-	LanhcIPs     []netip.Addr
+	LanhcIPs         []netip.Addr
 	NodeKey          key.NodePublic
 	NodeKeySignature tka.NodeKeySignature
 }{})

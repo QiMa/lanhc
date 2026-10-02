@@ -215,7 +215,7 @@ func (d *Detector) verifyCaptivePortalEndpoint(ctx context.Context, e Endpoint, 
 		// length is limited; see isChallengeChar in cmd/derper for more
 		// details.
 		chal := "ts_" + e.URL.Host
-		req.Header.Set("X-Lanhc-Challenge", chal)
+		req.Header.Set("X-Tailscale-Challenge", chal)
 	}
 
 	d.mu.Lock()

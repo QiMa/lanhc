@@ -617,7 +617,7 @@ func TestUnpackLinuxTarball(t *testing.T) {
 			before: map[string]string{
 				"lanhc":  "v1",
 				"lanhcd": "v1",
-				"foo":        "bar",
+				"foo":    "bar",
 			},
 			tarball: map[string]string{
 				"/usr/bin/lanhc":  "v2",
@@ -626,7 +626,7 @@ func TestUnpackLinuxTarball(t *testing.T) {
 			after: map[string]string{
 				"lanhc":  "v2",
 				"lanhcd": "v2",
-				"foo":        "bar",
+				"foo":    "bar",
 			},
 		},
 		{

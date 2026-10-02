@@ -773,7 +773,7 @@ func TestPrefsFromUpArgs(t *testing.T) {
 			st: &ipnstate.Status{
 				Peer: map[key.NodePublic]*ipnstate.PeerStatus{
 					key.NewNode().Public(): {
-						DNSName:      "example.com.",
+						DNSName:  "example.com.",
 						LanhcIPs: []netip.Addr{netip.MustParseAddr("1.0.0.2")},
 					},
 				},
@@ -1277,8 +1277,8 @@ func TestUpdatePrefs(t *testing.T) {
 			}},
 		},
 		{
-			name:             "disable_ssh_over_ssh_no_risk",
-			flags:            []string{"--ssh=false"},
+			name:         "disable_ssh_over_ssh_no_risk",
+			flags:        []string{"--ssh=false"},
 			sshOverLanhc: true,
 			curPrefs: &ipn.Prefs{
 				ControlURL:          "https://login.lanhc.com",
@@ -1301,8 +1301,8 @@ func TestUpdatePrefs(t *testing.T) {
 			wantErrSubtr: "aborted, no changes made",
 		},
 		{
-			name:             "enable_ssh_over_ssh_no_risk",
-			flags:            []string{"--ssh=true"},
+			name:         "enable_ssh_over_ssh_no_risk",
+			flags:        []string{"--ssh=true"},
 			sshOverLanhc: true,
 			curPrefs: &ipn.Prefs{
 				ControlURL:          "https://login.lanhc.com",
@@ -1324,8 +1324,8 @@ func TestUpdatePrefs(t *testing.T) {
 			wantErrSubtr: "aborted, no changes made",
 		},
 		{
-			name:             "enable_ssh_over_ssh",
-			flags:            []string{"--ssh=true", "--accept-risk=lose-ssh"},
+			name:         "enable_ssh_over_ssh",
+			flags:        []string{"--ssh=true", "--accept-risk=lose-ssh"},
 			sshOverLanhc: true,
 			curPrefs: &ipn.Prefs{
 				ControlURL:          "https://login.lanhc.com",
@@ -1346,8 +1346,8 @@ func TestUpdatePrefs(t *testing.T) {
 			env: upCheckEnv{backendState: "Running"},
 		},
 		{
-			name:             "disable_ssh_over_ssh",
-			flags:            []string{"--ssh=false", "--accept-risk=lose-ssh"},
+			name:         "disable_ssh_over_ssh",
+			flags:        []string{"--ssh=false", "--accept-risk=lose-ssh"},
 			sshOverLanhc: true,
 			curPrefs: &ipn.Prefs{
 				ControlURL:          "https://login.lanhc.com",
@@ -1369,8 +1369,8 @@ func TestUpdatePrefs(t *testing.T) {
 			env: upCheckEnv{backendState: "Running"},
 		},
 		{
-			name:             "force_reauth_over_ssh_no_risk",
-			flags:            []string{"--force-reauth"},
+			name:         "force_reauth_over_ssh_no_risk",
+			flags:        []string{"--force-reauth"},
 			sshOverLanhc: true,
 			curPrefs: &ipn.Prefs{
 				ControlURL:          "https://login.lanhc.com",
@@ -1382,8 +1382,8 @@ func TestUpdatePrefs(t *testing.T) {
 			wantErrSubtr: "aborted, no changes made",
 		},
 		{
-			name:             "force_reauth_over_ssh",
-			flags:            []string{"--force-reauth", "--accept-risk=lose-ssh"},
+			name:         "force_reauth_over_ssh",
+			flags:        []string{"--force-reauth", "--accept-risk=lose-ssh"},
 			sshOverLanhc: true,
 			curPrefs: &ipn.Prefs{
 				ControlURL:          "https://login.lanhc.com",

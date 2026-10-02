@@ -4323,8 +4323,8 @@ func TestApplySysPolicy(t *testing.T) {
 				pkey.EnableIncomingConnections: "never",
 				pkey.EnableServerMode:          "always",
 				pkey.ExitNodeAllowLANAccess:    "always",
-				pkey.EnableLanhcDNS:        "always",
-				pkey.EnableLanhcSubnets:    "always",
+				pkey.EnableLanhcDNS:            "always",
+				pkey.EnableLanhcSubnets:        "always",
 			},
 		},
 		{
@@ -4344,8 +4344,8 @@ func TestApplySysPolicy(t *testing.T) {
 				pkey.EnableIncomingConnections: "never",
 				pkey.EnableServerMode:          "always",
 				pkey.ExitNodeAllowLANAccess:    "never",
-				pkey.EnableLanhcDNS:        "never",
-				pkey.EnableLanhcSubnets:    "never",
+				pkey.EnableLanhcDNS:            "never",
+				pkey.EnableLanhcSubnets:        "never",
 			},
 		},
 		{
@@ -4372,8 +4372,8 @@ func TestApplySysPolicy(t *testing.T) {
 				pkey.EnableIncomingConnections: "always",
 				pkey.EnableServerMode:          "never",
 				pkey.ExitNodeAllowLANAccess:    "always",
-				pkey.EnableLanhcDNS:        "never",
-				pkey.EnableLanhcSubnets:    "always",
+				pkey.EnableLanhcDNS:            "never",
+				pkey.EnableLanhcSubnets:        "always",
 			},
 		},
 		{
@@ -4398,8 +4398,8 @@ func TestApplySysPolicy(t *testing.T) {
 				pkey.EnableIncomingConnections: "user-decides",
 				pkey.EnableServerMode:          "user-decides",
 				pkey.ExitNodeAllowLANAccess:    "user-decides",
-				pkey.EnableLanhcDNS:        "user-decides",
-				pkey.EnableLanhcSubnets:    "user-decides",
+				pkey.EnableLanhcDNS:            "user-decides",
+				pkey.EnableLanhcSubnets:        "user-decides",
 			},
 		},
 		{

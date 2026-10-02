@@ -22,8 +22,8 @@ type fakeBackend struct {
 	varRoot string
 }
 
-func (f *fakeBackend) Sys() *tsd.System         { return nil }
-func (f *fakeBackend) Clock() tstime.Clock      { return f.clock }
+func (f *fakeBackend) Sys() *tsd.System     { return nil }
+func (f *fakeBackend) Clock() tstime.Clock  { return f.clock }
 func (f *fakeBackend) LanhcVarRoot() string { return f.varRoot }
 
 // newTestExtension returns an extension backed by a temp var root and a fixed test clock, with its

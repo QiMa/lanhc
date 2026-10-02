@@ -145,7 +145,7 @@ func (lc *Client) defaultDialer(ctx context.Context, network, addr string) (net.
 // API maturity: this method is not considered a stable API and is
 // subject to change between releases.
 func (lc *Client) DoLocalRequest(req *http.Request) (*http.Response, error) {
-	req.Header.Set("Lanhc-Cap", strconv.Itoa(int(tailcfg.CurrentCapabilityVersion)))
+	req.Header.Set("Tailscale-Cap", strconv.Itoa(int(tailcfg.CurrentCapabilityVersion)))
 	lc.tsClientOnce.Do(func() {
 		lc.tsClient = &http.Client{
 			Transport: cmp.Or(lc.Transport, http.RoundTripper(
@@ -164,7 +164,7 @@ func (lc *Client) DoLocalRequest(req *http.Request) (*http.Response, error) {
 func (lc *Client) doLocalRequestNiceError(req *http.Request) (*http.Response, error) {
 	res, err := lc.DoLocalRequest(req)
 	if err == nil {
-		if server := res.Header.Get("Lanhc-Version"); server != "" && server != envknob.IPCVersion() && onVersionMismatch != nil {
+		if server := res.Header.Get("Tailscale-Version"); server != "" && server != envknob.IPCVersion() && onVersionMismatch != nil {
 			onVersionMismatch(envknob.IPCVersion(), server)
 		}
 		if res.StatusCode == 403 {

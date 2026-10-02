@@ -301,12 +301,12 @@ func (r *HAServiceReconciler) maybeProvision(ctx context.Context, hostname strin
 
 		if ip.Is4() {
 			cfg.IPv4Mapping = &ingressservices.Mapping{
-				ClusterIP:          ip,
+				ClusterIP:      ip,
 				LanhcServiceIP: tsSvcIPv4,
 			}
 		} else if ip.Is6() {
 			cfg.IPv6Mapping = &ingressservices.Mapping{
-				ClusterIP:          ip,
+				ClusterIP:      ip,
 				LanhcServiceIP: tsSvcIPv6,
 			}
 		}

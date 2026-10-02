@@ -49,5 +49,5 @@ type Config struct {
 // Kubernetes Service IP.
 type Mapping struct {
 	LanhcServiceIP netip.Addr `json:"LanhcServiceIP"`
-	ClusterIP          netip.Addr `json:"ClusterIP"`
+	ClusterIP      netip.Addr `json:"ClusterIP"`
 }

@@ -148,19 +148,19 @@ func proxyTCP(c net.Conn, target string) {
 }
 
 func addLanhcIdentityHeaders(lc *local.Client, r *httputil.ProxyRequest) {
-	r.Out.Header.Del("Lanhc-User-Login")
-	r.Out.Header.Del("Lanhc-User-Name")
-	r.Out.Header.Del("Lanhc-User-Profile-Pic")
-	r.Out.Header.Del("Lanhc-Funnel-Request")
-	r.Out.Header.Del("Lanhc-Headers-Info")
+	r.Out.Header.Del("Tailscale-User-Login")
+	r.Out.Header.Del("Tailscale-User-Name")
+	r.Out.Header.Del("Tailscale-User-Profile-Pic")
+	r.Out.Header.Del("Tailscale-Funnel-Request")
+	r.Out.Header.Del("Tailscale-Headers-Info")
 
 	who, err := lc.WhoIs(r.In.Context(), r.In.RemoteAddr)
 	if err != nil || who == nil || who.Node.IsTagged() {
 		return
 	}
-	r.Out.Header.Set("Lanhc-User-Login", encHeader(who.UserProfile.LoginName))
-	r.Out.Header.Set("Lanhc-User-Name", encHeader(who.UserProfile.DisplayName))
-	r.Out.Header.Set("Lanhc-User-Profile-Pic", who.UserProfile.ProfilePicURL)
+	r.Out.Header.Set("Tailscale-User-Login", encHeader(who.UserProfile.LoginName))
+	r.Out.Header.Set("Tailscale-User-Name", encHeader(who.UserProfile.DisplayName))
+	r.Out.Header.Set("Tailscale-User-Profile-Pic", who.UserProfile.ProfilePicURL)
 }
 
 // encHeader mirrors the encoding lanhcd's serve path applies to

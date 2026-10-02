@@ -36,7 +36,7 @@ func setQuarantineAttr(f *os.File) error {
 	attrData := fmt.Sprintf("%s;%x;%s;%s",
 		quarantineType, // quarantine value
 		now.Unix(),     // time in hex
-		"Lanhc",    // application
+		"Lanhc",        // application
 		id,             // UUID
 	)
 

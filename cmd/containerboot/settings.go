@@ -61,7 +61,7 @@ type settings struct {
 	AuthOnce                      bool
 	Root                          string
 	KubernetesCanPatch            bool
-	LanhcdConfigFilePath      string
+	LanhcdConfigFilePath          string
 	EnableForwardingOptimizations bool
 	// If set to true and, if this containerboot instance is a Kubernetes
 	// ingress proxy, set up rules to forward incoming cluster traffic to be
@@ -125,7 +125,7 @@ func configFromEnv() (*settings, error) {
 		Socket:                                cmp.Or(os.Getenv("TS_SOCKET"), "/tmp/lanhcd.sock"),
 		AuthOnce:                              def.Bool(os.Getenv("TS_AUTH_ONCE"), false),
 		Root:                                  cmp.Or(os.Getenv("TS_TEST_ONLY_ROOT"), "/"),
-		LanhcdConfigFilePath:              lanhcdConfigFilePath(),
+		LanhcdConfigFilePath:                  lanhcdConfigFilePath(),
 		AllowProxyingClusterTrafficViaIngress: def.Bool(os.Getenv("EXPERIMENTAL_ALLOW_PROXYING_CLUSTER_TRAFFIC_VIA_INGRESS"), false),
 		PodIP:                                 os.Getenv("POD_IP"),
 		EnableForwardingOptimizations:         def.Bool(os.Getenv("TS_EXPERIMENTAL_ENABLE_FORWARDING_OPTIMIZATIONS"), false),

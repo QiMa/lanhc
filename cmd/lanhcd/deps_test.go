@@ -33,8 +33,8 @@ func TestOmitSSH(t *testing.T) {
 		Tags:   "ts_omit_ssh,ts_include_cli",
 		BadDeps: map[string]string{
 			"golang.org/x/crypto/ssh":              msg,
-			"lanhc.com/ssh/tailssh":            msg,
-			"lanhc.com/sessionrecording":       msg,
+			"lanhc.com/ssh/tailssh":                msg,
+			"lanhc.com/sessionrecording":           msg,
 			"github.com/anmitsu/go-shlex":          msg,
 			"github.com/creack/pty":                msg,
 			"github.com/kr/fs":                     msg,
@@ -54,7 +54,7 @@ func TestOmitSyslog(t *testing.T) {
 		// SSH too to lock down the standard library package.
 		Tags: "ts_omit_syslog,ts_omit_ssh,ts_include_cli",
 		BadDeps: map[string]string{
-			"log/syslog":                   msg,
+			"log/syslog":               msg,
 			"lanhc.com/feature/syslog": msg,
 		},
 	}.Check(t)
@@ -343,12 +343,12 @@ func TestMinLanhcdWithCLI(t *testing.T) {
 			"runtime/pprof":                          "unexpected runtime/pprof dep",
 			"net/http/pprof":                         "unexpected net/http/pprof dep",
 			"github.com/mdlayher/genetlink":          "unexpected genetlink dep",
-			"lanhc.com/clientupdate":             "unexpected clientupdate dep",
+			"lanhc.com/clientupdate":                 "unexpected clientupdate dep",
 			"filippo.io/edwards25519":                "unexpected edwards25519 dep",
 			"github.com/hdevalence/ed25519consensus": "unexpected ed25519consensus dep",
-			"lanhc.com/clientupdate/distsign":    "unexpected distsign dep",
+			"lanhc.com/clientupdate/distsign":        "unexpected distsign dep",
 			"archive/tar":                            "unexpected archive/tar dep",
-			"lanhc.com/feature/conn25":           "unexpected conn25 dep",
+			"lanhc.com/feature/conn25":               "unexpected conn25 dep",
 			"regexp":                                 "unexpected regexp dep; bloats binary",
 			"github.com/toqueteos/webbrowser":        "unexpected webbrowser dep with ts_omit_webbrowser",
 			"github.com/mattn/go-colorable":          "unexpected go-colorable dep with ts_omit_colorable",

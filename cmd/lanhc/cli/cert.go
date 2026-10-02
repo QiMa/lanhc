@@ -21,13 +21,13 @@ import (
 	"time"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
-	"software.sslmate.com/src/go-pkcs12"
 	"lanhc.com/atomicfile"
 	"lanhc.com/feature/buildfeatures"
 	"lanhc.com/health"
 	"lanhc.com/ipn"
 	"lanhc.com/tsconst"
 	"lanhc.com/version"
+	"software.sslmate.com/src/go-pkcs12"
 )
 
 func init() {

@@ -252,7 +252,7 @@ const (
 	ProxyClassReady     ConditionType = `ProxyClassReady`
 	ProxyGroupReady     ConditionType = `ProxyGroupReady`     // All proxy Pods running.
 	ProxyGroupAvailable ConditionType = `ProxyGroupAvailable` // At least one proxy Pod running.
-	ProxyReady          ConditionType = `LanhcProxyReady` // a Lanhc-specific condition type for corev1.Service
+	ProxyReady          ConditionType = `LanhcProxyReady`     // a Lanhc-specific condition type for corev1.Service
 	RecorderReady       ConditionType = `RecorderReady`
 	// EgressSvcValid gets set on a user configured ExternalName Service that defines a tailnet target to be exposed
 	// on a ProxyGroup.

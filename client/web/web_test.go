@@ -20,8 +20,8 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"lanhc.com/client/local"
 	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/client/local"
 	"lanhc.com/ipn"
 	"lanhc.com/ipn/ipnstate"
 	"lanhc.com/net/memnet"
@@ -474,32 +474,32 @@ func TestAuthorizeRequest(t *testing.T) {
 		reqPath   string
 		reqMethod string
 
-		wantOkNotOverLanhc bool // simulates req over public internet
-		wantOkWithoutSession   bool // simulates req over TS without valid browser session
-		wantOkWithSession      bool // simulates req over TS with valid browser session
+		wantOkNotOverLanhc   bool // simulates req over public internet
+		wantOkWithoutSession bool // simulates req over TS without valid browser session
+		wantOkWithSession    bool // simulates req over TS with valid browser session
 	}{{
-		reqPath:                "/api/data",
-		reqMethod:              httpm.GET,
-		wantOkNotOverLanhc: false,
-		wantOkWithoutSession:   true,
-		wantOkWithSession:      true,
+		reqPath:              "/api/data",
+		reqMethod:            httpm.GET,
+		wantOkNotOverLanhc:   false,
+		wantOkWithoutSession: true,
+		wantOkWithSession:    true,
 	}, {
-		reqPath:                "/api/data",
-		reqMethod:              httpm.POST,
-		wantOkNotOverLanhc: false,
-		wantOkWithoutSession:   false,
-		wantOkWithSession:      true,
+		reqPath:              "/api/data",
+		reqMethod:            httpm.POST,
+		wantOkNotOverLanhc:   false,
+		wantOkWithoutSession: false,
+		wantOkWithSession:    true,
 	}, {
-		reqPath:                "/api/somethingelse",
-		reqMethod:              httpm.GET,
-		wantOkNotOverLanhc: false,
-		wantOkWithoutSession:   false,
-		wantOkWithSession:      true,
+		reqPath:              "/api/somethingelse",
+		reqMethod:            httpm.GET,
+		wantOkNotOverLanhc:   false,
+		wantOkWithoutSession: false,
+		wantOkWithSession:    true,
 	}, {
-		reqPath:                "/assets/styles.css",
-		wantOkNotOverLanhc: false,
-		wantOkWithoutSession:   true,
-		wantOkWithSession:      true,
+		reqPath:              "/assets/styles.css",
+		wantOkNotOverLanhc:   false,
+		wantOkWithoutSession: true,
+		wantOkWithSession:    true,
 	}}
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s-%s", tt.reqMethod, tt.reqPath), func(t *testing.T) {
@@ -531,8 +531,8 @@ func TestAuthorizeRequest(t *testing.T) {
 func TestServeAuth(t *testing.T) {
 	user := &tailcfg.UserProfile{LoginName: "user@example.com", ID: tailcfg.UserID(1)}
 	self := &ipnstate.PeerStatus{
-		ID:           "self",
-		UserID:       user.ID,
+		ID:       "self",
+		UserID:   user.ID,
 		LanhcIPs: []netip.Addr{netip.MustParseAddr("100.1.2.3")},
 	}
 	remoteIP := "100.100.100.101"
@@ -853,8 +853,8 @@ func TestServeAPIAuthMetricLogging(t *testing.T) {
 	user := &tailcfg.UserProfile{LoginName: "user@example.com", ID: tailcfg.UserID(1)}
 	otherUser := &tailcfg.UserProfile{LoginName: "user2@example.com", ID: tailcfg.UserID(2)}
 	self := &ipnstate.PeerStatus{
-		ID:           "self",
-		UserID:       user.ID,
+		ID:       "self",
+		UserID:   user.ID,
 		LanhcIPs: []netip.Addr{netip.MustParseAddr("100.1.2.3")},
 	}
 	remoteIP := "100.100.100.101"

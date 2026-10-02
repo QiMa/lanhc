@@ -592,7 +592,7 @@ func TestLoopbackLocalAPI(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	req.Header.Set("Sec-Lanhc", "localapi")
+	req.Header.Set("Sec-Tailscale", "localapi")
 	res, err = http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatal(err)
@@ -620,7 +620,7 @@ func TestLoopbackLocalAPI(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	req.Header.Set("Sec-Lanhc", "localapi")
+	req.Header.Set("Sec-Tailscale", "localapi")
 	req.SetBasicAuth("", localAPICred)
 	res, err = http.DefaultClient.Do(req)
 	if err != nil {
@@ -1217,7 +1217,7 @@ func TestListenService(t *testing.T) {
 				},
 			},
 			run: func(t *testing.T, listeners []*ServiceListener, peer *Server) {
-				expectHeader := "Lanhc-User-Name"
+				expectHeader := "Tailscale-User-Name"
 				go checkAndEcho(t, listeners[0], func(r *http.Request) {
 					if _, ok := r.Header[expectHeader]; !ok {
 						t.Error("did not see expected header:", expectHeader)
@@ -1235,7 +1235,7 @@ func TestListenService(t *testing.T) {
 				},
 			},
 			run: func(t *testing.T, listeners []*ServiceListener, peer *Server) {
-				expectHeader := "Lanhc-User-Name"
+				expectHeader := "Tailscale-User-Name"
 				go checkAndEcho(t, listeners[0], func(r *http.Request) {
 					if _, ok := r.Header[expectHeader]; !ok {
 						t.Error("did not see expected header:", expectHeader)
@@ -1277,7 +1277,7 @@ func TestListenService(t *testing.T) {
 				allPathsCap := "example.com/cap/all-paths"
 				fooCap := "example.com/cap/foo"
 				checkCaps := func(r *http.Request) {
-					rawCaps, ok := r.Header["Lanhc-App-Capabilities"]
+					rawCaps, ok := r.Header["Tailscale-App-Capabilities"]
 					if !ok {
 						t.Error("no app capabilities header")
 						return
@@ -1686,8 +1686,8 @@ func dialIngressConn(from, to *Server, target string) (net.Conn, error) {
 		return nil, err
 	}
 	req.Host = toPeerAPI
-	req.Header.Set("Lanhc-Ingress-Src", "127.0.0.1:1234")
-	req.Header.Set("Lanhc-Ingress-Target", target)
+	req.Header.Set("Tailscale-Ingress-Src", "127.0.0.1:1234")
+	req.Header.Set("Tailscale-Ingress-Target", target)
 	if err := req.Write(outConn); err != nil {
 		return nil, err
 	}
@@ -3439,15 +3439,15 @@ func TestDeps(t *testing.T) {
 		BadDeps: map[string]string{
 			"golang.org/x/crypto/ssh":                       "tsnet should not depend on SSH",
 			"golang.org/x/crypto/ssh/internal/bcrypt_pbkdf": "tsnet should not depend on SSH",
-			"lanhc.com/chirp":                           "tsnet should not depend on BIRD integration",
-			"lanhc.com/feature/bird":                    "tsnet should not depend on BIRD integration",
-			"lanhc.com/feature/captiveportal":           "tsnet apps don't need captive portal detection; import it explicitly if desired",
-			"lanhc.com/feature/clientupdate":            "tsnet should not depend on feature/clientupdate",
-			"lanhc.com/feature/remoteconfig":            "tsnet should not depend on feature/remoteconfig",
-			"lanhc.com/feature/syspolicy":               "tsnet should not depend on syspolicy",
-			"lanhc.com/ipn/store/awsstore":              "tsnet callers wanting AWS state storage should import awsstore themselves",
-			"lanhc.com/ipn/store/kubestore":             "tsnet callers wanting Kubernetes state storage should import kubestore themselves",
-			"lanhc.com/wif":                             "tsnet callers wanting workload identity federation should import lanhc.com/feature/identityfederation themselves",
+			"lanhc.com/chirp":                               "tsnet should not depend on BIRD integration",
+			"lanhc.com/feature/bird":                        "tsnet should not depend on BIRD integration",
+			"lanhc.com/feature/captiveportal":               "tsnet apps don't need captive portal detection; import it explicitly if desired",
+			"lanhc.com/feature/clientupdate":                "tsnet should not depend on feature/clientupdate",
+			"lanhc.com/feature/remoteconfig":                "tsnet should not depend on feature/remoteconfig",
+			"lanhc.com/feature/syspolicy":                   "tsnet should not depend on syspolicy",
+			"lanhc.com/ipn/store/awsstore":                  "tsnet callers wanting AWS state storage should import awsstore themselves",
+			"lanhc.com/ipn/store/kubestore":                 "tsnet callers wanting Kubernetes state storage should import kubestore themselves",
+			"lanhc.com/wif":                                 "tsnet callers wanting workload identity federation should import lanhc.com/feature/identityfederation themselves",
 		},
 		OnDep: func(dep string) {
 			if strings.Contains(dep, "portlist") ||

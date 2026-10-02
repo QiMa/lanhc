@@ -1494,8 +1494,8 @@ func (b *LocalBackend) updateStatusLocked(sb *ipnstate.StatusBuilder) {
 				if !prefs.ExitNodeID().IsZero() {
 					if exitPeer, ok := nm.PeerWithStableID(prefs.ExitNodeID()); ok {
 						s.ExitNodeStatus = &ipnstate.ExitNodeStatus{
-							ID:           prefs.ExitNodeID(),
-							Online:       exitPeer.Online().Get(),
+							ID:       prefs.ExitNodeID(),
+							Online:   exitPeer.Online().Get(),
 							LanhcIPs: exitPeer.Addresses().AsSlice(),
 						}
 					}
@@ -1529,7 +1529,7 @@ func (b *LocalBackend) updateStatusLocked(sb *ipnstate.StatusBuilder) {
 				peerStatusFromNode(ss, sn)
 				if cm := sn.CapMap(); cm.Len() > 0 {
 					ss.Capabilities = make([]tailcfg.NodeCapability, 1, cm.Len()+1)
-					ss.Capabilities[0] = "HTTPS://LANHC.COM/s/DEPRECATED-NODE-CAPS#see-https://github.com/lanhc/lanhc/issues/11508"
+					ss.Capabilities[0] = "HTTPS://TAILSCALE.COM/s/DEPRECATED-NODE-CAPS#see-https://github.com/tailscale/tailscale/issues/11508"
 					ss.CapMap = make(tailcfg.NodeCapMap, sn.CapMap().Len())
 					for k, v := range cm.All() {
 						ss.CapMap[k] = v.AsSlice()
@@ -1594,7 +1594,7 @@ func (b *LocalBackend) populatePeerStatusLocked(sb *ipnstate.StatusBuilder) {
 			InNetworkMap:    true,
 			UserID:          p.User(),
 			AltSharerUserID: p.Sharer(),
-			LanhcIPs:    lanhcIPs,
+			LanhcIPs:        lanhcIPs,
 			HostName:        hostinfo.Hostname(),
 			DNSName:         p.Name(),
 			OS:              hostinfo.OS(),

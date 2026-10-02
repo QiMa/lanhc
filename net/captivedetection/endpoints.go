@@ -55,7 +55,7 @@ type Endpoint struct {
 	// we will check that the response body contains this string. If it is empty, we will not check the response body
 	// and only check the status code.
 	ExpectedContent string
-	// SupportsLanhcChallenge is true if the endpoint will return the sent value of the X-Lanhc-Challenge
+	// SupportsLanhcChallenge is true if the endpoint will return the sent value of the X-Tailscale-Challenge
 	// HTTP header in its HTTP response.
 	SupportsLanhcChallenge bool
 	// Provider is the source of the endpoint. This is used to prioritize certain endpoints over others
@@ -157,11 +157,11 @@ func (e Endpoint) responseLooksLikeCaptive(r *http.Response, logf logger.Logf) b
 	// If the endpoint supports the Lanhc challenge header, check that the response contains the expected header.
 	if e.SupportsLanhcChallenge {
 		expectedResponse := "response ts_" + e.URL.Host
-		hasResponse := r.Header.Get("X-Lanhc-Response") == expectedResponse
+		hasResponse := r.Header.Get("X-Tailscale-Response") == expectedResponse
 		if !hasResponse {
-			// The response did not contain the expected X-Lanhc-Response header, which means we are most likely
+			// The response did not contain the expected X-Tailscale-Response header, which means we are most likely
 			// behind a captive portal (somebody is tampering with the response headers).
-			logf("captive portal check response did not contain expected X-Lanhc-Response header: want=%q, got=%q", expectedResponse, r.Header.Get("X-Lanhc-Response"))
+			logf("captive portal check response did not contain expected X-Tailscale-Response header: want=%q, got=%q", expectedResponse, r.Header.Get("X-Tailscale-Response"))
 			return true
 		}
 	}

@@ -460,12 +460,12 @@ func (e *extension) ensureAccount(ctx context.Context, ac *xacme.Client, logf lo
 }
 
 type acmeCertIssueArgs struct {
-	cs            certStore          // certificate and ACME account storage
-	logf          logger.Logf        // logs ACME progress and failures
-	traceACME     func(any)          // optional hook for logging ACME messages
-	domain        string             // certificate domain being issued
+	cs            certStore           // certificate and ACME account storage
+	logf          logger.Logf         // logs ACME progress and failures
+	traceACME     func(any)           // optional hook for logging ACME messages
+	domain        string              // certificate domain being issued
 	opts          []xacme.OrderOption // ACME order options
-	challengeType acmeChallengeType  // challenge type to fulfill
+	challengeType acmeChallengeType   // challenge type to fulfill
 }
 
 func (args acmeCertIssueArgs) baseDomain() string { return strings.TrimPrefix(args.domain, "*.") }

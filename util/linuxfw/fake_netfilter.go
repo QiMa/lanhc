@@ -17,7 +17,7 @@ type FakeNetfilterRunner struct {
 	// EnsureDNATRuleForSvc/DeleteDNATRuleForSvc.
 	services map[string]struct {
 		LanhcServiceIP netip.Addr
-		ClusterIP          netip.Addr
+		ClusterIP      netip.Addr
 	}
 	// clampedAddrs tracks addresses passed to ClampMSSToPMTU.
 	clampedAddrs []netip.Addr
@@ -28,7 +28,7 @@ func NewFakeNetfilterRunner() *FakeNetfilterRunner {
 	return &FakeNetfilterRunner{
 		services: make(map[string]struct {
 			LanhcServiceIP netip.Addr
-			ClusterIP          netip.Addr
+			ClusterIP      netip.Addr
 		}),
 	}
 }
@@ -36,7 +36,7 @@ func NewFakeNetfilterRunner() *FakeNetfilterRunner {
 func (f *FakeNetfilterRunner) EnsureDNATRuleForSvc(svcName string, origDst, dst netip.Addr) error {
 	f.services[svcName] = struct {
 		LanhcServiceIP netip.Addr
-		ClusterIP          netip.Addr
+		ClusterIP      netip.Addr
 	}{origDst, dst}
 	return nil
 }
@@ -48,7 +48,7 @@ func (f *FakeNetfilterRunner) DeleteDNATRuleForSvc(svcName string, origDst, dst 
 
 func (f *FakeNetfilterRunner) GetServiceState() map[string]struct {
 	LanhcServiceIP netip.Addr
-	ClusterIP          netip.Addr
+	ClusterIP      netip.Addr
 } {
 	return f.services
 }
@@ -83,7 +83,7 @@ func (f *FakeNetfilterRunner) AddDNATRule(origDst, dst netip.Addr) error { retur
 func (f *FakeNetfilterRunner) DNATWithLoadBalancer(origDst netip.Addr, dsts []netip.Addr) error {
 	return nil
 }
-func (f *FakeNetfilterRunner) EnsureSNATForDst(src, dst netip.Addr) error               { return nil }
+func (f *FakeNetfilterRunner) EnsureSNATForDst(src, dst netip.Addr) error           { return nil }
 func (f *FakeNetfilterRunner) DNATNonLanhcTraffic(tun string, dst netip.Addr) error { return nil }
 func (f *FakeNetfilterRunner) ClampMSSToPMTU(tun string, addr netip.Addr) error {
 	f.clampedAddrs = append(f.clampedAddrs, addr)

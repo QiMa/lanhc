@@ -38,11 +38,11 @@ const minTSMPSize = 7 // the rejected body is 7 bytes
 // In the future it might also accept 16 byte IP flow src/dst IPs
 // after the header, if they're different than the IP-level ones.
 type LanhcRejectedHeader struct {
-	IPSrc  netip.Addr            // IPv4 or IPv6 header's src IP
-	IPDst  netip.Addr            // IPv4 or IPv6 header's dst IP
-	Src    netip.AddrPort        // rejected flow's src
-	Dst    netip.AddrPort        // rejected flow's dst
-	Proto  ipproto.Proto         // proto that was rejected (TCP or UDP)
+	IPSrc  netip.Addr        // IPv4 or IPv6 header's src IP
+	IPDst  netip.Addr        // IPv4 or IPv6 header's dst IP
+	Src    netip.AddrPort    // rejected flow's src
+	Dst    netip.AddrPort    // rejected flow's dst
+	Proto  ipproto.Proto     // proto that was rejected (TCP or UDP)
 	Reason LanhcRejectReason // why the connection was rejected
 
 	// MaybeBroken is whether the rejection is non-terminal (the

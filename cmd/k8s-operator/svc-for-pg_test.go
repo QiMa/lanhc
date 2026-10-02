@@ -483,7 +483,7 @@ func updateIngressConfigSecret(t *testing.T, fc client.Client, stateSecret *core
 		fmt.Sprintf("svc:%s", serviceName): ingressservices.Config{
 			IPv4Mapping: &ingressservices.Mapping{
 				LanhcServiceIP: netip.MustParseAddr(vipTestIP),
-				ClusterIP:          netip.MustParseAddr(clusterIP),
+				ClusterIP:      netip.MustParseAddr(clusterIP),
 			},
 		},
 	}

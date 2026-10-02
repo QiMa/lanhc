@@ -22,8 +22,8 @@ import (
 	"sync"
 	"time"
 
-	"lanhc.com/client/local"
 	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/client/local"
 	"lanhc.com/envknob"
 	"lanhc.com/envknob/featureknob"
 	"lanhc.com/feature"

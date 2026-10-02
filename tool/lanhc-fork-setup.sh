@@ -7,17 +7,20 @@
 #
 # 步骤:
 #   1. 全量改名 tailscale -> lanhc（模块路径 / 品牌词 / 文件与目录名）
+#      + 还原与 headscale/官方组件交换的线上协议字面量，并用上游源码自检
 #   2. vendored setec 客户端（其源码引用 tailscale.com/atomicfile 与
 #      tailscale.com/types/logger，改名后必须指向本仓库）
 #   3. 修正改名带来的测试与常量残留
 #   4. 把本脚本与改名工具复制进 <源码目录>/tool/
 set -euo pipefail
 
-TARGET=${1:?用法: lanhc-fork-setup.sh <源码目录>}
+TARGET=${1:?用法: lanhc-fork-setup.sh <源码目录> [上游源码目录]}
+UPSTREAM_DIR=${2:-${TAILSCALE_UPSTREAM_DIR:-/home/dev/src/tailscale}}
 SRC=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 TARGET=$(cd "$TARGET" && pwd)
 
 python3 "$SRC/lanhc-rename.py" "$TARGET" all
+python3 "$SRC/lanhc-rename.py" "$TARGET" self-test "$UPSTREAM_DIR"
 
 cd "$TARGET"
 

@@ -104,6 +104,6 @@ func isChallengeChar(c rune) bool {
 }
 
 const (
-	NoContentChallengeHeader = "X-Lanhc-Challenge"
-	NoContentResponseHeader  = "X-Lanhc-Response"
+	NoContentChallengeHeader = "X-Tailscale-Challenge"
+	NoContentResponseHeader  = "X-Tailscale-Response"
 )

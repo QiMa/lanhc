@@ -12,8 +12,8 @@ import (
 	"io"
 	"net/http"
 
-	"lanhc.com/client/local"
 	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/client/local"
 )
 
 // metrics is a simple metrics HTTP server, if enabled it forwards requests to

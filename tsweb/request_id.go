@@ -39,7 +39,7 @@ var RequestIDKey ctxkey.Key[RequestID]
 // RequestIDHeader is a custom HTTP header that the WithRequestID middleware
 // uses to determine whether to re-use a given request ID from the client
 // or generate a new one.
-const RequestIDHeader = "X-Lanhc-Request-Id"
+const RequestIDHeader = "X-Tailscale-Request-Id"
 
 // GenerateRequestID generates a new request ID with the current format.
 func GenerateRequestID() RequestID {

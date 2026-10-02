@@ -13,8 +13,8 @@ import (
 	"sync"
 	"testing"
 
-	"lanhc.com/client/local"
 	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/client/local"
 	"lanhc.com/envknob"
 	"lanhc.com/ipn"
 	"lanhc.com/ipn/ipnauth"

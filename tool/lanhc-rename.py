@@ -14,6 +14,10 @@
   - 文件名/目录名中的 tailscale 同步改名
   - k8s 资源组 tailscale.com -> lanhc.com（与模块路径一致，避免 group 含斜杠）
 
+线上协议字面量保护：改名是品牌层操作，但 HTTP 头 / control 子协议 /
+    能力 URL / logtail collection 等值是与 headscale、官方 DERP 与官方
+    组件交换的协议常量，必须保持 tailscale 原值，见 WIRE_PROTOCOL_RESTORATIONS。
+
 保护项（永不改写）：
   - 外部依赖 tailscale.com/client/tailscale/v2
   - 所有 github.com/tailscale/* 第三方模块
@@ -57,8 +61,8 @@ def is_text_file(p):
     ext = os.path.splitext(p)[1].lower()
     return ext not in BINARY_EXTS
 
-def walk_files():
-    for dirpath, dirnames, filenames in os.walk('.'):
+def walk_files(base='.'):
+    for dirpath, dirnames, filenames in os.walk(base):
         dirnames[:] = [d for d in dirnames if d not in ('.git', 'node_modules', '__pycache__', '.git')]
         for fn in filenames:
             p = os.path.join(dirpath, fn)
@@ -145,6 +149,90 @@ def restore_attribution():
         if rewrite(p, sub):
             n += 1
     print(f'layer-attribution: rewrote {n} files (restore BSD copyright)')
+
+# 与 headscale / 官方 DERP / 官方组件交换的线上协议字面量。
+# 改名会把这些值改成 Lanhc-*，必须在改名后统一还原为官方值，
+# 否则 control 握手、DERP 挑战-应答、captive portal 检测、Serve/Funnel
+# 头部注入、LocalAPI 版本协商与 node caps 能力列表都会失配。
+WIRE_PROTOCOL_RESTORATIONS = [
+    # control/controlhttp 握手（headscale controlhttpserver 使用官方常量）
+    ('lanhc-control-protocol', 'tailscale-control-protocol'),
+    ('X-Lanhc-Handshake', 'X-Tailscale-Handshake'),
+    # DERP / captive portal 挑战-应答
+    ('X-Lanhc-Challenge', 'X-Tailscale-Challenge'),
+    ('X-Lanhc-Response', 'X-Tailscale-Response'),
+    # node caps 状态展示用的官方能力 URL（go 大小写不敏感地比对 URL）
+    ('HTTPS://LANHC.COM/s/DEPRECATED-NODE-CAPS#see-https://github.com/lanhc/lanhc/issues/11508',
+     'HTTPS://TAILSCALE.COM/s/DEPRECATED-NODE-CAPS#see-https://github.com/tailscale/tailscale/issues/11508'),
+    # Serve / Funnel / Ingress 注入的请求头
+    ('Lanhc-User-Login', 'Tailscale-User-Login'),
+    ('Lanhc-User-Name', 'Tailscale-User-Name'),
+    ('Lanhc-User-Profile-Pic', 'Tailscale-User-Profile-Pic'),
+    ('Lanhc-Headers-Info', 'Tailscale-Headers-Info'),
+    ('Lanhc-App-Capabilities', 'Tailscale-App-Capabilities'),
+    ('Lanhc-Funnel-Request', 'Tailscale-Funnel-Request'),
+    ('Lanhc-Ingress-Src', 'Tailscale-Ingress-Src'),
+    ('Lanhc-Ingress-Target', 'Tailscale-Ingress-Target'),
+    ('https://lanhc.com/s/serve-headers', 'https://tailscale.com/s/serve-headers'),
+    # LocalAPI / apitype / tsweb 与 tsnet 内部协议头
+    ('Lanhc-Cap', 'Tailscale-Cap'),
+    ('Lanhc-Version', 'Tailscale-Version'),
+    ('X-Lanhc-Reason', 'X-Tailscale-Reason'),
+    ('X-Lanhc-Request-Id', 'X-Tailscale-Request-Id'),
+    ('Sec-Lanhc', 'Sec-Tailscale'),
+    # Windows 会话管理器 IPC 窗口类名（GUI 与 lanhcd 之间）
+    ('Lanhc-SessionManager', 'Tailscale-SessionManager'),
+    # 注意: log/sockstatlog 的 collection 名不还原。ts_omit_logtail 已关闭官方
+    # 日志上传，保留 lanhc 名字既符合隔离策略，也避免产物里出现 .tailscale.io。
+]
+
+def restore_wire_protocol_str(t):
+    for bad, good in sorted(WIRE_PROTOCOL_RESTORATIONS, key=lambda p: -len(p[0])):
+        t = t.replace(bad, good)
+    return t
+
+def layer_wire_protocol():
+    n = 0
+    for p in walk_files():
+        if is_protected(p):
+            continue
+        if not is_text_file(p):
+            continue
+        if rewrite(p, restore_wire_protocol_str):
+            n += 1
+    print(f'layer-wire-protocol: rewrote {n} files (restore official wire literals)')
+
+def contains_needle(root, needle):
+    for p in walk_files(root):
+        if is_protected(p):
+            continue
+        if not is_text_file(p):
+            continue
+        try:
+            with open(p, encoding='utf-8') as f:
+                if needle in f.read():
+                    return True
+        except (UnicodeDecodeError, IsADirectoryError):
+            continue
+    return False
+
+def layer_wire_self_test(upstream):
+    """对照上游源码与改名后的树，验证每个线协议字面量都还原正确。"""
+    up = os.path.abspath(upstream)
+    ok = True
+    for bad, good in WIRE_PROTOCOL_RESTORATIONS:
+        if not contains_needle(up, good):
+            print(f'wire self-test FAIL: upstream 缺少 {good!r}（保护表已过期？）')
+            ok = False
+        if contains_needle('.', bad):
+            print(f'wire self-test FAIL: 改名树中仍存在 {bad!r}')
+            ok = False
+        if not contains_needle('.', good):
+            print(f'wire self-test FAIL: 改名树中缺少 {good!r}')
+            ok = False
+    print('wire self-test PASS' if ok else 'wire self-test FAILED')
+    if not ok:
+        sys.exit(1)
 
 def rename_components():
     """Rename path components (directories and file basenames) containing 'tailscale'."""
@@ -237,11 +325,19 @@ if __name__ == '__main__':
         layer_brand()
     elif layer == 'files':
         layer_files()
+    elif layer == 'wire':
+        layer_wire_protocol()
+    elif layer == 'self-test':
+        if len(sys.argv) < 4:
+            print('usage: lanhc-rename.py TARGET self-test <upstream-dir>')
+            sys.exit(2)
+        layer_wire_self_test(sys.argv[3])
     elif layer == 'all':
         layer_paths()
         layer_brand()
         layer_files()
         restore_attribution()
+        layer_wire_protocol()
     else:
-        print('usage: lanhc-rename-new.py TARGET [paths|brand|files|all]')
+        print('usage: lanhc-rename.py TARGET [paths|brand|files|wire|all|self-test <upstream>]')
         sys.exit(2)

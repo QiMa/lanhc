@@ -262,8 +262,8 @@ type mockSafeBackend struct {
 	sys *tsd.System
 }
 
-func (m mockSafeBackend) Sys() *tsd.System       { return m.sys }
-func (mockSafeBackend) Clock() tstime.Clock      { return nil }
+func (m mockSafeBackend) Sys() *tsd.System   { return m.sys }
+func (mockSafeBackend) Clock() tstime.Clock  { return nil }
 func (mockSafeBackend) LanhcVarRoot() string { return "" }
 
 func Test_extension_handleRelayServerLifetimeLocked(t *testing.T) {

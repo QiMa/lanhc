@@ -54,13 +54,13 @@ import (
 	"sigs.k8s.io/kind/pkg/cluster/nodeutils"
 	"sigs.k8s.io/kind/pkg/cmd"
 
-	lanhcclient "tailscale.com/client/tailscale/v2"
 	"lanhc.com/ipn"
 	"lanhc.com/ipn/store/mem"
 	tsoperator "lanhc.com/k8s-operator"
 	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
 	"lanhc.com/tsnet"
 	"lanhc.com/util/must"
+	lanhcclient "tailscale.com/client/tailscale/v2"
 )
 
 const (
@@ -72,11 +72,11 @@ const (
 
 var (
 	tsClient           *lanhcclient.Client // For API calls to control.
-	tnClient           *tsnet.Server     // For testing real tailnet traffic on first tailnet.
+	tnClient           *tsnet.Server       // For testing real tailnet traffic on first tailnet.
 	secondTSClient     *lanhcclient.Client // For API calls to the secondary tailnet (_second_tailnet).
-	secondTNClient     *tsnet.Server     // For testing real tailnet traffic on second tailnet.
-	restCfg            *rest.Config      // For constructing a client-go client if necessary.
-	kubeClient         client.WithWatch  // For k8s API calls.
+	secondTNClient     *tsnet.Server       // For testing real tailnet traffic on second tailnet.
+	restCfg            *rest.Config        // For constructing a client-go client if necessary.
+	kubeClient         client.WithWatch    // For k8s API calls.
 	clusterLoginServer string
 
 	//go:embed certs/pebble.minica.crt
@@ -380,7 +380,7 @@ func runTests(m *testing.M) (int, error) {
 		logger.Infof("using OSS image tag: %q", ossTag)
 		ossImageToTarget := map[string]string{
 			"local/k8s-operator": "publishdevoperator",
-			"local/lanhc":    "publishdevimage",
+			"local/lanhc":        "publishdevimage",
 			"local/k8s-proxy":    "publishdevproxy",
 		}
 		for img, target := range ossImageToTarget {

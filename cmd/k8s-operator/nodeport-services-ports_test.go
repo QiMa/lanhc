@@ -11,9 +11,9 @@ import (
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
 	"lanhc.com/tstest"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestGetServicesNodePortRangeFromErr(t *testing.T) {
