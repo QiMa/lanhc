@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/tstest"
+	"lanhc.com/tstest"
 )
 
 func TestCheckDeadlocksRateLimitAndTimerReuse(t *testing.T) {

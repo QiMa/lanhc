@@ -22,7 +22,7 @@ import (
 	"time"
 
 	esbuild "github.com/evanw/esbuild/pkg/api"
-	"tailscale.com/cmd/tsconnect/wasmbuild"
+	"lanhc.com/cmd/tsconnect/wasmbuild"
 )
 
 // lastRawWasmSHA256 is set by buildWasm in non-dev mode after the
@@ -64,17 +64,17 @@ func commonSetup(dev bool) (*esbuild.BuildOptions, error) {
 		Target:      esbuild.ES2017,
 		Plugins: []esbuild.Plugin{
 			{
-				Name: "tailscale-tailwind",
+				Name: "lanhc-tailwind",
 				Setup: func(build esbuild.PluginBuild) {
 					setupEsbuildTailwind(build, dev)
 				},
 			},
 			{
-				Name:  "tailscale-go-wasm-exec-js",
+				Name:  "lanhc-go-wasm-exec-js",
 				Setup: setupEsbuildWasmExecJS,
 			},
 			{
-				Name: "tailscale-wasm",
+				Name: "lanhc-wasm",
 				Setup: func(build esbuild.PluginBuild) {
 					setupEsbuildWasm(build, dev)
 				},
@@ -196,7 +196,7 @@ func setupEsbuildWasmExecJS(build esbuild.PluginBuild) {
 	})
 }
 
-// setupEsbuildWasm generates an esbuild plugin that builds the Tailscale wasm
+// setupEsbuildWasm generates an esbuild plugin that builds the Lanhc wasm
 // binary and serves it as a file that the JS can load.
 func setupEsbuildWasm(build esbuild.PluginBuild, dev bool) {
 	// Add a resolve hook to convince esbuild that the path exists.

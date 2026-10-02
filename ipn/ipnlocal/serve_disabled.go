@@ -3,7 +3,7 @@
 
 //go:build ts_omit_serve
 
-// These are temporary (2025-09-13) stubs for when tailscaled is built with the
+// These are temporary (2025-09-13) stubs for when lanhcd is built with the
 // ts_omit_serve build tag, disabling serve.
 //
 // TODO: move serve to a separate package, out of ipnlocal, and delete this
@@ -12,8 +12,8 @@
 package ipnlocal
 
 import (
-	"tailscale.com/ipn"
-	"tailscale.com/tailcfg"
+	"lanhc.com/ipn"
+	"lanhc.com/tailcfg"
 )
 
 const serveEnabled = false

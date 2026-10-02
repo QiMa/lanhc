@@ -12,13 +12,13 @@ import (
 
 	"github.com/tailscale/wireguard-go/tun"
 	"go4.org/netipx"
-	"tailscale.com/health"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/netns"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/set"
-	"tailscale.com/wgengine/router"
+	"lanhc.com/health"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/netns"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/set"
+	"lanhc.com/wgengine/router"
 )
 
 func init() {
@@ -158,7 +158,7 @@ func (r *openbsdRouter) Set(cfg *router.Config) error {
 	}
 
 	if localAddr6.IsValid() {
-		// in https://github.com/tailscale/tailscale/issues/1307 we made
+		// in https://github.com/lanhc/lanhc/issues/1307 we made
 		// FreeBSD use a /48 for IPv6 addresses, which is nice because we
 		// don't need to additionally add routing entries. Do that here too.
 		localAddr6 = netip.PrefixFrom(localAddr6.Addr(), 48)

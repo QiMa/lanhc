@@ -17,14 +17,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	k8soperator "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/kube/kubetypes"
+	k8soperator "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/kube/kubetypes"
 )
 
 const (
-	tailscaledPortMax = 65535
-	tailscaledPortMin = 1024
+	lanhcdPortMax = 65535
+	lanhcdPortMin = 1024
 	testSvcName       = "test-node-port-range"
 
 	invalidSvcNodePort = 777777
@@ -199,5 +199,5 @@ func getPortsForProxyClasses(ctx context.Context, c client.Client) (map[string]t
 }
 
 func getRandomPort() uint16 {
-	return uint16(rand.IntN(tailscaledPortMax-tailscaledPortMin+1) + tailscaledPortMin)
+	return uint16(rand.IntN(lanhcdPortMax-lanhcdPortMin+1) + lanhcdPortMin)
 }

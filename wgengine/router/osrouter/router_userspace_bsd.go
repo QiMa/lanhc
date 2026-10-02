@@ -14,12 +14,12 @@ import (
 
 	"github.com/tailscale/wireguard-go/tun"
 	"go4.org/netipx"
-	"tailscale.com/health"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/types/logger"
-	"tailscale.com/version"
-	"tailscale.com/wgengine/router"
+	"lanhc.com/health"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/types/logger"
+	"lanhc.com/version"
+	"lanhc.com/wgengine/router"
 )
 
 func init() {
@@ -137,7 +137,7 @@ func (r *userspaceBSDRouter) Set(cfg *router.Config) (reterr error) {
 			// FreeBSD rejects tun addresses of the form fc00::1/128 -> fc00::1,
 			// https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=218508
 			// Instead add our whole /48, which works because we use a /48 route.
-			// Full history: https://github.com/tailscale/tailscale/issues/1307
+			// Full history: https://github.com/lanhc/lanhc/issues/1307
 			tmp := netip.PrefixFrom(addr.Addr(), 48)
 			arg = []string{"ifconfig", r.tunname, inet(tmp), tmp.String()}
 		} else {
@@ -152,9 +152,9 @@ func (r *userspaceBSDRouter) Set(cfg *router.Config) (reterr error) {
 
 	newRoutes := make(map[netip.Prefix]bool)
 	for _, route := range cfg.Routes {
-		if runtime.GOOS != "darwin" && route == tsaddr.TailscaleULARange() {
+		if runtime.GOOS != "darwin" && route == tsaddr.LanhcULARange() {
 			// Because we added the interface address as a /48 above,
-			// the kernel already created the Tailscale ULA route
+			// the kernel already created the Lanhc ULA route
 			// implicitly. We mustn't try to add/delete it ourselves.
 			continue
 		}

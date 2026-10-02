@@ -33,25 +33,25 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/miekg/dns"
 	"go4.org/mem"
-	"tailscale.com/client/local"
-	"tailscale.com/cmd/testwrapper/flakytest"
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	_ "tailscale.com/feature/clientupdate"
-	"tailscale.com/health"
-	"tailscale.com/hostinfo"
-	"tailscale.com/ipn"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/net/tstun"
-	"tailscale.com/net/udprelay/status"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/tstest/integration/testcontrol"
-	"tailscale.com/types/key"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/opt"
-	"tailscale.com/util/must"
-	"tailscale.com/util/set"
+	"lanhc.com/client/local"
+	"lanhc.com/cmd/testwrapper/flakytest"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	_ "lanhc.com/feature/clientupdate"
+	"lanhc.com/health"
+	"lanhc.com/hostinfo"
+	"lanhc.com/ipn"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/net/tstun"
+	"lanhc.com/net/udprelay/status"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/tstest/integration/testcontrol"
+	"lanhc.com/types/key"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/opt"
+	"lanhc.com/util/must"
+	"lanhc.com/util/set"
 )
 
 func TestMain(m *testing.M) {
@@ -74,7 +74,7 @@ func TestMain(m *testing.M) {
 	os.Exit(0)
 }
 
-// fetchNetMapForTest fetches the current netmap from tailscaled via the
+// fetchNetMapForTest fetches the current netmap from lanhcd via the
 // "current-netmap" debug action. The debug action's payload shape is
 // intentionally not part of any stable API; tests use it to inspect
 // internal state.
@@ -82,8 +82,8 @@ func fetchNetMapForTest(ctx context.Context, lc *local.Client) (*netmap.NetworkM
 	return local.GetDebugResultJSON[*netmap.NetworkMap](ctx, lc, "current-netmap")
 }
 
-// Tests that tailscaled starts up in TUN mode, and also without data races:
-// https://github.com/tailscale/tailscale/issues/7894
+// Tests that lanhcd starts up in TUN mode, and also without data races:
+// https://github.com/lanhc/lanhc/issues/7894
 func TestTUNMode(t *testing.T) {
 	tstest.RequireRoot(t)
 	tstest.Parallel(t)
@@ -167,9 +167,9 @@ func TestControlKnobs(t *testing.T) {
 	t.Logf("Got IP: %v", n1.AwaitIP4())
 	n1.AwaitRunning()
 
-	cmd := n1.Tailscale("debug", "control-knobs")
-	cmd.Stdout = nil // in case --verbose-tailscale was set
-	cmd.Stderr = nil // in case --verbose-tailscale was set
+	cmd := n1.Lanhc("debug", "control-knobs")
+	cmd.Stdout = nil // in case --verbose-lanhc was set
+	cmd.Stderr = nil // in case --verbose-lanhc was set
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatal(err)
@@ -212,8 +212,8 @@ func TestCollectPanic(t *testing.T) {
 
 	// Wait for the binary to be executable, working around a
 	// mysterious ETXTBSY on GitHub Actions.
-	// See https://github.com/tailscale/tailscale/issues/15868.
-	if err := n.awaitTailscaledRunnable(); err != nil {
+	// See https://github.com/lanhc/lanhc/issues/15868.
+	if err := n.awaitLanhcdRunnable(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -287,11 +287,11 @@ func TestStateSavedOnStart(t *testing.T) {
 
 	// Bring it down, to prevent an EditPrefs call in the
 	// subsequent "up", as we want to test the bug when
-	// cmd/tailscale implements "up" via LocalBackend.Start.
+	// cmd/lanhc implements "up" via LocalBackend.Start.
 	n1.MustDown()
 
 	// And change the hostname to something:
-	if err := n1.Tailscale("up", "--login-server="+n1.env.ControlURL(), "--hostname=foo").Run(); err != nil {
+	if err := n1.Lanhc("up", "--login-server="+n1.env.ControlURL(), "--hostname=foo").Run(); err != nil {
 		t.Fatalf("up: %v", err)
 	}
 
@@ -508,7 +508,7 @@ func TestOneNodeUpAuth(t *testing.T) {
 					deviceApprovalURLFn: completeDeviceApproval(t, n1, &deviceApprovalURLCount),
 				}
 
-				cmd := n1.Tailscale(cmdArgs...)
+				cmd := n1.Lanhc(cmdArgs...)
 				cmd.Stdout = handler
 				cmd.Stdout = handler
 				cmd.Stderr = cmd.Stdout
@@ -538,12 +538,12 @@ func TestOneNodeUpAuth(t *testing.T) {
 	}
 }
 
-// TestRetagStaleMapRequestRace reproduces tailscale/tailscale#20365: a node
-// tagged tag:tag1, where tag:tag1 owns tag:tag2, is retagged with "tailscale
+// TestRetagStaleMapRequestRace reproduces lanhc/lanhc#20365: a node
+// tagged tag:tag1, where tag:tag1 owns tag:tag2, is retagged with "lanhc
 // up --advertise-tags=tag:tag2". This should always succeed, but sometimes
 // the machine is logged out instead.
 //
-// The cause is a race: "tailscale up" makes LocalBackend.Start shut down the
+// The cause is a race: "lanhc up" makes LocalBackend.Start shut down the
 // old control client asynchronously while the new one starts, so a lite map
 // update carrying the old Hostinfo.RequestTags can still be in flight when
 // the new client's requests retag the node. If control processes the stale
@@ -613,8 +613,8 @@ func TestRetagStaleMapRequestRace(t *testing.T) {
 	// the node is retagged below. Shutting down that control client
 	// cancels the request but can't unsend it; control still has it.
 	holdStale.Store(true)
-	if out, err := n1.Tailscale("set", "--hostname=retag-race-test").CombinedOutput(); err != nil {
-		t.Fatalf("tailscale set: %v, %s", err, out)
+	if out, err := n1.Lanhc("set", "--hostname=retag-race-test").CombinedOutput(); err != nil {
+		t.Fatalf("lanhc set: %v, %s", err, out)
 	}
 	select {
 	case <-staleHeld:
@@ -685,7 +685,7 @@ func isNonZeroExitCode(err error) bool {
 	return exitError.ExitCode() != 0
 }
 
-// If we interrupt `tailscale up` and then run it again, we should only
+// If we interrupt `lanhc up` and then run it again, we should only
 // print a single auth URL.
 func TestOneNodeUpInterruptedAuth(t *testing.T) {
 	tstest.Parallel(t)
@@ -709,10 +709,10 @@ func TestOneNodeUpInterruptedAuth(t *testing.T) {
 	// At this point, we've connected to control to get an auth URL,
 	// and printed it in the CLI, but not clicked it.
 	t.Logf("Running command for the first time: %s", strings.Join(cmdArgs, " "))
-	cmd1 := n.Tailscale(cmdArgs...)
+	cmd1 := n.Lanhc(cmdArgs...)
 
 	// This handler watches for auth URLs in stdout, then cancels the
-	// running `tailscale up` CLI command.
+	// running `lanhc up` CLI command.
 	cmd1.Stdout = &authURLParserWriter{t: t, authURLFn: func(urlStr string) error {
 		t.Logf("saw auth URL %q", urlStr)
 		cmd1.Process.Kill()
@@ -732,7 +732,7 @@ func TestOneNodeUpInterruptedAuth(t *testing.T) {
 	//
 	// In #17361, there was a bug where we'd print two auth URLs, and you could
 	// click either auth URL and log in to control, but logging in through the
-	// first URL would leave `tailscale up` hanging.
+	// first URL would leave `lanhc up` hanging.
 	//
 	// Using `authURLHandler` ensures we only print the new, correct auth URL.
 	//
@@ -740,12 +740,12 @@ func TestOneNodeUpInterruptedAuth(t *testing.T) {
 	// to log in with one auth URL.
 	//
 	// If we only print the stale auth URL, the test will timeout because
-	// `tailscale up` will never return.
+	// `lanhc up` will never return.
 	t.Logf("Running command for the second time: %s", strings.Join(cmdArgs, " "))
 
 	var authURLCount atomic.Int32
 
-	cmd2 := n.Tailscale(cmdArgs...)
+	cmd2 := n.Lanhc(cmdArgs...)
 	cmd2.Stdout = &authURLParserWriter{
 		t: t, authURLFn: completeLogin(t, env.Control, &authURLCount),
 	}
@@ -762,9 +762,9 @@ func TestOneNodeUpInterruptedAuth(t *testing.T) {
 	n.AwaitRunning()
 }
 
-// If we interrupt `tailscale up` and login successfully, but don't
+// If we interrupt `lanhc up` and login successfully, but don't
 // complete the device approval, we should see the device approval URL
-// when we run `tailscale up` a second time.
+// when we run `lanhc up` a second time.
 func TestOneNodeUpInterruptedDeviceApproval(t *testing.T) {
 	tstest.Parallel(t)
 
@@ -792,7 +792,7 @@ func TestOneNodeUpInterruptedDeviceApproval(t *testing.T) {
 	// approved to connect to the tailnet.
 	cmd1Args := []string{"up", "--login-server=" + env.ControlURL()}
 	t.Logf("Running command: %s", strings.Join(cmd1Args, " "))
-	cmd1 := n.Tailscale(cmd1Args...)
+	cmd1 := n.Lanhc(cmd1Args...)
 
 	handler1 := &authURLParserWriter{t: t,
 		authURLFn: completeLogin(t, env.Control, &atomic.Int32{}),
@@ -815,13 +815,13 @@ func TestOneNodeUpInterruptedDeviceApproval(t *testing.T) {
 
 	// The second time we run the command, we expect not to get an auth URL
 	// and go straight to the device approval URL. We don't need to pass the
-	// login server, because `tailscale up` should remember our control URL.
+	// login server, because `lanhc up` should remember our control URL.
 	cmd2Args := []string{"up"}
 	t.Logf("Running command: %s", strings.Join(cmd2Args, " "))
 
 	var deviceApprovalURLCount atomic.Int32
 
-	cmd2 := n.Tailscale(cmd2Args...)
+	cmd2 := n.Lanhc(cmd2Args...)
 	cmd2.Stdout = &authURLParserWriter{t: t,
 		authURLFn: func(urlStr string) error {
 			t.Fatalf("got unexpected auth URL: %q", urlStr)
@@ -898,12 +898,12 @@ func TestTwoNodes(t *testing.T) {
 
 		rxNoDates := regexp.MustCompile(`(?m)^\d{4}.\d{2}.\d{2}.\d{2}:\d{2}:\d{2}`)
 		cleanLog := func(n *TestNode) []byte {
-			b := n.tailscaledParser.allBuf.Bytes()
+			b := n.lanhcdParser.allBuf.Bytes()
 			b = rxNoDates.ReplaceAll(b, nil)
 			return b
 		}
 
-		t.Logf("writing tailscaled logs to n1.log and n2.log")
+		t.Logf("writing lanhcd logs to n1.log and n2.log")
 		os.WriteFile("n1.log", cleanLog(n1), 0666)
 		os.WriteFile("n2.log", cleanLog(n2), 0666)
 	})
@@ -939,8 +939,8 @@ func TestTwoNodes(t *testing.T) {
 			return errors.New("peer is self")
 		}
 
-		if len(st.TailscaleIPs) == 0 {
-			return errors.New("no Tailscale IPs")
+		if len(st.LanhcIPs) == 0 {
+			return errors.New("no Lanhc IPs")
 		}
 
 		return nil
@@ -1073,10 +1073,10 @@ func TestIncrementalMapUpdatePeerAllowedIPsReachability(t *testing.T) {
 	vip := netip.MustParseAddr("100.99.99.99")
 	vipPrefix := netip.PrefixFrom(vip, vip.BitLen())
 
-	if err := n1.Tailscale("ping", "--tsmp", "--c=1", "--timeout=5s", n2.AwaitIP4().String()).Run(); err != nil {
+	if err := n1.Lanhc("ping", "--tsmp", "--c=1", "--timeout=5s", n2.AwaitIP4().String()).Run(); err != nil {
 		t.Fatalf("initial ping n1 -> n2: %v", err)
 	}
-	if err := n1.Tailscale("ping", "--tsmp", "--c=1", "--timeout=1s", vip.String()).Run(); err == nil {
+	if err := n1.Lanhc("ping", "--tsmp", "--c=1", "--timeout=1s", vip.String()).Run(); err == nil {
 		t.Fatalf("ping n1 -> n2 VIP %v before AllowedIPs delta succeeded unexpectedly", vip)
 	}
 
@@ -1121,13 +1121,13 @@ func TestIncrementalMapUpdatePeerAllowedIPsReachability(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := n1.Tailscale("ping", "--tsmp", "--c=1", "--timeout=5s", vip.String()).Run(); err != nil {
+	if err := n1.Lanhc("ping", "--tsmp", "--c=1", "--timeout=5s", vip.String()).Run(); err != nil {
 		t.Fatalf("ping n1 -> n2 VIP %v after AllowedIPs delta: %v", vip, err)
 	}
 }
 
 func TestNodeAddressIPFields(t *testing.T) {
-	flakytest.Mark(t, "https://github.com/tailscale/tailscale/issues/7008")
+	flakytest.Mark(t, "https://github.com/lanhc/lanhc/issues/7008")
 	tstest.Parallel(t)
 	env := NewTestEnv(t)
 	n1 := NewTestNode(t, env)
@@ -1264,7 +1264,7 @@ func TestC2NPingRequest(t *testing.T) {
 	t.Error("all ping attempts failed")
 }
 
-// Issue 2434: when "down" (WantRunning false), tailscaled shouldn't
+// Issue 2434: when "down" (WantRunning false), lanhcd shouldn't
 // be connected to control.
 func TestNoControlConnWhenDown(t *testing.T) {
 	tstest.Parallel(t)
@@ -1306,13 +1306,13 @@ func TestNoControlConnWhenDown(t *testing.T) {
 	}
 
 	if n := env.Control.InServeMap(); n != 0 {
-		t.Fatalf("unexpected connection triggered by tailscale ip: in serve map = %d; want 0", n)
+		t.Fatalf("unexpected connection triggered by lanhc ip: in serve map = %d; want 0", n)
 	}
 
 	d2.MustCleanShutdown(t)
 }
 
-// Issue 2137: make sure Windows tailscaled works with the CLI alone,
+// Issue 2137: make sure Windows lanhcd works with the CLI alone,
 // without the GUI to kick off a Start.
 func TestOneNodeUpWindowsStyle(t *testing.T) {
 	tstest.Parallel(t)
@@ -1334,7 +1334,7 @@ func TestOneNodeUpWindowsStyle(t *testing.T) {
 // jailed node cannot initiate connections to the other node however the other
 // node can initiate connections to the jailed node.
 func TestClientSideJailing(t *testing.T) {
-	flakytest.Mark(t, "https://github.com/tailscale/tailscale/issues/17419")
+	flakytest.Mark(t, "https://github.com/lanhc/lanhc/issues/17419")
 	tstest.Parallel(t)
 	env := NewTestEnv(t)
 	registerNode := func() (*TestNode, key.NodePublic) {
@@ -1446,7 +1446,7 @@ func TestClientSideJailing(t *testing.T) {
 // TestNATPing creates two nodes, n1 and n2, sets up masquerades for both and
 // tries to do bi-directional pings between them.
 func TestNATPing(t *testing.T) {
-	flakytest.Mark(t, "https://github.com/tailscale/tailscale/issues/12169")
+	flakytest.Mark(t, "https://github.com/lanhc/lanhc/issues/12169")
 	tstest.Parallel(t)
 	for _, v6 := range []bool{false, true} {
 		env := NewTestEnv(t)
@@ -1543,29 +1543,29 @@ func TestNATPing(t *testing.T) {
 
 				s1 := n1.MustStatus()
 				n2AsN1Peer := s1.Peer[k2]
-				if got := n2AsN1Peer.TailscaleIPs[ipIdx]; got != tc.n1SeesN2IP {
+				if got := n2AsN1Peer.LanhcIPs[ipIdx]; got != tc.n1SeesN2IP {
 					t.Fatalf("n1 sees n2 as %v; want %v", got, tc.n1SeesN2IP)
 				}
 
 				s2 := n2.MustStatus()
 				n1AsN2Peer := s2.Peer[k1]
-				if got := n1AsN2Peer.TailscaleIPs[ipIdx]; got != tc.n2SeesN1IP {
+				if got := n1AsN2Peer.LanhcIPs[ipIdx]; got != tc.n2SeesN1IP {
 					t.Fatalf("n2 sees n1 as %v; want %v", got, tc.n2SeesN1IP)
 				}
 
-				if err := n1.Tailscale("ping", tc.n1SeesN2IP.String()).Run(); err != nil {
+				if err := n1.Lanhc("ping", tc.n1SeesN2IP.String()).Run(); err != nil {
 					t.Fatal(err)
 				}
 
-				if err := n1.Tailscale("ping", "-peerapi", tc.n1SeesN2IP.String()).Run(); err != nil {
+				if err := n1.Lanhc("ping", "-peerapi", tc.n1SeesN2IP.String()).Run(); err != nil {
 					t.Fatal(err)
 				}
 
-				if err := n2.Tailscale("ping", tc.n2SeesN1IP.String()).Run(); err != nil {
+				if err := n2.Lanhc("ping", tc.n2SeesN1IP.String()).Run(); err != nil {
 					t.Fatal(err)
 				}
 
-				if err := n2.Tailscale("ping", "-peerapi", tc.n2SeesN1IP.String()).Run(); err != nil {
+				if err := n2.Lanhc("ping", "-peerapi", tc.n2SeesN1IP.String()).Run(); err != nil {
 					t.Fatal(err)
 				}
 			})
@@ -1702,7 +1702,7 @@ func testAutoUpdateDefaults(t *testing.T, useCap bool) {
 				checkDefault(n, false) // still false
 
 				// But can be changed explicitly by the user.
-				if out, err := n.TailscaleForOutput("set", "--auto-update").CombinedOutput(); err != nil {
+				if out, err := n.LanhcForOutput("set", "--auto-update").CombinedOutput(); err != nil {
 					t.Fatalf("failed to enable auto-update on node: %v\noutput: %s", err, out)
 				}
 				checkDefault(n, true)
@@ -1729,7 +1729,7 @@ func testAutoUpdateDefaults(t *testing.T, useCap bool) {
 				checkDefault(n, true) // still true
 
 				// But can be changed explicitly by the user.
-				if out, err := n.TailscaleForOutput("set", "--auto-update=false").CombinedOutput(); err != nil {
+				if out, err := n.LanhcForOutput("set", "--auto-update=false").CombinedOutput(); err != nil {
 					t.Fatalf("failed to enable auto-update on node: %v\noutput: %s", err, out)
 				}
 				checkDefault(n, false)
@@ -1739,7 +1739,7 @@ func testAutoUpdateDefaults(t *testing.T, useCap bool) {
 			desc: "user-sets-first",
 			run: func(t *testing.T, n *TestNode) {
 				// User sets auto-update first, before receiving defaults.
-				if out, err := n.TailscaleForOutput("set", "--auto-update=false").CombinedOutput(); err != nil {
+				if out, err := n.LanhcForOutput("set", "--auto-update=false").CombinedOutput(); err != nil {
 					t.Fatalf("failed to disable auto-update on node: %v\noutput: %s", err, out)
 				}
 
@@ -1777,7 +1777,7 @@ func TestDNSOverTCPIntervalResolver(t *testing.T) {
 	n1.MustUp()
 	n1.AwaitRunning()
 
-	const dnsSymbolicFQDN = "magicdns.localhost-tailscale-daemon."
+	const dnsSymbolicFQDN = "magicdns.localhost-lanhc-daemon."
 
 	cases := []struct {
 		network     string
@@ -1785,11 +1785,11 @@ func TestDNSOverTCPIntervalResolver(t *testing.T) {
 	}{
 		{
 			"tcp4",
-			tsaddr.TailscaleServiceIP(),
+			tsaddr.LanhcServiceIP(),
 		},
 		{
 			"tcp6",
-			tsaddr.TailscaleServiceIPv6(),
+			tsaddr.LanhcServiceIPv6(),
 		},
 	}
 	for _, c := range cases {
@@ -1820,8 +1820,8 @@ func TestDNSOverTCPIntervalResolver(t *testing.T) {
 				return fmt.Errorf("unexpected answer type: %s", resp.Answer[0])
 			}
 			gotAddr = answer.A
-			if !bytes.Equal(gotAddr, tsaddr.TailscaleServiceIP().AsSlice()) {
-				return fmt.Errorf("got (%s) != want (%s)", gotAddr, tsaddr.TailscaleServiceIP())
+			if !bytes.Equal(gotAddr, tsaddr.LanhcServiceIP().AsSlice()) {
+				return fmt.Errorf("got (%s) != want (%s)", gotAddr, tsaddr.LanhcServiceIP())
 			}
 			return nil
 		})
@@ -1860,12 +1860,12 @@ func TestNetstackTCPLoopback(t *testing.T) {
 		{
 			lisAddr:  net.JoinHostPort("127.0.0.1", loopbackPortStr),
 			network:  "tcp4",
-			dialAddr: net.JoinHostPort(tsaddr.TailscaleServiceIPString, loopbackPortStr),
+			dialAddr: net.JoinHostPort(tsaddr.LanhcServiceIPString, loopbackPortStr),
 		},
 		{
 			lisAddr:  net.JoinHostPort("::1", loopbackPortStr),
 			network:  "tcp6",
-			dialAddr: net.JoinHostPort(tsaddr.TailscaleServiceIPv6String, loopbackPortStr),
+			dialAddr: net.JoinHostPort(tsaddr.LanhcServiceIPv6String, loopbackPortStr),
 		},
 	}
 
@@ -2001,13 +2001,13 @@ func TestNetstackUDPLoopback(t *testing.T) {
 			pingerLAddr: &net.UDPAddr{IP: ip4.AsSlice(), Port: loopbackPort + 1},
 			pongerLAddr: &net.UDPAddr{IP: net.ParseIP("127.0.0.1"), Port: loopbackPort},
 			network:     "udp4",
-			dialAddr:    &net.UDPAddr{IP: tsaddr.TailscaleServiceIP().AsSlice(), Port: loopbackPort},
+			dialAddr:    &net.UDPAddr{IP: tsaddr.LanhcServiceIP().AsSlice(), Port: loopbackPort},
 		},
 		{
 			pingerLAddr: &net.UDPAddr{IP: ip6.AsSlice(), Port: loopbackPort + 1},
 			pongerLAddr: &net.UDPAddr{IP: net.ParseIP("::1"), Port: loopbackPort},
 			network:     "udp6",
-			dialAddr:    &net.UDPAddr{IP: tsaddr.TailscaleServiceIPv6().AsSlice(), Port: loopbackPort},
+			dialAddr:    &net.UDPAddr{IP: tsaddr.LanhcServiceIPv6().AsSlice(), Port: loopbackPort},
 		},
 	}
 
@@ -2121,7 +2121,7 @@ func TestEncryptStateMigration(t *testing.T) {
 		t.Skip("TPM not available")
 	}
 	if runtime.GOOS != "linux" && runtime.GOOS != "windows" {
-		t.Skip("--encrypt-state for tailscaled state not supported on this platform")
+		t.Skip("--encrypt-state for lanhcd state not supported on this platform")
 	}
 	tstest.Parallel(t)
 	env := NewTestEnv(t)
@@ -2173,11 +2173,11 @@ func TestEncryptStateMigration(t *testing.T) {
 }
 
 // TestPeerRelayPing creates three nodes with one acting as a peer relay.
-// The test succeeds when "tailscale ping" flows through the peer
-// relay between all 3 nodes, and "tailscale debug peer-relay-sessions" returns
+// The test succeeds when "lanhc ping" flows through the peer
+// relay between all 3 nodes, and "lanhc debug peer-relay-sessions" returns
 // expected values.
 func TestPeerRelayPing(t *testing.T) {
-	flakytest.Mark(t, "https://github.com/tailscale/tailscale/issues/17251")
+	flakytest.Mark(t, "https://github.com/lanhc/lanhc/issues/17251")
 	tstest.Parallel(t)
 
 	env := NewTestEnv(t, ConfigureControl(func(server *testcontrol.Server) {
@@ -2200,7 +2200,7 @@ func TestPeerRelayPing(t *testing.T) {
 		n.AwaitRunning()
 	}
 
-	if err := peerRelay.Tailscale("set", "--relay-server-port=0").Run(); err != nil {
+	if err := peerRelay.Lanhc("set", "--relay-server-port=0").Run(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -2208,7 +2208,7 @@ func TestPeerRelayPing(t *testing.T) {
 	for _, a := range allNodes {
 		go func() {
 			err := tstest.WaitFor(time.Second*5, func() error {
-				out, err := a.Tailscale("debug", "peer-relay-servers").CombinedOutput()
+				out, err := a.Lanhc("debug", "peer-relay-servers").CombinedOutput()
 				if err != nil {
 					return fmt.Errorf("debug peer-relay-servers failed: %v", err)
 				}
@@ -2251,7 +2251,7 @@ func TestPeerRelayPing(t *testing.T) {
 			z := pair[1]
 			err := tstest.WaitFor(time.Second*10, func() error {
 				remoteKey := z.MustStatus().Self.PublicKey
-				if err := a.Tailscale("ping", "--until-direct=false", "--c=1", "--timeout=1s", z.AwaitIP4().String()).Run(); err != nil {
+				if err := a.Lanhc("ping", "--until-direct=false", "--c=1", "--timeout=1s", z.AwaitIP4().String()).Run(); err != nil {
 					return err
 				}
 				remotePeer, ok := a.MustStatus().Peer[remoteKey]
@@ -2456,7 +2456,7 @@ func TestC2NDebugNetmap(t *testing.T) {
 
 func TestTailnetLock(t *testing.T) {
 
-	// If you run `tailscale lock log` on a node where Tailnet Lock isn't
+	// If you run `lanhc lock log` on a node where Tailnet Lock isn't
 	// enabled, you get an error explaining that.
 	t.Run("log-when-not-enabled", func(t *testing.T) {
 		t.Parallel()
@@ -2474,7 +2474,7 @@ func TestTailnetLock(t *testing.T) {
 
 		var outBuf, errBuf bytes.Buffer
 
-		cmd := n1.Tailscale(cmdArgs...)
+		cmd := n1.Lanhc(cmdArgs...)
 		cmd.Stdout = &outBuf
 		cmd.Stderr = &errBuf
 
@@ -2517,7 +2517,7 @@ func TestTailnetLock(t *testing.T) {
 		}
 
 		// Initiate Tailnet Lock with the two signing nodes.
-		initCmd := signing1.Tailscale("lock", "init",
+		initCmd := signing1.Lanhc("lock", "init",
 			"--gen-disablements", "10",
 			"--confirm",
 			signing1.NLPublicKey(), signing2.NLPublicKey(),
@@ -2550,7 +2550,7 @@ func TestTailnetLock(t *testing.T) {
 		}
 
 		// Sign node3, and check the nodes can now talk to each other
-		signCmd := signing1.Tailscale("lock", "sign", node3.PublicKey())
+		signCmd := signing1.Lanhc("lock", "sign", node3.PublicKey())
 		out, err = signCmd.CombinedOutput()
 		if err != nil {
 			t.Fatalf("sign command failed: %q\noutput = %v", err, string(out))
@@ -2564,10 +2564,10 @@ func TestTailnetLock(t *testing.T) {
 		}
 	})
 
-	// If you run `tailscale lock (add|remove|revoke-keys)` but don't pass any keys,
+	// If you run `lanhc lock (add|remove|revoke-keys)` but don't pass any keys,
 	// we print a helpful error message.
 	//
-	// Regression test for tailscale/tailscale#19130
+	// Regression test for lanhc/lanhc#19130
 	t.Run("no-keys-is-error", func(t *testing.T) {
 		for _, verb := range []string{"add", "remove", "revoke-keys"} {
 			t.Run(verb, func(t *testing.T) {
@@ -2581,7 +2581,7 @@ func TestTailnetLock(t *testing.T) {
 				n1.MustUp()
 				n1.AwaitRunning()
 
-				revokeCmd := n1.Tailscale("lock", verb)
+				revokeCmd := n1.Lanhc("lock", verb)
 				out, err := revokeCmd.CombinedOutput()
 				if err == nil {
 					t.Fatal("expected command to fail, but succeeded")
@@ -2616,7 +2616,7 @@ func TestNodeWithBadStateFile(t *testing.T) {
 	}
 
 	// Make sure login attempts are rejected.
-	cmd := n1.Tailscale("up", "--login-server="+n1.env.ControlURL())
+	cmd := n1.Lanhc("up", "--login-server="+n1.env.ControlURL())
 	t.Logf("Running %v ...", cmd)
 	out, err := cmd.CombinedOutput()
 	if err == nil {

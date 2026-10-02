@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// The dist command builds Tailscale release packages for distribution.
+// The dist command builds Lanhc release packages for distribution.
 package main
 
 import (
@@ -13,11 +13,11 @@ import (
 	"os"
 	"slices"
 
-	"tailscale.com/release/dist"
-	"tailscale.com/release/dist/cli"
-	"tailscale.com/release/dist/qnap"
-	"tailscale.com/release/dist/synology"
-	"tailscale.com/release/dist/unixpkgs"
+	"lanhc.com/release/dist"
+	"lanhc.com/release/dist/cli"
+	"lanhc.com/release/dist/qnap"
+	"lanhc.com/release/dist/synology"
+	"lanhc.com/release/dist/unixpkgs"
 )
 
 var (
@@ -43,7 +43,7 @@ func getTargets() ([]dist.Target, error) {
 	//
 	// Since only we can provide packages to Synology for
 	// distribution, we default to building the "sideload" variant of
-	// packages that we distribute on pkgs.tailscale.com.
+	// packages that we distribute on pkgs.lanhc.com.
 	//
 	// To build for package center, run
 	// ./tool/go run ./cmd/dist build --synology-package-center synology

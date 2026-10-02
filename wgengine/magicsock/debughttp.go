@@ -13,16 +13,16 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime/mono"
-	"tailscale.com/types/key"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime/mono"
+	"lanhc.com/types/key"
 )
 
 // ServeHTTPDebug serves an HTML representation of the innards of c for debugging.
 //
-// It's accessible either from tailscaled's debug port (at
+// It's accessible either from lanhcd's debug port (at
 // /debug/magicsock) or via peerapi to a peer that's owned by the same
 // user (so they can e.g. inspect their phones).
 func (c *Conn) ServeHTTPDebug(w http.ResponseWriter, r *http.Request) {

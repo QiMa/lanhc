@@ -18,15 +18,15 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/derp/derphttp"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/net/netns"
-	"tailscale.com/net/stun"
-	"tailscale.com/net/tlsdial"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
-	"tailscale.com/types/nettype"
+	"lanhc.com/derp/derphttp"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/net/netns"
+	"lanhc.com/net/stun"
+	"lanhc.com/net/tlsdial"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
+	"lanhc.com/types/nettype"
 )
 
 // tlsConfigForNode builds a *tls.Config for connecting to a DERP node,
@@ -84,7 +84,7 @@ func (h *Handler) serveDebugDERPRegion(w http.ResponseWriter, r *http.Request) {
 	}
 	st.Info = append(st.Info, fmt.Sprintf("Region %v == %q", reg.RegionID, reg.RegionCode))
 	if len(dm.Regions) == 1 {
-		st.Warnings = append(st.Warnings, "Having only a single DERP region (i.e. removing the default Tailscale-provided regions) is a single point of failure and could hamper connectivity")
+		st.Warnings = append(st.Warnings, "Having only a single DERP region (i.e. removing the default Lanhc-provided regions) is a single point of failure and could hamper connectivity")
 	}
 
 	if reg.Avoid {

@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"testing"
 
-	"tailscale.com/tstest/deptest"
+	"lanhc.com/tstest/deptest"
 )
 
 func TestDeps(t *testing.T) {

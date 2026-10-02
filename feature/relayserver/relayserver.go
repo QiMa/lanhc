@@ -11,21 +11,21 @@ import (
 	"net/http"
 	"net/netip"
 
-	"tailscale.com/disco"
-	"tailscale.com/feature"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnext"
-	"tailscale.com/ipn/localapi"
-	"tailscale.com/net/udprelay"
-	"tailscale.com/net/udprelay/endpoint"
-	"tailscale.com/net/udprelay/status"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/views"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/wgengine/magicsock"
+	"lanhc.com/disco"
+	"lanhc.com/feature"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnext"
+	"lanhc.com/ipn/localapi"
+	"lanhc.com/net/udprelay"
+	"lanhc.com/net/udprelay/endpoint"
+	"lanhc.com/net/udprelay/status"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/views"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/wgengine/magicsock"
 )
 
 // featureName is the name of the feature implemented by this package.
@@ -40,7 +40,7 @@ func init() {
 
 // servePeerRelayDebugSessions is an HTTP handler for the Local API that
 // returns debug/status information for peer relay sessions being relayed by
-// this Tailscale node. It writes a JSON-encoded [status.ServerStatus] into the
+// this Lanhc node. It writes a JSON-encoded [status.ServerStatus] into the
 // HTTP response, or returns an HTTP 405/500 with error text as the body.
 func servePeerRelayDebugSessions(h *localapi.Handler, w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
@@ -251,7 +251,7 @@ func (e *extension) Shutdown() error {
 }
 
 // serverStatus gathers and returns current peer relay server status information
-// for this Tailscale node, and status of each peer relay session this node is
+// for this Lanhc node, and status of each peer relay session this node is
 // relaying (if any).
 func (e *extension) serverStatus() status.ServerStatus {
 	e.mu.Lock()

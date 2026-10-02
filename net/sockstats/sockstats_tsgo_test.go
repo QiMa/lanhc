@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-//go:build tailscale_go && (darwin || ios || android || ts_enable_sockstats)
+//go:build lanhc_go && (darwin || ios || android || ts_enable_sockstats)
 
 package sockstats
 

@@ -11,9 +11,9 @@ import (
 	"log"
 	"time"
 
-	"tailscale.com/net/captivedetection"
-	"tailscale.com/net/netcheck"
-	"tailscale.com/tailcfg"
+	"lanhc.com/net/captivedetection"
+	"lanhc.com/net/netcheck"
+	"lanhc.com/tailcfg"
 )
 
 func init() {

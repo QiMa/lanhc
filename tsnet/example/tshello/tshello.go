@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// The tshello server demonstrates how to use Tailscale as a library.
+// The tshello server demonstrates how to use Lanhc as a library.
 package main
 
 import (
@@ -13,7 +13,7 @@ import (
 	"net/http"
 	"strings"
 
-	"tailscale.com/tsnet"
+	"lanhc.com/tsnet"
 )
 
 var (

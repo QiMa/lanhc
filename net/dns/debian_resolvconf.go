@@ -14,8 +14,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"tailscale.com/atomicfile"
-	"tailscale.com/types/logger"
+	"lanhc.com/atomicfile"
+	"lanhc.com/types/logger"
 )
 
 //go:embed resolvconf-workaround.sh
@@ -33,7 +33,7 @@ var workaroundScript []byte
 // resolvconf implementations encourage adding a suffix roughly
 // indicating where the config came from, and "inet" is the "none of
 // the above" value (rather than, say, "ppp" or "dhcp").
-const resolvconfConfigName = "tun-tailscale.inet"
+const resolvconfConfigName = "tun-lanhc.inet"
 
 // resolvconfLibcHookPath is the directory containing libc update
 // scripts, which are run by Debian resolvconf when /etc/resolv.conf
@@ -41,8 +41,8 @@ const resolvconfConfigName = "tun-tailscale.inet"
 const resolvconfLibcHookPath = "/etc/resolvconf/update-libc.d"
 
 // resolvconfHookPath is the name of the libc hook script we install
-// to force Tailscale's DNS config to take effect.
-var resolvconfHookPath = filepath.Join(resolvconfLibcHookPath, "tailscale")
+// to force Lanhc's DNS config to take effect.
+var resolvconfHookPath = filepath.Join(resolvconfLibcHookPath, "lanhc")
 
 // resolvconfManager manages DNS configuration using the Debian
 // implementation of the `resolvconf` program, written by Thomas Hood.
@@ -89,7 +89,7 @@ func newDebianResolvconfManager(logf logger.Logf) (*resolvconfManager, error) {
 	return ret, nil
 }
 
-func (m *resolvconfManager) deleteTailscaleConfig() error {
+func (m *resolvconfManager) deleteLanhcConfig() error {
 	cmd := exec.Command("resolvconf", "-d", resolvconfConfigName)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -111,7 +111,7 @@ func (m *resolvconfManager) SetDNS(config OSConfig) error {
 	}
 
 	if config.IsZero() {
-		if err := m.deleteTailscaleConfig(); err != nil {
+		if err := m.deleteLanhcConfig(); err != nil {
 			return err
 		}
 	} else {
@@ -171,7 +171,7 @@ func (m *resolvconfManager) GetBaseConfig() (OSConfig, error) {
 }
 
 func (m *resolvconfManager) Close() error {
-	if err := m.deleteTailscaleConfig(); err != nil {
+	if err := m.deleteLanhcConfig(); err != nil {
 		return err
 	}
 

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/tstime"
+	"lanhc.com/tstime"
 )
 
 func TestClockWithDefinedStartTime(t *testing.T) {

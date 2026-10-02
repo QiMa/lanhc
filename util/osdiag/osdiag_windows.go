@@ -16,9 +16,9 @@ import (
 	"github.com/dblohm7/wingoes/pe"
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
-	"tailscale.com/util/osdiag/internal/wsc"
-	"tailscale.com/util/winutil"
-	"tailscale.com/util/winutil/authenticode"
+	"lanhc.com/util/osdiag/internal/wsc"
+	"lanhc.com/util/winutil"
+	"lanhc.com/util/winutil/authenticode"
 )
 
 var (

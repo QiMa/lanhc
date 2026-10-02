@@ -11,13 +11,13 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/tstest"
+	"lanhc.com/tstest"
 )
 
 // TestUserspaceWhoIsProxyMap verifies that WhoIs lookups work via the
 // proxymap in userspace-networking mode. It sets up two nodes (n1 and
 // n2), starts a TCP listener on localhost, and has n1 connect to n2's
-// Tailscale IP on the listener's port via "tailscale nc". Node n2's
+// Lanhc IP on the listener's port via "lanhc nc". Node n2's
 // netstack forwards the connection to localhost, and the listener
 // calls WhoIs on n2's LocalAPI to identify the remote peer as n1.
 func TestUserspaceWhoIsProxyMap(t *testing.T) {
@@ -62,7 +62,7 @@ func TestUserspaceWhoIsProxyMap(t *testing.T) {
 	t.Logf("n2 IP: %v", n2IP)
 
 	// Start a TCP listener on localhost:0. When n1 connects to n2's
-	// Tailscale IP on this port, n2's netstack (userspace networking)
+	// Lanhc IP on this port, n2's netstack (userspace networking)
 	// will forward the connection to 127.0.0.1:<port>. The listener
 	// uses n2's LocalAPI WhoIs to identify the connecting peer.
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
@@ -89,7 +89,7 @@ func TestUserspaceWhoIsProxyMap(t *testing.T) {
 
 		// The RemoteAddr is 127.0.0.1:<ephemeral>, the local side of
 		// n2's netstack dial. WhoIs on n2 should resolve this via the
-		// proxymap to n1's Tailscale identity.
+		// proxymap to n1's Lanhc identity.
 		ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
 		defer cancel()
 		who, err := n2.LocalClient().WhoIs(ctx, conn.RemoteAddr().String())
@@ -112,14 +112,14 @@ func TestUserspaceWhoIsProxyMap(t *testing.T) {
 		resultCh <- result{msg: msg}
 	}()
 
-	// Use "tailscale nc" on n1 to connect to n2's Tailscale IP on
-	// the listener port. This goes through n1's tailscaled, over
+	// Use "lanhc nc" on n1 to connect to n2's Lanhc IP on
+	// the listener port. This goes through n1's lanhcd, over
 	// wireguard to n2's netstack, which dials localhost:<port>.
 	//
 	// We need to keep stdin open so nc doesn't exit before reading
 	// the server's response (nc returns on the first goroutine to
 	// complete: stdin→conn or conn→stdout).
-	cmd := n1.TailscaleForOutput("nc", n2IP.String(), fmt.Sprint(port))
+	cmd := n1.LanhcForOutput("nc", n2IP.String(), fmt.Sprint(port))
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		t.Fatal(err)
@@ -127,7 +127,7 @@ func TestUserspaceWhoIsProxyMap(t *testing.T) {
 	out, err := cmd.Output()
 	stdin.Close()
 	if err != nil {
-		t.Fatalf("tailscale nc: %v", err)
+		t.Fatalf("lanhc nc: %v", err)
 	}
 
 	// Verify the listener goroutine completed without error.

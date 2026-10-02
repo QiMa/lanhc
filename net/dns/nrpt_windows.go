@@ -10,11 +10,11 @@ import (
 
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/set"
-	"tailscale.com/util/winutil"
-	"tailscale.com/util/winutil/gp"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/set"
+	"lanhc.com/util/winutil"
+	"lanhc.com/util/winutil/gp"
 )
 
 const (
@@ -28,11 +28,11 @@ const (
 
 	// This is the legacy rule ID that previous versions used when we supported
 	// only a single rule. Now that we support multiple rules are required, we
-	// generate their GUIDs and store them under the Tailscale registry key.
+	// generate their GUIDs and store them under the Lanhc registry key.
 	nrptSingleRuleID = `{5abe529b-675b-4486-8459-25a634dacc23}`
 
 	// This is the name of the registry value we use to save Rule IDs under
-	// the Tailscale registry key.
+	// the Lanhc registry key.
 	nrptRuleIDValueName = `NRPTRuleIDs`
 
 	// This is the name of the registry value the NRPT uses for storing a rule's version number.
@@ -66,8 +66,8 @@ func newNRPTRuleDatabase(logf logger.Logf) *nrptRuleDatabase {
 	ret.watchForGPChanges()
 	// Best-effort: if our NRPT rule exists, try to delete it. Unlike
 	// per-interface configuration, NRPT rules survive the unclean
-	// termination of the Tailscale process, and depending on the
-	// rule, it may prevent us from reaching login.tailscale.com to
+	// termination of the Lanhc process, and depending on the
+	// rule, it may prevent us from reaching login.lanhc.com to
 	// boot up. The bootstrap resolver logic will save us, but it
 	// slows down start-up a bunch.
 	ret.DelAllRuleKeys()
@@ -144,7 +144,7 @@ func regKeyHasNoValues(ki *registry.KeyInfo) bool {
 		ki.ValueCount == 1 && ki.MaxValueNameLen == 0 && ki.MaxValueLen == 0
 }
 
-// DelAllRuleKeys removes any and all NRPT rules that are owned by Tailscale.
+// DelAllRuleKeys removes any and all NRPT rules that are owned by Lanhc.
 func (db *nrptRuleDatabase) DelAllRuleKeys() error {
 	db.mu.Lock()
 	defer db.mu.Unlock()
@@ -238,7 +238,7 @@ func (db *nrptRuleDatabase) WriteSplitDNSConfig(servers []string, domains []dnsn
 	ruleIDsToRemove := db.ruleIDs[domainRulesLen:]
 	db.delRuleKeys(ruleIDsToRemove)
 
-	// We need to save the list of rule IDs to our Tailscale registry key so that
+	// We need to save the list of rule IDs to our Lanhc registry key so that
 	// we know which rules are ours during subsequent modifications to NRPT rules.
 	ruleIDsToWrite := db.ruleIDs[:domainRulesLen]
 	if len(ruleIDsToWrite) == 0 {
@@ -369,8 +369,8 @@ func (db *nrptRuleDatabase) watchForGPChanges() {
 // updateGroupPoliciesLocked updates the NRPT group policy table depending on
 // the value of writeAsGP. When writeAsGP is true, each NRPT rule is copied from
 // the local NRPT table to the group policy NRPT table. When writeAsGP is false,
-// we remove any Tailscale NRPT rules from the group policy table and, if no
-// non-Tailscale rules remain, we also delete the entire DnsPolicyConfig subkey.
+// we remove any Lanhc NRPT rules from the group policy table and, if no
+// non-Lanhc rules remain, we also delete the entire DnsPolicyConfig subkey.
 // db.mu must already be locked.
 func (db *nrptRuleDatabase) updateGroupPoliciesLocked(writeAsGP bool) {
 	// Since we're updating the group policy NRPT table, we need

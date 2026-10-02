@@ -13,14 +13,14 @@ import (
 	"net/http"
 	"sync"
 
-	"tailscale.com/client/local"
-	"tailscale.com/ipn"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/types/logger"
+	"lanhc.com/client/local"
+	"lanhc.com/ipn"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/types/logger"
 )
 
 // Healthz is a simple health check server, if enabled it returns 200 OK if
-// this tailscale node currently has at least one tailnet IP address else
+// this lanhc node currently has at least one tailnet IP address else
 // returns 503.
 type Healthz struct {
 	sync.Mutex
@@ -45,7 +45,7 @@ func (h *Healthz) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("error writing status: %v", err), http.StatusInternalServerError)
 		}
 	} else {
-		http.Error(w, "node currently has no tailscale IPs", http.StatusServiceUnavailable)
+		http.Error(w, "node currently has no lanhc IPs", http.StatusServiceUnavailable)
 	}
 }
 
@@ -78,7 +78,7 @@ func (h *Healthz) MonitorHealth(ctx context.Context, lc *local.Client) error {
 }
 
 // RegisterHealthHandlers registers a simple health handler at /healthz.
-// A containerized tailscale instance is considered healthy if
+// A containerized lanhc instance is considered healthy if
 // it has at least one tailnet IP address.
 func RegisterHealthHandlers(mux *http.ServeMux, podIPv4, podIPv6 string, logger logger.Logf) *Healthz {
 	h := &Healthz{

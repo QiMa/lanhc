@@ -10,13 +10,13 @@ import (
 	"path/filepath"
 	"sync"
 
-	"tailscale.com/feature"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnext"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/store"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/types/logger"
+	"lanhc.com/feature"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnext"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/store"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/types/logger"
 )
 
 const featureName = "serviceclientprefs"
@@ -81,7 +81,7 @@ func (e *extension) onChangeProfile(profile ipn.LoginProfileView, _ ipn.PrefsVie
 	if pid == "" {
 		return
 	}
-	varRoot := e.sb.TailscaleVarRoot()
+	varRoot := e.sb.LanhcVarRoot()
 	if varRoot == "" {
 		// No writable storage (ephemeral node, or a non-file [ipn.StateStore] like Kubernetes).
 		// Service client prefs are only used by the desktop clients, so an in-memory store that

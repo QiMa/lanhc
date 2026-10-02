@@ -56,10 +56,10 @@ linters:
         printf:
           # List of print function names to check (in addition to default)
           funcs:
-            - github.com/tailscale/tailscale/types/logger.Discard
+            - github.com/lanhc/lanhc/types/logger.Discard
             # NOTE(andrew-d): this doesn't currently work because the printf
             # analyzer doesn't support type declarations
-            #- github.com/tailscale/tailscale/types/logger.Logf
+            #- github.com/lanhc/lanhc/types/logger.Logf
     revive:
       enable-all-rules: false
       rules:

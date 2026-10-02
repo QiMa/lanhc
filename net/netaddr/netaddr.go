@@ -5,7 +5,7 @@
 // to Go 1.18's net/netip.
 //
 // TODO(bradfitz): delete this package eventually. Tracking bug is
-// https://github.com/tailscale/tailscale/issues/5162
+// https://github.com/lanhc/lanhc/issues/5162
 package netaddr
 
 import (

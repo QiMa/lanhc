@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package synology contains dist Targets for building Synology Tailscale packages.
+// Package synology contains dist Targets for building Synology Lanhc packages.
 package synology
 
 import (
@@ -18,7 +18,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"tailscale.com/release/dist"
+	"lanhc.com/release/dist"
 )
 
 type target struct {
@@ -67,7 +67,7 @@ func (t *target) dsmVersionString() string {
 
 func (t *target) buildSPK(b *dist.Build, inner *innerPkg) ([]string, error) {
 	synoVersion := b.Version.Synology[t.dsmVersionInt()]
-	filename := fmt.Sprintf("tailscale-%s-%s-%d-dsm%s.spk", t.filenameArch, b.Version.Short, synoVersion, t.dsmVersionString())
+	filename := fmt.Sprintf("lanhc-%s-%s-%d-dsm%s.spk", t.filenameArch, b.Version.Short, synoVersion, t.dsmVersionString())
 	out := filepath.Join(b.Out, filename)
 	if t.packageCenter {
 		log.Printf("Building %s (for package center)", filename)
@@ -100,7 +100,7 @@ func (t *target) buildSPK(b *dist.Build, inner *innerPkg) ([]string, error) {
 		memFile("INFO", t.mkInfo(b, inner.uncompressedSz), 0644),
 		static("PACKAGE_ICON.PNG", "PACKAGE_ICON.PNG", 0644),
 		static("PACKAGE_ICON_256.PNG", "PACKAGE_ICON_256.PNG", 0644),
-		static("Tailscale.sc", "Tailscale.sc", 0644),
+		static("Lanhc.sc", "Lanhc.sc", 0644),
 		dir("conf"),
 		static("resource", "conf/resource", 0644),
 		static(privFile, "conf/privilege", 0644),
@@ -139,16 +139,16 @@ func (t *target) mkInfo(b *dist.Build, uncompressedSz int64) []byte {
 	f := func(k, v string) {
 		fmt.Fprintf(&ret, "%s=%q\n", k, v)
 	}
-	f("package", "Tailscale")
+	f("package", "Lanhc")
 	f("version", fmt.Sprintf("%s-%d", b.Version.Short, b.Version.Synology[t.dsmVersionInt()]))
 	f("arch", t.filenameArch)
 	f("description", "Connect all your devices using WireGuard, without the hassle.")
-	f("displayname", "Tailscale")
-	f("maintainer", "Tailscale, Inc.")
-	f("maintainer_url", "https://github.com/tailscale/tailscale")
+	f("displayname", "Lanhc")
+	f("maintainer", "Lanhc, Inc.")
+	f("maintainer_url", "https://github.com/lanhc/lanhc")
 	f("create_time", b.Time.Format("20060102-15:04:05"))
 	f("dsmuidir", "ui")
-	f("dsmappname", "SYNO.SDS.Tailscale")
+	f("dsmappname", "SYNO.SDS.Lanhc")
 	f("startstop_restart_services", "nginx")
 	switch t.dsmMajorVersion {
 	case 6:
@@ -204,11 +204,11 @@ func (m *synologyBuilds) buildInnerPackage(b *dist.Build, dsmVersion int, goenv 
 		if err := b.BuildWebClientAssets(); err != nil {
 			return nil, err
 		}
-		ts, err := b.BuildGoBinary("tailscale.com/cmd/tailscale", goenv)
+		ts, err := b.BuildGoBinary("lanhc.com/cmd/lanhc", goenv)
 		if err != nil {
 			return nil, err
 		}
-		tsd, err := b.BuildGoBinary("tailscale.com/cmd/tailscaled", goenv)
+		tsd, err := b.BuildGoBinary("lanhc.com/cmd/lanhcd", goenv)
 		if err != nil {
 			return nil, err
 		}
@@ -229,10 +229,10 @@ func (m *synologyBuilds) buildInnerPackage(b *dist.Build, dsmVersion int, goenv 
 
 		err = writeTar(tw, b.Time,
 			dir("bin"),
-			file(tsd, "bin/tailscaled", 0755),
-			file(ts, "bin/tailscale", 0755),
+			file(tsd, "bin/lanhcd", 0755),
+			file(ts, "bin/lanhc", 0755),
 			dir("conf"),
-			static("Tailscale.sc", "conf/Tailscale.sc", 0644),
+			static("Lanhc.sc", "conf/Lanhc.sc", 0644),
 			static(fmt.Sprintf("logrotate-dsm%d", dsmVersion), "conf/logrotate.conf", 0644),
 			dir("ui"),
 			static("PACKAGE_ICON_256.PNG", "ui/PACKAGE_ICON_256.PNG", 0644),
@@ -347,9 +347,9 @@ func dir(name string) tarEntry {
 			Name:     name + "/",
 			Mode:     0755,
 			ModTime:  modTime,
-			// TODO: why tailscale? Files are being written as owned by root.
-			Uname: "tailscale",
-			Gname: "tailscale",
+			// TODO: why lanhc? Files are being written as owned by root.
+			Uname: "lanhc",
+			Gname: "lanhc",
 		})
 	}
 }

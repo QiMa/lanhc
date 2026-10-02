@@ -25,14 +25,14 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	"tailscale.com/client/tailscale/v2"
+	lanhcclient "tailscale.com/client/tailscale/v2"
 
-	"tailscale.com/ipn"
-	tsoperator "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/k8s-operator/tsclient"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tailcfg"
+	"lanhc.com/ipn"
+	tsoperator "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/k8s-operator/tsclient"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tailcfg"
 )
 
 func TestIngressPGReconciler(t *testing.T) {
@@ -45,11 +45,11 @@ func TestIngressPGReconciler(t *testing.T) {
 			Namespace: "default",
 			UID:       types.UID("1234-UID"),
 			Annotations: map[string]string{
-				"tailscale.com/proxy-group": "test-pg",
+				"lanhc.com/proxy-group": "test-pg",
 			},
 		},
 		Spec: networkingv1.IngressSpec{
-			IngressClassName: new("tailscale"),
+			IngressClassName: new("lanhc"),
 			DefaultBackend: &networkingv1.IngressBackend{
 				Service: &networkingv1.IngressServiceBackend{
 					Name: "test",
@@ -70,8 +70,8 @@ func TestIngressPGReconciler(t *testing.T) {
 	populateTLSSecret(t, fc, "test-pg", "my-svc.ts.net")
 	expectReconciled(t, ingPGR, "default", "test-ingress")
 	verifyServeConfig(t, fc, "svc:my-svc", false)
-	verifyTailscaleService(t, ft, "svc:my-svc", []string{"tcp:443"})
-	verifyTailscaledConfig(t, fc, "test-pg", []string{"svc:my-svc"})
+	verifyLanhcService(t, ft, "svc:my-svc", []string{"tcp:443"})
+	verifyLanhcdConfig(t, fc, "test-pg", []string{"svc:my-svc"})
 
 	// Verify that Role and RoleBinding have been created for the first Ingress.
 	// Do not verify the cert Secret as that was already verified implicitly above.
@@ -84,24 +84,24 @@ func TestIngressPGReconciler(t *testing.T) {
 	expectEqual(t, fc, certSecretRoleBinding(pg, "operator-ns", "my-svc.ts.net"))
 
 	mustUpdate(t, fc, "default", "test-ingress", func(ing *networkingv1.Ingress) {
-		ing.Annotations["tailscale.com/tags"] = "tag:custom,tag:test"
+		ing.Annotations["lanhc.com/tags"] = "tag:custom,tag:test"
 	})
 	expectReconciled(t, ingPGR, "default", "test-ingress")
 
-	// Verify Tailscale Service uses custom tags
+	// Verify Lanhc Service uses custom tags
 	tsSvc, err := ft.VIPServices().Get(t.Context(), "svc:my-svc")
 	if err != nil {
-		t.Fatalf("getting Tailscale Service: %v", err)
+		t.Fatalf("getting Lanhc Service: %v", err)
 	}
 	if tsSvc == nil {
-		t.Fatal("Tailscale Service not created")
+		t.Fatal("Lanhc Service not created")
 	}
 	wantTags := []string{"tag:custom", "tag:test"} // custom tags only
 	gotTags := slices.Clone(tsSvc.Tags)
 	slices.Sort(gotTags)
 	slices.Sort(wantTags)
 	if !slices.Equal(gotTags, wantTags) {
-		t.Errorf("incorrect Tailscale Service tags: got %v, want %v", gotTags, wantTags)
+		t.Errorf("incorrect Lanhc Service tags: got %v, want %v", gotTags, wantTags)
 	}
 
 	// Create second Ingress
@@ -112,11 +112,11 @@ func TestIngressPGReconciler(t *testing.T) {
 			Namespace: "default",
 			UID:       types.UID("5678-UID"),
 			Annotations: map[string]string{
-				"tailscale.com/proxy-group": "test-pg",
+				"lanhc.com/proxy-group": "test-pg",
 			},
 		},
 		Spec: networkingv1.IngressSpec{
-			IngressClassName: new("tailscale"),
+			IngressClassName: new("lanhc"),
 			DefaultBackend: &networkingv1.IngressBackend{
 				Service: &networkingv1.IngressServiceBackend{
 					Name: "test",
@@ -137,7 +137,7 @@ func TestIngressPGReconciler(t *testing.T) {
 	populateTLSSecret(t, fc, "test-pg", "my-other-svc.ts.net")
 	expectReconciled(t, ingPGR, "default", "my-other-ingress")
 	verifyServeConfig(t, fc, "svc:my-other-svc", false)
-	verifyTailscaleService(t, ft, "svc:my-other-svc", []string{"tcp:443"})
+	verifyLanhcService(t, ft, "svc:my-other-svc", []string{"tcp:443"})
 
 	// Verify that Role and RoleBinding have been created for the second Ingress.
 	// Do not verify the cert Secret as that was already verified implicitly above.
@@ -146,9 +146,9 @@ func TestIngressPGReconciler(t *testing.T) {
 
 	// Verify first Ingress is still working
 	verifyServeConfig(t, fc, "svc:my-svc", false)
-	verifyTailscaleService(t, ft, "svc:my-svc", []string{"tcp:443"})
+	verifyLanhcService(t, ft, "svc:my-svc", []string{"tcp:443"})
 
-	verifyTailscaledConfig(t, fc, "test-pg", []string{"svc:my-svc", "svc:my-other-svc"})
+	verifyLanhcdConfig(t, fc, "test-pg", []string{"svc:my-svc", "svc:my-other-svc"})
 
 	// Delete second Ingress
 	if err := fc.Delete(t.Context(), ing2); err != nil {
@@ -179,7 +179,7 @@ func TestIngressPGReconciler(t *testing.T) {
 		t.Error("second Ingress service config was not cleaned up")
 	}
 
-	verifyTailscaledConfig(t, fc, "test-pg", []string{"svc:my-svc"})
+	verifyLanhcdConfig(t, fc, "test-pg", []string{"svc:my-svc"})
 	expectMissing[corev1.Secret](t, fc, "operator-ns", "my-other-svc.ts.net")
 	expectMissing[rbacv1.Role](t, fc, "operator-ns", "my-other-svc.ts.net")
 	expectMissing[rbacv1.RoleBinding](t, fc, "operator-ns", "my-other-svc.ts.net")
@@ -187,7 +187,7 @@ func TestIngressPGReconciler(t *testing.T) {
 	// Test Ingress ProxyGroup change
 	createPGResources(t, fc, "test-pg-second")
 	mustUpdate(t, fc, "default", "test-ingress", func(ing *networkingv1.Ingress) {
-		ing.Annotations["tailscale.com/proxy-group"] = "test-pg-second"
+		ing.Annotations["lanhc.com/proxy-group"] = "test-pg-second"
 	})
 	expectReconciled(t, ingPGR, "default", "test-ingress")
 	expectEqual(t, fc, certSecretRole("test-pg-second", "operator-ns", "my-svc.ts.net"))
@@ -222,7 +222,7 @@ func TestIngressPGReconciler(t *testing.T) {
 	if len(cfg.Services) > 0 {
 		t.Error("serve config not cleaned up")
 	}
-	verifyTailscaledConfig(t, fc, "test-pg-second", nil)
+	verifyLanhcdConfig(t, fc, "test-pg-second", nil)
 
 	// Add verification that cert resources were cleaned up
 	expectMissing[corev1.Secret](t, fc, "operator-ns", "my-svc.ts.net")
@@ -237,11 +237,11 @@ func TestIngressPGReconciler(t *testing.T) {
 			Namespace: "default",
 			UID:       types.UID("5678-UID"),
 			Annotations: map[string]string{
-				"tailscale.com/proxy-group": "test-pg",
+				"lanhc.com/proxy-group": "test-pg",
 			},
 		},
 		Spec: networkingv1.IngressSpec{
-			IngressClassName: new("tailscale"),
+			IngressClassName: new("lanhc"),
 			DefaultBackend: &networkingv1.IngressBackend{
 				Service: &networkingv1.IngressServiceBackend{
 					Name: "test",
@@ -260,7 +260,7 @@ func TestIngressPGReconciler(t *testing.T) {
 	expectReconciled(t, ingPGR, ing3.Namespace, ing3.Name)
 
 	// Delete the service from "control"
-	ft.vipServices = make(map[string]tailscale.VIPService)
+	ft.vipServices = make(map[string]lanhcclient.VIPService)
 
 	// Delete the ingress and confirm we don't get stuck due to the VIP service not existing.
 	if err = fc.Delete(t.Context(), ing3); err != nil {
@@ -281,11 +281,11 @@ func TestIngressPGReconciler_UpdateIngressHostname(t *testing.T) {
 			Namespace: "default",
 			UID:       types.UID("1234-UID"),
 			Annotations: map[string]string{
-				"tailscale.com/proxy-group": "test-pg",
+				"lanhc.com/proxy-group": "test-pg",
 			},
 		},
 		Spec: networkingv1.IngressSpec{
-			IngressClassName: new("tailscale"),
+			IngressClassName: new("lanhc"),
 			DefaultBackend: &networkingv1.IngressBackend{
 				Service: &networkingv1.IngressServiceBackend{
 					Name: "test",
@@ -306,10 +306,10 @@ func TestIngressPGReconciler_UpdateIngressHostname(t *testing.T) {
 	populateTLSSecret(t, fc, "test-pg", "my-svc.ts.net")
 	expectReconciled(t, ingPGR, "default", "test-ingress")
 	verifyServeConfig(t, fc, "svc:my-svc", false)
-	verifyTailscaleService(t, ft, "svc:my-svc", []string{"tcp:443"})
-	verifyTailscaledConfig(t, fc, "test-pg", []string{"svc:my-svc"})
+	verifyLanhcService(t, ft, "svc:my-svc", []string{"tcp:443"})
+	verifyLanhcdConfig(t, fc, "test-pg", []string{"svc:my-svc"})
 
-	// Update the Ingress hostname and make sure the original Tailscale Service is deleted.
+	// Update the Ingress hostname and make sure the original Lanhc Service is deleted.
 	mustUpdate(t, fc, "default", "test-ingress", func(ing *networkingv1.Ingress) {
 		ing.Spec.TLS[0].Hosts[0] = "updated-svc"
 	})
@@ -317,14 +317,14 @@ func TestIngressPGReconciler_UpdateIngressHostname(t *testing.T) {
 	populateTLSSecret(t, fc, "test-pg", "updated-svc.ts.net")
 	expectReconciled(t, ingPGR, "default", "test-ingress")
 	verifyServeConfig(t, fc, "svc:updated-svc", false)
-	verifyTailscaleService(t, ft, "svc:updated-svc", []string{"tcp:443"})
-	verifyTailscaledConfig(t, fc, "test-pg", []string{"svc:updated-svc"})
+	verifyLanhcService(t, ft, "svc:updated-svc", []string{"tcp:443"})
+	verifyLanhcdConfig(t, fc, "test-pg", []string{"svc:updated-svc"})
 
 	_, err := ft.VIPServices().Get(context.Background(), "svc:my-svc")
 	if err == nil {
 		t.Fatalf("svc:my-svc not cleaned up")
 	}
-	if !tailscale.IsNotFound(err) {
+	if !lanhcclient.IsNotFound(err) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
@@ -340,7 +340,7 @@ func TestValidateIngress(t *testing.T) {
 			},
 		},
 		Spec: networkingv1.IngressSpec{
-			IngressClassName: new("tailscale"),
+			IngressClassName: new("lanhc"),
 			TLS: []networkingv1.IngressTLS{
 				{Hosts: []string{"test"}},
 			},
@@ -474,7 +474,7 @@ func TestValidateIngress(t *testing.T) {
 					},
 				},
 				Spec: networkingv1.IngressSpec{
-					IngressClassName: new("tailscale"),
+					IngressClassName: new("lanhc"),
 					TLS: []networkingv1.IngressTLS{
 						{Hosts: []string{"test"}},
 					},
@@ -516,12 +516,12 @@ func TestIngressPGReconciler_HTTPEndpoint(t *testing.T) {
 			Namespace: "default",
 			UID:       types.UID("1234-UID"),
 			Annotations: map[string]string{
-				"tailscale.com/proxy-group":   "test-pg",
-				"tailscale.com/http-endpoint": "enabled",
+				"lanhc.com/proxy-group":   "test-pg",
+				"lanhc.com/http-endpoint": "enabled",
 			},
 		},
 		Spec: networkingv1.IngressSpec{
-			IngressClassName: new("tailscale"),
+			IngressClassName: new("lanhc"),
 			DefaultBackend: &networkingv1.IngressBackend{
 				Service: &networkingv1.IngressServiceBackend{
 					Name: "test",
@@ -543,7 +543,7 @@ func TestIngressPGReconciler_HTTPEndpoint(t *testing.T) {
 	expectReconciled(t, ingPGR, "default", "test-ingress")
 	populateTLSSecret(t, fc, "test-pg", "my-svc.ts.net")
 	expectReconciled(t, ingPGR, "default", "test-ingress")
-	verifyTailscaleService(t, ft, "svc:my-svc", []string{"tcp:80", "tcp:443"})
+	verifyLanhcService(t, ft, "svc:my-svc", []string{"tcp:80", "tcp:443"})
 	verifyServeConfig(t, fc, "svc:my-svc", true)
 
 	// Verify Ingress status
@@ -555,13 +555,13 @@ func TestIngressPGReconciler_HTTPEndpoint(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Status will be empty until the Tailscale Service shows up in prefs.
+	// Status will be empty until the Lanhc Service shows up in prefs.
 	if !reflect.DeepEqual(ing.Status.LoadBalancer.Ingress, []networkingv1.IngressLoadBalancerIngress(nil)) {
 		t.Errorf("incorrect Ingress status: got %v, want empty",
 			ing.Status.LoadBalancer.Ingress)
 	}
 
-	// Add the Tailscale Service to prefs to have the Ingress recognised as ready.
+	// Add the Lanhc Service to prefs to have the Ingress recognised as ready.
 	mustUpdate(t, fc, "operator-ns", "test-pg-0", func(o *corev1.Secret) {
 		var p prefs
 		var err error
@@ -593,12 +593,12 @@ func TestIngressPGReconciler_HTTPEndpoint(t *testing.T) {
 
 	// Remove HTTP endpoint annotation
 	mustUpdate(t, fc, "default", "test-ingress", func(ing *networkingv1.Ingress) {
-		delete(ing.Annotations, "tailscale.com/http-endpoint")
+		delete(ing.Annotations, "lanhc.com/http-endpoint")
 	})
 
 	// Verify reconciliation after removing HTTP
 	expectReconciled(t, ingPGR, "default", "test-ingress")
-	verifyTailscaleService(t, ft, "svc:my-svc", []string{"tcp:443"})
+	verifyLanhcService(t, ft, "svc:my-svc", []string{"tcp:443"})
 	verifyServeConfig(t, fc, "svc:my-svc", false)
 
 	// Verify Ingress status
@@ -647,12 +647,12 @@ func TestIngressPGReconciler_HTTPRedirect(t *testing.T) {
 			Namespace: "default",
 			UID:       types.UID("1234-UID"),
 			Annotations: map[string]string{
-				"tailscale.com/proxy-group":   "test-pg",
-				"tailscale.com/http-redirect": "true",
+				"lanhc.com/proxy-group":   "test-pg",
+				"lanhc.com/http-redirect": "true",
 			},
 		},
 		Spec: networkingv1.IngressSpec{
-			IngressClassName: new("tailscale"),
+			IngressClassName: new("lanhc"),
 			DefaultBackend: &networkingv1.IngressBackend{
 				Service: &networkingv1.IngressServiceBackend{
 					Name: "test",
@@ -675,8 +675,8 @@ func TestIngressPGReconciler_HTTPRedirect(t *testing.T) {
 	populateTLSSecret(t, fc, "test-pg", "my-svc.ts.net")
 	expectReconciled(t, ingPGR, "default", "test-ingress")
 
-	// Verify Tailscale Service includes both tcp:80 and tcp:443
-	verifyTailscaleService(t, ft, "svc:my-svc", []string{"tcp:80", "tcp:443"})
+	// Verify Lanhc Service includes both tcp:80 and tcp:443
+	verifyLanhcService(t, ft, "svc:my-svc", []string{"tcp:80", "tcp:443"})
 
 	// Verify Ingress status includes port 80
 	ing = &networkingv1.Ingress{}
@@ -687,7 +687,7 @@ func TestIngressPGReconciler_HTTPRedirect(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Add the Tailscale Service to prefs to have the Ingress recognised as ready.
+	// Add the Lanhc Service to prefs to have the Ingress recognised as ready.
 	mustUpdate(t, fc, "operator-ns", "test-pg-0", func(o *corev1.Secret) {
 		var p prefs
 		var err error
@@ -719,12 +719,12 @@ func TestIngressPGReconciler_HTTPRedirect(t *testing.T) {
 
 	// Remove HTTP redirect annotation
 	mustUpdate(t, fc, "default", "test-ingress", func(ing *networkingv1.Ingress) {
-		delete(ing.Annotations, "tailscale.com/http-redirect")
+		delete(ing.Annotations, "lanhc.com/http-redirect")
 	})
 
 	// Verify reconciliation after removing HTTP redirect
 	expectReconciled(t, ingPGR, "default", "test-ingress")
-	verifyTailscaleService(t, ft, "svc:my-svc", []string{"tcp:443"})
+	verifyLanhcService(t, ft, "svc:my-svc", []string{"tcp:443"})
 
 	// Verify Ingress status no longer includes port 80
 	ing = &networkingv1.Ingress{}
@@ -772,13 +772,13 @@ func TestIngressPGReconciler_HTTPEndpointAndRedirectConflict(t *testing.T) {
 			Namespace: "default",
 			UID:       types.UID("1234-UID"),
 			Annotations: map[string]string{
-				"tailscale.com/proxy-group":   "test-pg",
-				"tailscale.com/http-endpoint": "enabled",
-				"tailscale.com/http-redirect": "true",
+				"lanhc.com/proxy-group":   "test-pg",
+				"lanhc.com/http-endpoint": "enabled",
+				"lanhc.com/http-redirect": "true",
 			},
 		},
 		Spec: networkingv1.IngressSpec{
-			IngressClassName: new("tailscale"),
+			IngressClassName: new("lanhc"),
 			DefaultBackend: &networkingv1.IngressBackend{
 				Service: &networkingv1.IngressServiceBackend{
 					Name: "test",
@@ -801,8 +801,8 @@ func TestIngressPGReconciler_HTTPEndpointAndRedirectConflict(t *testing.T) {
 	populateTLSSecret(t, fc, "test-pg", "my-svc.ts.net")
 	expectReconciled(t, ingPGR, "default", "test-ingress")
 
-	// Verify Tailscale Service includes both tcp:80 and tcp:443
-	verifyTailscaleService(t, ft, "svc:my-svc", []string{"tcp:80", "tcp:443"})
+	// Verify Lanhc Service includes both tcp:80 and tcp:443
+	verifyLanhcService(t, ft, "svc:my-svc", []string{"tcp:80", "tcp:443"})
 
 	// Verify the serve config has HTTP endpoint handlers on port 80, NOT redirect handlers
 	cm := &corev1.ConfigMap{}
@@ -822,7 +822,7 @@ func TestIngressPGReconciler_HTTPEndpointAndRedirectConflict(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Add the Tailscale Service to prefs to have the Ingress recognised as ready.
+	// Add the Lanhc Service to prefs to have the Ingress recognised as ready.
 	mustUpdate(t, fc, "operator-ns", "test-pg-0", func(o *corev1.Secret) {
 		var p prefs
 		var err error
@@ -865,11 +865,11 @@ func TestIngressPGReconciler_MultiCluster(t *testing.T) {
 			Namespace: "default",
 			UID:       types.UID("1234-UID"),
 			Annotations: map[string]string{
-				"tailscale.com/proxy-group": "test-pg",
+				"lanhc.com/proxy-group": "test-pg",
 			},
 		},
 		Spec: networkingv1.IngressSpec{
-			IngressClassName: new("tailscale"),
+			IngressClassName: new("lanhc"),
 			TLS: []networkingv1.IngressTLS{
 				{Hosts: []string{"my-svc"}},
 			},
@@ -877,8 +877,8 @@ func TestIngressPGReconciler_MultiCluster(t *testing.T) {
 	}
 	mustCreate(t, fc, ing)
 
-	// Simulate existing Tailscale Service from another cluster
-	existingVIPSvc := tailscale.VIPService{
+	// Simulate existing Lanhc Service from another cluster
+	existingVIPSvc := lanhcclient.VIPService{
 		Name: "svc:my-svc",
 		Annotations: map[string]string{
 			ownerAnnotation: `{"ownerrefs":[{"operatorID":"operator-2"}]}`,
@@ -891,10 +891,10 @@ func TestIngressPGReconciler_MultiCluster(t *testing.T) {
 
 	tsSvc, err := ft.VIPServices().Get(context.Background(), "svc:my-svc")
 	if err != nil {
-		t.Fatalf("getting Tailscale Service: %v", err)
+		t.Fatalf("getting Lanhc Service: %v", err)
 	}
 	if tsSvc == nil {
-		t.Fatal("Tailscale Service not found")
+		t.Fatal("Lanhc Service not found")
 	}
 
 	o, err := parseOwnerAnnotation(tsSvc)
@@ -910,7 +910,7 @@ func TestIngressPGReconciler_MultiCluster(t *testing.T) {
 		t.Errorf("incorrect owner refs\ngot:  %+v\nwant: %+v", o.OwnerRefs, wantOwnerRefs)
 	}
 
-	// Delete the Ingress and verify Tailscale Service still exists with one owner ref
+	// Delete the Ingress and verify Lanhc Service still exists with one owner ref
 	if err := fc.Delete(context.Background(), ing); err != nil {
 		t.Fatalf("deleting Ingress: %v", err)
 	}
@@ -918,10 +918,10 @@ func TestIngressPGReconciler_MultiCluster(t *testing.T) {
 
 	tsSvc, err = ft.VIPServices().Get(context.Background(), "svc:my-svc")
 	if err != nil {
-		t.Fatalf("getting Tailscale Service after deletion: %v", err)
+		t.Fatalf("getting Lanhc Service after deletion: %v", err)
 	}
 	if tsSvc == nil {
-		t.Fatal("Tailscale Service was incorrectly deleted")
+		t.Fatal("Lanhc Service was incorrectly deleted")
 	}
 
 	o, err = parseOwnerAnnotation(tsSvc)
@@ -943,7 +943,7 @@ func TestOwnerAnnotations(t *testing.T) {
 	}
 
 	for name, tc := range map[string]struct {
-		svc             *tailscale.VIPService
+		svc             *lanhcclient.VIPService
 		wantAnnotations map[string]string
 		wantErr         string
 	}{
@@ -952,17 +952,17 @@ func TestOwnerAnnotations(t *testing.T) {
 			wantAnnotations: singleSelfOwner,
 		},
 		"empty_svc": {
-			svc:     &tailscale.VIPService{},
-			wantErr: "likely a resource created by something other than the Tailscale Kubernetes operator",
+			svc:     &lanhcclient.VIPService{},
+			wantErr: "likely a resource created by something other than the Lanhc Kubernetes operator",
 		},
 		"already_owner": {
-			svc: &tailscale.VIPService{
+			svc: &lanhcclient.VIPService{
 				Annotations: singleSelfOwner,
 			},
 			wantAnnotations: singleSelfOwner,
 		},
 		"add_owner": {
-			svc: &tailscale.VIPService{
+			svc: &lanhcclient.VIPService{
 				Annotations: map[string]string{
 					ownerAnnotation: `{"ownerRefs":[{"operatorID":"operator-2"}]}`,
 				},
@@ -972,7 +972,7 @@ func TestOwnerAnnotations(t *testing.T) {
 			},
 		},
 		"owned_by_proxygroup": {
-			svc: &tailscale.VIPService{
+			svc: &lanhcclient.VIPService{
 				Annotations: map[string]string{
 					ownerAnnotation: `{"ownerRefs":[{"operatorID":"self-id","resource":{"kind":"ProxyGroup","name":"test-pg","uid":"1234-UID"}}]}`,
 				},
@@ -1021,20 +1021,20 @@ func populateTLSSecret(t *testing.T, c client.Client, pgName, domain string) {
 	}
 }
 
-func verifyTailscaleService(t *testing.T, ft *fakeTSClient, serviceName string, wantPorts []string) {
+func verifyLanhcService(t *testing.T, ft *fakeTSClient, serviceName string, wantPorts []string) {
 	t.Helper()
 	tsSvc, err := ft.VIPServices().Get(context.Background(), serviceName)
 	if err != nil {
-		t.Fatalf("getting Tailscale Service %q: %v", serviceName, err)
+		t.Fatalf("getting Lanhc Service %q: %v", serviceName, err)
 	}
 	if tsSvc == nil {
-		t.Fatalf("Tailscale Service %q not created", serviceName)
+		t.Fatalf("Lanhc Service %q not created", serviceName)
 	}
 	gotPorts := slices.Clone(tsSvc.Ports)
 	slices.Sort(gotPorts)
 	slices.Sort(wantPorts)
 	if !slices.Equal(gotPorts, wantPorts) {
-		t.Errorf("incorrect ports for Tailscale Service %q: got %v, want %v", serviceName, gotPorts, wantPorts)
+		t.Errorf("incorrect ports for Lanhc Service %q: got %v, want %v", serviceName, gotPorts, wantPorts)
 	}
 }
 
@@ -1089,7 +1089,7 @@ func verifyServeConfig(t *testing.T, fc client.Client, serviceName string, wantH
 	}
 }
 
-func verifyTailscaledConfig(t *testing.T, fc client.Client, pgName string, expectedServices []string) {
+func verifyLanhcdConfig(t *testing.T, fc client.Client, pgName string, expectedServices []string) {
 	t.Helper()
 	var expected string
 	if expectedServices != nil && len(expectedServices) > 0 {
@@ -1106,7 +1106,7 @@ func verifyTailscaledConfig(t *testing.T, fc client.Client, pgName string, expec
 			Labels:    pgSecretLabels(pgName, kubetypes.LabelSecretTypeConfig),
 		},
 		Data: map[string][]byte{
-			tsoperator.TailscaledConfigFileName(pgMinCapabilityVersion): fmt.Appendf(nil, `{"Version":""%s}`, expected),
+			tsoperator.LanhcdConfigFileName(pgMinCapabilityVersion): fmt.Appendf(nil, `{"Version":""%s}`, expected),
 		},
 	})
 }
@@ -1146,7 +1146,7 @@ func createPGResources(t *testing.T, fc client.Client, pgName string) {
 			Labels:    pgSecretLabels(pgName, kubetypes.LabelSecretTypeConfig),
 		},
 		Data: map[string][]byte{
-			tsoperator.TailscaledConfigFileName(pgMinCapabilityVersion): []byte("{}"),
+			tsoperator.LanhcdConfigFileName(pgMinCapabilityVersion): []byte("{}"),
 		},
 	}
 	mustCreate(t, fc, pgCfgSecret)
@@ -1188,8 +1188,8 @@ func createPGResources(t *testing.T, fc client.Client, pgName string) {
 
 func setupIngressTest(t *testing.T) (*HAIngressReconciler, client.Client, *fakeTSClient) {
 	tsIngressClass := &networkingv1.IngressClass{
-		ObjectMeta: metav1.ObjectMeta{Name: "tailscale"},
-		Spec:       networkingv1.IngressClassSpec{Controller: "tailscale.com/ts-ingress"},
+		ObjectMeta: metav1.ObjectMeta{Name: "lanhc"},
+		Spec:       networkingv1.IngressClassSpec{Controller: "lanhc.com/ts-ingress"},
 	}
 
 	fc := fake.NewClientBuilder().
@@ -1203,7 +1203,7 @@ func setupIngressTest(t *testing.T) (*HAIngressReconciler, client.Client, *fakeT
 	fakeTsnetServer := &fakeTSNetServer{certDomains: []string{"foo.com"}}
 
 	ft := &fakeTSClient{
-		vipServices: make(map[string]tailscale.VIPService),
+		vipServices: make(map[string]lanhcclient.VIPService),
 	}
 	zl, err := zap.NewDevelopment()
 	if err != nil {

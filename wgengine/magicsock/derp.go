@@ -17,21 +17,21 @@ import (
 	"unsafe"
 
 	"github.com/tailscale/wireguard-go/conn"
-	"tailscale.com/derp"
-	"tailscale.com/derp/derphttp"
-	"tailscale.com/health"
-	"tailscale.com/net/dnscache"
-	"tailscale.com/net/netcheck"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime/mono"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/backoff"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/rands"
-	"tailscale.com/util/testenv"
+	"lanhc.com/derp"
+	"lanhc.com/derp/derphttp"
+	"lanhc.com/health"
+	"lanhc.com/net/dnscache"
+	"lanhc.com/net/netcheck"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime/mono"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/backoff"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/rands"
+	"lanhc.com/util/testenv"
 )
 
 // frameReceiveRecordRate is the minimum time between updates to last frame
@@ -402,7 +402,7 @@ func (c *Conn) derpWriteChanForRegion(regionID int, peer key.NodePublic) chan de
 		// It's run from derphttp.Client.connect (via Send, etc)
 		// and the lock ordering rules are that magicsock.Conn.mu
 		// must be acquired before derphttp.Client.mu.
-		// See https://github.com/tailscale/tailscale/issues/3726
+		// See https://github.com/lanhc/lanhc/issues/3726
 		if c.connCtx.Err() != nil {
 			// We're closing anyway; return nil to stop dialing.
 			return nil

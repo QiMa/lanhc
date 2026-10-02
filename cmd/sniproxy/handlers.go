@@ -13,8 +13,8 @@ import (
 	"slices"
 
 	"github.com/inetaf/tcpproxy"
-	"tailscale.com/net/netutil"
-	"tailscale.com/net/netx"
+	"lanhc.com/net/netutil"
+	"lanhc.com/net/netx"
 )
 
 type tcpRoundRobinHandler struct {

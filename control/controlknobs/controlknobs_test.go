@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"tailscale.com/types/logger"
+	"lanhc.com/types/logger"
 )
 
 func TestAsDebugJSON(t *testing.T) {

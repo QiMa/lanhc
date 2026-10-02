@@ -6,7 +6,7 @@ package packet
 import (
 	"encoding/binary"
 
-	"tailscale.com/types/ipproto"
+	"lanhc.com/types/ipproto"
 )
 
 // UDP6Header is an IPv6+UDP header.

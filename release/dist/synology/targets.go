@@ -3,7 +3,7 @@
 
 package synology
 
-import "tailscale.com/release/dist"
+import "lanhc.com/release/dist"
 
 var v5Models = []string{
 	"armv5",
@@ -26,7 +26,7 @@ var v7Models = []string{
 // floating point. To the Go compiler, that means we previously treated
 // them as GOARM=5 just to get softfloat, but nowadays we can do GOARM=7,softfloat.
 var v7SoftModels = []string{
-	"hi3535", // https://github.com/tailscale/tailscale/issues/6860
+	"hi3535", // https://github.com/lanhc/lanhc/issues/6860
 }
 
 func Targets(forPackageCenter bool, signer dist.Signer) []dist.Target {

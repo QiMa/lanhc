@@ -16,12 +16,12 @@ import (
 	"github.com/fxamacker/cbor/v2"
 	"github.com/hdevalence/ed25519consensus"
 	"golang.org/x/crypto/blake2s"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/tkatype"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/tkatype"
 )
 
-//go:generate go run tailscale.com/cmd/cloner  -clonefunc=false -type=NodeKeySignature
+//go:generate go run lanhc.com/cmd/cloner  -clonefunc=false -type=NodeKeySignature
 
 // SigKind describes valid NodeKeySignature types.
 type SigKind uint8
@@ -471,7 +471,7 @@ func DecodeWrappedAuthkey(wrappedAuthKey string, logf logger.Logf) (authKey stri
 	}
 	sigBytes, privBytes, found := strings.Cut(suffix, "-")
 	if !found {
-		// TODO: propagate these errors to `tailscale up` output?
+		// TODO: propagate these errors to `lanhc up` output?
 		logf("decoding wrapped auth-key: did not find delimiter")
 		return wrappedAuthKey, false, nil, nil
 	}

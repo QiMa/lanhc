@@ -14,10 +14,10 @@ import (
 	"time"
 
 	"github.com/tailscale/certstore"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/util/syspolicy/policyclient"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/util/syspolicy/policyclient"
 )
 
 // getMachineCertificateSubject returns the exact name of a Subject that needs
@@ -28,7 +28,7 @@ import (
 // If getMachineCertificateSubject() returns "" then no lookup will occur and
 // each RegisterRequest will be unsigned.
 //
-// Example: "CN=Tailscale Inc Test Root CA,OU=Tailscale Inc Test Certificate Authority,O=Tailscale Inc,ST=ON,C=CA"
+// Example: "CN=Lanhc Inc Test Root CA,OU=Lanhc Inc Test Certificate Authority,O=Lanhc Inc,ST=ON,C=CA"
 func getMachineCertificateSubject(polc policyclient.Client) string {
 	machineCertSubject, _ := polc.GetString(pkey.MachineCertificateSubject, "")
 	return machineCertSubject

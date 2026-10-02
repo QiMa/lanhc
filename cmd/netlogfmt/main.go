@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // netlogfmt parses a stream of JSON log messages from stdin and
-// formats the network traffic logs produced by "tailscale.com/wgengine/netlog"
-// according to the schema in "tailscale.com/types/netlogtype.Message"
+// formats the network traffic logs produced by "lanhc.com/wgengine/netlog"
+// according to the schema in "lanhc.com/types/netlogtype.Message"
 // in a more humanly readable format.
 //
 // Example usage:
 //
-//	$ cat netlog.json | go run tailscale.com/cmd/netlogfmt
+//	$ cat netlog.json | go run lanhc.com/cmd/netlogfmt
 //	=========================================================================================
 //	NodeID: n123456CNTRL
 //	Logged: 2022-10-13T20:23:10.165Z
@@ -44,22 +44,22 @@ import (
 	"github.com/dsnet/try"
 	jsonv2 "github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
-	"tailscale.com/types/bools"
-	"tailscale.com/types/logid"
-	"tailscale.com/types/netlogtype"
-	"tailscale.com/util/must"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
+	"lanhc.com/types/bools"
+	"lanhc.com/types/logid"
+	"lanhc.com/types/netlogtype"
+	"lanhc.com/util/must"
 )
 
 var (
 	resolveNames = flag.Bool("resolve-names", false, "This is equivalent to specifying \"--resolve-addrs=name\".")
-	resolveAddrs = flag.String("resolve-addrs", "", "Resolve each tailscale IP address as a node ID, name, or user.\n"+
+	resolveAddrs = flag.String("resolve-addrs", "", "Resolve each lanhc IP address as a node ID, name, or user.\n"+
 		"If network flow logs do not support embedded node information,\n"+
 		"then --api-key and --tailnet-name must also be provided.\n"+
 		"Valid values include \"nodeId\", \"name\", or \"user\".")
-	apiKey      = flag.String("api-key", "", "The API key to query the Tailscale API with.\nSee https://login.tailscale.com/admin/settings/keys")
-	tailnetName = flag.String("tailnet-name", "", "The Tailnet name to lookup nodes within.\nSee https://login.tailscale.com/admin/settings/general")
+	apiKey      = flag.String("api-key", "", "The API key to query the Lanhc API with.\nSee https://login.lanhc.com/admin/settings/keys")
+	tailnetName = flag.String("tailnet-name", "", "The Tailnet name to lookup nodes within.\nSee https://login.lanhc.com/admin/settings/general")
 )
 
 var (
@@ -352,8 +352,8 @@ func mustLoadTailnetNodes() {
 		log.Fatalf("--tailnet must be specified with --resolve-names")
 	}
 
-	// Query the Tailscale API for a list of devices in the tailnet.
-	const apiURL = "https://api.tailscale.com/api/v2"
+	// Query the Lanhc API for a list of devices in the tailnet.
+	const apiURL = "https://api.lanhc.com/api/v2"
 	req := must.Get(http.NewRequest("GET", apiURL+"/tailnet/"+*tailnetName+"/devices", nil))
 	req.Header.Add("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(*apiKey+":")))
 	resp := must.Get(http.DefaultClient.Do(req))
@@ -369,7 +369,7 @@ func mustLoadTailnetNodes() {
 	}
 	must.Do(json.Unmarshal(b, &m))
 
-	// Construct a mapping of Tailscale IP addresses to node information.
+	// Construct a mapping of Lanhc IP addresses to node information.
 	tailnetNodesByAddr = make(map[netip.Addr]netlogtype.Node)
 	tailnetNodesByID = make(map[tailcfg.StableNodeID]netlogtype.Node)
 	for _, node := range m.Devices {

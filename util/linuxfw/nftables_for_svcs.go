@@ -19,7 +19,7 @@ import (
 )
 
 // This file contains functionality that is currently (09/2024) used to set up
-// routing for the Tailscale Kubernetes operator egress proxies. A tailnet
+// routing for the Lanhc Kubernetes operator egress proxies. A tailnet
 // service (identified by tailnet IP or FQDN) that gets exposed to cluster
 // workloads gets a separate prerouting chain created for it for each IP family
 // of the chain's target addresses. Each service's prerouting chain contains one

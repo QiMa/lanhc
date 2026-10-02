@@ -4,12 +4,12 @@
 //go:build !plan9
 
 // The tsconnect command builds and serves the static site that is generated for
-// the Tailscale Connect JS/WASM client. Can be run in 3 modes:
+// the Lanhc Connect JS/WASM client. Can be run in 3 modes:
 //   - dev: builds the site and serves it. JS and CSS changes can be picked up
 //     with a reload.
 //   - build: builds the site and writes it to dist/
 //   - serve: serves the site from dist/ (embedded in the binary)
-package main // import "tailscale.com/cmd/tsconnect"
+package main // import "lanhc.com/cmd/tsconnect"
 
 import (
 	"flag"
@@ -60,7 +60,7 @@ usage: tsconnect {dev|build|serve}
 	flag.PrintDefaults()
 	fmt.Fprint(os.Stderr, `
 
-tsconnect implements development/build/serving workflows for Tailscale Connect.
+tsconnect implements development/build/serving workflows for Lanhc Connect.
 It can be invoked with one of three subcommands:
 
 - dev: Run in development mode, allowing JS and CSS changes to be picked up without a rebuilt or restart.

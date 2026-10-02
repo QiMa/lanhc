@@ -3,9 +3,9 @@
 
 //go:build linux || darwin
 
-// The mts ("Multiple Tailscale") command runs multiple tailscaled instances for
+// The mts ("Multiple Lanhc") command runs multiple lanhcd instances for
 // development, managing their directories and sockets, and lets you easily direct
-// tailscale CLI commands to them.
+// lanhc CLI commands to them.
 package main
 
 import (
@@ -30,10 +30,10 @@ import (
 	"syscall"
 	"time"
 
-	"tailscale.com/client/local"
-	"tailscale.com/types/bools"
-	"tailscale.com/types/lazy"
-	"tailscale.com/util/mak"
+	"lanhc.com/client/local"
+	"lanhc.com/types/bools"
+	"lanhc.com/types/lazy"
+	"lanhc.com/util/mak"
 )
 
 func usage(args ...any) {
@@ -48,17 +48,17 @@ func usage(args ...any) {
 	io.WriteString(os.Stderr, strings.TrimSpace(`
 usage:
 
-   mts server <subcommand>      # manage tailscaled instances
-   mts server run               # run the mts server (parent process of all tailscaled)
-   mts server list              # list all tailscaled and their state
+   mts server <subcommand>      # manage lanhcd instances
+   mts server run               # run the mts server (parent process of all lanhcd)
+   mts server list              # list all lanhcd and their state
    mts server list <name>       # show details of named instance
-   mts server add <name>        # add+start new named tailscaled
-   mts server start <name>      # start a previously added tailscaled
-   mts server stop <name>       # stop & remove a named tailscaled
-   mts server rm <name>         # stop & remove a named tailscaled
-   mts server logs [-f] <name>  # get/follow tailscaled logs
+   mts server add <name>        # add+start new named lanhcd
+   mts server start <name>      # start a previously added lanhcd
+   mts server stop <name>       # stop & remove a named lanhcd
+   mts server rm <name>         # stop & remove a named lanhcd
+   mts server logs [-f] <name>  # get/follow lanhcd logs
 
-  mts <inst-name> [tailscale CLI args] # run Tailscale CLI against a named instance
+  mts <inst-name> [lanhc CLI args] # run Lanhc CLI against a named instance
     e.g.
       mts gmail1 up
       mts github2 status --json
@@ -68,7 +68,7 @@ usage:
 
 func main() {
 	// Don't use flag.Parse here; we mostly just delegate through
-	// to the Tailscale CLI.
+	// to the Lanhc CLI.
 
 	if len(os.Args) < 2 {
 		usage()
@@ -292,7 +292,7 @@ func (c *Client) RunCommand(name string, args []string) {
 	if _, err := lc.StatusWithoutPeers(probeCtx); err != nil {
 		log.Fatalf("instance %q not running? start with 'mts server start %q'; got error: %v", name, name, err)
 	}
-	args = append([]string{"run", "tailscale.com/cmd/tailscale", "--socket=" + sock}, args...)
+	args = append([]string{"run", "lanhc.com/cmd/lanhc", "--socket=" + sock}, args...)
 	cmd := exec.Command("go", args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -308,15 +308,15 @@ func (c *Client) RunCommand(name string, args []string) {
 }
 
 type Server struct {
-	lazyTailscaled lazy.GValue[string]
+	lazyLanhcd lazy.GValue[string]
 
 	mu   sync.Mutex
-	cmds map[string]*exec.Cmd // running tailscaled instances
+	cmds map[string]*exec.Cmd // running lanhcd instances
 }
 
-func (s *Server) tailscaled() string {
-	v, err := s.lazyTailscaled.GetErr(func() (string, error) {
-		out, err := exec.Command("go", "list", "-f", "{{.Target}}", "tailscale.com/cmd/tailscaled").CombinedOutput()
+func (s *Server) lanhcd() string {
+	v, err := s.lazyLanhcd.GetErr(func() (string, error) {
+		out, err := exec.Command("go", "list", "-f", "{{.Target}}", "lanhc.com/cmd/lanhcd").CombinedOutput()
 		if err != nil {
 			return "", err
 		}
@@ -334,7 +334,7 @@ func (s *Server) Run() error {
 	}
 	sock := mtsSock()
 	os.Remove(sock)
-	log.Printf("Multi-Tailscaled Server running; listening on %q ...", sock)
+	log.Printf("Multi-Lanhcd Server running; listening on %q ...", sock)
 	ln, err := net.Listen("unix", sock)
 	if err != nil {
 		return err
@@ -413,19 +413,19 @@ func (s *Server) RunInstance(name string) error {
 		}
 	} else if os.IsNotExist(err) {
 		// Write an example one.
-		os.WriteFile(instArgsFile(name), fmt.Appendf(nil, "# Example mts args.txt file for instance %q.\n# One line per extra arg to tailscaled; no magic string quoting\n\n--verbose=1\n#--socks5-server=127.0.0.1:5000\n", name), 0600)
+		os.WriteFile(instArgsFile(name), fmt.Appendf(nil, "# Example mts args.txt file for instance %q.\n# One line per extra arg to lanhcd; no magic string quoting\n\n--verbose=1\n#--socks5-server=127.0.0.1:5000\n", name), 0600)
 	}
 
-	log.Printf("Running Tailscale daemon %q in %q", name, dir)
+	log.Printf("Running Lanhc daemon %q in %q", name, dir)
 
 	args := []string{
 		"--tun=userspace-networking",
 		"--statedir=" + filepath.Join(dir),
-		"--socket=" + filepath.Join(dir, "tailscaled.sock"),
+		"--socket=" + filepath.Join(dir, "lanhcd.sock"),
 	}
 	args = append(args, extraArgs...)
 
-	cmd := exec.Command(s.tailscaled(), args...)
+	cmd := exec.Command(s.lanhcd(), args...)
 	cmd.Dir = dir
 	cmd.Env = env
 
@@ -447,7 +447,7 @@ func (s *Server) RunInstance(name string) error {
 			// TODO(bradfitz): record in memory too, serve via HTTP
 			line := strings.TrimSpace(bs.Text())
 			fmt.Fprintf(logFile, "%s\n", line)
-			fmt.Printf("tailscaled[%s]: %s\n", name, line)
+			fmt.Printf("lanhcd[%s]: %s\n", name, line)
 		}
 	}()
 
@@ -457,7 +457,7 @@ func (s *Server) RunInstance(name string) error {
 	go func() {
 		err := cmd.Wait()
 		logFile.Close()
-		log.Printf("Tailscale daemon %q exited: %v", name, err)
+		log.Printf("Lanhc daemon %q exited: %v", name, err)
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		delete(s.cmds, name)
@@ -542,7 +542,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.URL.Path == "/" {
-		fmt.Fprintf(w, "This is mts, the multi-tailscaled server.\n")
+		fmt.Fprintf(w, "This is mts, the multi-lanhcd server.\n")
 		return
 	}
 	http.NotFound(w, r)
@@ -571,7 +571,7 @@ func mtsRoot() string {
 	if err != nil {
 		panic(err)
 	}
-	return filepath.Join(dir, "multi-tailscale-dev")
+	return filepath.Join(dir, "multi-lanhc-dev")
 }
 
 func instDir(name string) string {
@@ -579,7 +579,7 @@ func instDir(name string) string {
 }
 
 func instSock(name string) string {
-	return filepath.Join(instDir(name), "tailscaled.sock")
+	return filepath.Join(instDir(name), "lanhcd.sock")
 }
 
 func instEnvFile(name string) string {

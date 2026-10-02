@@ -13,8 +13,8 @@ import (
 	"maps"
 	"slices"
 
-	"tailscale.com/tailcfg"
-	"tailscale.com/util/mak"
+	"lanhc.com/tailcfg"
+	"lanhc.com/util/mak"
 )
 
 // Score is a node’s traffic score, where any int could be a valid score.

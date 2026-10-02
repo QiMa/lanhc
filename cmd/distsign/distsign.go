@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // Command distsign tests downloads and signature validating for packages
-// published by Tailscale on pkgs.tailscale.com.
+// published by Lanhc on pkgs.lanhc.com.
 package main
 
 import (
@@ -12,11 +12,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"tailscale.com/clientupdate/distsign"
+	"lanhc.com/clientupdate/distsign"
 )
 
 var (
-	pkgsURL = flag.String("pkgs-url", "https://pkgs.tailscale.com/", "URL of the packages server")
+	pkgsURL = flag.String("pkgs-url", "https://pkgs.lanhc.com/", "URL of the packages server")
 	pkgName = flag.String("pkg-name", "", "name of the package on the packages server, including the stable/unstable track prefix")
 )
 

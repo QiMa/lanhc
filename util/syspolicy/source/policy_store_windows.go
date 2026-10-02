@@ -11,17 +11,17 @@ import (
 
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
-	"tailscale.com/util/set"
-	"tailscale.com/util/syspolicy/internal/loggerx"
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/util/syspolicy/setting"
-	"tailscale.com/util/winutil/gp"
+	"lanhc.com/util/set"
+	"lanhc.com/util/syspolicy/internal/loggerx"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/util/syspolicy/setting"
+	"lanhc.com/util/winutil/gp"
 )
 
 const (
 	softwareKeyName  = `Software`
-	tsPoliciesSubkey = `Policies\Tailscale`
-	tsIPNSubkey      = `Tailscale IPN` // the legacy key we need to fallback to
+	tsPoliciesSubkey = `Policies\Lanhc`
+	tsIPNSubkey      = `Lanhc IPN` // the legacy key we need to fallback to
 )
 
 var (
@@ -44,7 +44,7 @@ var (
 )
 
 // PlatformPolicyStore implements [Store] by providing read access to
-// Registry-based Tailscale policies, such as those configured via Group Policy or MDM.
+// Registry-based Lanhc policies, such as those configured via Group Policy or MDM.
 // For better performance and consistency, it is recommended to lock it when
 // reading multiple policy settings sequentially.
 // It also allows subscribing to policy change notifications.
@@ -170,8 +170,8 @@ func (ps *PlatformPolicyStore) Lock() (err error) {
 		}
 	}()
 
-	// Keep the Tailscale's registry keys open for the duration of the lock.
-	keyNames := tailscaleKeyNamesFor(ps.scope)
+	// Keep the Lanhc's registry keys open for the duration of the lock.
+	keyNames := lanhcKeyNamesFor(ps.scope)
 	ps.tsKeys = make([]registry.Key, 0, len(keyNames))
 	for _, keyName := range keyNames {
 		var tsKey registry.Key
@@ -329,9 +329,9 @@ func (ps *PlatformPolicyStore) ReadStringArray(key pkey.Key) ([]string, error) {
 // stored is an implementation detail of each [Store]. In the [PlatformPolicyStore]
 // for Windows, we map nested policy categories onto the Registry key hierarchy.
 // The last component after a [pkey.KeyPathSeparator] is treated as the value name,
-// while everything preceding it is considered a subpath (relative to the {HKLM,HKCU}\Software\Policies\Tailscale key).
+// while everything preceding it is considered a subpath (relative to the {HKLM,HKCU}\Software\Policies\Lanhc key).
 // If there are no [pkey.KeyPathSeparator]s in the key, the policy setting value
-// is meant to be stored directly under {HKLM,HKCU}\Software\Policies\Tailscale.
+// is meant to be stored directly under {HKLM,HKCU}\Software\Policies\Lanhc.
 func splitSettingKey(key pkey.Key) (path, valueName string) {
 	if idx := strings.LastIndexByte(string(key), pkey.KeyPathSeparator); idx != -1 {
 		path = strings.ReplaceAll(string(key[:idx]), string(pkey.KeyPathSeparator), `\`)
@@ -365,7 +365,7 @@ func getPolicyValue[T any](ps *PlatformPolicyStore, key pkey.Key, getter registr
 
 	if ps.tsKeys != nil {
 		// A non-nil tsKeys indicates that ps has been locked.
-		// The slice may be empty if Tailscale policy keys do not exist.
+		// The slice may be empty if Lanhc policy keys do not exist.
 		for _, tsKey := range ps.tsKeys {
 			val, err := getValue(tsKey)
 			if err == nil || err != registry.ErrNotExist {
@@ -376,7 +376,7 @@ func getPolicyValue[T any](ps *PlatformPolicyStore, key pkey.Key, getter registr
 	}
 
 	// The ps has not been locked, so we don't have any pre-opened keys.
-	for _, tsKeyName := range tailscaleKeyNamesFor(ps.scope) {
+	for _, tsKeyName := range lanhcKeyNamesFor(ps.scope) {
 		var tsKey registry.Key
 		tsKey, err := registry.OpenKey(ps.softwareKey, tsKeyName, windows.KEY_READ)
 		if err != nil {
@@ -447,15 +447,15 @@ func (ps *PlatformPolicyStore) Done() <-chan struct{} {
 	return ps.done
 }
 
-func tailscaleKeyNamesFor(scope gp.Scope) []string {
+func lanhcKeyNamesFor(scope gp.Scope) []string {
 	switch scope {
 	case gp.MachinePolicy:
-		// If a computer-side policy value does not exist under Software\Policies\Tailscale,
-		// we need to fallback and use the legacy Software\Tailscale IPN key.
+		// If a computer-side policy value does not exist under Software\Policies\Lanhc,
+		// we need to fallback and use the legacy Software\Lanhc IPN key.
 		return []string{tsPoliciesSubkey, tsIPNSubkey}
 	case gp.UserPolicy:
 		// However, we've never used the legacy key with user-side policies,
-		// and we should never do so. Unlike HKLM\Software\Tailscale IPN,
+		// and we should never do so. Unlike HKLM\Software\Lanhc IPN,
 		// its HKCU counterpart is user-writable.
 		return []string{tsPoliciesSubkey}
 	default:

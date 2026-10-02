@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // Package drive provides a filesystem that allows sharing folders between
-// Tailscale nodes using WebDAV. The actual implementation of the core Taildrive
+// Lanhc nodes using WebDAV. The actual implementation of the core Taildrive
 // functionality lives in package driveimpl. These packages are separated to
 // allow users of Taildrive to refer to the interfaces without having a hard
 // dependency on Taildrive, so that programs which don't actually use Taildrive can

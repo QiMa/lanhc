@@ -12,8 +12,8 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/tstest"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/tstest"
 )
 
 func TestGetServicesNodePortRangeFromErr(t *testing.T) {
@@ -270,8 +270,8 @@ func TestValidateNodePortRanges(t *testing.T) {
 func TestGetRandomPort(t *testing.T) {
 	for range 100 {
 		port := getRandomPort()
-		if port < tailscaledPortMin || port > tailscaledPortMax {
-			t.Errorf("generated port %d which is out of range [%d, %d]", port, tailscaledPortMin, tailscaledPortMax)
+		if port < lanhcdPortMin || port > lanhcdPortMax {
+			t.Errorf("generated port %d which is out of range [%d, %d]", port, lanhcdPortMin, lanhcdPortMax)
 		}
 	}
 }

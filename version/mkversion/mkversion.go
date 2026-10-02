@@ -35,23 +35,23 @@ type VersionInfo struct {
 	// Long is the long version string. See the documentation for version.Long
 	// for possible values.
 	Long string
-	// GitHash is the git hash of the tailscale.com Go module.
+	// GitHash is the git hash of the lanhc.com Go module.
 	GitHash string
 	// OtherHash is the git hash of a supplemental git repository, if any. For
-	// example, the commit of the tailscale-android repository.
+	// example, the commit of the lanhc-android repository.
 	OtherHash string
 	// Xcode is the version string that gets embedded into Xcode builds for the
-	// Tailscale iOS app and macOS standalone (aka "macsys") app.
+	// Lanhc iOS app and macOS standalone (aka "macsys") app.
 	//
 	// It is the same as Short, but with 100 added to the major version number.
 	// This is because Apple requires monotonically increasing version numbers,
-	// and very early builds of Tailscale used a single incrementing integer,
+	// and very early builds of Lanhc used a single incrementing integer,
 	// which the Apple interprets as the major version number. When we switched
 	// to the current scheme, we started the major version number at 100 (v0,
 	// plus 100) to make the transition.
 	Xcode string
 	// XcodeMacOS is the version string that gets embedded into Xcode builds for
-	// the Tailscale macOS app store app.
+	// the Lanhc macOS app store app.
 	//
 	// This used to be the same as Xcode, but at some point Xcode reverted to
 	// auto-incrementing build numbers instead of using the version we embedded.
@@ -62,7 +62,7 @@ type VersionInfo struct {
 	// metadata. It is of the form "x,y,z,0".
 	Winres string
 	// Synology is a map of Synology DSM version to the
-	// Tailscale numeric version that gets embedded in Synology spk
+	// Lanhc numeric version that gets embedded in Synology spk
 	// files.
 	Synology map[int]int64
 	// GitDate is the unix timestamp of GitHash's commit date.
@@ -132,8 +132,8 @@ func InfoFrom(dir string) (VersionInfo, error) {
 	if modPath == "" {
 		return VersionInfo{}, fmt.Errorf("no module path in go.mod")
 	}
-	if modPath == "tailscale.com" {
-		// Invoked in the tailscale.com repo directly, just no further info to
+	if modPath == "lanhc.com" {
+		// Invoked in the lanhc.com repo directly, just no further info to
 		// collect.
 		v, err := infoFromDir(gitRoot)
 		if err != nil {
@@ -142,8 +142,8 @@ func InfoFrom(dir string) (VersionInfo, error) {
 		return mkOutput(v)
 	}
 
-	// We seem to be in a repo that imports tailscale.com. Find the
-	// tailscale.com repo and collect additional info from it.
+	// We seem to be in a repo that imports lanhc.com. Find the
+	// lanhc.com repo and collect additional info from it.
 	otherHash, err := runner.output("git", "rev-parse", "HEAD")
 	if err != nil {
 		return VersionInfo{}, fmt.Errorf("getting git hash: %w", err)
@@ -156,12 +156,12 @@ func InfoFrom(dir string) (VersionInfo, error) {
 	// Note, this mechanism doesn't correctly support go.mod replacements,
 	// or go workdirs. We only parse out the commit ref from go.mod's
 	// "require" line, nothing else.
-	tailscaleRef, err := tailscaleModuleRef(modBs)
+	lanhcRef, err := lanhcModuleRef(modBs)
 	if err != nil {
 		return VersionInfo{}, err
 	}
 
-	v, err := infoFromCache(tailscaleRef, runner)
+	v, err := infoFromCache(lanhcRef, runner)
 	if err != nil {
 		return VersionInfo{}, err
 	}
@@ -175,16 +175,16 @@ func InfoFrom(dir string) (VersionInfo, error) {
 	return mkOutput(v)
 }
 
-// tailscaleModuleRef returns the git ref of the 'require tailscale.com' line
+// lanhcModuleRef returns the git ref of the 'require lanhc.com' line
 // in the given go.mod bytes. The ref is either a short commit hash, or a git
 // tag.
-func tailscaleModuleRef(modBs []byte) (string, error) {
+func lanhcModuleRef(modBs []byte) (string, error) {
 	mod, err := modfile.Parse("go.mod", modBs, nil)
 	if err != nil {
 		return "", err
 	}
 	for _, req := range mod.Require {
-		if req.Mod.Path != "tailscale.com" {
+		if req.Mod.Path != "lanhc.com" {
 			continue
 		}
 		// Get the last - separated part of req.Mod.Version
@@ -195,7 +195,7 @@ func tailscaleModuleRef(modBs []byte) (string, error) {
 		// If there are no dashes, the version is a tag.
 		return req.Mod.Version, nil
 	}
-	return "", fmt.Errorf("no require tailscale.com line in go.mod")
+	return "", fmt.Errorf("no require lanhc.com line in go.mod")
 }
 
 func mkOutput(v verInfo) (VersionInfo, error) {
@@ -254,7 +254,7 @@ func mkOutput(v verInfo) (VersionInfo, error) {
 			// Synology requires that version numbers be in a specific format.
 			// Builds with version numbers that don't start with "60", "70", or "72" will fail,
 			// and the full version number must be within int32 range.
-			// So, we do the following mapping from our Tailscale version to Synology version,
+			// So, we do the following mapping from our Lanhc version to Synology version,
 			// giving major version three decimal places, minor version three, and patch two.
 			60: 60*10_000_000 + int64(v.major-1)*1_000_000 + int64(v.minor)*1_000 + int64(v.patch),
 			70: 70*10_000_000 + int64(v.major-1)*1_000_000 + int64(v.minor)*1_000 + int64(v.patch),
@@ -266,7 +266,7 @@ func mkOutput(v verInfo) (VersionInfo, error) {
 		ret.OtherHash = fmt.Sprintf("%s", v.otherHash)
 
 		// Technically we could populate these fields without the otherHash, but
-		// these version numbers only make sense when building from Tailscale's
+		// these version numbers only make sense when building from Lanhc's
 		// proprietary repo, so don't clutter open-source-only outputs with
 		// them.
 		ret.Xcode = fmt.Sprintf("%d.%d.%d", v.major+100, v.minor, v.patch)
@@ -305,7 +305,7 @@ func mkOutput(v verInfo) (VersionInfo, error) {
 // url that would be used for the current version, thus ensuring that product IDs
 // are mapped 1:1 to a unique version number.
 func makeMSIProductCodes(v verInfo, track string) map[string]string {
-	urlBase := fmt.Sprintf("https://pkgs.tailscale.com/%s/tailscale-setup-%d.%d.%d-", track, v.major, v.minor, v.patch)
+	urlBase := fmt.Sprintf("https://pkgs.lanhc.com/%s/lanhc-setup-%d.%d.%d-", track, v.major, v.minor, v.patch)
 
 	result := map[string]string{}
 
@@ -329,7 +329,7 @@ type verInfo struct {
 	otherDate string
 }
 
-// unknownPatchVersion is the patch version used when the tailscale.com package
+// unknownPatchVersion is the patch version used when the lanhc.com package
 // doesn't contain enough version information to derive the correct version.
 // Such builds only get used when generating bug reports in an ephemeral working
 // environment, so will never be distributed. As such, we use a highly visible
@@ -337,19 +337,19 @@ type verInfo struct {
 const unknownPatchVersion = 9999999
 
 func infoFromCache(ref string, runner dirRunner) (verInfo, error) {
-	tailscaleCache := os.Getenv("TS_MKVERSION_OSS_GIT_CACHE")
-	if tailscaleCache == "" {
+	lanhcCache := os.Getenv("TS_MKVERSION_OSS_GIT_CACHE")
+	if lanhcCache == "" {
 		cacheDir, err := os.UserCacheDir()
 		if err != nil {
 			return verInfo{}, fmt.Errorf("Getting user cache dir: %w", err)
 		}
-		tailscaleCache = filepath.Join(cacheDir, "tailscale-oss")
+		lanhcCache = filepath.Join(cacheDir, "lanhc-oss")
 	}
-	r := dirRunner(tailscaleCache)
+	r := dirRunner(lanhcCache)
 
-	if _, err := os.Stat(tailscaleCache); err != nil {
-		if !runner.ok("git", "clone", "https://github.com/tailscale/tailscale", tailscaleCache) {
-			return verInfo{}, fmt.Errorf("cloning tailscale.com repo failed")
+	if _, err := os.Stat(lanhcCache); err != nil {
+		if !runner.ok("git", "clone", "https://github.com/lanhc/lanhc", lanhcCache) {
+			return verInfo{}, fmt.Errorf("cloning lanhc.com repo failed")
 		}
 	}
 

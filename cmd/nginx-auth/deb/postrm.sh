@@ -6,14 +6,14 @@ fi
 
 if [ -x "/usr/bin/deb-systemd-helper" ]; then
     if [ "$1" = "remove" ]; then
-		    deb-systemd-helper mask 'tailscale.nginx-auth.socket' >/dev/null || true
-		    deb-systemd-helper mask 'tailscale.nginx-auth.service' >/dev/null || true
+		    deb-systemd-helper mask 'lanhc.nginx-auth.socket' >/dev/null || true
+		    deb-systemd-helper mask 'lanhc.nginx-auth.service' >/dev/null || true
 	  fi
 
     if [ "$1" = "purge" ]; then
-		    deb-systemd-helper purge 'tailscale.nginx-auth.socket' >/dev/null || true
-		    deb-systemd-helper unmask 'tailscale.nginx-auth.socket' >/dev/null || true
-		    deb-systemd-helper purge 'tailscale.nginx-auth.service' >/dev/null || true
-		    deb-systemd-helper unmask 'tailscale.nginx-auth.service' >/dev/null || true
+		    deb-systemd-helper purge 'lanhc.nginx-auth.socket' >/dev/null || true
+		    deb-systemd-helper unmask 'lanhc.nginx-auth.socket' >/dev/null || true
+		    deb-systemd-helper purge 'lanhc.nginx-auth.service' >/dev/null || true
+		    deb-systemd-helper unmask 'lanhc.nginx-auth.service' >/dev/null || true
 	  fi
 fi

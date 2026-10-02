@@ -12,9 +12,9 @@ import (
 	"net/http"
 	"slices"
 
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/tsnet"
-	"tailscale.com/util/dnsname"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/tsnet"
+	"lanhc.com/util/dnsname"
 )
 
 type status struct {
@@ -41,7 +41,7 @@ func serveMonitor(c *Consensus, ts *tsnet.Server, listenAddr string) (*http.Serv
 	if err != nil {
 		return nil, err
 	}
-	m := &monitor{con: c, ts: ts, sg: &tailscaleStatusGetter{
+	m := &monitor{con: c, ts: ts, sg: &lanhcStatusGetter{
 		ts: ts,
 	}}
 	mux := http.NewServeMux()

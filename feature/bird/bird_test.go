@@ -16,9 +16,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"tailscale.com/feature"
-	"tailscale.com/tailcfg"
-	"tailscale.com/wgengine"
+	"lanhc.com/feature"
+	"lanhc.com/tailcfg"
+	"lanhc.com/wgengine"
 )
 
 // fakeBIRD is a fake BIRD server listening on a unix socket. It speaks
@@ -29,8 +29,8 @@ type fakeBIRD struct {
 	sock string
 
 	mu       sync.Mutex
-	calls    []string // commands received, e.g. "enable tailscale"
-	enabled  bool     // whether the "tailscale" protocol is enabled
+	calls    []string // commands received, e.g. "enable lanhc"
+	enabled  bool     // whether the "lanhc" protocol is enabled
 	failNext bool     // whether to reply to the next command with a runtime error
 }
 
@@ -143,7 +143,7 @@ func TestBird(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Construction disables the protocol.
-	fb.checkCalls(t, "disable tailscale")
+	fb.checkCalls(t, "disable lanhc")
 
 	pfx := netip.MustParsePrefix
 	subnetRouter := node(
@@ -167,7 +167,7 @@ func TestBird(t *testing.T) {
 		t.Error("Reconfig(subnetRouter) reported no change")
 	}
 	b.ReconfigDone()
-	fb.checkCalls(t, "enable tailscale")
+	fb.checkCalls(t, "enable lanhc")
 
 	// Reconfig with the same state is a no-op.
 	if changed := b.Reconfig(subnetRouter); changed {
@@ -185,21 +185,21 @@ func TestBird(t *testing.T) {
 		t.Error("Reconfig(notSubnetRouter) reported no change")
 	}
 	b.ReconfigDone()
-	fb.checkCalls(t, "disable tailscale")
+	fb.checkCalls(t, "disable lanhc")
 	if changed := b.Reconfig(notSubnetRouter); !changed {
 		t.Error("Reconfig(notSubnetRouter) retry reported no change")
 	}
 	b.ReconfigDone()
-	fb.checkCalls(t, "disable tailscale")
+	fb.checkCalls(t, "disable lanhc")
 
 	// And becoming a subnet router again enables it again.
 	if changed := b.Reconfig(subnetRouter); !changed {
 		t.Error("Reconfig(subnetRouter) reported no change")
 	}
 	b.ReconfigDone()
-	fb.checkCalls(t, "enable tailscale")
+	fb.checkCalls(t, "enable lanhc")
 
 	// Close disables the protocol on the way out.
 	b.Close()
-	fb.checkCalls(t, "disable tailscale")
+	fb.checkCalls(t, "disable lanhc")
 }

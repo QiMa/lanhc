@@ -26,24 +26,24 @@ import (
 	"go4.org/netipx"
 	"gvisor.dev/gvisor/pkg/buffer"
 	"gvisor.dev/gvisor/pkg/tcpip/stack"
-	"tailscale.com/disco"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/net/packet"
-	"tailscale.com/net/packet/checksum"
-	"tailscale.com/net/routemanager"
-	"tailscale.com/tstest"
-	"tailscale.com/tstime/mono"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/netlogtype"
-	"tailscale.com/types/views"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/eventbus/eventbustest"
-	"tailscale.com/util/must"
-	"tailscale.com/util/usermetric"
-	"tailscale.com/wgengine/filter"
-	"tailscale.com/wgengine/netstack/gro"
+	"lanhc.com/disco"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/net/packet"
+	"lanhc.com/net/packet/checksum"
+	"lanhc.com/net/routemanager"
+	"lanhc.com/tstest"
+	"lanhc.com/tstime/mono"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/netlogtype"
+	"lanhc.com/types/views"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/eventbus/eventbustest"
+	"lanhc.com/util/must"
+	"lanhc.com/util/usermetric"
+	"lanhc.com/wgengine/filter"
+	"lanhc.com/wgengine/netstack/gro"
 )
 
 func udp4(src, dst string, sport, dport uint16) []byte {
@@ -464,7 +464,7 @@ func TestFilter(t *testing.T) {
 // packet (as produced by netstack on userspace-networking / tsnet / SOCKS5
 // callers) records reverse-flow state so that the matching inbound reply is
 // admitted by the inbound filter, even when no explicit ACL rule covers the
-// reply. See tailscale/tailscale#14229 and tailscale/tailscale#20064.
+// reply. See lanhc/lanhc#14229 and lanhc/lanhc#20064.
 func TestInjectOutboundRecordsUDPFlowState(t *testing.T) {
 	bus := eventbustest.NewBus(t)
 	chtun, tun := newChannelTUN(t.Logf, bus, true) // secure: install filter

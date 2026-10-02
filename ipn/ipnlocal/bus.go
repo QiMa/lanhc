@@ -8,13 +8,13 @@ import (
 	"runtime"
 	"time"
 
-	"tailscale.com/ipn"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
-	"tailscale.com/util/mak"
+	"lanhc.com/ipn"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
+	"lanhc.com/util/mak"
 )
 
-// goosGetsLegacyNetmapNotify reports whether tailscaled, when running on the
+// goosGetsLegacyNetmapNotify reports whether lanhcd, when running on the
 // current GOOS, still emits the legacy [ipn.Notify.NetMap] field on runtime
 // (non-initial) bus messages. It is true on platforms whose host GUIs have
 // not yet finished migrating to the narrower bus signals

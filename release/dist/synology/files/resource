@@ -1,9 +1,9 @@
 {
 	"port-config": {
-		"protocol-file": "conf/Tailscale.sc"
+		"protocol-file": "conf/Lanhc.sc"
 	},
 	"usr-local-linker": {
-		"bin": ["bin/tailscale"]
+		"bin": ["bin/lanhc"]
 	},
 	"syslog-config": {
 		"logrotate-relpath": "conf/logrotate.conf"

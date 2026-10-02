@@ -1,7 +1,7 @@
 # Commit messages
 
 There are different styles of commit messages followed by different projects.
-This is Tailscale's style guide for writing git commit messages.
+This is Lanhc's style guide for writing git commit messages.
 As with all style guides, many things here are subjective and exist primarily to
 codify existing conventions and promote uniformity and thus ease of reading by
 others. Others have stronger reasons, such as interop with tooling or making
@@ -35,7 +35,7 @@ Fixes #nnnn
 Notably, for the subject (the first line of description):
 
 - the primary director(ies) from the root affected by the change goes before the colon, e.g. “derp/derphttp:” (if a lot of packages are involved, you can abbreviate to top-level names e.g. ”derp,magicsock:”, and/or remove less relevant packages)
-- the part after the colon is a verb, ideally an imperative verb (Linux style, telling the code what to do) or alternatively an infinitive verb that completes the blank in, *"this change modifies Tailscale to ___________"*. e.g. say *“fix the foobar feature”*, not *“fixing”*, *“fixed”*, or *“fixes”*. Or, as Linux guidelines say:
+- the part after the colon is a verb, ideally an imperative verb (Linux style, telling the code what to do) or alternatively an infinitive verb that completes the blank in, *"this change modifies Lanhc to ___________"*. e.g. say *“fix the foobar feature”*, not *“fixing”*, *“fixed”*, or *“fixes”*. Or, as Linux guidelines say:
     > Describe your changes in imperative mood, e.g. “make xyzzy do frotz” instead of “[This patch] makes xyzzy do frotz” or “[I] changed xyzzy to do frotz”, as if you are giving orders to the codebase to change its behaviour."
 - the verb after the colon is lowercase
 - there is no trailing period
@@ -76,12 +76,12 @@ For the body (the rest of the description):
 - there must be a `Fixes` or `Updates` line for all non-cleanup commits linking to a tracking bug. This goes after the body with a blank newline separating the two. A pull request may be referenced rather than a tracking bug (using the same format, e.g. `Updates #12345`), though a bug is generally preferred. [Cleanup commits](#is-it-a-cleanup) can use `Updates #cleanup` instead of an issue.
 - `Change-Id` lines should be included in commits. You can configure Git to do this for you by running `./tool/go run misc/add-git-hooks.go` from the root of the repo. This was originally a Gerrit thing and we don't use Gerrit, but it lets tooling track commits as they're cherry-picked between branches. Also, tools like [git-cleanup](https://github.com/bradfitz/gitutil) use it to clean up your old local branches once they're merged upstream.
 - we don't use Markdown in commit messages. (Accidental Markdown like bulleted lists or even headings is fine, but not links)
-- we require `Signed-off-by` lines in public repos (such as `tailscale/tailscale`). Add them using `git commit --signoff` or `git commit -s` for short. You can use them in private repos but do not have to.
+- we require `Signed-off-by` lines in public repos (such as `lanhc/lanhc`). Add them using `git commit --signoff` or `git commit -s` for short. You can use them in private repos but do not have to.
 - when moving code between repos, include the repository name, and git hash that it was moved from/to, so it is easier to trace history/blame.
 
 Please don't use [alternate GitHub-supported
 aliases](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue)
-like `Close` or `Resolves`. Tailscale only uses the verbs `Fixes` and `Updates`.
+like `Close` or `Resolves`. Lanhc only uses the verbs `Fixes` and `Updates`.
 
 To link a commit to an issue without marking it fixed—for example, if the commit
 is working toward a fix but not yet a complete fix—GitHub requires only that the
@@ -105,7 +105,7 @@ Please say `Updates` and not other common Github-recognized conventions (that is
 
 ## Public release notes
 
-For changes in `tailscale/tailscale` that fix a significant bug or add a new feature that should be included in the release notes for the next release,
+For changes in `lanhc/lanhc` that fix a significant bug or add a new feature that should be included in the release notes for the next release,
 add `RELNOTE: <summary of change>` toward the end of the commit message.
 This will aid the release engineer in writing the release notes for the next release.
 
@@ -119,7 +119,7 @@ Shortcuts[^1] to file issues:
 - [go/bugc](http://go/bugc) (corp, safe choice)
 - [go/bugo](http://go/bugo) (open source, if you want it public to the world).
 
-[^1]: These shortcuts point to our Tailscale’s internal URL shortener service, which you too [can run in your own Tailnet](https://tailscale.com/blog/golink).
+[^1]: These shortcuts point to our Lanhc’s internal URL shortener service, which you too [can run in your own Tailnet](https://lanhc.com/blog/golink).
 
 The following guide can help you decide whether a tracking issue is warranted.
 
@@ -170,12 +170,12 @@ Use `git cherry-pick -x` to include git's standard "cherry picked from..." line 
 
 # Other repos
 
-To reference an issue in one repo from a commit in another (for example, fixing an issue in corp with a commit in `tailscale/tailscale`), you need to fully-qualify the issue number with the GitHub org/repo syntax:
+To reference an issue in one repo from a commit in another (for example, fixing an issue in corp with a commit in `lanhc/lanhc`), you need to fully-qualify the issue number with the GitHub org/repo syntax:
 
 ```
 cipher/rot13: add new super secure cipher
 
-Fixes tailscale/corp#1234
+Fixes lanhc/corp#1234
 ```
 
 Referencing a full URL to the issue is also acceptable, but try to prefer the shorter way.

@@ -10,22 +10,22 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/tsnet"
-	"tailscale.com/types/views"
-	"tailscale.com/util/set"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/tsnet"
+	"lanhc.com/types/views"
+	"lanhc.com/util/set"
 )
 
 // defaultStatusCacheTimeout is the duration after which cached status will be
-// disregarded. See tailscaleStatusGetter.cacheTimeout.
+// disregarded. See lanhcStatusGetter.cacheTimeout.
 const defaultStatusCacheTimeout = time.Second
 
 type statusGetter interface {
 	getStatus(context.Context) (*ipnstate.Status, error)
 }
 
-type tailscaleStatusGetter struct {
+type lanhcStatusGetter struct {
 	ts *tsnet.Server
 
 	// cacheTimeout is used to determine when the cached status should be
@@ -37,7 +37,7 @@ type tailscaleStatusGetter struct {
 	lastStatusTime time.Time
 }
 
-func (sg *tailscaleStatusGetter) fetchStatus(ctx context.Context) (*ipnstate.Status, error) {
+func (sg *lanhcStatusGetter) fetchStatus(ctx context.Context) (*ipnstate.Status, error) {
 	lc, err := sg.ts.LocalClient()
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func (sg *tailscaleStatusGetter) fetchStatus(ctx context.Context) (*ipnstate.Sta
 	return lc.Status(ctx)
 }
 
-func (sg *tailscaleStatusGetter) getStatus(ctx context.Context) (*ipnstate.Status, error) {
+func (sg *lanhcStatusGetter) getStatus(ctx context.Context) (*ipnstate.Status, error) {
 	sg.mu.Lock()
 	defer sg.mu.Unlock()
 	if sg.lastStatus != nil && time.Since(sg.lastStatusTime) < sg.cacheTimeout {
@@ -74,7 +74,7 @@ func newAuthorization(ts *tsnet.Server, tag string) *authorization {
 
 func newAuthorizationWithCacheTimeout(ts *tsnet.Server, tag string, cacheTimeout time.Duration) *authorization {
 	return &authorization{
-		sg: &tailscaleStatusGetter{
+		sg: &lanhcStatusGetter{
 			ts:           ts,
 			cacheTimeout: cacheTimeout,
 		},
@@ -144,7 +144,7 @@ func newPeers(status *ipnstate.Status, tag string) *peers {
 	for _, p := range status.Peer {
 		if p.Tags != nil && views.SliceContains(*p.Tags, tag) {
 			ps.statuses = append(ps.statuses, p)
-			ps.addrs.AddSlice(p.TailscaleIPs)
+			ps.addrs.AddSlice(p.LanhcIPs)
 		}
 	}
 	return ps

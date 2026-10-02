@@ -9,10 +9,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/views"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/views"
 
 	gcmp "github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"

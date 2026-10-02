@@ -6,7 +6,7 @@
 package sockopts
 
 import (
-	"tailscale.com/types/nettype"
+	"lanhc.com/types/nettype"
 )
 
 // SetBufferSize sets pconn's buffer to size for direction. size may be silently

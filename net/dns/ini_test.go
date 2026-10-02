@@ -20,7 +20,7 @@ func TestParseIni(t *testing.T) {
 [automount]
 	enabled = true
 	root=/mnt/
-# added by tailscale
+# added by lanhc
 [network] # trailing comment
 generateResolvConf = false  # trailing comment`,
 			want: map[string]map[string]string{

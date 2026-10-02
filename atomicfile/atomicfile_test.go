@@ -15,7 +15,7 @@ import (
 )
 
 func TestDoesNotOverwriteIrregularFiles(t *testing.T) {
-	// Per tailscale/tailscale#7658 as one example, almost any imagined use of
+	// Per lanhc/lanhc#7658 as one example, almost any imagined use of
 	// atomicfile.Write should likely not attempt to overwrite an irregular file
 	// such as a device node, socket, or named pipe.
 

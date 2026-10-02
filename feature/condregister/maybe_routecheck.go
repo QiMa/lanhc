@@ -5,4 +5,4 @@
 
 package condregister
 
-import _ "tailscale.com/feature/routecheck"
+import _ "lanhc.com/feature/routecheck"

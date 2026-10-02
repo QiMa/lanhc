@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"tailscale.com/util/set"
+	"lanhc.com/util/set"
 )
 
 func TestKnownDeps(t *testing.T) {

@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"testing"
 
-	"tailscale.com/tstest"
+	"lanhc.com/tstest"
 )
 
 func TestLabelMap(t *testing.T) {

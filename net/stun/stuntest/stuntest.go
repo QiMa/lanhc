@@ -14,10 +14,10 @@ import (
 	"sync"
 	"testing"
 
-	"tailscale.com/net/netaddr"
-	"tailscale.com/net/stun"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/nettype"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/net/stun"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/nettype"
 )
 
 type stunStats struct {

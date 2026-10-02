@@ -19,22 +19,22 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/health"
-	"tailscale.com/net/bakedroots"
-	"tailscale.com/net/connectproxy"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/tstest/integration/testcontrol"
-	"tailscale.com/tstest/tlstest"
-	"tailscale.com/tstime"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/persist"
-	"tailscale.com/util/eventbus/eventbustest"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/health"
+	"lanhc.com/net/bakedroots"
+	"lanhc.com/net/connectproxy"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/tstest/integration/testcontrol"
+	"lanhc.com/tstest/tlstest"
+	"lanhc.com/tstime"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/persist"
+	"lanhc.com/util/eventbus/eventbustest"
 )
 
 func fieldsOf(t reflect.Type) (fields []string) {
@@ -243,7 +243,7 @@ func TestDirectProxyManual(t *testing.T) {
 		GetMachinePrivateKey: func() (key.MachinePrivate, error) {
 			return key.NewMachine(), nil
 		},
-		ServerURL: "https://controlplane.tailscale.com",
+		ServerURL: "https://controlplane.lanhc.com",
 		Clock:     tstime.StdClock{},
 		Hostinfo: &tailcfg.Hostinfo{
 			BackendLogID: "test-backend-log-id",

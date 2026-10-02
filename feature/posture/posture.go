@@ -11,15 +11,15 @@ import (
 	"fmt"
 	"net/http"
 
-	"tailscale.com/health"
-	"tailscale.com/ipn/ipnext"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/posture"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/util/syspolicy/ptype"
+	"lanhc.com/health"
+	"lanhc.com/ipn/ipnext"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/posture"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/util/syspolicy/ptype"
 )
 
 func init() {
@@ -89,7 +89,7 @@ func handleC2NPostureIdentityGet(b *ipnlocal.LocalBackend, w http.ResponseWriter
 			b.HealthTracker().SetHealthy(postureSerialWarnable)
 		}
 
-		// TODO(tailscale/corp#21371, 2024-07-10): once this has landed in a stable release
+		// TODO(lanhc/corp#21371, 2024-07-10): once this has landed in a stable release
 		// and looks good in client metrics, remove this parameter and always report MAC
 		// addresses.
 		if r.FormValue("hwaddrs") == "true" {

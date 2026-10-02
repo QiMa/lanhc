@@ -13,12 +13,12 @@ import (
 	"runtime"
 	"time"
 
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/version/distro"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/version/distro"
 )
 
 // setAmbientCapsRaw is non-nil on Linux for Synology, to run ping with
-// CAP_NET_RAW from tailscaled's binary.
+// CAP_NET_RAW from lanhcd's binary.
 var setAmbientCapsRaw func(*exec.Cmd)
 
 var isSynology = runtime.GOOS == "linux" && buildfeatures.HasSynology && distro.Get() == distro.Synology
@@ -38,7 +38,7 @@ func (ns *Impl) sendOutboundUserPing(dstIP netip.Addr, timeout time.Duration) er
 	case "freebsd":
 		// Note: 2000 ms is actually 1 second + 2,000
 		// milliseconds extra for 3 seconds total.
-		// See https://github.com/tailscale/tailscale/pull/3753 for details.
+		// See https://github.com/lanhc/lanhc/pull/3753 for details.
 		ping := "ping"
 		if dstIP.Is6() {
 			ping = "ping6"

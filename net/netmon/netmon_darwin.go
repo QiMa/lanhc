@@ -11,9 +11,9 @@ import (
 
 	"golang.org/x/net/route"
 	"golang.org/x/sys/unix"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/eventbus"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/eventbus"
 )
 
 func init() {

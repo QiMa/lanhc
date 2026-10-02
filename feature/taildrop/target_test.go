@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"testing"
 
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnext"
-	"tailscale.com/tailcfg"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnext"
+	"lanhc.com/tailcfg"
 )
 
 func TestFileTargets(t *testing.T) {
@@ -29,7 +29,7 @@ func TestFileTargets(t *testing.T) {
 
 	e.backendState = ipn.Running
 	_, err = e.FileTargets()
-	if got, want := fmt.Sprint(err), "file sharing not enabled by Tailscale admin"; got != want {
+	if got, want := fmt.Sprint(err), "file sharing not enabled by Lanhc admin"; got != want {
 		t.Errorf("without cap: got %q; want %q", got, want)
 	}
 

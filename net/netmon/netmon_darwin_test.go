@@ -21,7 +21,7 @@ func TestIssue1416RIB(t *testing.T) {
 	msgs, err := route.ParseRIB(route.RIBTypeRoute, rtmMsg)
 	if err != nil {
 		t.Logf("ParseRIB: %v", err)
-		t.Skip("skipping on known failure; see https://github.com/tailscale/tailscale/issues/1416")
+		t.Skip("skipping on known failure; see https://github.com/lanhc/lanhc/issues/1416")
 		t.Fatal(err)
 	}
 	t.Logf("Got: %#v", msgs)

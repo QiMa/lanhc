@@ -3,7 +3,7 @@
 
 //go:build cgo || !darwin
 
-// Package systray provides a minimal Tailscale systray application.
+// Package systray provides a minimal Lanhc systray application.
 package systray
 
 import (
@@ -29,12 +29,12 @@ import (
 	"github.com/atotto/clipboard"
 	dbus "github.com/godbus/dbus/v5"
 	"github.com/toqueteos/webbrowser"
-	"tailscale.com/client/local"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/tailcfg"
-	"tailscale.com/util/slicesx"
-	"tailscale.com/util/stringsx"
+	"lanhc.com/client/local"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/tailcfg"
+	"lanhc.com/util/slicesx"
+	"lanhc.com/util/stringsx"
 )
 
 var (
@@ -72,12 +72,12 @@ func (menu *Menu) Run(client *local.Client) {
 	// set initial title, which is used by the systray package as the ID of the StatusNotifierItem.
 	// This value will get overwritten later as the client status changes.
 	// This must be called before systray.Run.
-	systray.SetTitle("tailscale")
+	systray.SetTitle("lanhc")
 
 	systray.Run(menu.onReady, menu.onExit)
 }
 
-// Menu represents the systray menu, its items, and the current Tailscale state.
+// Menu represents the systray menu, its items, and the current Lanhc state.
 type Menu struct {
 	mu sync.Mutex // protects the entire Menu
 
@@ -88,7 +88,7 @@ type Menu struct {
 
 	// readonly is whether the systray app is running in read-only mode.
 	// This is set if LocalAPI returns a permission error,
-	// typically because the user needs to run `tailscale set --operator=$USER`.
+	// typically because the user needs to run `lanhc set --operator=$USER`.
 	readonly bool
 
 	bgCtx    context.Context // ctx for background tasks not involving menu item clicks
@@ -123,7 +123,7 @@ func (menu *Menu) init() {
 	menu.exitNodeCh = make(chan tailcfg.StableNodeID)
 
 	// dbus wants a file path for notification icons, so copy to a temp file.
-	menu.notificationIcon, _ = os.CreateTemp("", "tailscale-systray.png")
+	menu.notificationIcon, _ = os.CreateTemp("", "lanhc-systray.png")
 	io.Copy(menu.notificationIcon, connected.renderWithBorder(3))
 
 	menu.bgCtx, menu.bgCancel = context.WithCancel(context.Background())
@@ -171,9 +171,9 @@ This can lead to issues with D-Bus, and should be avoided.
 The systray application should be run with the same user as your desktop session.
 This usually means that you should run the application like:
 
-tailscale systray
+lanhc systray
 
-See https://tailscale.com/kb/1597/linux-systray for more information.`)
+See https://lanhc.com/kb/1597/linux-systray for more information.`)
 	}
 	setAppIcon(disconnected)
 
@@ -182,16 +182,16 @@ See https://tailscale.com/kb/1597/linux-systray for more information.`)
 	menu.mu.Lock()
 	if menu.readonly {
 		fmt.Fprintln(os.Stderr, `
-No permission to manage Tailscale. Set operator by running:
+No permission to manage Lanhc. Set operator by running:
 
-sudo tailscale set --operator=$USER
+sudo lanhc set --operator=$USER
 
-See https://tailscale.com/s/cli-operator for more information.`)
+See https://lanhc.com/s/cli-operator for more information.`)
 	}
 	menu.mu.Unlock()
 }
 
-// updateState updates the Menu state from the Tailscale local client.
+// updateState updates the Menu state from the Lanhc local client.
 func (menu *Menu) updateState() {
 	menu.mu.Lock()
 	defer menu.mu.Unlock()
@@ -213,7 +213,7 @@ func (menu *Menu) updateState() {
 	}
 }
 
-// rebuild the systray menu based on the current Tailscale state.
+// rebuild the systray menu based on the current Lanhc state.
 //
 // We currently rebuild the entire menu because it is not easy to update the existing menu.
 // You cannot iterate over the items in a menu, nor can you remove some items like separators.
@@ -232,10 +232,10 @@ func (menu *Menu) rebuild() {
 	systray.ResetMenu()
 
 	if menu.readonly {
-		const readonlyMsg = "No permission to manage Tailscale.\nSee tailscale.com/s/cli-operator"
+		const readonlyMsg = "No permission to manage Lanhc.\nSee lanhc.com/s/cli-operator"
 		m := systray.AddMenuItem(readonlyMsg, "")
 		onClick(ctx, m, func(_ context.Context) {
-			webbrowser.Open("https://tailscale.com/s/cli-operator")
+			webbrowser.Open("https://lanhc.com/s/cli-operator")
 		})
 		systray.AddSeparator()
 	}
@@ -313,8 +313,8 @@ func (menu *Menu) rebuild() {
 		}
 	}
 
-	if menu.status != nil && menu.status.Self != nil && len(menu.status.Self.TailscaleIPs) > 0 {
-		title := fmt.Sprintf("This Device: %s (%s)", menu.status.Self.HostName, menu.status.Self.TailscaleIPs[0])
+	if menu.status != nil && menu.status.Self != nil && len(menu.status.Self.LanhcIPs) > 0 {
+		title := fmt.Sprintf("This Device: %s (%s)", menu.status.Self.HostName, menu.status.Self.LanhcIPs[0])
 		menu.self = systray.AddMenuItem(title, "")
 	} else {
 		menu.self = systray.AddMenuItem("This Device: not connected", "")
@@ -432,7 +432,7 @@ func setTooltip(text string) {
 }
 
 // eventLoop is the main event loop for handling click events on menu items
-// and responding to Tailscale state changes.
+// and responding to Lanhc state changes.
 // This method does not return until ctx.Done is closed.
 func (menu *Menu) eventLoop(ctx context.Context) {
 	for {
@@ -465,7 +465,7 @@ func (menu *Menu) eventLoop(ctx context.Context) {
 			}
 
 		case <-menu.self.ClickedCh:
-			menu.copyTailscaleIP(menu.status.Self)
+			menu.copyLanhcIP(menu.status.Self)
 
 		case id := <-menu.accountsCh:
 			if err := menu.lc.SwitchProfile(ctx, id); err != nil {
@@ -511,7 +511,7 @@ func onClick(ctx context.Context, item *systray.MenuItem, fn func(ctx context.Co
 	}()
 }
 
-// watchIPNBus subscribes to the tailscale event bus and sends state updates to chState.
+// watchIPNBus subscribes to the lanhc event bus and sends state updates to chState.
 // This method does not return.
 func (menu *Menu) watchIPNBus() {
 	for {
@@ -524,7 +524,7 @@ func (menu *Menu) watchIPNBus() {
 			}
 		}
 		// If our watch connection breaks, wait a bit before reconnecting. No
-		// reason to spam the logs if e.g. tailscaled is restarting or goes
+		// reason to spam the logs if e.g. lanhcd is restarting or goes
 		// down.
 		time.Sleep(3 * time.Second)
 	}
@@ -569,14 +569,14 @@ func (menu *Menu) watchIPNBusInner() error {
 	}
 }
 
-// copyTailscaleIP copies the first Tailscale IP of the given device to the clipboard
+// copyLanhcIP copies the first Lanhc IP of the given device to the clipboard
 // and sends a notification with the copied value.
-func (menu *Menu) copyTailscaleIP(device *ipnstate.PeerStatus) {
-	if device == nil || len(device.TailscaleIPs) == 0 {
+func (menu *Menu) copyLanhcIP(device *ipnstate.PeerStatus) {
+	if device == nil || len(device.LanhcIPs) == 0 {
 		return
 	}
 	name := strings.Split(device.DNSName, ".")[0]
-	ip := device.TailscaleIPs[0].String()
+	ip := device.LanhcIPs[0].String()
 	err := clipboard.WriteAll(ip)
 	if err != nil {
 		log.Printf("clipboard error: %v", err)
@@ -594,7 +594,7 @@ func (menu *Menu) sendNotification(title, content string) {
 	}
 	timeout := 3 * time.Second
 	obj := conn.Object("org.freedesktop.Notifications", "/org/freedesktop/Notifications")
-	call := obj.Call("org.freedesktop.Notifications.Notify", 0, "Tailscale", uint32(0),
+	call := obj.Call("org.freedesktop.Notifications.Notify", 0, "Lanhc", uint32(0),
 		menu.notificationIcon.Name(), title, content, []string{}, map[string]dbus.Variant{}, int32(timeout.Milliseconds()))
 	if call.Err != nil {
 		log.Printf("dbus: %v", call.Err)

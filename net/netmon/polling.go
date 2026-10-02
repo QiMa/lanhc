@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/types/logger"
+	"lanhc.com/types/logger"
 )
 
 func newPollingMon(logf logger.Logf, m *Monitor) (osMon, error) {
@@ -61,7 +61,7 @@ func (pm *pollingMon) Receive() (message, error) {
 	if runtime.GOOS == "android" {
 		// We'll have Android notify the link monitor to wake up earlier,
 		// so this can go very slowly there, to save battery.
-		// https://github.com/tailscale/tailscale/issues/1427
+		// https://github.com/lanhc/lanhc/issues/1427
 		d = 10 * time.Minute
 	} else if pm.isCloudRun() {
 		// Cloud Run routes never change at runtime. the containers are killed within

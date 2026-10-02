@@ -20,11 +20,11 @@ import (
 	"github.com/alexbrainman/sspi/negotiate"
 	"github.com/dblohm7/wingoes"
 	"golang.org/x/sys/windows"
-	"tailscale.com/hostinfo"
-	"tailscale.com/syncs"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/cmpver"
+	"lanhc.com/hostinfo"
+	"lanhc.com/syncs"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/cmpver"
 )
 
 func init() {
@@ -153,7 +153,7 @@ func proxyFromWinHTTP(ctx context.Context, urlStr string) (proxy *url.URL, err e
 	return url.Parse(v)
 }
 
-var userAgent = windows.StringToUTF16Ptr("Tailscale")
+var userAgent = windows.StringToUTF16Ptr("Lanhc")
 
 const (
 	winHTTP_ACCESS_TYPE_DEFAULT_PROXY   = 0

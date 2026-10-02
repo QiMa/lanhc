@@ -15,7 +15,7 @@ import (
 	"time"
 
 	gliderssh "github.com/tailscale/gliderssh"
-	"tailscale.com/tailcfg"
+	"lanhc.com/tailcfg"
 )
 
 var errNoDeadline = errors.New("tailssh.Session: deadlines not supported")
@@ -43,13 +43,13 @@ type Window struct {
 	HeightPixels int // height in pixels
 }
 
-// peerIdentity contains the Tailscale identity of the connecting SSH peer.
+// peerIdentity contains the Lanhc identity of the connecting SSH peer.
 type peerIdentity struct {
 	Node        tailcfg.NodeView // node connecting
 	UserProfile tailcfg.UserProfile
 }
 
-// Session wraps a gliderlabs gliderssh.Session with Tailscale peer identity
+// Session wraps a gliderlabs gliderssh.Session with Lanhc peer identity
 // information. It implements net.Conn so callers that only need Read/Write/Close
 // can use it directly. Callers that need SSH-specific functionality can
 // type-assert from the net.Conn returned by the listener's Accept.
@@ -57,7 +57,7 @@ type Session struct {
 	// sess is the underlying gliderlabs SSH session.
 	sess gliderssh.Session
 
-	// peer is the Tailscale identity of the remote peer.
+	// peer is the Lanhc identity of the remote peer.
 	peer peerIdentity
 
 	// done is closed when the session handler should return,
@@ -123,10 +123,10 @@ func (s *Session) User() string {
 	return s.sess.User()
 }
 
-// Peer returns the Tailscale identity of the remote node.
+// Peer returns the Lanhc identity of the remote node.
 func (s *Session) Peer() tailcfg.NodeView { return s.peer.Node }
 
-// UserProfile returns the Tailscale user profile of the remote node.
+// UserProfile returns the Lanhc user profile of the remote node.
 //
 // For tagged nodes, this is same sort of UserProfile that is returned by the
 // LocalAPI WhoIs API.

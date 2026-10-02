@@ -14,15 +14,15 @@ import (
 	"runtime"
 	"strconv"
 
-	"tailscale.com/envknob"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/ipn"
-	"tailscale.com/safesocket"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/groupmember"
-	"tailscale.com/util/winutil"
-	"tailscale.com/version/distro"
+	"lanhc.com/envknob"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/ipn"
+	"lanhc.com/safesocket"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/groupmember"
+	"lanhc.com/util/winutil"
+	"lanhc.com/version/distro"
 )
 
 // ErrNotImplemented is returned by ConnIdentity.WindowsToken when it is not
@@ -143,7 +143,7 @@ func LookupUserFromID(logf logger.Logf, uid string) (*user.User, error) {
 
 		metricIssue869Workaround.Add(1)
 		logf("[warning] issue 869: os/user.LookupId failed; ignoring")
-		// Work around https://github.com/tailscale/tailscale/issues/869 for
+		// Work around https://github.com/lanhc/lanhc/issues/869 for
 		// now. We don't strictly need the username. It's just a nice-to-have.
 		// So make up a *user.User if their machine is broken in this way.
 		return &user.User{

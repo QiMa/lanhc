@@ -27,12 +27,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/yaml"
 
-	tsoperator "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tstime"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/set"
+	tsoperator "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tstime"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/set"
 )
 
 const (
@@ -44,7 +44,7 @@ const (
 	messageNameserverCreationFailed  = "Failed creating nameserver resources: %v"
 	messageMultipleDNSConfigsPresent = "Multiple DNSConfig resources found in cluster. Please ensure no more than one is present."
 
-	defaultNameserverImageRepo = "tailscale/k8s-nameserver"
+	defaultNameserverImageRepo = "lanhc/k8s-nameserver"
 	defaultNameserverImageTag  = "stable"
 )
 
@@ -113,7 +113,7 @@ func (a *NameserverReconciler) Reconcile(ctx context.Context, req reconcile.Requ
 		return res, fmt.Errorf("error listing DNSConfigs: %w", err)
 	}
 	if len(dnsCfgs.Items) > 1 { // enforce DNSConfig to be a singleton
-		msg := "invalid cluster configuration: more than one tailscale.com/dnsconfigs found. Please ensure that no more than one is created."
+		msg := "invalid cluster configuration: more than one lanhc.com/dnsconfigs found. Please ensure that no more than one is created."
 		logger.Error(msg)
 		a.recorder.Event(&dnsCfg, corev1.EventTypeWarning, reasonMultipleDNSConfigsPresent, messageMultipleDNSConfigsPresent)
 		setStatus(&dnsCfg, metav1.ConditionFalse, reasonMultipleDNSConfigsPresent, messageMultipleDNSConfigsPresent)
@@ -160,7 +160,7 @@ func (a *NameserverReconciler) Reconcile(ctx context.Context, req reconcile.Requ
 
 func nameserverResourceLabels(name, namespace string) map[string]string {
 	labels := childResourceLabels(name, namespace, "nameserver")
-	labels["app.kubernetes.io/name"] = "tailscale"
+	labels["app.kubernetes.io/name"] = "lanhc"
 	labels["app.kubernetes.io/component"] = "nameserver"
 	return labels
 }

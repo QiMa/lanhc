@@ -18,12 +18,12 @@ import (
 	"fmt"
 	"sync"
 
-	"tailscale.com/ipn/ipnext"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/net/routecheck"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/eventbus"
+	"lanhc.com/ipn/ipnext"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/net/routecheck"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/eventbus"
 )
 
 // FeatureName is the name of the feature implemented by this package.

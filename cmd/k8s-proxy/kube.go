@@ -13,18 +13,18 @@ import (
 	"time"
 
 	"go.uber.org/zap"
-	"tailscale.com/client/local"
-	"tailscale.com/health"
-	"tailscale.com/ipn"
-	"tailscale.com/kube/authkey"
-	"tailscale.com/kube/k8s-proxy/conf"
-	"tailscale.com/kube/kubeapi"
-	"tailscale.com/kube/kubeclient"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tailcfg"
+	"lanhc.com/client/local"
+	"lanhc.com/health"
+	"lanhc.com/ipn"
+	"lanhc.com/kube/authkey"
+	"lanhc.com/kube/k8s-proxy/conf"
+	"lanhc.com/kube/kubeapi"
+	"lanhc.com/kube/kubeclient"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tailcfg"
 )
 
-const k8sProxyFieldManager = "tailscale-k8s-proxy"
+const k8sProxyFieldManager = "lanhc-k8s-proxy"
 
 // resetState clears k8s-proxy state from previous runs and sets
 // initial values. This ensures the operator doesn't use stale state when a Pod

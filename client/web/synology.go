@@ -13,7 +13,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"tailscale.com/util/groupmember"
+	"lanhc.com/util/groupmember"
 )
 
 // authorizeSynology authenticates the logged-in Synology user and verifies

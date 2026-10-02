@@ -13,10 +13,10 @@ import (
 	"golang.org/x/sys/cpu"
 	"golang.org/x/sys/windows"
 	"golang.zx2c4.com/wireguard/windows/tunnel/winipcfg"
-	"tailscale.com/envknob"
-	"tailscale.com/net/netmon"
-	"tailscale.com/tsconst"
-	"tailscale.com/types/logger"
+	"lanhc.com/envknob"
+	"lanhc.com/net/netmon"
+	"lanhc.com/tsconst"
+	"lanhc.com/types/logger"
 )
 
 func interfaceIndex(iface *winipcfg.IPAdapterAddresses) uint32 {
@@ -48,7 +48,7 @@ func control(logf logger.Logf, _ *netmon.Monitor) func(network, address string, 
 var bindToInterfaceByRouteEnv = envknob.RegisterBool("TS_BIND_TO_INTERFACE_BY_ROUTE")
 
 // controlC binds c to the Windows interface that holds a default
-// route, and is not the Tailscale WinTun interface.
+// route, and is not the Lanhc WinTun interface.
 func controlC(logf logger.Logf, network, address string, c syscall.RawConn) (err error) {
 	if isLocalhost(address) {
 		// Don't bind to an interface for localhost connections,
@@ -132,9 +132,9 @@ func getInterfaceIndex(logf logger.Logf, addr netip.Addr, defaultIdx uint32) (id
 		return defaultIdx, fmt.Errorf("interfaceIndexFor: %w", err)
 	}
 
-	isTS, err := isTailscaleInterface(idx)
+	isTS, err := isLanhcInterface(idx)
 	if err != nil {
-		return defaultIdx, fmt.Errorf("isTailscaleInterface: %w", err)
+		return defaultIdx, fmt.Errorf("isLanhcInterface: %w", err)
 	}
 	if isTS {
 		return defaultIdx, nil
@@ -142,7 +142,7 @@ func getInterfaceIndex(logf logger.Logf, addr netip.Addr, defaultIdx uint32) (id
 	return idx, nil
 }
 
-func isTailscaleInterface(ifaceIdx uint32) (bool, error) {
+func isLanhcInterface(ifaceIdx uint32) (bool, error) {
 	ifaceLUID, err := winipcfg.LUIDFromIndex(ifaceIdx)
 	if err != nil {
 		return false, err

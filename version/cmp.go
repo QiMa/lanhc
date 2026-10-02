@@ -10,7 +10,7 @@ import (
 // AtLeast returns whether version is at least the specified minimum
 // version.
 //
-// Version comparison in Tailscale is a little complex, because we
+// Version comparison in Lanhc is a little complex, because we
 // switched "styles" a few times, and additionally have a completely
 // separate track of version numbers for OSS-only builds.
 //
@@ -20,9 +20,9 @@ import (
 // but AtLeast is called with an official release number as the
 // minimum
 //
-// version and minimum can both be either an official Tailscale
+// version and minimum can both be either an official Lanhc
 // version numbers (major.minor.patch-extracommits-extrastring), or an
-// OSS build datestamp (date.YYYYMMDD). For Tailscale version numbers,
+// OSS build datestamp (date.YYYYMMDD). For Lanhc version numbers,
 // AtLeast also accepts a prefix of a full version, in which case all
 // missing fields are assumed to be zero.
 func AtLeast(version string, minimum string) bool {
@@ -37,16 +37,16 @@ func AtLeast(version string, minimum string) bool {
 
 	switch {
 	case v.Datestamp != 0 && m.Datestamp == 0:
-		// OSS version vs. Tailscale version
+		// OSS version vs. Lanhc version
 		return false
 	case v.Datestamp == 0 && m.Datestamp != 0:
-		// Tailscale version vs. OSS version
+		// Lanhc version vs. OSS version
 		return false
 	case v.Datestamp != 0:
 		// OSS version vs. OSS version
 		return v.Datestamp >= m.Datestamp
 	case v.Major == m.Major && v.Minor == m.Minor && v.Patch == m.Patch && v.ExtraCommits == m.ExtraCommits:
-		// Exactly equal Tailscale versions
+		// Exactly equal Lanhc versions
 		return true
 	case v.Major != m.Major:
 		return v.Major > m.Major
@@ -60,7 +60,7 @@ func AtLeast(version string, minimum string) bool {
 }
 
 type parsed struct {
-	Major, Minor, Patch, ExtraCommits int // for Tailscale version e.g. e.g. "0.99.1-20"
+	Major, Minor, Patch, ExtraCommits int // for Lanhc version e.g. e.g. "0.99.1-20"
 	Datestamp                         int // for OSS version e.g. "date.20200612"
 }
 

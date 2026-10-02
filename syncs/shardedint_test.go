@@ -8,8 +8,8 @@ import (
 	"sync"
 	"testing"
 
-	. "tailscale.com/syncs"
-	"tailscale.com/tstest"
+	. "lanhc.com/syncs"
+	"lanhc.com/tstest"
 )
 
 var (

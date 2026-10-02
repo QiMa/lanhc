@@ -13,7 +13,7 @@ import (
 	"syscall"
 
 	"golang.org/x/sys/unix"
-	"tailscale.com/types/logger"
+	"lanhc.com/types/logger"
 )
 
 const (
@@ -127,9 +127,9 @@ func logSSHLogin(logf logger.Logf, c *conn) {
 		return
 	}
 
-	exePath := c.srv.tailscaledPath
+	exePath := c.srv.lanhcdPath
 	if exePath == "" {
-		exePath = "tailscaled"
+		exePath = "lanhcd"
 	}
 
 	srcIP := c.info.src.Addr().String()
@@ -137,9 +137,9 @@ func logSSHLogin(logf logger.Logf, c *conn) {
 	dstIP := c.info.dst.Addr().String()
 	dstPort := c.info.dst.Port()
 
-	tailscaleUser := c.info.uprof.LoginName
-	tailscaleUserID := c.info.uprof.ID
-	tailscaleDisplayName := c.info.uprof.DisplayName
+	lanhcUser := c.info.uprof.LoginName
+	lanhcUserID := c.info.uprof.ID
+	lanhcDisplayName := c.info.uprof.DisplayName
 	nodeName := c.info.node.Name()
 	nodeID := c.info.node.ID()
 
@@ -162,13 +162,13 @@ func logSSHLogin(logf logger.Logf, c *conn) {
 		localUser, localUID, localGID,
 		srcIP, srcPort, dstIP, dstPort,
 		hostname, exePath,
-		tailscaleUser, tailscaleUserID, tailscaleDisplayName, nodeName, nodeID,
+		lanhcUser, lanhcUserID, lanhcDisplayName, nodeName, nodeID,
 	)
 
 	sendAuditMessage(logf, auditUserLogin, msg)
 
 	logf("audit: SSH login: user=%s uid=%s from=%s ts_user=%s node=%s",
-		localUser, localUID, srcIP, tailscaleUser, nodeName)
+		localUser, localUID, srcIP, lanhcUser, nodeName)
 }
 
 func init() {

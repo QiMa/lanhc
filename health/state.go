@@ -9,9 +9,9 @@ import (
 	"encoding/json"
 	"time"
 
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/tailcfg"
-	"tailscale.com/util/mak"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/tailcfg"
+	"lanhc.com/util/mak"
 )
 
 // State contains the health status of the backend, and is
@@ -152,7 +152,7 @@ func (t *Tracker) CurrentState() *State {
 			Title:               msg.Title,
 			Text:                msg.Text,
 			ImpactsConnectivity: msg.ImpactsConnectivity,
-			// TODO(tailscale/corp#27759): DependsOn?
+			// TODO(lanhc/corp#27759): DependsOn?
 		}
 
 		if msg.PrimaryAction != nil {

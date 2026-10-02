@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/util/def"
+	"lanhc.com/util/def"
 )
 
 func TestLookupEnv(t *testing.T) {

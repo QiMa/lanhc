@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/coder/websocket"
-	"tailscale.com/net/wsconn"
+	"lanhc.com/net/wsconn"
 )
 
 var counterWebSocketAccepts = expvar.NewInt("derp_websocket_accepts")
@@ -21,14 +21,14 @@ var counterWebSocketAccepts = expvar.NewInt("derp_websocket_accepts")
 // websocket header and a "derp" Sec-WebSocket-Protocol value) are
 // handled here; all other requests pass through to base.
 //
-// The browser-side Tailscale client (cmd/tsconnect/wasm) can only reach DERP
+// The browser-side Lanhc client (cmd/tsconnect/wasm) can only reach DERP
 // via WebSocket, so any DERP server intended to be reachable from browsers
 // must wrap derpserver.Handler with this function.
 func AddWebSocketSupport(s *Server, base http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		up := strings.ToLower(r.Header.Get("Upgrade"))
 
-		// Very early versions of Tailscale set "Upgrade: WebSocket" but didn't actually
+		// Very early versions of Lanhc set "Upgrade: WebSocket" but didn't actually
 		// speak WebSockets (they still assumed DERP's binary framing). So to distinguish
 		// clients that actually want WebSockets, look for an explicit "derp" subprotocol.
 		if up != "websocket" || !strings.Contains(r.Header.Get("Sec-Websocket-Protocol"), "derp") {

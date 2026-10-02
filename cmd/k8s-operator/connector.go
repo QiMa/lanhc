@@ -26,14 +26,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	tsoperator "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/net/netutil"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/tstime"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/set"
+	tsoperator "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/net/netutil"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/tstime"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/set"
 )
 
 const (
@@ -52,7 +52,7 @@ type ConnectorReconciler struct {
 	client.Client
 
 	recorder record.EventRecorder
-	ssr      *tailscaleSTSReconciler
+	ssr      *lanhcSTSReconciler
 	logger   *zap.SugaredLogger
 
 	tsnamespace string
@@ -88,7 +88,7 @@ func (a *ConnectorReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 		logger.Debugf("Connector not found, assuming it was deleted")
 		return reconcile.Result{}, nil
 	} else if err != nil {
-		return reconcile.Result{}, fmt.Errorf("failed to get tailscale.com Connector: %w", err)
+		return reconcile.Result{}, fmt.Errorf("failed to get lanhc.com Connector: %w", err)
 	}
 	if !cn.DeletionTimestamp.IsZero() {
 		logger.Debugf("Connector is being deleted or should not be exposed, cleaning up resources")
@@ -196,7 +196,7 @@ func (a *ConnectorReconciler) maybeProvisionConnector(ctx context.Context, logge
 		replicas = *cn.Spec.Replicas
 	}
 
-	sts := &tailscaleSTSConfig{
+	sts := &lanhcSTSConfig{
 		Replicas:            replicas,
 		ParentResourceName:  cn.Name,
 		ParentResourceUID:   string(cn.UID),
@@ -289,7 +289,7 @@ func (a *ConnectorReconciler) maybeCleanupConnector(ctx context.Context, logger 
 
 	// Unlike most log entries in the reconcile loop, this will get printed
 	// exactly once at the very end of cleanup, because the final step of
-	// cleanup removes the tailscale finalizer, which will make all future
+	// cleanup removes the lanhc finalizer, which will make all future
 	// reconciles exit early.
 	logger.Infof("cleaned up Connector resources")
 	a.mu.Lock()

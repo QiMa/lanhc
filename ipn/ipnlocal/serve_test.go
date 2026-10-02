@@ -28,22 +28,22 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/control/controlclient"
-	"tailscale.com/health"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsd"
-	"tailscale.com/tstest"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/logid"
-	"tailscale.com/types/netmap"
-	"tailscale.com/util/eventbus/eventbustest"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/must"
-	"tailscale.com/util/syspolicy/policyclient"
-	"tailscale.com/wgengine"
-	"tailscale.com/wgengine/filter"
+	"lanhc.com/control/controlclient"
+	"lanhc.com/health"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsd"
+	"lanhc.com/tstest"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/logid"
+	"lanhc.com/types/netmap"
+	"lanhc.com/util/eventbus/eventbustest"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/must"
+	"lanhc.com/util/syspolicy/policyclient"
+	"lanhc.com/wgengine"
+	"lanhc.com/wgengine/filter"
 )
 
 func TestExpandProxyArg(t *testing.T) {
@@ -778,10 +778,10 @@ func TestServeHTTPProxyHeaders(t *testing.T) {
 			wantHeaders: []headerCheck{
 				{"X-Forwarded-Proto", "https"},
 				{"X-Forwarded-For", "100.150.151.152"},
-				{"Tailscale-User-Login", "someone@example.com"},
-				{"Tailscale-User-Name", "Some One"},
-				{"Tailscale-User-Profile-Pic", "https://example.com/photo.jpg"},
-				{"Tailscale-Headers-Info", "https://tailscale.com/s/serve-headers"},
+				{"Lanhc-User-Login", "someone@example.com"},
+				{"Lanhc-User-Name", "Some One"},
+				{"Lanhc-User-Profile-Pic", "https://example.com/photo.jpg"},
+				{"Lanhc-Headers-Info", "https://lanhc.com/s/serve-headers"},
 			},
 		},
 		{
@@ -790,10 +790,10 @@ func TestServeHTTPProxyHeaders(t *testing.T) {
 			wantHeaders: []headerCheck{
 				{"X-Forwarded-Proto", "https"},
 				{"X-Forwarded-For", "100.150.151.153"},
-				{"Tailscale-User-Login", ""},
-				{"Tailscale-User-Name", ""},
-				{"Tailscale-User-Profile-Pic", ""},
-				{"Tailscale-Headers-Info", ""},
+				{"Lanhc-User-Login", ""},
+				{"Lanhc-User-Name", ""},
+				{"Lanhc-User-Profile-Pic", ""},
+				{"Lanhc-Headers-Info", ""},
 			},
 		},
 		{
@@ -802,10 +802,10 @@ func TestServeHTTPProxyHeaders(t *testing.T) {
 			wantHeaders: []headerCheck{
 				{"X-Forwarded-Proto", "https"},
 				{"X-Forwarded-For", "100.160.161.162"},
-				{"Tailscale-User-Login", ""},
-				{"Tailscale-User-Name", ""},
-				{"Tailscale-User-Profile-Pic", ""},
-				{"Tailscale-Headers-Info", ""},
+				{"Lanhc-User-Login", ""},
+				{"Lanhc-User-Name", ""},
+				{"Lanhc-User-Profile-Pic", ""},
+				{"Lanhc-Headers-Info", ""},
 			},
 		},
 	}
@@ -918,11 +918,11 @@ func TestServeHTTPProxyGrantHeader(t *testing.T) {
 			wantHeaders: []headerCheck{
 				{"X-Forwarded-Proto", "https"},
 				{"X-Forwarded-For", "100.150.151.152"},
-				{"Tailscale-User-Login", "someone@example.com"},
-				{"Tailscale-User-Name", "Some One"},
-				{"Tailscale-User-Profile-Pic", "https://example.com/photo.jpg"},
-				{"Tailscale-Headers-Info", "https://tailscale.com/s/serve-headers"},
-				{"Tailscale-App-Capabilities", `{"example.com/cap/interesting":[{"role":"🐿"}]}`},
+				{"Lanhc-User-Login", "someone@example.com"},
+				{"Lanhc-User-Name", "Some One"},
+				{"Lanhc-User-Profile-Pic", "https://example.com/photo.jpg"},
+				{"Lanhc-Headers-Info", "https://lanhc.com/s/serve-headers"},
+				{"Lanhc-App-Capabilities", `{"example.com/cap/interesting":[{"role":"🐿"}]}`},
 			},
 		},
 		{
@@ -931,11 +931,11 @@ func TestServeHTTPProxyGrantHeader(t *testing.T) {
 			wantHeaders: []headerCheck{
 				{"X-Forwarded-Proto", "https"},
 				{"X-Forwarded-For", "100.150.151.153"},
-				{"Tailscale-User-Login", ""},
-				{"Tailscale-User-Name", ""},
-				{"Tailscale-User-Profile-Pic", ""},
-				{"Tailscale-Headers-Info", ""},
-				{"Tailscale-App-Capabilities", `{"example.com/cap/boring":[{"role":"Viewer"}]}`},
+				{"Lanhc-User-Login", ""},
+				{"Lanhc-User-Name", ""},
+				{"Lanhc-User-Profile-Pic", ""},
+				{"Lanhc-Headers-Info", ""},
+				{"Lanhc-App-Capabilities", `{"example.com/cap/boring":[{"role":"Viewer"}]}`},
 			},
 		},
 		{
@@ -944,11 +944,11 @@ func TestServeHTTPProxyGrantHeader(t *testing.T) {
 			wantHeaders: []headerCheck{
 				{"X-Forwarded-Proto", "https"},
 				{"X-Forwarded-For", "100.160.161.162"},
-				{"Tailscale-User-Login", ""},
-				{"Tailscale-User-Name", ""},
-				{"Tailscale-User-Profile-Pic", ""},
-				{"Tailscale-Headers-Info", ""},
-				{"Tailscale-App-Capabilities", ""},
+				{"Lanhc-User-Login", ""},
+				{"Lanhc-User-Name", ""},
+				{"Lanhc-User-Profile-Pic", ""},
+				{"Lanhc-Headers-Info", ""},
+				{"Lanhc-App-Capabilities", ""},
 			},
 		},
 	}
@@ -1291,7 +1291,7 @@ func Test_isGRPCContentType(t *testing.T) {
 	}
 }
 
-func TestEncTailscaleHeaderValue(t *testing.T) {
+func TestEncLanhcHeaderValue(t *testing.T) {
 	tests := []struct {
 		in   string
 		want string
@@ -1302,9 +1302,9 @@ func TestEncTailscaleHeaderValue(t *testing.T) {
 		{"Krūmiņa", "=?utf-8?q?Kr=C5=ABmi=C5=86a?="},
 	}
 	for _, tt := range tests {
-		got := encTailscaleHeaderValue(tt.in)
+		got := encLanhcHeaderValue(tt.in)
 		if got != tt.want {
-			t.Errorf("encTailscaleHeaderValue(%q) = %q, want %q", tt.in, got, tt.want)
+			t.Errorf("encLanhcHeaderValue(%q) = %q, want %q", tt.in, got, tt.want)
 		}
 	}
 }
@@ -1394,7 +1394,7 @@ func TestServeGRPCProxy(t *testing.T) {
 	}
 }
 
-// TestServeProxyHTTP2PreservesContentType is a repro for tailscale/tailscale#19866.
+// TestServeProxyHTTP2PreservesContentType is a repro for lanhc/lanhc#19866.
 // A client POSTs over HTTP/2 to a serve listener configured to reverse-proxy to a
 // plaintext HTTP/1.1 backend; the test asserts the backend sees the Content-Type
 // header that the client sent.
@@ -1530,7 +1530,7 @@ func TestServeProxyHTTP2PreservesContentType(t *testing.T) {
 // TestServeWebHandlerHTTP2PreservesContentType drives the full
 // b.serveWebHandler entry point (the actual production code path) via a real
 // HTTP/2 TLS frontend, with serveHTTPContext.Funnel set to mimic a funnel
-// request. Repro probe for tailscale/tailscale#19866.
+// request. Repro probe for lanhc/lanhc#19866.
 func TestServeWebHandlerHTTP2PreservesContentType(t *testing.T) {
 	var gotHeader http.Header
 	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -1610,8 +1610,8 @@ func TestServeWebHandlerHTTP2PreservesContentType(t *testing.T) {
 	if got, want := gotHeader.Get("Content-Type"), "application/json"; got != want {
 		t.Errorf("Content-Type at backend = %q, want %q", got, want)
 	}
-	if got := gotHeader.Get("Tailscale-Funnel-Request"); got != "?1" {
-		t.Errorf("Tailscale-Funnel-Request = %q, want %q (sanity check)", got, "?1")
+	if got := gotHeader.Get("Lanhc-Funnel-Request"); got != "?1" {
+		t.Errorf("Lanhc-Funnel-Request = %q, want %q (sanity check)", got, "?1")
 	}
 }
 

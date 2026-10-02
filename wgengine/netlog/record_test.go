@@ -14,10 +14,10 @@ import (
 	"github.com/go-json-experiment/json/jsontext"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/netlogtype"
-	"tailscale.com/util/must"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/netlogtype"
+	"lanhc.com/util/must"
 )
 
 func addr(s string) netip.Addr {

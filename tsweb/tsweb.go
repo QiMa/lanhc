@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package tsweb contains code used in various Tailscale webservers.
+// Package tsweb contains code used in various Lanhc webservers.
 package tsweb
 
 import (
@@ -29,13 +29,13 @@ import (
 	"time"
 
 	"go4.org/mem"
-	"tailscale.com/envknob"
-	"tailscale.com/metrics"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/tsweb/varz"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/ctxkey"
-	"tailscale.com/util/vizerror"
+	"lanhc.com/envknob"
+	"lanhc.com/metrics"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/tsweb/varz"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/ctxkey"
+	"lanhc.com/util/vizerror"
 )
 
 // DevMode controls whether extra output in shown, for when the binary is being run in dev mode.
@@ -44,7 +44,7 @@ var DevMode bool
 func DefaultCertDir(leafDir string) string {
 	cacheDir, err := os.UserCacheDir()
 	if err == nil {
-		return filepath.Join(cacheDir, "tailscale", leafDir)
+		return filepath.Join(cacheDir, "lanhc", leafDir)
 	}
 	return ""
 }
@@ -57,8 +57,8 @@ func IsProd443(addr string) bool {
 
 // debugTrustedCIDRs is the envknob for TS_DEBUG_TRUSTED_CIDRS, a
 // comma-separated list of CIDR ranges (e.g. "10.0.0.0/8,172.16.0.0/12")
-// whose source IPs are allowed to access debug endpoints without Tailscale
-// authentication. This will supersede both IsTailscaleIP() and
+// whose source IPs are allowed to access debug endpoints without Lanhc
+// authentication. This will supersede both IsLanhcIP() and
 // TS_ALLOW_DEBUG_IP.
 var debugTrustedCIDRs = envknob.RegisterString("TS_DEBUG_TRUSTED_CIDRS")
 
@@ -117,7 +117,7 @@ func AllowDebugAccess(r *http.Request) bool {
 	if err != nil {
 		return false
 	}
-	if tsaddr.IsTailscaleIP(ip) || ip.IsLoopback() || ipStr == envknob.String("TS_ALLOW_DEBUG_IP") {
+	if tsaddr.IsLanhcIP(ip) || ip.IsLoopback() || ipStr == envknob.String("TS_ALLOW_DEBUG_IP") {
 		return true
 	}
 	if cidrsContain(trustedCIDRs(), ip) {
@@ -258,7 +258,7 @@ var normalizePathRegex = regexp.MustCompile("([a-fA-F0-9]{9,}|([^\\/])+\\.([^\\/
 //     replaced by an ellipsis
 //   - any path component containing a period with at least two characters
 //     after the period (i.e. an email or domain)
-//   - any path component consisting of a common Tailscale Stable ID
+//   - any path component consisting of a common Lanhc Stable ID
 //   - any path segment *@passkey.
 func NormalizedPath(p string) string {
 	// Fastpath: No hex sequences in there we might have to trim.
@@ -485,7 +485,7 @@ func ErrorHandler(h ReturnHandler, opts ErrorOptions) http.Handler {
 
 // errCallback is added to logHandler's request context so that errorHandler can
 // pass errors back up the stack to logHandler.
-var errCallback = ctxkey.New[func(HTTPError)]("tailscale.com/tsweb.errCallback", nil)
+var errCallback = ctxkey.New[func(HTTPError)]("lanhc.com/tsweb.errCallback", nil)
 
 // logHandler is a http.Handler which logs the HTTP request.
 // It injects an errCallback for errorHandler to augment the log message with

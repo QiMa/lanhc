@@ -10,9 +10,9 @@ import (
 	"errors"
 	"time"
 
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/tkatype"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/tkatype"
 )
 
 type Authority struct {

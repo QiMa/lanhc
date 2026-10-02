@@ -6,10 +6,10 @@ package metrics
 import (
 	"strings"
 
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/set"
-	"tailscale.com/util/syspolicy/internal"
-	"tailscale.com/util/testenv"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/set"
+	"lanhc.com/util/syspolicy/internal"
+	"lanhc.com/util/testenv"
 )
 
 // TestState represents a metric name and its expected value.

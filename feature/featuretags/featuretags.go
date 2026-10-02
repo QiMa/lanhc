@@ -4,14 +4,14 @@
 // The featuretags package is a registry of all the ts_omit-able build tags.
 package featuretags
 
-import "tailscale.com/util/set"
+import "lanhc.com/util/set"
 
 // CLI is a special feature in the [Features] map that works opposite
 // from the others: it is opt-in, rather than opt-out, having a different
 // build tag format.
 const CLI FeatureTag = "cli"
 
-// FeatureTag names a Tailscale feature that can be selectively added or removed
+// FeatureTag names a Lanhc feature that can be selectively added or removed
 // via build tags.
 type FeatureTag string
 
@@ -90,7 +90,7 @@ type FeatureMeta struct {
 	ImplementationDetail bool
 }
 
-// Features are the known Tailscale features that can be selectively included or
+// Features are the known Lanhc features that can be selectively included or
 // excluded via build tags, and a description of each.
 var Features = map[FeatureTag]FeatureMeta{
 	"ace":           {Sym: "ACE", Desc: "Alternate Connectivity Endpoints"},
@@ -129,7 +129,7 @@ var Features = map[FeatureTag]FeatureMeta{
 	},
 	"captiveportal": {Sym: "CaptivePortal", Desc: "Captive portal detection"},
 	"capture":       {Sym: "Capture", Desc: "Packet capture"},
-	"cli":           {Sym: "CLI", Desc: "embed the CLI into the tailscaled binary"},
+	"cli":           {Sym: "CLI", Desc: "embed the CLI into the lanhcd binary"},
 	"colorable":     {Sym: "Colorable", Desc: "Colorized terminal output"},
 	"cliconndiag":   {Sym: "CLIConnDiag", Desc: "CLI connection error diagnostics"},
 	"clientmetrics": {Sym: "ClientMetrics", Desc: "Client metrics support"},
@@ -158,9 +158,9 @@ var Features = map[FeatureTag]FeatureMeta{
 		Deps: []FeatureTag{"portmapper"},
 	},
 	"desktop_sessions": {Sym: "DesktopSessions", Desc: "Desktop sessions support"},
-	"doctor":           {Sym: "Doctor", Desc: "Diagnose possible issues with Tailscale and its host environment"},
-	"drive":            {Sym: "Drive", Desc: "Tailscale Drive (file server) support"},
-	"flashappliance":   {Sym: "FlashAppliance", Desc: "'tailscale configure flash-appliance' and 'pve-appliance' CLI commands for deploying Tailscale appliance images"},
+	"doctor":           {Sym: "Doctor", Desc: "Diagnose possible issues with Lanhc and its host environment"},
+	"drive":            {Sym: "Drive", Desc: "Lanhc Drive (file server) support"},
+	"flashappliance":   {Sym: "FlashAppliance", Desc: "'lanhc configure flash-appliance' and 'pve-appliance' CLI commands for deploying Lanhc appliance images"},
 	"gro": {
 		Sym:  "GRO",
 		Desc: "Generic Receive Offload support (performance)",
@@ -169,7 +169,7 @@ var Features = map[FeatureTag]FeatureMeta{
 	"health":             {Sym: "Health", Desc: "Health checking support"},
 	"hujsonconf":         {Sym: "HuJSONConf", Desc: "HuJSON config file support"},
 	"identityfederation": {Sym: "IdentityFederation", Desc: "Auth key generation via identity federation support"},
-	"ipnbus":             {Sym: "IPNBus", Desc: "IPN notification bus (watch-ipn-bus) support, used by GUIs, debugging, and nicer 'tailscale up' support"},
+	"ipnbus":             {Sym: "IPNBus", Desc: "IPN notification bus (watch-ipn-bus) support, used by GUIs, debugging, and nicer 'lanhc up' support"},
 	"iptables":           {Sym: "IPTables", Desc: "Linux iptables support"},
 	"kube":               {Sym: "Kube", Desc: "Kubernetes integration"},
 	"linuxdnsfight":      {Sym: "LinuxDNSFight", Desc: "Linux support for detecting DNS fights (inotify watching of /etc/resolv.conf)"},
@@ -183,18 +183,18 @@ var Features = map[FeatureTag]FeatureMeta{
 	},
 	"logtail": {
 		Sym:  "LogTail",
-		Desc: "upload logs to log.tailscale.com (debug logs for bug reports and also by network flow logs if enabled)",
+		Desc: "upload logs to log.lanhc.com (debug logs for bug reports and also by network flow logs if enabled)",
 	},
 	"oauthkey": {Sym: "OAuthKey", Desc: "OAuth secret-to-authkey resolution support"},
 	"outboundproxy": {
 		Sym:  "OutboundProxy",
-		Desc: "Support running an outbound localhost HTTP/SOCK5 proxy support that sends traffic over Tailscale",
+		Desc: "Support running an outbound localhost HTTP/SOCK5 proxy support that sends traffic over Lanhc",
 		Deps: []FeatureTag{"netstack"},
 	},
 	"osrouter": {
 		Sym:  "OSRouter",
 		Desc: "Configure the operating system's network stack, IPs, and routing tables",
-		// TODO(bradfitz): if this is omitted, and netstack is too, then tailscaled needs
+		// TODO(bradfitz): if this is omitted, and netstack is too, then lanhcd needs
 		// external config to be useful. Some people may want that, and we should support it,
 		// but it's rare. Maybe there should be a way to declare here that this "Provides"
 		// another feature (and netstack can too), and then if those required features provided
@@ -230,11 +230,11 @@ var Features = map[FeatureTag]FeatureMeta{
 		Deps: []FeatureTag{"dbus"},
 	},
 	"serviceclientprefs": {Sym: "ServiceClientPrefs", Desc: "Desktop client service launch preferences"},
-	"qrcodes":            {Sym: "QRCodes", Desc: "QR codes in tailscale CLI"},
+	"qrcodes":            {Sym: "QRCodes", Desc: "QR codes in lanhc CLI"},
 	"relayserver":        {Sym: "RelayServer", Desc: "Relay server"},
 	"remoteconfig": {
 		Sym:  "RemoteConfig",
-		Desc: "Full remote configuration of this node by the tailnet admin, opting out of Tailscale's per-feature double opt-in in favor of a single client-side trust decision",
+		Desc: "Full remote configuration of this node by the tailnet admin, opting out of Lanhc's per-feature double opt-in in favor of a single client-side trust decision",
 		Deps: []FeatureTag{"c2n"},
 	},
 	"resolved": {
@@ -261,7 +261,7 @@ var Features = map[FeatureTag]FeatureMeta{
 	},
 	"ssh": {
 		Sym:  "SSH",
-		Desc: "Tailscale SSH support",
+		Desc: "Lanhc SSH support",
 		Deps: []FeatureTag{"c2n", "dbus", "netstack"},
 	},
 	"synology": {
@@ -270,7 +270,7 @@ var Features = map[FeatureTag]FeatureMeta{
 	},
 	"syslog": {
 		Sym:  "Syslog",
-		Desc: "tailscaled --syslog flag support to send logs to the system syslog daemon",
+		Desc: "lanhcd --syslog flag support to send logs to the system syslog daemon",
 	},
 	"syspolicy": {Sym: "SystemPolicy", Desc: "System policy configuration (MDM) support"},
 	"systray": {
@@ -304,7 +304,7 @@ var Features = map[FeatureTag]FeatureMeta{
 	},
 	"useproxy": {
 		Sym:  "UseProxy",
-		Desc: "Support using system proxies as specified by env vars or the system configuration to reach Tailscale servers.",
+		Desc: "Support using system proxies as specified by env vars or the system configuration to reach Lanhc servers.",
 	},
 	"usermetrics": {
 		Sym:  "UserMetrics",

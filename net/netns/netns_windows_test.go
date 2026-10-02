@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/sys/windows"
 	"golang.zx2c4.com/wireguard/windows/tunnel/winipcfg"
-	"tailscale.com/tsconst"
+	"lanhc.com/tsconst"
 )
 
 func TestGetInterfaceIndex(t *testing.T) {
@@ -60,13 +60,13 @@ func TestGetInterfaceIndex(t *testing.T) {
 		})
 	}
 
-	t.Run("NoTailscale", func(t *testing.T) {
-		tsIdx, ok, err := tailscaleInterfaceIndex()
+	t.Run("NoLanhc", func(t *testing.T) {
+		tsIdx, ok, err := lanhcInterfaceIndex()
 		if err != nil {
 			t.Fatal(err)
 		}
 		if !ok {
-			t.Skip("no tailscale interface on this machine")
+			t.Skip("no lanhc interface on this machine")
 		}
 
 		defaultIdx, err := defaultInterfaceIndex(windows.AF_INET)
@@ -84,17 +84,17 @@ func TestGetInterfaceIndex(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		t.Logf("tailscaleIdx=%d defaultIdx=%d idx=%d", tsIdx, defaultIdx, idx)
+		t.Logf("lanhcIdx=%d defaultIdx=%d idx=%d", tsIdx, defaultIdx, idx)
 
 		if idx == tsIdx {
-			t.Fatalf("got idx=%d; wanted not Tailscale interface", idx)
+			t.Fatalf("got idx=%d; wanted not Lanhc interface", idx)
 		} else if idx != defaultIdx {
 			t.Fatalf("got idx=%d, want %d", idx, defaultIdx)
 		}
 	})
 }
 
-func tailscaleInterfaceIndex() (idx uint32, found bool, err error) {
+func lanhcInterfaceIndex() (idx uint32, found bool, err error) {
 	ifs, err := winipcfg.GetAdaptersAddresses(windows.AF_INET, winipcfg.GAAFlagIncludeAllInterfaces)
 	if err != nil {
 		return idx, false, err

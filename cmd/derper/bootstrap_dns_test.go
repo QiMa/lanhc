@@ -15,15 +15,15 @@ import (
 	"reflect"
 	"testing"
 
-	"tailscale.com/tstest"
-	"tailscale.com/tstest/nettest"
+	"lanhc.com/tstest"
+	"lanhc.com/tstest/nettest"
 )
 
 func BenchmarkHandleBootstrapDNS(b *testing.B) {
-	tstest.Replace(b, bootstrapDNS, "log.tailscale.com,login.tailscale.com,controlplane.tailscale.com,login.us.tailscale.com")
+	tstest.Replace(b, bootstrapDNS, "log.lanhc.com,login.lanhc.com,controlplane.lanhc.com,login.us.lanhc.com")
 	refreshBootstrapDNS()
 	w := new(bitbucketResponseWriter)
-	req, _ := http.NewRequest("GET", "https://localhost/bootstrap-dns?q="+url.QueryEscape("log.tailscale.com"), nil)
+	req, _ := http.NewRequest("GET", "https://localhost/bootstrap-dns?q="+url.QueryEscape("log.lanhc.com"), nil)
 	b.ReportAllocs()
 	b.ResetTimer()
 	b.RunParallel(func(b *testing.PB) {
@@ -82,8 +82,8 @@ func getBootstrapDNS(t *testing.T, q string) map[string][]net.IP {
 func TestUnpublishedDNS(t *testing.T) {
 	nettest.SkipIfNoNetwork(t)
 
-	const published = "login.tailscale.com"
-	const unpublished = "log.tailscale.com"
+	const published = "login.lanhc.com"
+	const unpublished = "log.lanhc.com"
 
 	prev1, prev2 := *bootstrapDNS, *unpublishedDNS
 	*bootstrapDNS = published
@@ -133,24 +133,24 @@ func resetMetrics(tb testing.TB) {
 // cache hit in our metrics.
 func TestUnpublishedDNSEmptyList(t *testing.T) {
 	pub := &dnsEntryMap{
-		IPs: map[string][]net.IP{"tailscale.com": {net.IPv4(10, 10, 10, 10)}},
+		IPs: map[string][]net.IP{"lanhc.com": {net.IPv4(10, 10, 10, 10)}},
 	}
 	setDNSCache(t, pub)
 
 	unpublishedDNSCache.Store(&dnsEntryMap{
 		IPs: map[string][]net.IP{
-			"log.tailscale.com":          {},
-			"controlplane.tailscale.com": {net.IPv4(1, 2, 3, 4)},
+			"log.lanhc.com":          {},
+			"controlplane.lanhc.com": {net.IPv4(1, 2, 3, 4)},
 		},
 		Percent: map[string]float64{
-			"log.tailscale.com":          1.0,
-			"controlplane.tailscale.com": 1.0,
+			"log.lanhc.com":          1.0,
+			"controlplane.lanhc.com": 1.0,
 		},
 	})
 
 	t.Run("CacheMiss", func(t *testing.T) {
 		// One domain in map but empty, one not in map at all
-		for _, q := range []string{"log.tailscale.com", "login.tailscale.com"} {
+		for _, q := range []string{"log.lanhc.com", "login.lanhc.com"} {
 			resetMetrics(t)
 			ips := getBootstrapDNS(t, q)
 
@@ -170,8 +170,8 @@ func TestUnpublishedDNSEmptyList(t *testing.T) {
 	// Verify that we do get a valid response and metric.
 	t.Run("CacheHit", func(t *testing.T) {
 		resetMetrics(t)
-		ips := getBootstrapDNS(t, "controlplane.tailscale.com")
-		want := map[string][]net.IP{"controlplane.tailscale.com": {net.IPv4(1, 2, 3, 4)}}
+		ips := getBootstrapDNS(t, "controlplane.lanhc.com")
+		want := map[string][]net.IP{"controlplane.lanhc.com": {net.IPv4(1, 2, 3, 4)}}
 		if !reflect.DeepEqual(ips, want) {
 			t.Errorf("got ips=%+v; want %+v", ips, want)
 		}

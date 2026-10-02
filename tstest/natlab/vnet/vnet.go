@@ -3,9 +3,9 @@
 
 // Package vnet simulates a virtual Internet containing a set of networks with various
 // NAT behaviors. You can then plug VMs into the virtual internet at different points
-// to test Tailscale working end-to-end in various network conditions.
+// to test Lanhc working end-to-end in various network conditions.
 //
-// See https://github.com/tailscale/tailscale/issues/13038
+// See https://github.com/lanhc/lanhc/issues/13038
 package vnet
 
 // TODO:
@@ -58,20 +58,20 @@ import (
 	"gvisor.dev/gvisor/pkg/tcpip/transport/icmp"
 	"gvisor.dev/gvisor/pkg/tcpip/transport/tcp"
 	"gvisor.dev/gvisor/pkg/waiter"
-	"tailscale.com/client/local"
-	"tailscale.com/derp/derpserver"
-	"tailscale.com/net/netutil"
-	"tailscale.com/net/netx"
-	"tailscale.com/net/stun"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest/integration/testcontrol"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/must"
-	"tailscale.com/util/set"
-	"tailscale.com/util/zstdframe"
+	"lanhc.com/client/local"
+	"lanhc.com/derp/derpserver"
+	"lanhc.com/net/netutil"
+	"lanhc.com/net/netx"
+	"lanhc.com/net/stun"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest/integration/testcontrol"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/must"
+	"lanhc.com/util/set"
+	"lanhc.com/util/zstdframe"
 )
 
 const nicID = 1
@@ -83,9 +83,9 @@ const (
 )
 
 func (s *Server) PopulateDERPMapIPs() error {
-	out, err := exec.Command("tailscale", "debug", "derp-map").Output()
+	out, err := exec.Command("lanhc", "debug", "derp-map").Output()
 	if err != nil {
-		return fmt.Errorf("tailscale debug derp-map: %v", err)
+		return fmt.Errorf("lanhc debug derp-map: %v", err)
 	}
 	var dm tailcfg.DERPMap
 	if err := json.Unmarshal(out, &dm); err != nil {
@@ -540,7 +540,7 @@ func (n *network) acceptTCP(r *tcp.ForwarderRequest) {
 	if n.s.derpIPs.Contains(destIP) {
 		targetDial = destIP.String() + ":" + strconv.Itoa(int(destPort))
 	} else if fakeProxyControlplane.Match(destIP) {
-		targetDial = "controlplane.tailscale.com:" + strconv.Itoa(int(destPort))
+		targetDial = "controlplane.lanhc.com:" + strconv.Itoa(int(destPort))
 	}
 	if targetDial != "" {
 		c, err := net.Dial("tcp", targetDial)
@@ -562,7 +562,7 @@ func (n *network) acceptTCP(r *tcp.ForwarderRequest) {
 	}
 }
 
-// serveLogCatchConn serves a TCP connection to "log.tailscale.com", speaking the
+// serveLogCatchConn serves a TCP connection to "log.lanhc.com", speaking the
 // logtail/logcatcher protocol.
 //
 // We terminate TLS with an arbitrary cert; the client is configured to not
@@ -981,10 +981,10 @@ func (s *Server) SetDHCPCallback(fn func(MAC, int, layers.DHCPMsgType, netip.Add
 // derpHostnames are the SNI/HostName values vnet's fake DERP servers identify
 // as. They are also used to issue the per-DERP self-signed certificate so that
 // hostname verification succeeds for tests that pin via sha256-raw.
-var derpHostnames = []string{"derp1.tailscale", "derp2.tailscale"}
+var derpHostnames = []string{"derp1.lanhc", "derp2.lanhc"}
 
 // controlHostname is the hostname the fake control server is reached at.
-const controlHostname = "control.tailscale"
+const controlHostname = "control.lanhc"
 
 var derpMap = &tailcfg.DERPMap{
 	Regions: map[int]*tailcfg.DERPRegion{
@@ -1117,15 +1117,15 @@ type CloudInitData struct {
 }
 
 // SetCloudInitData registers cloud-init configuration for the given node number.
-// This data is served via the cloud-init.tailscale VIP when the VM boots.
+// This data is served via the cloud-init.lanhc VIP when the VM boots.
 func (s *Server) SetCloudInitData(nodeNum int, data *CloudInitData) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	mak.Set(&s.cloudInitData, nodeNum, data)
 }
 
-// RegisterFile registers a file to be served by the files.tailscale VIP.
-// The path is the URL path (e.g., "tta" is served at http://files.tailscale/tta).
+// RegisterFile registers a file to be served by the files.lanhc VIP.
+// The path is the URL path (e.g., "tta" is served at http://files.lanhc/tta).
 func (s *Server) RegisterFile(path string, data []byte) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -1134,7 +1134,7 @@ func (s *Server) RegisterFile(path string, data []byte) {
 
 // cloudInitHandler returns an HTTP handler that serves cloud-init
 // meta-data and user-data for VMs that boot with
-// ds=nocloud;s=http://cloud-init.tailscale/node-N/.
+// ds=nocloud;s=http://cloud-init.lanhc/node-N/.
 func (s *Server) cloudInitHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Parse node number from URL path like "/node-2/meta-data"
@@ -1177,7 +1177,7 @@ func (s *Server) cloudInitHandler() http.Handler {
 }
 
 // fileServerHandler returns an HTTP handler that serves files registered
-// via RegisterFile. Files are served at http://files.tailscale/<path>.
+// via RegisterFile. Files are served at http://files.lanhc/<path>.
 func (s *Server) fileServerHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := strings.TrimPrefix(r.URL.Path, "/")
@@ -2856,7 +2856,7 @@ func (n *network) handleNATPMPRequest(req UDPPacket) {
 //
 // For the purposes of this project, a UDP packet
 // (not a general IP packet) is the unit to be NAT'ed,
-// as that's all that Tailscale uses.
+// as that's all that Lanhc uses.
 type UDPPacket struct {
 	Src     netip.AddrPort
 	Dst     netip.AddrPort

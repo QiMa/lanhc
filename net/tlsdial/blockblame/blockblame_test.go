@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-const controlplaneDotTailscaleDotComPEM = `
+const controlplaneDotLanhcDotComPEM = `
 -----BEGIN CERTIFICATE-----
 MIIDkzCCAxqgAwIBAgISA2GOahsftpp59yuHClbDuoduMAoGCCqGSM49BAMDMDIx
 CzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MQswCQYDVQQDEwJF
@@ -34,9 +34,9 @@ Z98JY7/PCA==
 -----END CERTIFICATE-----`
 
 func TestVerifyCertificateOurControlPlane(t *testing.T) {
-	p, _ := pem.Decode([]byte(controlplaneDotTailscaleDotComPEM))
+	p, _ := pem.Decode([]byte(controlplaneDotLanhcDotComPEM))
 	if p == nil {
-		t.Fatalf("failed to extract certificate bytes for controlplane.tailscale.com")
+		t.Fatalf("failed to extract certificate bytes for controlplane.lanhc.com")
 		return
 	}
 	cert, err := x509.ParseCertificate(p.Bytes)
@@ -46,9 +46,9 @@ func TestVerifyCertificateOurControlPlane(t *testing.T) {
 	}
 	m, found := VerifyCertificate(cert)
 	if found {
-		t.Fatalf("expected to not get a result for the controlplane.tailscale.com certificate")
+		t.Fatalf("expected to not get a result for the controlplane.lanhc.com certificate")
 	}
 	if m != nil {
-		t.Fatalf("expected nil manufacturer for controlplane.tailscale.com certificate")
+		t.Fatalf("expected nil manufacturer for controlplane.lanhc.com certificate")
 	}
 }

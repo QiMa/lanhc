@@ -17,9 +17,9 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/clientupdate/distsign"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/progresstracking"
+	"lanhc.com/clientupdate/distsign"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/progresstracking"
 )
 
 const (
@@ -44,7 +44,7 @@ func gokrazyUpdateFromURL(ctx context.Context, args GokrazyUpdateArgs) error {
 		logf = logger.Discard
 	}
 
-	tmp, err := os.CreateTemp("", "tailscale-gokrazy-*.gaf")
+	tmp, err := os.CreateTemp("", "lanhc-gokrazy-*.gaf")
 	if err != nil {
 		return err
 	}

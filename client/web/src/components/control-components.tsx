@@ -20,8 +20,8 @@ export function AdminContainer({
   children: React.ReactNode
   className?: string
 }) {
-  if (!node.ControlAdminURL.includes("tailscale.com")) {
-    // Admin panel only exists on Tailscale control servers.
+  if (!node.ControlAdminURL.includes("lanhc.com")) {
+    // Admin panel only exists on Lanhc control servers.
     return null
   }
   return <div className={className}>{children}</div>

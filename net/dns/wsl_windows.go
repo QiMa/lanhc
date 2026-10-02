@@ -16,9 +16,9 @@ import (
 	"time"
 
 	"golang.org/x/sys/windows"
-	"tailscale.com/health"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/winutil"
+	"lanhc.com/health"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/winutil"
 )
 
 // wslDistros reports the names of the installed WSL2 linux distributions.
@@ -109,7 +109,7 @@ func (wm *wslManager) SetDNS(cfg OSConfig) error {
 }
 
 const wslConf = "/etc/wsl.conf"
-const wslConfSection = `# added by tailscale
+const wslConfSection = `# added by lanhc
 [network]
 generateResolvConf = false
 `

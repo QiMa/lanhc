@@ -7,9 +7,9 @@ import (
 	"encoding/json"
 	"errors"
 
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/feature/serviceclientprefs/serviceclient"
-	"tailscale.com/ipn"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/feature/serviceclientprefs/serviceclient"
+	"lanhc.com/ipn"
 )
 
 // errInvalidServiceClientPref is returned by [extension.setServiceClientPref] for a request that

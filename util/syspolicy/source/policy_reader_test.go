@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/util/must"
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/util/syspolicy/ptype"
-	"tailscale.com/util/syspolicy/setting"
+	"lanhc.com/util/must"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/util/syspolicy/ptype"
+	"lanhc.com/util/syspolicy/setting"
 )
 
 func TestReaderLifecycle(t *testing.T) {
@@ -245,7 +245,7 @@ func TestReaderLifecycle(t *testing.T) {
 	}
 }
 
-// TestReaderCloseReloadRace is a regression test for tailscale/corp#45548,
+// TestReaderCloseReloadRace is a regression test for lanhc/corp#45548,
 // where [Reader.Close] set r.store to nil without holding r.mu while a
 // concurrent [Reader.reload] read r.store under r.mu, causing a data race
 // and a potential nil interface method call panic.

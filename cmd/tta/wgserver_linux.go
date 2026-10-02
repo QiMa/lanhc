@@ -17,7 +17,7 @@ import (
 
 	"golang.org/x/crypto/curve25519"
 
-	// Stock wireguard-go to simulate non-Tailscale peers.
+	// Stock wireguard-go to simulate non-Lanhc peers.
 	extwgconn "golang.zx2c4.com/wireguard/conn"
 	extwgdevice "golang.zx2c4.com/wireguard/device"
 	extwgtun "golang.zx2c4.com/wireguard/tun"

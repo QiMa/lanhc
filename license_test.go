@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-package tailscaleroot
+package lanhcroot
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"tailscale.com/util/set"
+	"lanhc.com/util/set"
 )
 
 func normalizeLineEndings(b []byte) []byte {
@@ -20,7 +20,7 @@ func normalizeLineEndings(b []byte) []byte {
 }
 
 // TestLicenseHeaders checks that all Go files in the tree
-// directory tree have a correct-looking Tailscale license header.
+// directory tree have a correct-looking Lanhc license header.
 func TestLicenseHeaders(t *testing.T) {
 	want := normalizeLineEndings([]byte(strings.TrimLeft(`
 // Copyright (c) Tailscale Inc & contributors
@@ -33,7 +33,7 @@ func TestLicenseHeaders(t *testing.T) {
 		"util/winutil/subprocess_windows_test.go",
 
 		// WireGuard copyright
-		"cmd/tailscale/cli/authenticode_windows.go",
+		"cmd/lanhc/cli/authenticode_windows.go",
 		"wgengine/router/osrouter/ifconfig_windows.go",
 
 		// noiseexplorer.com copyright
@@ -108,7 +108,7 @@ func TestLicenseHeaders(t *testing.T) {
 			return nil
 		}
 
-		t.Errorf("file %s is missing Tailscale copyright header:\n\n%s", path, want)
+		t.Errorf("file %s is missing Lanhc copyright header:\n\n%s", path, want)
 		return nil
 	})
 	if err != nil {

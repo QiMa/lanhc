@@ -24,10 +24,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	operatorutils "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tstest"
+	operatorutils "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tstest"
 )
 
 func TestDNSRecordsReconciler(t *testing.T) {
@@ -46,7 +46,7 @@ func TestDNSRecordsReconciler(t *testing.T) {
 			Namespace: "test",
 		},
 		Spec: networkingv1.IngressSpec{
-			IngressClassName: new("tailscale"),
+			IngressClassName: new("lanhc"),
 		},
 		Status: networkingv1.IngressStatus{
 			LoadBalancer: networkingv1.IngressLoadBalancerStatus{
@@ -55,7 +55,7 @@ func TestDNSRecordsReconciler(t *testing.T) {
 			},
 		},
 	}
-	cm := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "dnsrecords", Namespace: "tailscale"}}
+	cm := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "dnsrecords", Namespace: "lanhc"}}
 	fc := fake.NewClientBuilder().
 		WithScheme(tsapi.GlobalScheme).
 		WithObjects(cm).
@@ -75,16 +75,16 @@ func TestDNSRecordsReconciler(t *testing.T) {
 	dnsRR := &dnsRecordsReconciler{
 		Client:      fc,
 		logger:      zl.Sugar(),
-		tsNamespace: "tailscale",
+		tsNamespace: "lanhc",
 	}
 
 	// 1. DNS record is created for an egress proxy configured via
-	// tailscale.com/tailnet-fqdn annotation
+	// lanhc.com/tailnet-fqdn annotation
 	egressSvcFQDN := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        "egress-fqdn",
 			Namespace:   "test",
-			Annotations: map[string]string{"tailscale.com/tailnet-fqdn": "foo.bar.ts.net"},
+			Annotations: map[string]string{"lanhc.com/tailnet-fqdn": "foo.bar.ts.net"},
 		},
 		Spec: corev1.ServiceSpec{
 			ExternalName: "unused",
@@ -99,18 +99,18 @@ func TestDNSRecordsReconciler(t *testing.T) {
 	mustCreate(t, fc, headlessForEgressSvcFQDN)
 	mustCreate(t, fc, ep)
 	mustCreate(t, fc, epv6)
-	expectReconciled(t, dnsRR, "tailscale", "egress-fqdn") // dns-records-reconciler reconcile the headless Service
+	expectReconciled(t, dnsRR, "lanhc", "egress-fqdn") // dns-records-reconciler reconcile the headless Service
 	// ConfigMap should now have a record for foo.bar.ts.net -> 10.8.8.7
 	wantHosts := map[string][]string{"foo.bar.ts.net": {"10.9.8.7"}}
 	wantHostsIPv6 := map[string][]string{"foo.bar.ts.net": {"2600:1900:4011:161:0:d:0:d"}}
 	expectHostsRecordsWithIPv6(t, fc, wantHosts, wantHostsIPv6)
 
-	// 2. DNS record is updated if tailscale.com/tailnet-fqdn annotation's
+	// 2. DNS record is updated if lanhc.com/tailnet-fqdn annotation's
 	// value changes
 	mustUpdate(t, fc, "test", "egress-fqdn", func(svc *corev1.Service) {
-		svc.Annotations["tailscale.com/tailnet-fqdn"] = "baz.bar.ts.net"
+		svc.Annotations["lanhc.com/tailnet-fqdn"] = "baz.bar.ts.net"
 	})
-	expectReconciled(t, dnsRR, "tailscale", "egress-fqdn") // dns-records-reconciler reconcile the headless Service
+	expectReconciled(t, dnsRR, "lanhc", "egress-fqdn") // dns-records-reconciler reconcile the headless Service
 	wantHosts = map[string][]string{"baz.bar.ts.net": {"10.9.8.7"}}
 	expectHostsRecords(t, fc, wantHosts)
 
@@ -119,7 +119,7 @@ func TestDNSRecordsReconciler(t *testing.T) {
 	mustUpdate(t, fc, ep.Namespace, ep.Name, func(ep *discoveryv1.EndpointSlice) {
 		ep.Endpoints[0].Addresses = []string{"10.6.5.4"}
 	})
-	expectReconciled(t, dnsRR, "tailscale", "egress-fqdn") // dns-records-reconciler reconcile the headless Service
+	expectReconciled(t, dnsRR, "lanhc", "egress-fqdn") // dns-records-reconciler reconcile the headless Service
 	wantHosts = map[string][]string{"baz.bar.ts.net": {"10.6.5.4"}}
 	expectHostsRecords(t, fc, wantHosts)
 
@@ -128,7 +128,7 @@ func TestDNSRecordsReconciler(t *testing.T) {
 	ep = endpointSliceForService(headlessForIngress, "10.9.8.7", discoveryv1.AddressTypeIPv4)
 	mustCreate(t, fc, headlessForIngress)
 	mustCreate(t, fc, ep)
-	expectReconciled(t, dnsRR, "tailscale", "ts-ingress") // dns-records-reconciler should reconcile the headless Service
+	expectReconciled(t, dnsRR, "lanhc", "ts-ingress") // dns-records-reconciler should reconcile the headless Service
 	wantHosts["cluster.ingress.ts.net"] = []string{"10.9.8.7"}
 	expectHostsRecords(t, fc, wantHosts)
 
@@ -137,7 +137,7 @@ func TestDNSRecordsReconciler(t *testing.T) {
 	mustUpdateStatus(t, fc, "test", "ts-ingress", func(ing *networkingv1.Ingress) {
 		ing.Status.LoadBalancer.Ingress[0].Hostname = "another.ingress.ts.net"
 	})
-	expectReconciled(t, dnsRR, "tailscale", "ts-ingress") // dns-records-reconciler should reconcile the headless Service
+	expectReconciled(t, dnsRR, "lanhc", "ts-ingress") // dns-records-reconciler should reconcile the headless Service
 	delete(wantHosts, "cluster.ingress.ts.net")
 	wantHosts["another.ingress.ts.net"] = []string{"10.9.8.7"}
 	expectHostsRecords(t, fc, wantHosts)
@@ -146,7 +146,7 @@ func TestDNSRecordsReconciler(t *testing.T) {
 	mustUpdate(t, fc, ep.Namespace, ep.Name, func(ep *discoveryv1.EndpointSlice) {
 		ep.Endpoints[0].Addresses = []string{"7.8.9.10"}
 	})
-	expectReconciled(t, dnsRR, "tailscale", "ts-ingress")
+	expectReconciled(t, dnsRR, "lanhc", "ts-ingress")
 	wantHosts["another.ingress.ts.net"] = []string{"7.8.9.10"}
 	expectHostsRecords(t, fc, wantHosts)
 
@@ -157,7 +157,7 @@ func TestDNSRecordsReconciler(t *testing.T) {
 			Addresses: []string{"1.2.3.4"},
 		})
 	})
-	expectReconciled(t, dnsRR, "tailscale", "ts-ingress")
+	expectReconciled(t, dnsRR, "lanhc", "ts-ingress")
 	wantHosts["another.ingress.ts.net"] = []string{"1.2.3.4"}
 	expectHostsRecords(t, fc, wantHosts)
 
@@ -183,7 +183,7 @@ func TestDNSRecordsReconciler(t *testing.T) {
 	proxyGroupEgressSvc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "ts-proxygroup-egress-abcd1",
-			Namespace: "tailscale",
+			Namespace: "lanhc",
 			Labels: map[string]string{
 				kubetypes.LabelManaged: "true",
 				LabelParentName:        "external-service",
@@ -207,7 +207,7 @@ func TestDNSRecordsReconciler(t *testing.T) {
 	proxyGroupEps := &discoveryv1.EndpointSlice{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "ts-proxygroup-egress-abcd1-ipv4",
-			Namespace: "tailscale",
+			Namespace: "lanhc",
 			Labels: map[string]string{
 				discoveryv1.LabelServiceName: "ts-proxygroup-egress-abcd1",
 				kubetypes.LabelManaged:       "true",
@@ -234,7 +234,7 @@ func TestDNSRecordsReconciler(t *testing.T) {
 
 	mustCreate(t, fc, proxyGroupEgressSvc)
 	mustCreate(t, fc, proxyGroupEps)
-	expectReconciled(t, dnsRR, "tailscale", "ts-proxygroup-egress-abcd1")
+	expectReconciled(t, dnsRR, "lanhc", "ts-proxygroup-egress-abcd1")
 
 	// Verify DNS record uses ClusterIP Service IP, not Pod IPs
 	wantHosts["external-service.example.ts.net"] = []string{"10.0.100.50"}
@@ -242,17 +242,17 @@ func TestDNSRecordsReconciler(t *testing.T) {
 
 	// 9. ProxyGroup egress DNS record updates when ClusterIP changes
 	t.Log("test case 9: ProxyGroup egress ClusterIP change")
-	mustUpdate(t, fc, "tailscale", "ts-proxygroup-egress-abcd1", func(svc *corev1.Service) {
+	mustUpdate(t, fc, "lanhc", "ts-proxygroup-egress-abcd1", func(svc *corev1.Service) {
 		svc.Spec.ClusterIP = "10.0.100.51"
 	})
-	expectReconciled(t, dnsRR, "tailscale", "ts-proxygroup-egress-abcd1")
+	expectReconciled(t, dnsRR, "lanhc", "ts-proxygroup-egress-abcd1")
 	wantHosts["external-service.example.ts.net"] = []string{"10.0.100.51"}
 	expectHostsRecords(t, fc, wantHosts)
 
 	// 10. Test ProxyGroup service deletion and DNS cleanup
 	t.Log("test case 10: ProxyGroup egress service deletion")
 	mustDeleteAll(t, fc, proxyGroupEgressSvc)
-	expectReconciled(t, dnsRR, "tailscale", "ts-proxygroup-egress-abcd1")
+	expectReconciled(t, dnsRR, "lanhc", "ts-proxygroup-egress-abcd1")
 	delete(wantHosts, "external-service.example.ts.net")
 	expectHostsRecords(t, fc, wantHosts)
 }
@@ -332,7 +332,7 @@ func TestDNSRecordsReconcilerOptimisticLockError(t *testing.T) {
 	proxyGroupEgressSvc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "ts-proxygroup-egress-abcd1",
-			Namespace: "tailscale",
+			Namespace: "lanhc",
 			Labels: map[string]string{
 				kubetypes.LabelManaged: "true",
 				LabelParentName:        "lock-service",
@@ -353,7 +353,7 @@ func TestDNSRecordsReconcilerOptimisticLockError(t *testing.T) {
 
 	dnsRR := &dnsRecordsReconciler{
 		Client:      f,
-		tsNamespace: "tailscale",
+		tsNamespace: "lanhc",
 		logger:      zl.Sugar(),
 	}
 
@@ -400,7 +400,7 @@ func TestDNSRecordsReconcilerDualStack(t *testing.T) {
 			Namespace: "test",
 		},
 		Spec: networkingv1.IngressSpec{
-			IngressClassName: new("tailscale"),
+			IngressClassName: new("lanhc"),
 		},
 		Status: networkingv1.IngressStatus{
 			LoadBalancer: networkingv1.IngressLoadBalancerStatus{
@@ -425,7 +425,7 @@ func TestDNSRecordsReconcilerDualStack(t *testing.T) {
 	epv6 := endpointSliceForService(headlessSvc, "2001:db8::1", discoveryv1.AddressTypeIPv6)
 
 	dnsRRDualStack := &dnsRecordsReconciler{
-		tsNamespace: "tailscale",
+		tsNamespace: "lanhc",
 		logger:      zl.Sugar(),
 	}
 
@@ -433,7 +433,7 @@ func TestDNSRecordsReconcilerDualStack(t *testing.T) {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      operatorutils.DNSRecordsCMName,
-			Namespace: "tailscale",
+			Namespace: "lanhc",
 		},
 	}
 
@@ -446,7 +446,7 @@ func TestDNSRecordsReconcilerDualStack(t *testing.T) {
 	dnsRRDualStack.Client = fc
 
 	// Test dual-stack service records
-	expectReconciled(t, dnsRRDualStack, "tailscale", "ts-dual-stack-ingress")
+	expectReconciled(t, dnsRRDualStack, "lanhc", "ts-dual-stack-ingress")
 
 	wantIPv4 := map[string][]string{"dual-stack.example.ts.net": {"10.1.2.3"}}
 	wantIPv6 := map[string][]string{"dual-stack.example.ts.net": {"2001:db8::1"}}
@@ -457,7 +457,7 @@ func TestDNSRecordsReconcilerDualStack(t *testing.T) {
 	parentEgressSvc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "pg-service",
-			Namespace: "tailscale",
+			Namespace: "lanhc",
 			Annotations: map[string]string{
 				AnnotationTailnetTargetFQDN: "pg-service.example.ts.net",
 			},
@@ -471,13 +471,13 @@ func TestDNSRecordsReconcilerDualStack(t *testing.T) {
 	proxyGroupSvc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "ts-proxygroup-dualstack",
-			Namespace: "tailscale",
+			Namespace: "lanhc",
 			Labels: map[string]string{
 				kubetypes.LabelManaged: "true",
 				labelProxyGroup:        "test-pg",
 				labelSvcType:           typeEgress,
 				LabelParentName:        "pg-service",
-				LabelParentNamespace:   "tailscale",
+				LabelParentNamespace:   "lanhc",
 				LabelParentType:        "svc",
 			},
 			Annotations: map[string]string{
@@ -493,7 +493,7 @@ func TestDNSRecordsReconcilerDualStack(t *testing.T) {
 
 	mustCreate(t, fc, parentEgressSvc)
 	mustCreate(t, fc, proxyGroupSvc)
-	expectReconciled(t, dnsRRDualStack, "tailscale", "ts-proxygroup-dualstack")
+	expectReconciled(t, dnsRRDualStack, "lanhc", "ts-proxygroup-dualstack")
 
 	wantIPv4["pg-service.example.ts.net"] = []string{"10.96.0.100"}
 	wantIPv6["pg-service.example.ts.net"] = []string{"2001:db8::100"}
@@ -504,7 +504,7 @@ func headlessSvcForParent(o client.Object, typ string) *corev1.Service {
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      o.GetName(),
-			Namespace: "tailscale",
+			Namespace: "lanhc",
 			Labels: map[string]string{
 				kubetypes.LabelManaged: "true",
 				LabelParentName:        o.GetName(),
@@ -542,7 +542,7 @@ func endpointSliceForService(svc *corev1.Service, ip string, fam discoveryv1.Add
 func expectHostsRecords(t *testing.T, cl client.Client, wantsHosts map[string][]string) {
 	t.Helper()
 	cm := new(corev1.ConfigMap)
-	if err := cl.Get(context.Background(), types.NamespacedName{Name: "dnsrecords", Namespace: "tailscale"}, cm); err != nil {
+	if err := cl.Get(context.Background(), types.NamespacedName{Name: "dnsrecords", Namespace: "lanhc"}, cm); err != nil {
 		t.Fatalf("getting dnsconfig ConfigMap: %v", err)
 	}
 	if cm.Data == nil {
@@ -564,7 +564,7 @@ func expectHostsRecords(t *testing.T, cl client.Client, wantsHosts map[string][]
 func expectHostsRecordsWithIPv6(t *testing.T, cl client.Client, wantsHostsIPv4, wantsHostsIPv6 map[string][]string) {
 	t.Helper()
 	cm := new(corev1.ConfigMap)
-	if err := cl.Get(context.Background(), types.NamespacedName{Name: "dnsrecords", Namespace: "tailscale"}, cm); err != nil {
+	if err := cl.Get(context.Background(), types.NamespacedName{Name: "dnsrecords", Namespace: "lanhc"}, cm); err != nil {
 		t.Fatalf("getting dnsconfig ConfigMap: %v", err)
 	}
 	if cm.Data == nil {

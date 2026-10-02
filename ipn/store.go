@@ -11,7 +11,7 @@ import (
 	"net"
 	"strconv"
 
-	"tailscale.com/health"
+	"lanhc.com/health"
 )
 
 // ErrStateNotExist is returned by StateStore.ReadState when the
@@ -23,7 +23,7 @@ const (
 	// in its key.NodePrivate.MarshalText representation.
 	MachineKeyStateKey = StateKey("_machinekey")
 
-	// LegacyGlobalDaemonStateKey is the ipn.StateKey that tailscaled
+	// LegacyGlobalDaemonStateKey is the ipn.StateKey that lanhcd
 	// loads on startup.
 	//
 	// We have to support multiple state keys for other OSes (Windows in
@@ -35,7 +35,7 @@ const (
 	// written to disk. It is only read at startup when there are no profiles,
 	// to migrate the state to the "default" profile.
 	// The existing state is left on disk in case the user downgrades to an
-	// older version of Tailscale that doesn't support profiles. We can
+	// older version of Lanhc that doesn't support profiles. We can
 	// remove this in a future release.
 	LegacyGlobalDaemonStateKey = StateKey("_daemon")
 
@@ -68,9 +68,9 @@ const (
 var StateStoreHealth = health.Register(&health.Warnable{
 	Code:     "state-store-health",
 	Severity: health.SeverityHigh,
-	Title:    "Tailscale state store failed to initialize",
+	Title:    "Lanhc state store failed to initialize",
 	Text: func(args health.Args) string {
-		return fmt.Sprintf("State store failed to initialize, Tailscale will not work until this is resolved. See https://tailscale.com/s/state-store-init-error. Error: %s", args[health.ArgError])
+		return fmt.Sprintf("State store failed to initialize, Lanhc will not work until this is resolved. See https://lanhc.com/s/state-store-init-error. Error: %s", args[health.ArgError])
 	},
 	ImpactsConnectivity: true,
 })

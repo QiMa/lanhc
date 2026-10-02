@@ -8,7 +8,7 @@
 // Package singleflight provides a duplicate function call suppression
 // mechanism.
 //
-// This is a Tailscale fork of Go's singleflight package which has had several
+// This is a Lanhc fork of Go's singleflight package which has had several
 // homes in the past:
 //
 //   - https://github.com/golang/go/commit/61d3b2db6292581fc07a3767ec23ec94ad6100d1
@@ -16,7 +16,7 @@
 //   - https://pkg.go.dev/golang.org/x/sync/singleflight
 //
 // This fork adds generics.
-package singleflight // import "tailscale.com/util/singleflight"
+package singleflight // import "lanhc.com/util/singleflight"
 
 import (
 	"bytes"

@@ -17,20 +17,20 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/client/local"
-	"tailscale.com/client/web"
-	"tailscale.com/net/netutil"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsconst"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/backoff"
-	"tailscale.com/util/mak"
+	"lanhc.com/client/local"
+	"lanhc.com/client/web"
+	"lanhc.com/net/netutil"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsconst"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/backoff"
+	"lanhc.com/util/mak"
 )
 
 const webClientPort = tsconst.WebListenPort
 
 // webClient holds state for the web interface for managing this
-// tailscale instance. The web interface is not used by default,
+// lanhc instance. The web interface is not used by default,
 // but initialized by calling LocalBackend.WebClientGetOrInit.
 type webClient struct {
 	mu sync.Mutex // protects webClient fields
@@ -38,7 +38,7 @@ type webClient struct {
 	server *web.Server // or nil, initialized lazily
 
 	// lc optionally specifies a local.Client to use to connect
-	// to the localapi for this tailscaled instance.
+	// to the localapi for this lanhcd instance.
 	// If nil, a default is used.
 	lc *local.Client
 }
@@ -53,7 +53,7 @@ func (b *LocalBackend) ConfigureWebClient(lc *local.Client) {
 }
 
 // webClientGetOrInit gets or initializes the web server for managing
-// this tailscaled instance.
+// this lanhcd instance.
 // s is always non-nil if err is empty.
 func (b *LocalBackend) webClientGetOrInit() (s *web.Server, err error) {
 	if !b.ShouldRunWebClient() {
@@ -114,7 +114,7 @@ func (b *LocalBackend) handleWebClientConn(c net.Conn) error {
 }
 
 // updateWebClientListenersLocked creates listeners on the web client port (5252)
-// for each of the local device's Tailscale IP addresses. This is needed to properly
+// for each of the local device's Lanhc IP addresses. This is needed to properly
 // route local traffic when using kernel networking mode.
 func (b *LocalBackend) updateWebClientListenersLocked() {
 	nm := b.currentNode().NetMap()
@@ -137,7 +137,7 @@ func (b *LocalBackend) updateWebClientListenersLocked() {
 }
 
 // newWebClientListener returns a listener for local connections to the built-in web client
-// used to manage this Tailscale instance.
+// used to manage this Lanhc instance.
 func (b *LocalBackend) newWebClientListener(ctx context.Context, ap netip.AddrPort, logf logger.Logf) *localListener {
 	ctx, cancel := context.WithCancel(ctx)
 	return &localListener{
@@ -154,7 +154,7 @@ func (b *LocalBackend) newWebClientListener(ctx context.Context, ap netip.AddrPo
 
 // newWebClientAuthURL talks to the control server to create a new auth
 // URL that can be used to validate a browser session to manage this
-// tailscaled instance via the web client.
+// lanhcd instance via the web client.
 func (b *LocalBackend) newWebClientAuthURL(ctx context.Context, src tailcfg.NodeID) (*tailcfg.WebClientAuthResponse, error) {
 	return b.doWebClientNoiseRequest(ctx, "", src)
 }

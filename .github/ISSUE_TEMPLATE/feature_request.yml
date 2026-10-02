@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Please check if your feature request is [already filed](https://github.com/tailscale/tailscale/issues).
+        Please check if your feature request is [already filed](https://github.com/lanhc/lanhc/issues).
         Tell us about your idea!
   - type: textarea
     id: problem

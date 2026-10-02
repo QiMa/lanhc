@@ -14,8 +14,8 @@ import (
 	"net/netip"
 	"time"
 
-	"tailscale.com/metrics"
-	"tailscale.com/net/stun"
+	"lanhc.com/metrics"
+	"lanhc.com/net/stun"
 )
 
 var (

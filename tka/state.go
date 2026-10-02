@@ -12,8 +12,8 @@ import (
 	"fmt"
 
 	"golang.org/x/crypto/argon2"
-	"tailscale.com/types/tkatype"
-	"tailscale.com/util/testenv"
+	"lanhc.com/types/tkatype"
+	"lanhc.com/util/testenv"
 )
 
 // ErrNoSuchKey is returned if the key referenced by a KeyID does not exist.
@@ -113,7 +113,7 @@ func (s State) cloneForUpdate(update *AUM) State {
 
 const disablementLength = 32
 
-var disablementSalt = []byte("tailscale network-lock disablement salt")
+var disablementSalt = []byte("lanhc network-lock disablement salt")
 
 // DisablementKDF computes a public value which can be stored in a
 // key authority, but cannot be reversed to find the input secret.
@@ -242,7 +242,7 @@ func (s State) applyVerifiedAUM(update AUM) (State, error) {
 
 	default:
 		// An AUM with an unknown message kind was received! That means
-		// that a future version of tailscaled added some feature we don't
+		// that a future version of lanhcd added some feature we don't
 		// understand.
 		//
 		// The future-compatibility contract for AUM message types is that

@@ -15,13 +15,13 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	dns "golang.org/x/net/dns/dnsmessage"
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/health"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/tstest"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/eventbus/eventbustest"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/health"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/tstest"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/eventbus/eventbustest"
 )
 
 func mkDNSRequest(domain dnsname.FQDN, tp dns.Type, modify func(*dns.Builder)) []byte {
@@ -102,7 +102,7 @@ func TestDNSOverTCP(t *testing.T) {
 			"dave.ts.com.", "1.2.3.4",
 			"bradfitz.ts.com.", "2.3.4.5"),
 		Routes:        upstreams("ts.com", ""),
-		SearchDomains: fqdns("tailscale.com", "universe.tf"),
+		SearchDomains: fqdns("lanhc.com", "universe.tf"),
 	})
 	defer m.Down()
 
@@ -188,7 +188,7 @@ func TestDNSOverTCP_TooLarge(t *testing.T) {
 	m.Set(Config{
 		Hosts:         hosts("andrew.ts.com.", "1.2.3.4"),
 		Routes:        upstreams("ts.com", ""),
-		SearchDomains: fqdns("tailscale.com"),
+		SearchDomains: fqdns("lanhc.com"),
 	})
 	defer m.Down()
 
@@ -201,7 +201,7 @@ func TestDNSOverTCP_TooLarge(t *testing.T) {
 	domain := dnsname.FQDN("andrew.ts.com.")
 
 	// Write a successful request, then a large one that will fail; this
-	// exercises the data race in tailscale/tailscale#6725
+	// exercises the data race in lanhc/lanhc#6725
 	b = mkDNSRequest(domain, dns.TypeA, addEDNS)
 	binary.Write(c, binary.BigEndian, uint16(len(b)))
 	if _, err := c.Write(b); err != nil {

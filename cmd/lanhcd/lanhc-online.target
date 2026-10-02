@@ -1,0 +1,4 @@
+[Unit]
+Description=Lanhc is online
+Requires=lanhc-wait-online.service
+After=lanhc-wait-online.service

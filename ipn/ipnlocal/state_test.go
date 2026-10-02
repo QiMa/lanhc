@@ -21,35 +21,35 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"tailscale.com/control/controlclient"
-	"tailscale.com/envknob"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnauth"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/net/dns"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/packet"
-	"tailscale.com/net/routemanager"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsd"
-	"tailscale.com/tstest"
-	"tailscale.com/types/dnstype"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/logid"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/persist"
-	"tailscale.com/types/preftype"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/eventbus/eventbustest"
-	"tailscale.com/wgengine"
-	"tailscale.com/wgengine/filter"
-	"tailscale.com/wgengine/magicsock"
-	"tailscale.com/wgengine/router"
-	"tailscale.com/wgengine/wgcfg"
-	"tailscale.com/wgengine/wgint"
+	"lanhc.com/control/controlclient"
+	"lanhc.com/envknob"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnauth"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/net/dns"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/packet"
+	"lanhc.com/net/routemanager"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsd"
+	"lanhc.com/tstest"
+	"lanhc.com/types/dnstype"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/logid"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/persist"
+	"lanhc.com/types/preftype"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/eventbus/eventbustest"
+	"lanhc.com/wgengine"
+	"lanhc.com/wgengine/filter"
+	"lanhc.com/wgengine/magicsock"
+	"lanhc.com/wgengine/router"
+	"lanhc.com/wgengine/wgcfg"
+	"lanhc.com/wgengine/wgint"
 )
 
 // notifyThrottler receives notifications from an ipn.Backend, blocking
@@ -358,8 +358,8 @@ func (b *LocalBackend) nonInteractiveLoginForStateTest() {
 // If the old client is still alive when the new one starts, its in-flight
 // requests (carrying stale Hostinfo, notably RequestTags) can race with the
 // new client's requests at the control plane. That made retagging a node
-// with "tailscale up --advertise-tags" intermittently log the node out
-// (tailscale/tailscale#20365): a stale RequestTags update processed after
+// with "lanhc up --advertise-tags" intermittently log the node out
+// (lanhc/lanhc#20365): a stale RequestTags update processed after
 // the tag transition looks like an invalid transition, so the control
 // server expires the node key.
 func TestStartShutsDownPreviousControlClient(t *testing.T) {
@@ -407,7 +407,7 @@ func TestStartShutsDownPreviousControlClient(t *testing.T) {
 // predictable, but maybe a bit less thorough. This is more of an overall
 // state machine test than a test of the wgengine+magicsock integration.
 func TestStateMachine(t *testing.T) {
-	envknob.SetenvForTest(t, "TAILSCALE_USE_WIP_CODE", "1")
+	envknob.SetenvForTest(t, "LANHC_USE_WIP_CODE", "1")
 	c := qt.New(t)
 
 	logf := tstest.WhileTestRunningLogger(t)
@@ -803,7 +803,7 @@ func TestStateMachine(t *testing.T) {
 	// and ensures that [LocalBackend.validPopBrowserURL] returns true for the
 	// fake interactive login URLs used below. Otherwise, we won't be receiving
 	// BrowseToURL notifications as expected.
-	// See tailscale/tailscale#11393.
+	// See lanhc/lanhc#11393.
 	notifies.expect(1)
 	b.EditPrefs(&ipn.MaskedPrefs{
 		ControlURLSet: true,
@@ -1231,7 +1231,7 @@ func TestWGEngineStatusRace(t *testing.T) {
 
 // TestEngineReconfigOnStateChange verifies that wgengine is properly reconfigured
 // when the LocalBackend's state changes, such as when the user logs in, switches
-// profiles, or disconnects from Tailscale.
+// profiles, or disconnects from Lanhc.
 func TestEngineReconfigOnStateChange(t *testing.T) {
 	enableLogging := false
 	connect := &ipn.MaskedPrefs{Prefs: ipn.Prefs{WantRunning: true}, WantRunningSet: true}

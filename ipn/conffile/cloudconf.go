@@ -10,9 +10,9 @@ import (
 	"net/http"
 	"strings"
 
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/omit"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/omit"
 )
 
 func getEC2MetadataToken() (string, error) {

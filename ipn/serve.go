@@ -15,12 +15,12 @@ import (
 	"strconv"
 	"strings"
 
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
 )
 
 // ServeConfigKey returns a StateKey that stores the
@@ -34,8 +34,8 @@ func ServeConfigKey(profileID ProfileID) StateKey {
 // If the service is not in Tun mode, the service is configured by the L4 forwarding
 // (TCP ports) and/or the L7 forwarding (http handlers) information.
 type ServiceConfig struct {
-	// TCP are the list of TCP port numbers that tailscaled should handle for
-	// the Tailscale IP addresses. (not subnet routers, etc)
+	// TCP are the list of TCP port numbers that lanhcd should handle for
+	// the Lanhc IP addresses. (not subnet routers, etc)
 	TCP map[uint16]*TCPPortHandler `json:",omitempty"`
 
 	// Web maps from "$SNI_NAME:$PORT" to a set of HTTP handlers
@@ -49,8 +49,8 @@ type ServiceConfig struct {
 // ServeConfig is the JSON type stored in the StateStore for
 // StateKey "_serve/$PROFILE_ID" as returned by ServeConfigKey.
 type ServeConfig struct {
-	// TCP are the list of TCP port numbers that tailscaled should handle for
-	// the Tailscale IP addresses. (not subnet routers, etc)
+	// TCP are the list of TCP port numbers that lanhcd should handle for
+	// the Lanhc IP addresses. (not subnet routers, etc)
 	TCP map[uint16]*TCPPortHandler `json:",omitempty"`
 
 	// Web maps from "$SNI_NAME:$PORT" to a set of HTTP handlers
@@ -68,7 +68,7 @@ type ServeConfig struct {
 	// Foreground is a map of an IPN Bus session ID to an alternate foreground serve config that's valid for the
 	// life of that WatchIPNBus session ID. This allows the config to specify ephemeral configs that are used
 	// in the CLI's foreground mode to ensure ungraceful shutdowns of either the client or the LocalBackend does not
-	// expose ports that users are not aware of. In practice this contains any serve config set via 'tailscale
+	// expose ports that users are not aware of. In practice this contains any serve config set via 'lanhc
 	// serve' command run without the '--bg' flag. ServeConfig contained by Foreground is not expected itself to contain
 	// another Foreground block.
 	Foreground map[string]*ServeConfig `json:",omitempty"`
@@ -107,13 +107,13 @@ type FunnelConn struct {
 	// Conn is the underlying connection.
 	net.Conn
 
-	// Target is what was presented in the "Tailscale-Ingress-Target"
+	// Target is what was presented in the "Lanhc-Ingress-Target"
 	// HTTP header.
 	Target HostPort
 
 	// Src is the source address of the connection.
 	// This is the address of the client that initiated the
-	// connection, not the address of the Tailscale Funnel
+	// connection, not the address of the Lanhc Funnel
 	// node which is relaying the connection. That address
 	// can be found in Conn.RemoteAddr.
 	Src netip.AddrPort
@@ -127,13 +127,13 @@ type WebServerConfig struct {
 // TCPPortHandler describes what to do when handling a TCP
 // connection.
 type TCPPortHandler struct {
-	// HTTPS, if true, means that tailscaled should handle this connection as an
+	// HTTPS, if true, means that lanhcd should handle this connection as an
 	// HTTPS request as configured by ServeConfig.Web.
 	//
 	// It is mutually exclusive with TCPForward.
 	HTTPS bool `json:",omitempty"`
 
-	// HTTP, if true, means that tailscaled should handle this connection as an
+	// HTTP, if true, means that lanhcd should handle this connection as an
 	// HTTP request as configured by ServeConfig.Web.
 	//
 	// It is mutually exclusive with TCPForward.
@@ -143,13 +143,13 @@ type TCPPortHandler struct {
 	// It is either a host:port (e.g. "127.0.0.1:3128", "localhost:5432")
 	// or a Unix socket path prefixed with "unix:"
 	// (e.g. "unix:/var/run/app.sock" or "unix:relative.sock").
-	// Whether or not TLS is terminated by tailscaled depends on
+	// Whether or not TLS is terminated by lanhcd depends on
 	// TerminateTLS.
 	//
 	// It is mutually exclusive with HTTPS.
 	TCPForward string `json:",omitempty"`
 
-	// TerminateTLS, if non-empty, means that tailscaled should terminate the
+	// TerminateTLS, if non-empty, means that lanhcd should terminate the
 	// TLS connections before forwarding them to TCPForward, permitting only the
 	// SNI name with this value. It is only used if TCPForward is non-empty.
 	// (the HTTPS mode uses ServeConfig.Web)
@@ -650,13 +650,13 @@ func CheckFunnelAccess(port uint16, node *ipnstate.PeerStatus) error {
 }
 
 // NodeCanFunnel returns an error if the given node is not configured to allow
-// for Tailscale Funnel usage.
+// for Lanhc Funnel usage.
 func NodeCanFunnel(node *ipnstate.PeerStatus) error {
 	if !node.HasCap(tailcfg.CapabilityHTTPS) {
-		return errors.New("Funnel not available; HTTPS must be enabled. See https://tailscale.com/s/https.")
+		return errors.New("Funnel not available; HTTPS must be enabled. See https://lanhc.com/s/https.")
 	}
 	if !node.HasCap(tailcfg.NodeAttrFunnel) {
-		return errors.New("Funnel not available; \"funnel\" node attribute not set. See https://tailscale.com/s/no-funnel.")
+		return errors.New("Funnel not available; \"funnel\" node attribute not set. See https://lanhc.com/s/no-funnel.")
 	}
 	return nil
 }
@@ -757,7 +757,7 @@ func CheckFunnelPort(wantedPort uint16, node *ipnstate.PeerStatus) error {
 //   - https://localhost:3000
 //   - https-insecure://localhost:3000
 //   - https-insecure://localhost:3000/foo
-//   - https://tailscale.com
+//   - https://lanhc.com
 func ExpandProxyTargetValue(target string, supportedSchemes []string, defaultScheme string) (string, error) {
 	const host = "127.0.0.1"
 

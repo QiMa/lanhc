@@ -37,7 +37,7 @@ export function UpdateAvailableNotification({
   )
 }
 
-// isStableTrack takes a Tailscale version string
+// isStableTrack takes a Lanhc version string
 // of form X.Y.Z (or vX.Y.Z) and returns whether
 // it is a stable release (even value of Y)
 // or unstable (odd value of Y).
@@ -58,7 +58,7 @@ export function ChangelogText({ version }: { version?: string }) {
   return (
     <>
       Check out the{" "}
-      <a href="https://tailscale.com/changelog/" className="link">
+      <a href="https://lanhc.com/changelog/" className="link">
         release notes
       </a>{" "}
       to find out what’s new!

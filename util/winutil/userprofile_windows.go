@@ -10,8 +10,8 @@ import (
 
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/winutil/winenv"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/winutil/winenv"
 )
 
 type _PROFILEINFO struct {

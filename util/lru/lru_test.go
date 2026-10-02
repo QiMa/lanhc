@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"tailscale.com/util/slicesx"
+	"lanhc.com/util/slicesx"
 )
 
 func TestLRU(t *testing.T) {
@@ -54,7 +54,7 @@ func TestLRU(t *testing.T) {
 }
 
 func TestLRUDeleteCorruption(t *testing.T) {
-	// Regression test for tailscale/corp#14747
+	// Regression test for lanhc/corp#14747
 
 	c := Cache[int, bool]{}
 

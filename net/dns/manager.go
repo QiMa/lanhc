@@ -19,21 +19,21 @@ import (
 	"sync/atomic"
 	"time"
 
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/health"
-	"tailscale.com/net/dns/resolver"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/syncs"
-	"tailscale.com/types/dnstype"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/slicesx"
-	"tailscale.com/util/syspolicy/policyclient"
-	"tailscale.com/version"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/health"
+	"lanhc.com/net/dns/resolver"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/syncs"
+	"lanhc.com/types/dnstype"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/slicesx"
+	"lanhc.com/util/syspolicy/policyclient"
+	"lanhc.com/version"
 )
 
 var (
@@ -285,7 +285,7 @@ var osConfigurationReadWarnable = health.Register(&health.Warnable{
 	Code:  "dns-read-os-config-failed",
 	Title: "Failed to read system DNS configuration",
 	Text: func(args health.Args) string {
-		return fmt.Sprintf("Tailscale failed to fetch the DNS configuration of your device: %v", args[health.ArgError])
+		return fmt.Sprintf("Lanhc failed to fetch the DNS configuration of your device: %v", args[health.ArgError])
 	},
 	Severity:  health.SeverityLow,
 	DependsOn: []*health.Warnable{health.NetworkStatusWarnable},
@@ -295,7 +295,7 @@ var osConfigurationSetWarnable = health.Register(&health.Warnable{
 	Code:  "dns-set-os-config-failed",
 	Title: "Failed to set system DNS configuration",
 	Text: func(args health.Args) string {
-		return fmt.Sprintf("Tailscale failed to set the DNS configuration of your device: %v", args[health.ArgError])
+		return fmt.Sprintf("Lanhc failed to set the DNS configuration of your device: %v", args[health.ArgError])
 	},
 	Severity:  health.SeverityMedium,
 	DependsOn: []*health.Warnable{health.NetworkStatusWarnable},
@@ -332,7 +332,7 @@ func (m *Manager) compileConfig(cfg Config) (rcfg resolver.Config, ocfg OSConfig
 	case !cfg.needsOSResolver() || runtime.GOOS == "plan9":
 		// Set search domains, but nothing else. This also covers the
 		// case where cfg is entirely zero, in which case these
-		// configs clear all Tailscale DNS settings.
+		// configs clear all Lanhc DNS settings.
 		return rcfg, ocfg, nil
 	case cfg.hasDefaultIPResolversOnly() && !cfg.hasHostsWithoutSplitDNSRoutes():
 		// Trivial CorpDNS configuration, just override the OS resolver.
@@ -344,7 +344,7 @@ func (m *Manager) compileConfig(cfg Config) (rcfg resolver.Config, ocfg OSConfig
 		//
 		// TODO: for OSes that support it, pass IP:port and DoH
 		// addresses directly to OS.
-		// https://github.com/tailscale/tailscale/issues/1666
+		// https://github.com/lanhc/lanhc/issues/1666
 		ocfg.Nameservers = toIPsOnly(cfg.DefaultResolvers)
 		return rcfg, ocfg, nil
 	case cfg.hasDefaultResolvers():
@@ -368,7 +368,7 @@ func (m *Manager) compileConfig(cfg Config) (rcfg resolver.Config, ocfg OSConfig
 	// NRPT rules to DNS traffic coming from WSL.
 	//
 	// In order to make WSL work okay when the host Windows is using
-	// Tailscale, we need to set up quad-100 as a "full proxy"
+	// Lanhc, we need to set up quad-100 as a "full proxy"
 	// resolver, regardless of whether Windows itself can do split
 	// DNS. We still make Windows do split DNS itself when it can, but
 	// quad-100 will still have the full split configuration as well,
@@ -380,7 +380,7 @@ func (m *Manager) compileConfig(cfg Config) (rcfg resolver.Config, ocfg OSConfig
 	isIOS := m.goos == "ios"
 	supportsSplitDNS := m.os.SupportsSplitDNS()
 	// Sandboxed macOS builds use NetworkExtension DNS settings, not
-	// tailscaled's /etc/resolver configurator, so keep the Apple workaround.
+	// lanhcd's /etc/resolver configurator, so keep the Apple workaround.
 	appleSplitDNSWorkaround := isIOS || (m.goos == "darwin" && isSandboxedMacOS())
 	if supportsSplitDNS && !isWindows && !appleSplitDNSWorkaround {
 		if srs := toIPsOnly(cfg.singleResolverSet()); len(srs) > 0 {
@@ -450,7 +450,7 @@ func (m *Manager) compileConfig(cfg Config) (rcfg resolver.Config, ocfg OSConfig
 	rcfg.Routes["."] = defaultRoutes
 	// Append base config search domains, but only if not already present.
 	// This prevents duplicates when GetBaseConfig() reads back domains that
-	// Tailscale itself previously wrote to resolv.conf.
+	// Lanhc itself previously wrote to resolv.conf.
 	for _, domain := range base.SearchDomains {
 		if !slices.Contains(ocfg.SearchDomains, domain) {
 			ocfg.SearchDomains = append(ocfg.SearchDomains, domain)
@@ -670,7 +670,7 @@ func (m *Manager) FlushCaches() error {
 }
 
 // CleanUp restores the system DNS configuration to its original state
-// in case the Tailscale daemon terminated without closing the router.
+// in case the Lanhc daemon terminated without closing the router.
 // No other state needs to be instantiated before this runs.
 //
 // health must not be nil

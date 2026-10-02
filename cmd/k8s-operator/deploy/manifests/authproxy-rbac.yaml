@@ -5,12 +5,12 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: kube-apiserver-auth-proxy
-  namespace: tailscale
+  namespace: lanhc
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: tailscale-auth-proxy
+  name: lanhc-auth-proxy
 rules:
 - apiGroups: [""]
   resources: ["users", "groups"]
@@ -19,15 +19,15 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: tailscale-auth-proxy
+  name: lanhc-auth-proxy
 subjects:
 - kind: ServiceAccount
   name: operator
-  namespace: tailscale
+  namespace: lanhc
 - kind: ServiceAccount
   name: kube-apiserver-auth-proxy
-  namespace: tailscale
+  namespace: lanhc
 roleRef:
   kind: ClusterRole
-  name: tailscale-auth-proxy
+  name: lanhc-auth-proxy
   apiGroup: rbac.authorization.k8s.io

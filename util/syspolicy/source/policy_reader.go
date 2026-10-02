@@ -12,13 +12,13 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
-	"tailscale.com/util/syspolicy/internal/loggerx"
-	"tailscale.com/util/syspolicy/internal/metrics"
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/util/syspolicy/ptype"
-	"tailscale.com/util/syspolicy/setting"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
+	"lanhc.com/util/syspolicy/internal/loggerx"
+	"lanhc.com/util/syspolicy/internal/metrics"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/util/syspolicy/ptype"
+	"lanhc.com/util/syspolicy/setting"
 )
 
 // Reader reads all configured policy settings from a given [Store].

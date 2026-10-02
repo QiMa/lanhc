@@ -4,9 +4,9 @@
 package magicsock
 
 import (
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
-	"tailscale.com/util/set"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
+	"lanhc.com/util/set"
 )
 
 // peerInfo is all the information magicsock tracks about a particular
@@ -161,10 +161,10 @@ func (m *peerMap) upsertEndpoint(ep *endpoint, oldDiscoKey key.DiscoPublic) {
 		// If the peer is a WireGuard only peer, add all of its endpoints.
 
 		// TODO(raggi,catzkorn): this could mean that if a "isWireguardOnly"
-		// peer has, say, 192.168.0.2 and so does a tailscale peer, the
+		// peer has, say, 192.168.0.2 and so does a lanhc peer, the
 		// wireguard one will win. That may not be the outcome that we want -
 		// perhaps we should prefer bestAddr.epAddr.ap if it is set?
-		// see tailscale/tailscale#7994
+		// see lanhc/lanhc#7994
 		for ipp := range ep.endpointState {
 			m.setNodeKeyForEpAddr(epAddr{ap: ipp}, ep.publicKey)
 		}

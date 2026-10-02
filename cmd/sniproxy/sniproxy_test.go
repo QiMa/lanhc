@@ -19,17 +19,17 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/net/netns"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsnet"
-	"tailscale.com/tstest/integration"
-	"tailscale.com/tstest/integration/testcontrol"
-	"tailscale.com/tstest/nettest"
-	"tailscale.com/types/appctype"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/net/netns"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsnet"
+	"lanhc.com/tstest/integration"
+	"lanhc.com/tstest/integration/testcontrol"
+	"lanhc.com/tstest/nettest"
+	"lanhc.com/types/appctype"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
 )
 
 func TestPortForwardingArguments(t *testing.T) {
@@ -109,7 +109,7 @@ func startNode(t *testing.T, ctx context.Context, controlURL, hostname string) (
 	if err != nil {
 		t.Fatal(err)
 	}
-	return s, status.Self.PublicKey, status.TailscaleIPs[0]
+	return s, status.Self.PublicKey, status.LanhcIPs[0]
 }
 
 func TestSNIProxyWithNetmapConfig(t *testing.T) {

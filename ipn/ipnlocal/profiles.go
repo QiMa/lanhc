@@ -15,20 +15,20 @@ import (
 	"slices"
 	"strings"
 
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/health"
-	"tailscale.com/internal/lanhc"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnext"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/persist"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/testenv"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/health"
+	"lanhc.com/internal/lanhc"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnext"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/persist"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/testenv"
 )
 
 var debug = envknob.RegisterBool("TS_DEBUG_PROFILES")
@@ -57,7 +57,7 @@ type profileManager struct {
 	// the [profileManager] and the [LocalBackend], so that instead of [LocalBackend]
 	// asking [profileManager] for the state, we can have [profileManager] call
 	// [LocalBackend] when the state changes. See also:
-	// https://github.com/tailscale/tailscale/pull/15791#discussion_r2060838160
+	// https://github.com/lanhc/lanhc/pull/15791#discussion_r2060838160
 	StateChangeHook ipnext.ProfileStateChangeCallback
 
 	// extHost is the bridge between [profileManager] and the registered [ipnext.Extension]s.
@@ -118,7 +118,7 @@ func (pm *profileManager) SetCurrentUserID(uid ipn.WindowsUserID) {
 }
 
 // SwitchToProfile switches to the specified profile and (temporarily,
-// while the "current user" is still a thing on Windows; see tailscale/corp#18342)
+// while the "current user" is still a thing on Windows; see lanhc/corp#18342)
 // sets its owner as the current user. The profile must be a valid profile
 // returned by the [profileManager], such as by [profileManager.Profiles],
 // [profileManager.ProfileByID], or [profileManager.NewProfileForUser].
@@ -388,7 +388,7 @@ func (pm *profileManager) SetPrefs(prefsIn ipn.PrefsView, np ipn.NetworkProfile)
 	// However, [profileManager] notifies [ipnext.Extension]s about the profile change,
 	// so features migrated from LocalBackend to external packages should not be affected.
 	//
-	// See tailscale/corp#28014.
+	// See lanhc/corp#28014.
 	if !cp.Equals(pm.currentProfile) {
 		const sameNode = false // implicit profile switch
 		pm.currentProfile = cp
@@ -699,16 +699,16 @@ func (pm *profileManager) loadSavedPrefs(k ipn.StateKey) (ipn.PrefsView, error) 
 	}
 	pm.logf("using backend prefs for %q: %v", k, savedPrefs.Pretty())
 
-	// Ignore any old stored preferences for https://login.tailscale.com
+	// Ignore any old stored preferences for https://login.lanhc.com
 	// as the control server that would override the new default of
-	// controlplane.tailscale.com. (Compiled out in isolated builds.)
+	// controlplane.lanhc.com. (Compiled out in isolated builds.)
 	if !lanhc.Isolated && savedPrefs.ControlURL != "" &&
 		savedPrefs.ControlURL != ipn.DefaultControlURL &&
 		ipn.IsLoginServerSynonym(savedPrefs.ControlURL) {
 		savedPrefs.ControlURL = ""
 	}
 	// Before
-	// https://github.com/tailscale/tailscale/pull/11814/commits/1613b18f8280c2bce786980532d012c9f0454fa2#diff-314ba0d799f70c8998940903efb541e511f352b39a9eeeae8d475c921d66c2ac
+	// https://github.com/lanhc/lanhc/pull/11814/commits/1613b18f8280c2bce786980532d012c9f0454fa2#diff-314ba0d799f70c8998940903efb541e511f352b39a9eeeae8d475c921d66c2ac
 	// prefs could set AutoUpdate.Apply=true via EditPrefs or tailnet
 	// auto-update defaults. After that change, such value is "invalid" and
 	// cause any EditPrefs calls to fail (other than disabling auto-updates).
@@ -734,7 +734,7 @@ var errProfileNotFound = errors.New("profile not found")
 // errProfileAccessDenied is returned by methods that accept a ProfileID
 // when the current user does not have access to the specified profile.
 // It is used temporarily until we implement access checks based on the
-// caller's identity in tailscale/corp#18342.
+// caller's identity in lanhc/corp#18342.
 var errProfileAccessDenied = errors.New("profile access denied")
 
 // DeleteProfile removes the profile with the given id. It returns
@@ -899,7 +899,7 @@ func newProfileManager(store ipn.StateStore, logf logger.Logf, health *health.Tr
 func readAutoStartKey(store ipn.StateStore, goos string) (ipn.StateKey, error) {
 	startKey := ipn.CurrentProfileStateKey
 	if goos == "windows" {
-		// When tailscaled runs on Windows it is not typically run unattended.
+		// When lanhcd runs on Windows it is not typically run unattended.
 		// So we can't use the profile mechanism to load the profile at startup.
 		startKey = ipn.ServerModeStartKey
 	}

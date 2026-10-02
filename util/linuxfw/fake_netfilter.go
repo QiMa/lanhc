@@ -8,7 +8,7 @@ package linuxfw
 import (
 	"net/netip"
 
-	"tailscale.com/types/logger"
+	"lanhc.com/types/logger"
 )
 
 // FakeNetfilterRunner is a fake netfilter runner for tests.
@@ -16,7 +16,7 @@ type FakeNetfilterRunner struct {
 	// services is a map that tracks the firewall rules added/deleted via
 	// EnsureDNATRuleForSvc/DeleteDNATRuleForSvc.
 	services map[string]struct {
-		TailscaleServiceIP netip.Addr
+		LanhcServiceIP netip.Addr
 		ClusterIP          netip.Addr
 	}
 	// clampedAddrs tracks addresses passed to ClampMSSToPMTU.
@@ -27,7 +27,7 @@ type FakeNetfilterRunner struct {
 func NewFakeNetfilterRunner() *FakeNetfilterRunner {
 	return &FakeNetfilterRunner{
 		services: make(map[string]struct {
-			TailscaleServiceIP netip.Addr
+			LanhcServiceIP netip.Addr
 			ClusterIP          netip.Addr
 		}),
 	}
@@ -35,7 +35,7 @@ func NewFakeNetfilterRunner() *FakeNetfilterRunner {
 
 func (f *FakeNetfilterRunner) EnsureDNATRuleForSvc(svcName string, origDst, dst netip.Addr) error {
 	f.services[svcName] = struct {
-		TailscaleServiceIP netip.Addr
+		LanhcServiceIP netip.Addr
 		ClusterIP          netip.Addr
 	}{origDst, dst}
 	return nil
@@ -47,7 +47,7 @@ func (f *FakeNetfilterRunner) DeleteDNATRuleForSvc(svcName string, origDst, dst 
 }
 
 func (f *FakeNetfilterRunner) GetServiceState() map[string]struct {
-	TailscaleServiceIP netip.Addr
+	LanhcServiceIP netip.Addr
 	ClusterIP          netip.Addr
 } {
 	return f.services
@@ -84,7 +84,7 @@ func (f *FakeNetfilterRunner) DNATWithLoadBalancer(origDst netip.Addr, dsts []ne
 	return nil
 }
 func (f *FakeNetfilterRunner) EnsureSNATForDst(src, dst netip.Addr) error               { return nil }
-func (f *FakeNetfilterRunner) DNATNonTailscaleTraffic(tun string, dst netip.Addr) error { return nil }
+func (f *FakeNetfilterRunner) DNATNonLanhcTraffic(tun string, dst netip.Addr) error { return nil }
 func (f *FakeNetfilterRunner) ClampMSSToPMTU(tun string, addr netip.Addr) error {
 	f.clampedAddrs = append(f.clampedAddrs, addr)
 	return nil

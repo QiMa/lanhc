@@ -17,10 +17,10 @@ import (
 	"syscall"
 	"time"
 
-	"tailscale.com/net/netmon"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
+	"lanhc.com/net/netmon"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
 )
 
 // Detector checks whether the system is behind a captive portal.
@@ -122,7 +122,7 @@ func (d *Detector) detectCaptivePortalWithGOOS(ctx context.Context, netMon *netm
 // interfaces on iOS and Android, respectively, and would be needlessly battery-draining.
 func interfaceNameDoesNotNeedCaptiveDetection(ifName string, goos string) bool {
 	ifName = strings.ToLower(ifName)
-	excludedPrefixes := []string{"tailscale", "tun", "tap", "docker", "kube", "wg", "ipsec"}
+	excludedPrefixes := []string{"lanhc", "tun", "tap", "docker", "kube", "wg", "ipsec"}
 	if goos == "windows" {
 		excludedPrefixes = append(excludedPrefixes, "loopback", "tunnel", "ppp", "isatap", "teredo", "6to4")
 	} else if goos == "darwin" || goos == "ios" {
@@ -208,14 +208,14 @@ func (d *Detector) verifyCaptivePortalEndpoint(ctx context.Context, e Endpoint, 
 	}
 	req.Header.Set("Cache-Control", "no-cache, no-store, must-revalidate, no-transform, max-age=0")
 
-	// Attach the Tailscale challenge header if the endpoint supports it. Not all captive portal detection endpoints
+	// Attach the Lanhc challenge header if the endpoint supports it. Not all captive portal detection endpoints
 	// support this, so we only attach it if the endpoint does.
-	if e.SupportsTailscaleChallenge {
+	if e.SupportsLanhcChallenge {
 		// Note: the set of valid characters in a challenge and the total
 		// length is limited; see isChallengeChar in cmd/derper for more
 		// details.
 		chal := "ts_" + e.URL.Host
-		req.Header.Set("X-Tailscale-Challenge", chal)
+		req.Header.Set("X-Lanhc-Challenge", chal)
 	}
 
 	d.mu.Lock()

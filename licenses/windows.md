@@ -1,10 +1,10 @@
-# Tailscale for Windows dependencies
+# Lanhc for Windows dependencies
 
-The following open source dependencies are used to build [Tailscale on
-Windows][].  See also the dependencies in the [Tailscale CLI][].
+The following open source dependencies are used to build [Lanhc on
+Windows][].  See also the dependencies in the [Lanhc CLI][].
 
-[Tailscale on Windows]: https://tailscale.com/kb/1022/install-windows/
-[Tailscale CLI]: ./tailscale.md
+[Lanhc on Windows]: https://lanhc.com/kb/1022/install-windows/
+[Lanhc CLI]: ./lanhc.md
 
 ## Go Packages
 
@@ -63,7 +63,7 @@ Windows][].  See also the dependencies in the [Tailscale CLI][].
  - [google.golang.org/protobuf](https://pkg.go.dev/google.golang.org/protobuf) ([BSD-3-Clause](https://github.com/protocolbuffers/protobuf-go/blob/v1.36.11/LICENSE))
  - [gopkg.in/Knetic/govaluate.v3](https://pkg.go.dev/gopkg.in/Knetic/govaluate.v3) ([MIT](https://github.com/Knetic/govaluate/blob/v3.0.0/LICENSE))
  - [gopkg.in/yaml.v3](https://pkg.go.dev/gopkg.in/yaml.v3) ([MIT](https://github.com/go-yaml/yaml/blob/v3.0.1/LICENSE))
- - [tailscale.com](https://pkg.go.dev/tailscale.com) ([BSD-3-Clause](https://github.com/tailscale/tailscale/blob/HEAD/LICENSE))
+ - [lanhc.com](https://pkg.go.dev/lanhc.com) ([BSD-3-Clause](https://github.com/lanhc/lanhc/blob/HEAD/LICENSE))
 
 ## Additional Dependencies
 

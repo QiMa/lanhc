@@ -1,0 +1,11 @@
+[Unit]
+Description=Lanhc NGINX Authentication service
+After=nginx.service
+Wants=nginx.service
+
+[Service]
+ExecStart=/usr/sbin/lanhc.nginx-auth
+DynamicUser=yes
+
+[Install]
+WantedBy=default.target

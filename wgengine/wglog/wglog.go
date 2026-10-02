@@ -10,18 +10,18 @@ import (
 	"sync"
 
 	"github.com/tailscale/wireguard-go/device"
-	"tailscale.com/envknob"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/mak"
+	"lanhc.com/envknob"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/mak"
 )
 
 // A Logger is a wireguard-go log wrapper that cleans up and rewrites log lines.
 // It rewrites wireguard-go peer references like "peer(XXXX…YYYY)" into the
-// Tailscale-conventional short string form like "[XXXXX]".
+// Lanhc-conventional short string form like "[XXXXX]".
 type Logger struct {
 	DeviceLogger *device.Logger
 
-	// lookup, when non-nil, returns the Tailscale-conventional short
+	// lookup, when non-nil, returns the Lanhc-conventional short
 	// string for a wireguard-go-formatted peer string (e.g. it maps
 	// "peer(IMTB…r7lM)" to "[IMTBr]"), or "", false if no peer matches.
 	// It is set once at construction and not changed afterwards.
@@ -31,7 +31,7 @@ type Logger struct {
 
 	// cache memoizes lookup results. The key is the wireguard-go
 	// peer-string form ("peer(XXXX…YYYY)") and the value is the
-	// Tailscale-conventional short-string form ("[XXXXX]").
+	// Lanhc-conventional short-string form ("[XXXXX]").
 	// It is cleared in bulk by Invalidate when the underlying peer set
 	// may have changed.
 	cache map[string]string
@@ -39,7 +39,7 @@ type Logger struct {
 
 // NewLogger creates a new logger for use with wireguard-go.
 // This logger silences repetitive/unhelpful noisy log lines
-// and rewrites peer keys from wireguard-go into Tailscale format.
+// and rewrites peer keys from wireguard-go into Lanhc format.
 //
 // lookup, if non-nil, is consulted on cache misses to translate
 // wireguard-go peer references in log lines. If lookup is nil,
@@ -54,12 +54,12 @@ func NewLogger(logf logger.Logf, lookup func(wgString string) (tsString string, 
 			return
 		}
 		if strings.Contains(format, "Failed to send data packet") {
-			// Drop. See https://github.com/tailscale/tailscale/issues/1239.
+			// Drop. See https://github.com/lanhc/lanhc/issues/1239.
 			return
 		}
 		if strings.Contains(format, "Interface up requested") || strings.Contains(format, "Interface down requested") {
 			// Drop. Logs 1/s constantly while the tun device is open.
-			// See https://github.com/tailscale/tailscale/issues/1388.
+			// See https://github.com/lanhc/lanhc/issues/1388.
 			return
 		}
 		if strings.Contains(format, "Adding allowedip") {
@@ -75,7 +75,7 @@ func NewLogger(logf logger.Logf, lookup func(wgString string) (tsString string, 
 			return
 		}
 		// Replace any *device.Peer-shaped fmt.Stringer args with the
-		// Tailscale-formatted version of themselves. Using *device.Peer
+		// Lanhc-formatted version of themselves. Using *device.Peer
 		// directly makes this hard to test, so we string any fmt.Stringers,
 		// and if the string ends up matching a known peer, we substitute.
 		// This is slightly imprecise, in that we don't check the formatting
@@ -112,7 +112,7 @@ func NewLogger(logf logger.Logf, lookup func(wgString string) (tsString string, 
 	return ret
 }
 
-// peerStringFor returns the Tailscale-conventional short string for
+// peerStringFor returns the Lanhc-conventional short string for
 // wgString, if wgString is a wireguard-go-formatted peer string for a
 // peer known to x.lookup. Results are memoized in x.cache for
 // subsequent log lines.

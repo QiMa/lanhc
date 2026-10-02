@@ -12,12 +12,12 @@ import (
 	"runtime"
 	"strings"
 
-	ts "tailscale.com"
+	ts "lanhc.com"
 )
 
 var (
 	goToolchain    = flag.Bool("go", false, "print the supported Go toolchain git hash (a github.com/tailscale/go commit)")
-	goToolchainURL = flag.Bool("go-url", false, "print the URL to the tarball of the Tailscale Go toolchain")
+	goToolchainURL = flag.Bool("go-url", false, "print the URL to the tarball of the Lanhc Go toolchain")
 	alpine         = flag.Bool("alpine", false, "print the tag of alpine docker image")
 	next           = flag.Bool("next", false, "if set, modifies --go or --go-url to use the upcoming/unreleased/rc Go release version instead")
 )

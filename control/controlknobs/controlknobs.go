@@ -10,9 +10,9 @@ import (
 	"reflect"
 	"sync/atomic"
 
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/opt"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/opt"
 )
 
 // Knobs is the set of knobs that the control plane's coordination server can
@@ -35,7 +35,7 @@ type Knobs struct {
 
 	// DisableDeltaUpdates is whether the node should not process
 	// incremental (delta) netmap updates and should treat all netmap
-	// changes as "full" ones as tailscaled did in 1.48.x and earlier.
+	// changes as "full" ones as lanhcd did in 1.48.x and earlier.
 	DisableDeltaUpdates atomic.Bool
 
 	// PeerMTUEnable is whether the node should do peer path MTU discovery.
@@ -94,7 +94,7 @@ type Knobs struct {
 
 	// DisableSkipStatusQueue is whether the node should disable skipping
 	// of queued netmap.NetworkMap between the controlclient and LocalBackend.
-	// See tailscale/tailscale#14768.
+	// See lanhc/lanhc#14768.
 	DisableSkipStatusQueue atomic.Bool
 
 	// DisableHostsFileUpdates indicates that the node's DNS manager should not create
@@ -105,14 +105,14 @@ type Knobs struct {
 
 	// ForceRegisterMagicDNSIPv4Only is whether the node should only register
 	// its IPv4 MagicDNS service IP and not its IPv6 one. The IPv6 one,
-	// tsaddr.TailscaleServiceIPv6String, still works in either case. This knob
+	// tsaddr.LanhcServiceIPv6String, still works in either case. This knob
 	// controls only whether we tell systemd/etc about the IPv6 one.
-	// See https://github.com/tailscale/tailscale/issues/15404.
+	// See https://github.com/lanhc/lanhc/issues/15404.
 	// TODO(bradfitz): remove this a few releases after 2026-02-16.
 	ForceRegisterMagicDNSIPv4Only atomic.Bool
 
 	// EmitRuntimeMetrics is whether the node should poll and emit [runtime/metrics]
-	// as [tailscale.com/util/clientmetric]'s.
+	// as [lanhc.com/util/clientmetric]'s.
 	EmitRuntimeMetrics atomic.Bool
 
 	// DisableUDPGRO disables UDP GRO on the magicsock UDP socket. See
@@ -123,11 +123,11 @@ type Knobs struct {
 	// [tailcfg.NodeAttrDisableUDPGSO].
 	DisableUDPGSO atomic.Bool
 
-	// DisableTUNUDPGRO disables UDP GRO on the Tailscale TUN device. See
+	// DisableTUNUDPGRO disables UDP GRO on the Lanhc TUN device. See
 	// [tailcfg.NodeAttrDisableTUNUDPGRO].
 	DisableTUNUDPGRO atomic.Bool
 
-	// DisableTUNTCPGRO disables TCP GRO on the Tailscale TUN device. See
+	// DisableTUNTCPGRO disables TCP GRO on the Lanhc TUN device. See
 	// [tailcfg.NodeAttrDisableTUNTCPGRO].
 	DisableTUNTCPGRO atomic.Bool
 

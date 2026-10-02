@@ -12,7 +12,7 @@ import (
 	_ "embed"
 
 	"golang.org/x/tools/go/analysis"
-	"tailscale.com/util/set"
+	"lanhc.com/util/set"
 )
 
 var jsontagsAllowlist map[ReportKind]set.Set[string]
@@ -23,8 +23,8 @@ var jsontagsAllowlist map[ReportKind]set.Set[string]
 //
 // For example:
 //
-//	OmitEmptyUnsupportedInV1	tailscale.com/path/to/package.StructType.FieldName
-//	OmitEmptyUnsupportedInV1	tailscale.com/path/to/package.*.FieldName
+//	OmitEmptyUnsupportedInV1	lanhc.com/path/to/package.StructType.FieldName
+//	OmitEmptyUnsupportedInV1	lanhc.com/path/to/package.*.FieldName
 //
 // The struct type name may be "*" for anonymous struct types such
 // as those declared within a function or as a type literal in a variable.
@@ -53,8 +53,8 @@ func ParseAllowlist(s string) map[ReportKind]set.Set[string] {
 //
 //	{
 //		"OmitEmptyUnsupportedInV1": set.Of(
-//			"tailscale.com/path/to/package.StructType.FieldName",
-//			"tailscale.com/path/to/package.*.FieldName",
+//			"lanhc.com/path/to/package.StructType.FieldName",
+//			"lanhc.com/path/to/package.*.FieldName",
 //		),
 //	}
 //
@@ -90,7 +90,7 @@ func (k ReportKind) message() string {
 	case StringOnNonNumericKind:
 		return "must not use `string` on non-numeric types"
 	case FormatUnsupported:
-		return "must not use the `format` tag option; Go 1.27's encoding/json rejects it at runtime (see tailscale/tailscale#20528)"
+		return "must not use the `format` tag option; Go 1.27's encoding/json rejects it at runtime (see lanhc/lanhc#20528)"
 	default:
 		return string(k)
 	}

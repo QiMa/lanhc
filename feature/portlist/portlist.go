@@ -9,16 +9,16 @@ import (
 	"context"
 	"sync/atomic"
 
-	"tailscale.com/envknob"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnext"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/policy"
-	"tailscale.com/portlist"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/version"
+	"lanhc.com/envknob"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnext"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/policy"
+	"lanhc.com/portlist"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/version"
 )
 
 func init() {
@@ -74,7 +74,7 @@ func (e *Extension) Init(h ipnext.Host) error {
 	h.Hooks().OnSelfChange.Add(e.onSelfChange)
 
 	// TODO(nickkhyl): remove this after the profileManager refactoring.
-	// See tailscale/tailscale#15974.
+	// See lanhc/lanhc#15974.
 	// This same workaround appears in feature/taildrop/ext.go.
 	profile, prefs := h.Profiles().CurrentProfileState()
 	e.onChangeProfile(profile, prefs, false)

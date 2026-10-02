@@ -11,10 +11,10 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/drive"
-	"tailscale.com/drive/driveimpl/compositedav"
-	"tailscale.com/drive/driveimpl/dirfs"
-	"tailscale.com/types/logger"
+	"lanhc.com/drive"
+	"lanhc.com/drive/driveimpl/compositedav"
+	"lanhc.com/drive/driveimpl/dirfs"
+	"lanhc.com/types/logger"
 )
 
 const (

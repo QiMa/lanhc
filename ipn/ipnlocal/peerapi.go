@@ -25,24 +25,24 @@ import (
 
 	"golang.org/x/net/dns/dnsmessage"
 	"golang.org/x/net/http/httpguts"
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/health"
-	"tailscale.com/hostinfo"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/netutil"
-	"tailscale.com/net/sockstats"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/views"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/wgengine/filter"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/health"
+	"lanhc.com/hostinfo"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/netutil"
+	"lanhc.com/net/sockstats"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/views"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/wgengine/filter"
 )
 
 // initListenConfig, if non-nil, is called during peerAPIListener setup.  It is used only
-// on iOS and macOS to set socket options to bind the listener to the Tailscale interface.
+// on iOS and macOS to set socket options to bind the listener to the Lanhc interface.
 var initListenConfig func(config *net.ListenConfig, addr netip.Addr, tunIfIndex int) error
 
 // peerDNSQueryHandler is implemented by tsdns.Resolver.
@@ -97,7 +97,7 @@ func (s *peerAPIServer) listen(ip netip.Addr, tunIfIndex int) (ln net.Listener, 
 
 	// Make a best effort to pick a deterministic port number for
 	// the ip. The lower three bytes are the same for IPv4 and IPv6
-	// Tailscale addresses (at least currently), so we'll usually
+	// Lanhc addresses (at least currently), so we'll usually
 	// get the same port number on both address families for
 	// dev/debugging purposes, which is nice. But it's not so
 	// deterministic that people will bake this into clients.
@@ -226,7 +226,7 @@ type peerAPIHandler struct {
 }
 
 // PeerAPIHandler is the interface implemented by [peerAPIHandler] and needed by
-// module features registered via tailscale.com/feature/*.
+// module features registered via lanhc.com/feature/*.
 type PeerAPIHandler interface {
 	Peer() tailcfg.NodeView
 	PeerCaps() tailcfg.PeerCapMap
@@ -298,11 +298,11 @@ func (h *peerAPIHandler) validatePeerAPIRequest(r *http.Request) error {
 
 // peerAPIRequestShouldGetSecurityHeaders reports whether the PeerAPI request r
 // should get security response headers. It aims to report true for any request
-// from a browser and false for requests from tailscaled (Go) clients.
+// from a browser and false for requests from lanhcd (Go) clients.
 //
-// PeerAPI is primarily an RPC mechanism between Tailscale instances. Some of
+// PeerAPI is primarily an RPC mechanism between Lanhc instances. Some of
 // the HTTP handlers are useful for debugging with curl or browsers, but in
-// general the client is always tailscaled itself. Because PeerAPI only uses
+// general the client is always lanhcd itself. Because PeerAPI only uses
 // HTTP/1 without HTTP/2 and its HPACK helping with repetitive headers, we try
 // to minimize header bytes sent in the common case when the client isn't a
 // browser. Minimizing bytes is important in particular with the ExitDNS service
@@ -313,7 +313,7 @@ func peerAPIRequestShouldGetSecurityHeaders(r *http.Request) bool {
 	// Accept-Encoding is a forbidden header
 	// (https://developer.mozilla.org/en-US/docs/Glossary/Forbidden_header_name)
 	// that Chrome, Firefox, Safari, etc send, but Go does not. So if we see it,
-	// it's probably a browser and not a Tailscale PeerAPI (Go) client.
+	// it's probably a browser and not a Lanhc PeerAPI (Go) client.
 	if httpguts.HeaderValuesContainsToken(r.Header["Accept-Encoding"], "deflate") {
 		return true
 	}
@@ -322,7 +322,7 @@ func peerAPIRequestShouldGetSecurityHeaders(r *http.Request) bool {
 	if ua := r.Header.Get("User-Agent"); strings.HasPrefix(ua, "Mozilla/") || strings.Count(ua, " ") > 2 {
 		return true
 	}
-	// Tailscale/PeerAPI/Go clients don't have an Accept-Language.
+	// Lanhc/PeerAPI/Go clients don't have an Accept-Language.
 	if r.Header.Get("Accept-Language") != "" {
 		return true
 	}
@@ -420,7 +420,7 @@ func (h *peerAPIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <body>
 <h1>Hello, %s (%v)</h1>
-This is my Tailscale device. Your device is %v.
+This is my Lanhc device. Your device is %v.
 `, html.EscapeString(who), h.remoteAddr.Addr(), html.EscapeString(h.peerNode.ComputedName()))
 
 	if h.isSelf {

@@ -12,7 +12,7 @@ import (
 
 func TestSSHKeyGen(t *testing.T) {
 	dir := t.TempDir()
-	keys, err := getTailscaleHostKeys(dir, nil)
+	keys, err := getLanhcHostKeys(dir, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,7 +29,7 @@ func TestSSHKeyGen(t *testing.T) {
 		t.Fatalf("keys = %v; want %v", got, want)
 	}
 
-	keys2, err := getTailscaleHostKeys(dir, nil)
+	keys2, err := getLanhcHostKeys(dir, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

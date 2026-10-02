@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest/integration/testcontrol"
-	"tailscale.com/tstest/natlab/vmtest"
-	"tailscale.com/tstest/natlab/vnet"
-	"tailscale.com/types/key"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest/integration/testcontrol"
+	"lanhc.com/tstest/natlab/vmtest"
+	"lanhc.com/tstest/natlab/vnet"
+	"lanhc.com/types/key"
 )
 
 // TestJailedAndMasqueradedPeers exercises the tun-layer per-peer data
@@ -45,7 +45,7 @@ func TestJailedAndMasqueradedPeers(t *testing.T) {
 	st1 := env.Status(n1)
 	st2 := env.Status(n2)
 	k1, k2 := st1.Self.PublicKey, st2.Self.PublicKey
-	n1IP, n2IP := st1.Self.TailscaleIPs[0], st2.Self.TailscaleIPs[0]
+	n1IP, n2IP := st1.Self.LanhcIPs[0], st2.Self.LanhcIPs[0]
 	cs := env.ControlServer()
 
 	url := func(ip netip.Addr) string { return fmt.Sprintf("http://%s:8080/", ip) }
@@ -120,7 +120,7 @@ func TestJailedAndMasqueradedPeers(t *testing.T) {
 		deadline := time.Now().Add(time.Minute)
 		for time.Now().Before(deadline) {
 			if ps, ok := env.Status(on).Peer[peer]; ok {
-				for _, ip := range ps.TailscaleIPs {
+				for _, ip := range ps.LanhcIPs {
 					if ip == want {
 						return
 					}

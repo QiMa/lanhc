@@ -16,17 +16,17 @@ import (
 	"time"
 
 	"golang.org/x/net/http2"
-	"tailscale.com/control/controlhttp/controlhttpserver"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest/nettest"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/must"
+	"lanhc.com/control/controlhttp/controlhttpserver"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest/nettest"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/must"
 )
 
-// maxAllowedNoiseVersion is the highest we expect the Tailscale
+// maxAllowedNoiseVersion is the highest we expect the Lanhc
 // capability version to ever get. It's a value close to 2^16, but
 // with enough leeway that we get a very early warning that it's time
 // to rework the wire protocol to allow larger versions, while still
@@ -286,7 +286,7 @@ func (tt noiseClientTest) run(t *testing.T) {
 }
 
 // Upgrader is an http.Handler that hijacks and upgrades POST-with-Upgrade
-// request to a Tailscale 2021 connection, then hands the resulting
+// request to a Lanhc 2021 connection, then hands the resulting
 // controlbase.Conn off to h2srv.
 type Upgrader struct {
 	// h2srv is that will handle requests after the

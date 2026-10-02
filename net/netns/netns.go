@@ -3,8 +3,8 @@
 
 // Package netns contains the common code for using the Go net package
 // in a logical "network namespace" to avoid routing loops where
-// Tailscale-created packets would otherwise loop back through
-// Tailscale routes.
+// Lanhc-created packets would otherwise loop back through
+// Lanhc routes.
 //
 // Despite the name netns, the exact mechanism used differs by
 // operating system, and perhaps even by version of the OS.
@@ -20,9 +20,9 @@ import (
 	"runtime"
 	"sync/atomic"
 
-	"tailscale.com/net/netknob"
-	"tailscale.com/net/netmon"
-	"tailscale.com/types/logger"
+	"lanhc.com/net/netknob"
+	"lanhc.com/net/netmon"
+	"lanhc.com/types/logger"
 )
 
 var disabled atomic.Bool
@@ -63,10 +63,10 @@ var disableBindConnToInterface atomic.Bool
 // SetDisableBindConnToInterface disables the (normal) behavior of binding
 // connections to the default network interface on Darwin nodes.
 //
-// Unless you intended to disable this for tailscaled on macos (which is likely
+// Unless you intended to disable this for lanhcd on macos (which is likely
 // to break things), you probably wanted to set
 // SetDisableBindConnToInterfaceAppleExt which will disable explicit interface
-// binding only when tailscaled is running inside a network extension process.
+// binding only when lanhcd is running inside a network extension process.
 func SetDisableBindConnToInterface(logf logger.Logf, v bool) {
 	if disableBindConnToInterface.Swap(v) != v {
 		logf("netns: disableBindConnToInterface changed to %v", v)
@@ -77,7 +77,7 @@ var disableBindConnToInterfaceAppleExt atomic.Bool
 
 // SetDisableBindConnToInterfaceAppleExt disables the (normal) behavior of binding
 // connections to the default network interface but only on Apple clients where
-// tailscaled is running inside a network extension.
+// lanhcd is running inside a network extension.
 func SetDisableBindConnToInterfaceAppleExt(logf logger.Logf, v bool) {
 	if runtime.GOOS == "darwin" && disableBindConnToInterfaceAppleExt.Swap(v) != v {
 		logf("netns: disableBindConnToInterfaceAppleExt changed to %v", v)
@@ -86,7 +86,7 @@ func SetDisableBindConnToInterfaceAppleExt(logf logger.Logf, v bool) {
 
 // Listener returns a new net.Listener with its Control hook func
 // initialized as necessary to run in logical network namespace that
-// doesn't route back into Tailscale.
+// doesn't route back into Lanhc.
 func Listener(logf logger.Logf, netMon *netmon.Monitor) *net.ListenConfig {
 	if netMon == nil {
 		panic("netns.Listener called with nil netMon")
@@ -99,7 +99,7 @@ func Listener(logf logger.Logf, netMon *netmon.Monitor) *net.ListenConfig {
 
 // NewDialer returns a new Dialer using a net.Dialer with its Control
 // hook func initialized as necessary to run in a logical network
-// namespace that doesn't route back into Tailscale. It also handles
+// namespace that doesn't route back into Lanhc. It also handles
 // using a SOCKS if configured in the environment with ALL_PROXY.
 func NewDialer(logf logger.Logf, netMon *netmon.Monitor) Dialer {
 	if netMon == nil {
@@ -111,7 +111,7 @@ func NewDialer(logf logger.Logf, netMon *netmon.Monitor) Dialer {
 }
 
 // FromDialer returns sets d.Control as necessary to run in a logical
-// network namespace that doesn't route back into Tailscale. It also
+// network namespace that doesn't route back into Lanhc. It also
 // handles using a SOCKS if configured in the environment with
 // ALL_PROXY.
 func FromDialer(logf logger.Logf, netMon *netmon.Monitor, d *net.Dialer) Dialer {

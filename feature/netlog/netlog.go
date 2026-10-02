@@ -3,19 +3,19 @@
 
 // Package netlog registers the network flow logging feature and wires
 // it into the WireGuard engine. The logger implementation itself lives
-// in tailscale.com/wgengine/netlog.
+// in lanhc.com/wgengine/netlog.
 package netlog
 
 import (
 	"context"
 	"time"
 
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/types/logid"
-	"tailscale.com/wgengine"
-	"tailscale.com/wgengine/netlog"
-	"tailscale.com/wgengine/router"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/types/logid"
+	"lanhc.com/wgengine"
+	"lanhc.com/wgengine/netlog"
+	"lanhc.com/wgengine/router"
 )
 
 func init() {

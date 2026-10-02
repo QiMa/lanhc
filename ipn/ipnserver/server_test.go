@@ -11,13 +11,13 @@ import (
 	"sync"
 	"testing"
 
-	"tailscale.com/client/local"
-	"tailscale.com/envknob"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/lapitest"
-	"tailscale.com/tsd"
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/util/syspolicy/policytest"
+	"lanhc.com/client/local"
+	"lanhc.com/envknob"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/lapitest"
+	"lanhc.com/tsd"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/util/syspolicy/policytest"
 )
 
 func TestUserConnectDisconnectNonWindows(t *testing.T) {
@@ -101,7 +101,7 @@ func TestIPNAlreadyInUseOnWindows(t *testing.T) {
 	clientB := server.ClientWithName("UserB")
 	if _, gotErr := clientB.Status(ctx); gotErr == nil {
 		t.Fatalf("Status(%q): want error; got nil", clientB.Username())
-	} else if wantError := "401 Unauthorized: Tailscale already in use by UserA"; gotErr.Error() != wantError {
+	} else if wantError := "401 Unauthorized: Lanhc already in use by UserA"; gotErr.Error() != wantError {
 		t.Fatalf("Status(%q): want %q; got %q", clientB.Username(), wantError, gotErr.Error())
 	}
 
@@ -132,7 +132,7 @@ func TestSequentialOSUserSwitchingOnWindows(t *testing.T) {
 		server.CheckCurrentUser(nil)
 	}
 
-	// UserA logs in, uses Tailscale for a bit, then logs out.
+	// UserA logs in, uses Lanhc for a bit, then logs out.
 	connectDisconnectAsUser("UserA")
 	// Same for UserB.
 	connectDisconnectAsUser("UserB")
@@ -193,7 +193,7 @@ func TestConcurrentOSUserSwitchingOnWindows(t *testing.T) {
 		var wg sync.WaitGroup
 		wg.Add(numGoRoutines)
 		for i := range numGoRoutines {
-			// User logs in, uses Tailscale for a bit, then logs out
+			// User logs in, uses Lanhc for a bit, then logs out
 			// in parallel with other users doing the same.
 			go func() {
 				defer wg.Done()
@@ -263,22 +263,22 @@ func TestShutdownViaLocalAPI(t *testing.T) {
 
 	tests := []struct {
 		name                   string
-		allowTailscaledRestart *bool
+		allowLanhcdRestart *bool
 		wantErr                error
 	}{
 		{
-			name:                   "AllowTailscaledRestart/NotConfigured",
-			allowTailscaledRestart: nil,
+			name:                   "AllowLanhcdRestart/NotConfigured",
+			allowLanhcdRestart: nil,
 			wantErr:                errAccessDeniedByPolicy,
 		},
 		{
-			name:                   "AllowTailscaledRestart/False",
-			allowTailscaledRestart: new(false),
+			name:                   "AllowLanhcdRestart/False",
+			allowLanhcdRestart: new(false),
 			wantErr:                errAccessDeniedByPolicy,
 		},
 		{
-			name:                   "AllowTailscaledRestart/True",
-			allowTailscaledRestart: new(true),
+			name:                   "AllowLanhcdRestart/True",
+			allowLanhcdRestart: new(true),
 			wantErr:                nil, // shutdown should be allowed
 		},
 	}
@@ -290,15 +290,15 @@ func TestShutdownViaLocalAPI(t *testing.T) {
 			sys := tsd.NewSystem()
 
 			var pol policytest.Config
-			if tt.allowTailscaledRestart != nil {
-				pol.Set(pkey.AllowTailscaledRestart, *tt.allowTailscaledRestart)
+			if tt.allowLanhcdRestart != nil {
+				pol.Set(pkey.AllowLanhcdRestart, *tt.allowLanhcdRestart)
 			}
 			sys.Set(pol)
 
 			server := lapitest.NewServer(t, lapitest.WithSys(sys))
 			lc := server.ClientWithName("User")
 
-			err := lc.ShutdownTailscaled(t.Context())
+			err := lc.ShutdownLanhcd(t.Context())
 			checkError(t, err, tt.wantErr)
 		})
 	}

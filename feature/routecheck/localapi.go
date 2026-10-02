@@ -12,11 +12,11 @@ import (
 	jsonv2 "github.com/go-json-experiment/json"
 	jsonv1 "github.com/go-json-experiment/json/v1"
 
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/localapi"
-	"tailscale.com/net/routecheck"
-	"tailscale.com/util/def"
-	"tailscale.com/util/httpm"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/localapi"
+	"lanhc.com/net/routecheck"
+	"lanhc.com/util/def"
+	"lanhc.com/util/httpm"
 )
 
 func init() {

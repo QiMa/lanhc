@@ -12,10 +12,10 @@ import (
 	"reflect"
 	"testing"
 
-	"tailscale.com/net/netmon"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/eventbus"
+	"lanhc.com/net/netmon"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/eventbus"
 )
 
 func TestGetDERPMap(t *testing.T) {
@@ -41,7 +41,7 @@ func TestCache(t *testing.T) {
 				Nodes: []*tailcfg.DERPNode{{
 					Name:     "99a",
 					RegionID: 99,
-					HostName: "derp99a.tailscale.com",
+					HostName: "derp99a.lanhc.com",
 					IPv4:     "1.2.3.4",
 				}},
 			},
@@ -54,7 +54,7 @@ func TestCache(t *testing.T) {
 				Nodes: []*tailcfg.DERPNode{{
 					Name:     "1c",
 					RegionID: 1,
-					HostName: "derp1c.tailscale.com",
+					HostName: "derp1c.lanhc.com",
 					IPv4:     "127.0.0.1",
 					IPv6:     "::1",
 				}},
@@ -99,7 +99,7 @@ func TestCache(t *testing.T) {
 	// we don't accidentally start allowing overwrites due to some of the
 	// test's assumptions changing out from underneath us as we update the
 	// JSON file of fallback servers.
-	if getStaticDERPMap().Regions[1].Nodes[0].HostName != "derp1c.tailscale.com" {
+	if getStaticDERPMap().Regions[1].Nodes[0].HostName != "derp1c.lanhc.com" {
 		t.Errorf("DERP server has a different name; please update this test")
 	}
 }
@@ -117,7 +117,7 @@ func TestCacheUnchanged(t *testing.T) {
 				Nodes: []*tailcfg.DERPNode{{
 					Name:     "99a",
 					RegionID: 99,
-					HostName: "derp99a.tailscale.com",
+					HostName: "derp99a.lanhc.com",
 					IPv4:     "1.2.3.4",
 				}},
 			},
@@ -199,7 +199,7 @@ func TestLookup(t *testing.T) {
 		netMon:         netMon,
 		waitForCompare: true,
 	}
-	addrs, err := resolver.Lookup(context.Background(), "controlplane.tailscale.com")
+	addrs, err := resolver.Lookup(context.Background(), "controlplane.lanhc.com")
 	if err != nil {
 		t.Fatal(err)
 	}

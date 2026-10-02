@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// The featuretags command helps other build tools select Tailscale's Go build
+// The featuretags command helps other build tools select Lanhc's Go build
 // tags to use.
 package main
 
@@ -13,8 +13,8 @@ import (
 	"slices"
 	"strings"
 
-	"tailscale.com/feature/featuretags"
-	"tailscale.com/util/set"
+	"lanhc.com/feature/featuretags"
+	"lanhc.com/util/set"
 )
 
 var (

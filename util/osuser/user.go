@@ -19,7 +19,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"tailscale.com/version/distro"
+	"lanhc.com/version/distro"
 )
 
 // LookupByUIDWithShell is like os/user.LookupId but handles a few edge cases
@@ -142,7 +142,7 @@ func checkGetentInput(usernameOrUID string) bool {
 }
 
 // userLookupGetent uses "getent" to look up users so that even with static
-// tailscaled binaries without cgo (as we distribute), we can still look up
+// lanhcd binaries without cgo (as we distribute), we can still look up
 // PAM/NSS users which the standard library's os/user without cgo won't get
 // (because of no libc hooks). If "getent" fails, userLookupGetent falls back
 // to the standard library.

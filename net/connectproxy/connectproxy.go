@@ -12,8 +12,8 @@ import (
 	"net/http"
 	"time"
 
-	"tailscale.com/net/netx"
-	"tailscale.com/types/logger"
+	"lanhc.com/net/netx"
+	"lanhc.com/types/logger"
 )
 
 // Handler is an HTTP CONNECT proxy handler.

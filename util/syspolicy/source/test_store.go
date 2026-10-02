@@ -9,12 +9,12 @@ import (
 	"sync/atomic"
 
 	xmaps "golang.org/x/exp/maps"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
-	"tailscale.com/util/slicesx"
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/util/syspolicy/setting"
-	"tailscale.com/util/testenv"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
+	"lanhc.com/util/slicesx"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/util/syspolicy/setting"
+	"lanhc.com/util/testenv"
 )
 
 var (

@@ -8,11 +8,11 @@ import (
 	"slices"
 	"time"
 
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tempfork/heap"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tempfork/heap"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
 )
 
 const (
@@ -29,7 +29,7 @@ const (
 	// The value of 6 is chosen because we can advertise up to 3 endpoints
 	// based on the STUN IP:
 	//    1. The STUN endpoint itself (EndpointSTUN)
-	//    2. The STUN IP with the local Tailscale port (EndpointSTUN4LocalPort)
+	//    2. The STUN IP with the local Lanhc port (EndpointSTUN4LocalPort)
 	//    3. The STUN IP with a portmapped port (EndpointPortmapped)
 	//
 	// Storing 6 endpoints in the cache means we can store up to 2 previous
@@ -105,7 +105,7 @@ func (eh endpointHeap) Min() *endpointTrackerEntry {
 // a netcheck, we keep advertising the endpoint until it's not present for a
 // defined timeout.
 //
-// See tailscale/tailscale#7877 for more information.
+// See lanhc/lanhc#7877 for more information.
 type endpointTracker struct {
 	mu        syncs.Mutex
 	endpoints map[netip.Addr]*endpointHeap

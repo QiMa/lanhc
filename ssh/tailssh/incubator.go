@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// This file contains the code for the incubator process.  Tailscaled
+// This file contains the code for the incubator process.  Lanhcd
 // launches the incubator as the same user as it was launched as.  The
 // incubator then registers a new session with the OS, sets its UID
 // and groups to the specified `--uid`, `--gid` and `--groups`, and
@@ -39,11 +39,11 @@ import (
 	"github.com/u-root/u-root/pkg/termios"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/sys/unix"
-	"tailscale.com/cmd/tailscaled/childproc"
-	"tailscale.com/hostinfo"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
-	"tailscale.com/version/distro"
+	"lanhc.com/cmd/lanhcd/childproc"
+	"lanhc.com/hostinfo"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
+	"lanhc.com/version/distro"
 )
 
 const (
@@ -107,9 +107,9 @@ func tryExecInDir(ctx context.Context, dir string) error {
 }
 
 // newIncubatorCommand returns a new exec.Cmd configured with
-// `tailscaled be-child ssh` as the entrypoint.
+// `lanhcd be-child ssh` as the entrypoint.
 //
-// If ss.srv.tailscaledPath is empty, this method is almost equivalent to
+// If ss.srv.lanhcdPath is empty, this method is almost equivalent to
 // exec.CommandContext. It will refuse to run in SFTP-mode. It will simulate the
 // behavior of SSHD when by falling back to the root directory if it cannot run
 // a command in the user’s home directory.
@@ -138,11 +138,11 @@ func (ss *sshSession) newIncubatorCommand(logf logger.Logf) (cmd *exec.Cmd, forw
 		panic(fmt.Sprintf("unexpected subsystem: %v", ss.Subsystem()))
 	}
 
-	if ss.conn.srv.tailscaledPath == "" {
+	if ss.conn.srv.lanhcdPath == "" {
 		if isSFTP {
-			// SFTP relies on the embedded Go-based SFTP server in tailscaled,
-			// so without tailscaled, we can't serve SFTP.
-			return nil, nil, errors.New("no tailscaled found on path, can't serve SFTP")
+			// SFTP relies on the embedded Go-based SFTP server in lanhcd,
+			// so without lanhcd, we can't serve SFTP.
+			return nil, nil, errors.New("no lanhcd found on path, can't serve SFTP")
 		}
 
 		loginShell := ss.conn.localUser.LoginShell()
@@ -150,7 +150,7 @@ func (ss *sshSession) newIncubatorCommand(logf logger.Logf) (cmd *exec.Cmd, forw
 		logf("directly running %s %q", loginShell, args)
 		cmd = exec.CommandContext(ss.ctx, loginShell, args...)
 
-		// While running directly instead of using `tailscaled be-child`,
+		// While running directly instead of using `lanhcd be-child`,
 		// do what sshd does by running inside the home directory,
 		// falling back to the root directory it doesn't have permissions.
 		// This can happen if the system has networked home directories,
@@ -221,12 +221,12 @@ func (ss *sshSession) newIncubatorCommand(logf logger.Logf) (cmd *exec.Cmd, forw
 	switch {
 	case isSFTP:
 		// Note that we include both the `--sftp` flag and a command to launch
-		// tailscaled as `be-child sftp`. If login or su is available, and
+		// lanhcd as `be-child sftp`. If login or su is available, and
 		// we're not running with tailcfg.NodeAttrSSHBehaviorV1, this will
 		// result in serving SFTP within a login shell, with full PAM
 		// integration. Otherwise, we'll serve SFTP in the incubator process
 		// with no PAM integration.
-		incubatorArgs = append(incubatorArgs, "--sftp", fmt.Sprintf("--cmd=%s be-child sftp", ss.conn.srv.tailscaledPath))
+		incubatorArgs = append(incubatorArgs, "--sftp", fmt.Sprintf("--cmd=%s be-child sftp", ss.conn.srv.lanhcdPath))
 	case isShell:
 		incubatorArgs = append(incubatorArgs, "--shell")
 	default:
@@ -248,7 +248,7 @@ func (ss *sshSession) newIncubatorCommand(logf logger.Logf) (cmd *exec.Cmd, forw
 		}
 	}
 
-	cmd = exec.CommandContext(ss.ctx, ss.conn.srv.tailscaledPath, incubatorArgs...)
+	cmd = exec.CommandContext(ss.ctx, ss.conn.srv.lanhcdPath, incubatorArgs...)
 	// The incubator will chdir into the home directory after it drops privileges.
 	cmd.Dir = "/"
 	return cmd, forwardedEnv, nil
@@ -293,7 +293,7 @@ type incubatorArgs struct {
 	isSELinuxEnforcing bool
 	// Deprecated: encodedEnv is deprecated and must not be used by new code.
 	// It is parsed only so this child keeps working when exec'd by an
-	// outdated parent tailscaled that still passes it.
+	// outdated parent lanhcd that still passes it.
 	encodedEnv string
 	// envFD is the file descriptor to read the forwarded environment from
 	// (a JSON array of KEY=VALUE pairs), or -1 if none.
@@ -314,7 +314,7 @@ func parseIncubatorArgs(args []string) (incubatorArgs, error) {
 	flags.StringVar(&ia.localUser, "local-user", "", "the user to run as")
 	flags.StringVar(&ia.homeDir, "home-dir", "/", "the user's home directory")
 	flags.StringVar(&ia.remoteUser, "remote-user", "", "the remote user/tags")
-	flags.StringVar(&ia.remoteIP, "remote-ip", "", "the remote Tailscale IP")
+	flags.StringVar(&ia.remoteIP, "remote-ip", "", "the remote Lanhc IP")
 	flags.StringVar(&ia.ttyName, "tty-name", "", "the tty name (pts/3)")
 	flags.BoolVar(&ia.hasTTY, "has-tty", false, "is the output attached to a tty")
 	flags.StringVar(&ia.cmd, "cmd", "", "the cmd to launch, including all arguments (ignored in sftp mode)")
@@ -359,7 +359,7 @@ func (ia *incubatorArgs) loadForwardedEnv() error {
 		if err := json.NewDecoder(f).Decode(&pairs); err != nil {
 			return fmt.Errorf("unable to read forwarded environment: %w", err)
 		}
-	case ia.encodedEnv != "": // Legacy path to support an outdated parent tailscaled
+	case ia.encodedEnv != "": // Legacy path to support an outdated parent lanhcd
 		if unquoted, err := strconv.Unquote(ia.encodedEnv); err != nil {
 			return fmt.Errorf("unable to parse encodedEnv %q: %w", ia.encodedEnv, err)
 		} else if err := json.Unmarshal([]byte(unquoted), &pairs); err != nil {
@@ -394,12 +394,12 @@ func (ia *incubatorArgs) forwardedEnviron() (env, allowedExtraKeys []string) {
 	return env, allowedExtraKeys
 }
 
-// beIncubator is the entrypoint to the `tailscaled be-child ssh` subcommand.
+// beIncubator is the entrypoint to the `lanhcd be-child ssh` subcommand.
 // It is responsible for informing the system of a new login session for the
 // user. This is sometimes necessary for mounting home directories and
 // decrypting file systems.
 //
-// Tailscaled launches the incubator as the same user as it was launched as.
+// Lanhcd launches the incubator as the same user as it was launched as.
 func beIncubator(args []string) error {
 	// To defend against issues like https://golang.org/issue/1435,
 	// defensively lock our current goroutine's thread to the current
@@ -416,8 +416,8 @@ func beIncubator(args []string) error {
 		return err
 	}
 	if ia.encodedEnv != "" {
-		log.Printf("WARNING: tailscaled be-child: accepted SSH environment variables were passed via the deprecated --encoded-env flag; " +
-			"the running tailscaled is outdated. Update tailscaled to the latest version and restart for the latest security fixes.")
+		log.Printf("WARNING: lanhcd be-child: accepted SSH environment variables were passed via the deprecated --encoded-env flag; " +
+			"the running lanhcd is outdated. Update lanhcd to the latest version and restart for the latest security fixes.")
 	}
 	if err := ia.loadForwardedEnv(); err != nil {
 		return err
@@ -429,12 +429,12 @@ func beIncubator(args []string) error {
 	dlogf := logger.Discard
 	if debugIncubator {
 		// We don't own stdout or stderr, so the only place we can log is syslog.
-		if sl, err := syslog.New(syslog.LOG_INFO|syslog.LOG_DAEMON, "tailscaled-ssh"); err == nil {
+		if sl, err := syslog.New(syslog.LOG_INFO|syslog.LOG_DAEMON, "lanhcd-ssh"); err == nil {
 			dlogf = log.New(sl, "", 0).Printf
 		}
 	} else if ia.debugTest {
 		// In testing, we don't always have syslog, so log to a temp file.
-		if logFile, err := os.OpenFile("/tmp/tailscalessh.log", os.O_APPEND|os.O_WRONLY, 0o666); err == nil {
+		if logFile, err := os.OpenFile("/tmp/lanhcssh.log", os.O_APPEND|os.O_WRONLY, 0o666); err == nil {
 			lf := log.New(logFile, "", 0)
 			dlogf = func(msg string, args ...any) {
 				lf.Printf(msg, args...)
@@ -516,7 +516,7 @@ func serveSFTP() error {
 // system, neiher login nor su will be able to set the correct context for the
 // shell. So, we don't bother trying to run them and instead fall back to using
 // the incubator to launch the shell.
-// See http://github.com/tailscale/tailscale/issues/4908.
+// See http://github.com/lanhc/lanhc/issues/4908.
 func shouldAttemptLoginShell(dlogf logger.Logf, ia incubatorArgs) bool {
 	if ia.forceV1Behavior && ia.isSFTP {
 		// v1 behavior did not run SFTP within a login shell.
@@ -705,7 +705,7 @@ func handleSSHInProcess(dlogf logger.Logf, ia incubatorArgs) error {
 			// TODO(bradfitz): do we need to also check the syscall.WaitStatus
 			// and make our process look like it also died by signal/same signal
 			// as our child process? For now we just do the exit code.
-			fmt.Fprintf(os.Stderr, "[tailscale-ssh: process died: %v]\n", ps.String())
+			fmt.Fprintf(os.Stderr, "[lanhc-ssh: process died: %v]\n", ps.String())
 			code = 1 // for now. so we don't exit with negative
 		}
 		os.Exit(code)
@@ -1210,7 +1210,7 @@ func (ia *incubatorArgs) loginArgs(loginCmdPath string) []string {
 		return args
 	case linux:
 		if distro.Get() == distro.Arch && !fileExists("/etc/pam.d/remote") {
-			// See https://github.com/tailscale/tailscale/issues/4924
+			// See https://github.com/lanhc/lanhc/issues/4924
 			//
 			// Arch uses a different login binary that makes the -h flag set the PAM
 			// service to "remote". So if they don't have that configured, don't

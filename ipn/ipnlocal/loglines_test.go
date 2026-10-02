@@ -8,17 +8,17 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsd"
-	"tailscale.com/tstest"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/logid"
-	"tailscale.com/types/persist"
-	"tailscale.com/wgengine"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsd"
+	"lanhc.com/tstest"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/logid"
+	"lanhc.com/types/persist"
+	"lanhc.com/wgengine"
 )
 
 // TestLocalLogLines tests to make sure that the log lines required for log parsing are

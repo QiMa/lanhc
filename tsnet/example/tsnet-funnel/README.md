@@ -4,6 +4,6 @@
 
 The tsnet-funnel server demonstrates how to use tsnet with Funnel.
 
-To use it, generate an auth key from the Tailscale admin panel and run the demo with the key:
+To use it, generate an auth key from the Lanhc admin panel and run the demo with the key:
 
 	TS_AUTHKEY=<yourkey> go run tsnet-funnel.go

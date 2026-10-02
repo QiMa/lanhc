@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"tailscale.com/types/tkatype"
+	"lanhc.com/types/tkatype"
 )
 
 type signer25519 ed25519.PrivateKey

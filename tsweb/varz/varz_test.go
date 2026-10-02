@@ -12,11 +12,11 @@ import (
 	"strings"
 	"testing"
 
-	"tailscale.com/metrics"
-	"tailscale.com/syncs"
-	"tailscale.com/tstest"
-	"tailscale.com/util/racebuild"
-	"tailscale.com/version"
+	"lanhc.com/metrics"
+	"lanhc.com/syncs"
+	"lanhc.com/tstest"
+	"lanhc.com/util/racebuild"
+	"lanhc.com/version"
 )
 
 func TestVarzHandler(t *testing.T) {

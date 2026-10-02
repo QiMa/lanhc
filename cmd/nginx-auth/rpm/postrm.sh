@@ -4,6 +4,6 @@
 systemctl daemon-reload >/dev/null 2>&1 || :
 if [ $1 -ge 1 ] ; then
     # Package upgrade, not uninstall
-    systemctl stop tailscale.nginx-auth.service >/dev/null 2>&1 || :
-    systemctl try-restart tailscale.nginx-auth.socket >/dev/null 2>&1 || :
+    systemctl stop lanhc.nginx-auth.service >/dev/null 2>&1 || :
+    systemctl try-restart lanhc.nginx-auth.socket >/dev/null 2>&1 || :
 fi

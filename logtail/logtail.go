@@ -3,7 +3,7 @@
 
 //go:build !ts_omit_logtail
 
-// Package logtail sends logs to log.tailscale.com.
+// Package logtail sends logs to log.lanhc.com.
 package logtail
 
 import (
@@ -30,17 +30,17 @@ import (
 	"github.com/creachadair/msync/trigger"
 	jsonv2 "github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
-	"tailscale.com/envknob"
-	"tailscale.com/metrics"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/sockstats"
-	"tailscale.com/tstime"
-	tslogger "tailscale.com/types/logger"
-	"tailscale.com/types/logid"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/set"
-	"tailscale.com/util/truncate"
-	"tailscale.com/util/zstdframe"
+	"lanhc.com/envknob"
+	"lanhc.com/metrics"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/sockstats"
+	"lanhc.com/tstime"
+	tslogger "lanhc.com/types/logger"
+	"lanhc.com/types/logid"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/set"
+	"lanhc.com/util/truncate"
+	"lanhc.com/util/zstdframe"
 )
 
 // maxSize is the maximum size that a single log entry can be.
@@ -667,7 +667,7 @@ func (lg *Logger) upload(ctx context.Context, body []byte, origlen int) (retryAf
 	}
 	if runtime.GOOS == "js" {
 		// We once advertised we'd accept optional client certs (for internal use)
-		// on log.tailscale.com but then Tailscale SSH js/wasm clients prompted
+		// on log.lanhc.com but then Lanhc SSH js/wasm clients prompted
 		// users (on some browsers?) to pick a client cert. We'll fix the server's
 		// TLS ServerHello, but we can also fix it client side for good measure.
 		//
@@ -708,7 +708,7 @@ func (lg *Logger) upload(ctx context.Context, body []byte, origlen int) (retryAf
 // Flush uploads all logs to the server. It blocks until complete or there is an
 // unrecoverable error.
 //
-// TODO(bradfitz): this apparently just returns nil, as of tailscale/corp@9c2ec35.
+// TODO(bradfitz): this apparently just returns nil, as of lanhc/corp@9c2ec35.
 // Finish cleaning this up.
 func (lg *Logger) Flush() error {
 	return nil
@@ -869,7 +869,7 @@ func (lg *Logger) appendMetadata(dst []byte, skipClientTime, skipMetrics bool, p
 	return dst
 }
 
-// appendText appends a raw text message in the Tailscale JSON log entry format.
+// appendText appends a raw text message in the Lanhc JSON log entry format.
 func (lg *Logger) appendText(dst, src []byte, skipClientTime bool, procID uint32, procSequence uint64, level int) []byte {
 	dst = slices.Grow(dst, len(src))
 	dst = append(dst, '{')
@@ -906,7 +906,7 @@ func appendTruncatedString(dst, src []byte, n int) []byte {
 }
 
 // appendTextOrJSONLocked appends a raw text message or a raw JSON object
-// in the Tailscale JSON log format.
+// in the Lanhc JSON log format.
 func (lg *Logger) appendTextOrJSONLocked(dst, src []byte, level int) []byte {
 	if lg.includeProcSequence {
 		lg.procSequence++
@@ -965,7 +965,7 @@ func (lg *Logger) appendTextOrJSONLocked(dst, src []byte, level int) []byte {
 
 	// Check whether the JSON payload is too large.
 	// Due to logtail metadata, the formatted log entry could exceed maxSize.
-	// That's okay as the Tailscale log service limit is actually 2*maxSize.
+	// That's okay as the Lanhc log service limit is actually 2*maxSize.
 	// However, so long as logging applications aim to target the maxSize limit,
 	// there should be no trouble eventually uploading logs.
 	maxLen := cmp.Or(lg.maxUploadSize, maxSize)
@@ -1097,7 +1097,7 @@ var (
 // in most places; many writes go via stderr which filch redirects to the
 // singleton Logger set up early. For better or worse, there's basically only
 // one Logger within the program. This mechanism at least works well for
-// tailscaled. It works less well for a binary with multiple tsnet.Servers. Oh
+// lanhcd. It works less well for a binary with multiple tsnet.Servers. Oh
 // well. This then subscribes to all of them.
 func RegisterLogTap(dst chan<- string) (unregister func()) {
 	tapMu.Lock()
@@ -1113,7 +1113,7 @@ func RegisterLogTap(dst chan<- string) (unregister func()) {
 }
 
 // tapSend relays the JSON blob to any/all registered local debug log watchers
-// (somebody running "tailscale debug daemon-logs").
+// (somebody running "lanhc debug daemon-logs").
 func tapSend(jsonBlob []byte) {
 	if tapSetSize.Load() == 0 {
 		return

@@ -18,9 +18,9 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/ipn/conffile"
-	"tailscale.com/kube/kubeclient"
-	"tailscale.com/util/def"
+	"lanhc.com/ipn/conffile"
+	"lanhc.com/kube/kubeclient"
+	"lanhc.com/util/def"
 )
 
 // settings is all the configuration for containerboot.
@@ -33,18 +33,18 @@ type settings struct {
 	Hostname     string
 	Routes       *string
 	// ProxyTargetIP is the destination IP to which all incoming
-	// Tailscale traffic should be proxied. If empty, no proxying
+	// Lanhc traffic should be proxied. If empty, no proxying
 	// is done. This is typically a locally reachable IP.
 	ProxyTargetIP string
 	// ProxyTargetDNSName is a DNS name to whose backing IP addresses all
-	// incoming Tailscale traffic should be proxied.
+	// incoming Lanhc traffic should be proxied.
 	ProxyTargetDNSName string
 	// TailnetTargetIP is the destination IP to which all incoming
-	// non-Tailscale traffic should be proxied. This is typically a
-	// Tailscale IP.
+	// non-Lanhc traffic should be proxied. This is typically a
+	// Lanhc IP.
 	TailnetTargetIP string
 	// TailnetTargetFQDN is an MagicDNS name to which all incoming
-	// non-Tailscale traffic should be proxied. This must be a full Tailnet
+	// non-Lanhc traffic should be proxied. This must be a full Tailnet
 	// node FQDN.
 	TailnetTargetFQDN             string
 	ServeConfigPath               string
@@ -61,7 +61,7 @@ type settings struct {
 	AuthOnce                      bool
 	Root                          string
 	KubernetesCanPatch            bool
-	TailscaledConfigFilePath      string
+	LanhcdConfigFilePath      string
 	EnableForwardingOptimizations bool
 	// If set to true and, if this containerboot instance is a Kubernetes
 	// ingress proxy, set up rules to forward incoming cluster traffic to be
@@ -105,7 +105,7 @@ func configFromEnv() (*settings, error) {
 		ProxyTargetDNSName: os.Getenv("TS_EXPERIMENTAL_DEST_DNS_NAME"),
 		TailnetTargetIP:    os.Getenv("TS_TAILNET_TARGET_IP"),
 		TailnetTargetFQDN:  os.Getenv("TS_TAILNET_TARGET_FQDN"),
-		DaemonExtraArgs:    os.Getenv("TS_TAILSCALED_EXTRA_ARGS"),
+		DaemonExtraArgs:    os.Getenv("TS_LANHCD_EXTRA_ARGS"),
 		ExtraArgs:          os.Getenv("TS_EXTRA_ARGS"),
 		InKubernetes:       os.Getenv("KUBERNETES_SERVICE_HOST") != "",
 		UserspaceMode:      def.Bool(os.Getenv("TS_USERSPACE"), true),
@@ -118,14 +118,14 @@ func configFromEnv() (*settings, error) {
 			// An explicitly empty TS_KUBE_SECRET disables Secret storage, so
 			// unset and empty must stay distinguishable: def.LookupEnv keeps
 			// an explicit "" rather than falling back to the default.
-			return def.LookupEnv("TS_KUBE_SECRET", "tailscale")
+			return def.LookupEnv("TS_KUBE_SECRET", "lanhc")
 		}(),
 		SOCKSProxyAddr:                        os.Getenv("TS_SOCKS5_SERVER"),
 		HTTPProxyAddr:                         os.Getenv("TS_OUTBOUND_HTTP_PROXY_LISTEN"),
-		Socket:                                cmp.Or(os.Getenv("TS_SOCKET"), "/tmp/tailscaled.sock"),
+		Socket:                                cmp.Or(os.Getenv("TS_SOCKET"), "/tmp/lanhcd.sock"),
 		AuthOnce:                              def.Bool(os.Getenv("TS_AUTH_ONCE"), false),
 		Root:                                  cmp.Or(os.Getenv("TS_TEST_ONLY_ROOT"), "/"),
-		TailscaledConfigFilePath:              tailscaledConfigFilePath(),
+		LanhcdConfigFilePath:              lanhcdConfigFilePath(),
 		AllowProxyingClusterTrafficViaIngress: def.Bool(os.Getenv("EXPERIMENTAL_ALLOW_PROXYING_CLUSTER_TRAFFIC_VIA_INGRESS"), false),
 		PodIP:                                 os.Getenv("POD_IP"),
 		EnableForwardingOptimizations:         def.Bool(os.Getenv("TS_EXPERIMENTAL_ENABLE_FORWARDING_OPTIMIZATIONS"), false),
@@ -170,7 +170,7 @@ func configFromEnv() (*settings, error) {
 		}
 	}
 
-	// See https://github.com/tailscale/tailscale/issues/16108 for context- we
+	// See https://github.com/lanhc/lanhc/issues/16108 for context- we
 	// do this to preserve the previous behaviour where --accept-dns could be
 	// set either via TS_ACCEPT_DNS or TS_EXTRA_ARGS.
 	acceptDNS := cfg.AcceptDNS != nil && *cfg.AcceptDNS
@@ -196,19 +196,19 @@ func configFromEnv() (*settings, error) {
 	return cfg, nil
 }
 
-// parseAcceptDNS parses any values for Tailscale --accept-dns flag set via
+// parseAcceptDNS parses any values for Lanhc --accept-dns flag set via
 // TS_ACCEPT_DNS and TS_EXTRA_ARGS env vars. If TS_EXTRA_ARGS contains
 // --accept-dns flag, override the acceptDNS value with the one from
 // TS_EXTRA_ARGS.
 // The value of extraArgs can be empty string or one or more whitespace-separate
-// key value pairs for 'tailscale up' command. The value for boolean flags can
+// key value pairs for 'lanhc up' command. The value for boolean flags can
 // be omitted (default to true).
 func parseAcceptDNS(extraArgs string, acceptDNS bool) (string, bool) {
 	if !strings.Contains(extraArgs, "--accept-dns") {
 		return extraArgs, acceptDNS
 	}
 	// TODO(irbekrm): we should validate that TS_EXTRA_ARGS contains legit
-	// 'tailscale up' flag values separated by whitespace.
+	// 'lanhc up' flag values separated by whitespace.
 	argsArr := strings.Fields(extraArgs)
 	i := -1
 	for key, val := range argsArr {
@@ -244,16 +244,16 @@ func parseAcceptDNS(extraArgs string, acceptDNS bool) (string, bool) {
 }
 
 func (s *settings) validate() error {
-	if s.TailscaledConfigFilePath != "" {
-		dir, file := path.Split(s.TailscaledConfigFilePath)
+	if s.LanhcdConfigFilePath != "" {
+		dir, file := path.Split(s.LanhcdConfigFilePath)
 		if _, err := os.Stat(dir); err != nil {
-			return fmt.Errorf("error validating whether directory with tailscaled config file %s exists: %w", dir, err)
+			return fmt.Errorf("error validating whether directory with lanhcd config file %s exists: %w", dir, err)
 		}
-		if _, err := os.Stat(s.TailscaledConfigFilePath); err != nil {
-			return fmt.Errorf("error validating whether tailscaled config directory %q contains tailscaled config for current capability version %q: %w. If this is a Tailscale Kubernetes operator proxy, please ensure that the version of the operator is not older than the version of the proxy", dir, file, err)
+		if _, err := os.Stat(s.LanhcdConfigFilePath); err != nil {
+			return fmt.Errorf("error validating whether lanhcd config directory %q contains lanhcd config for current capability version %q: %w. If this is a Lanhc Kubernetes operator proxy, please ensure that the version of the operator is not older than the version of the proxy", dir, file, err)
 		}
-		if _, err := conffile.Load(s.TailscaledConfigFilePath); err != nil {
-			return fmt.Errorf("error validating tailscaled configfile contents: %w", err)
+		if _, err := conffile.Load(s.LanhcdConfigFilePath); err != nil {
+			return fmt.Errorf("error validating lanhcd configfile contents: %w", err)
 		}
 	}
 	if s.ProxyTargetIP != "" && s.UserspaceMode {
@@ -274,7 +274,7 @@ func (s *settings) validate() error {
 	if s.TailnetTargetFQDN != "" && s.TailnetTargetIP != "" {
 		return errors.New("Both TS_TAILNET_TARGET_IP and TS_TAILNET_FQDN cannot be set")
 	}
-	if s.TailscaledConfigFilePath != "" &&
+	if s.LanhcdConfigFilePath != "" &&
 		(s.AcceptDNS != nil ||
 			s.AuthKey != "" ||
 			s.Routes != nil ||
@@ -347,10 +347,10 @@ func (s *settings) validate() error {
 		return errors.New("TS_HEALTHCHECK_ADDR_PORT is deprecated and will be removed in 1.82.0, use TS_ENABLE_HEALTH_CHECK and optionally TS_LOCAL_ADDR_PORT")
 	}
 	if s.EgressProxiesCfgPath != "" && !(s.InKubernetes && s.KubeSecret != "") {
-		return errors.New("TS_EGRESS_PROXIES_CONFIG_PATH is only supported for Tailscale running on Kubernetes")
+		return errors.New("TS_EGRESS_PROXIES_CONFIG_PATH is only supported for Lanhc running on Kubernetes")
 	}
 	if s.IngressProxiesCfgPath != "" && !(s.InKubernetes && s.KubeSecret != "") {
-		return errors.New("TS_INGRESS_PROXIES_CONFIG_PATH is only supported for Tailscale running on Kubernetes")
+		return errors.New("TS_INGRESS_PROXIES_CONFIG_PATH is only supported for Lanhc running on Kubernetes")
 	}
 
 	// Error out when passed a malformed duration in `TS_BOOT_TIMEOUT` env var.
@@ -363,7 +363,7 @@ func (s *settings) validate() error {
 }
 
 // setupKube is responsible for doing any necessary configuration and checks to
-// ensure that tailscale state storage and authentication mechanism will work on
+// ensure that lanhc state storage and authentication mechanism will work on
 // Kubernetes.
 func (cfg *settings) setupKube(ctx context.Context, kc *kubeClient) error {
 	if cfg.KubeSecret == "" {
@@ -379,12 +379,12 @@ func (cfg *settings) setupKube(ctx context.Context, kc *kubeClient) error {
 	s, err := kc.GetSecret(ctx, cfg.KubeSecret)
 	if err != nil {
 		if !kubeclient.IsNotFoundErr(err) {
-			return fmt.Errorf("getting Tailscale state Secret %s: %v", cfg.KubeSecret, err)
+			return fmt.Errorf("getting Lanhc state Secret %s: %v", cfg.KubeSecret, err)
 		}
 
 		if !canCreate {
-			return fmt.Errorf("tailscale state Secret %s does not exist and we don't have permissions to create it. "+
-				"If you intend to store tailscale state elsewhere than a Kubernetes Secret, "+
+			return fmt.Errorf("lanhc state Secret %s does not exist and we don't have permissions to create it. "+
+				"If you intend to store lanhc state elsewhere than a Kubernetes Secret, "+
 				"you can explicitly set TS_KUBE_SECRET env var to an empty string. "+
 				"Else ensure that RBAC is set up that allows the service account associated with this installation to create Secrets.", cfg.KubeSecret)
 		}
@@ -420,31 +420,31 @@ func (cfg *settings) setupKube(ctx context.Context, kc *kubeClient) error {
 	return nil
 }
 
-// isTwoStepConfigAuthOnce returns true if the Tailscale node should be configured
+// isTwoStepConfigAuthOnce returns true if the Lanhc node should be configured
 // in two steps and login should only happen once.
-// Step 1: run 'tailscaled'
+// Step 1: run 'lanhcd'
 // Step 2):
-// A) if this is the first time starting this node run 'tailscale up --authkey <authkey> <config opts>'
-// B) if this is not the first time starting this node run 'tailscale set <config opts>'.
+// A) if this is the first time starting this node run 'lanhc up --authkey <authkey> <config opts>'
+// B) if this is not the first time starting this node run 'lanhc set <config opts>'.
 func isTwoStepConfigAuthOnce(cfg *settings) bool {
-	return cfg.AuthOnce && cfg.TailscaledConfigFilePath == ""
+	return cfg.AuthOnce && cfg.LanhcdConfigFilePath == ""
 }
 
-// isTwoStepConfigAlwaysAuth returns true if the Tailscale node should be configured
+// isTwoStepConfigAlwaysAuth returns true if the Lanhc node should be configured
 // in two steps and we should log in every time it starts.
-// Step 1: run 'tailscaled'
-// Step 2): run 'tailscale up --authkey <authkey> <config opts>'
+// Step 1: run 'lanhcd'
+// Step 2): run 'lanhc up --authkey <authkey> <config opts>'
 func isTwoStepConfigAlwaysAuth(cfg *settings) bool {
-	return !cfg.AuthOnce && cfg.TailscaledConfigFilePath == ""
+	return !cfg.AuthOnce && cfg.LanhcdConfigFilePath == ""
 }
 
-// isOneStepConfig returns true if the Tailscale node should always be ran and
-// configured in a single step by running 'tailscaled <config opts>'
+// isOneStepConfig returns true if the Lanhc node should always be ran and
+// configured in a single step by running 'lanhcd <config opts>'
 func isOneStepConfig(cfg *settings) bool {
-	return cfg.TailscaledConfigFilePath != ""
+	return cfg.LanhcdConfigFilePath != ""
 }
 
-// isL3Proxy returns true if the Tailscale node needs to be configured to act
+// isL3Proxy returns true if the Lanhc node needs to be configured to act
 // as an L3 proxy, proxying to an endpoint provided via one of the config env
 // vars.
 func isL3Proxy(cfg *settings) bool {

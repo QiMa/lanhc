@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Command webhooks provides example consumer code for Tailscale
+// Command webhooks provides example consumer code for Lanhc
 // webhooks.
 package main
 
@@ -62,7 +62,7 @@ func webhooksHandler(w http.ResponseWriter, req *http.Request) {
 	// Otherwise your future events will be blocked by retries.
 }
 
-// verifyWebhookSignature checks the request's "Tailscale-Webhook-Signature"
+// verifyWebhookSignature checks the request's "Lanhc-Webhook-Signature"
 // header to verify that the events were signed by your webhook secret.
 // If verification fails, an error is reported.
 // If verification succeeds, the list of contained events is reported.
@@ -70,7 +70,7 @@ func verifyWebhookSignature(req *http.Request, secret string) (events []event, e
 	defer req.Body.Close()
 
 	// Grab the signature sent on the request header.
-	timestamp, signatures, err := parseSignatureHeader(req.Header.Get("Tailscale-Webhook-Signature"))
+	timestamp, signatures, err := parseSignatureHeader(req.Header.Get("Lanhc-Webhook-Signature"))
 	if err != nil {
 		return nil, err
 	}

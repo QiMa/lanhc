@@ -28,22 +28,22 @@ import (
 	"time"
 
 	"golang.org/x/net/http2"
-	"tailscale.com/control/controlhttp/controlhttpserver"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tka"
-	"tailscale.com/tstest/tkatest"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/opt"
-	"tailscale.com/util/httpm"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/must"
-	"tailscale.com/util/rands"
-	"tailscale.com/util/set"
-	"tailscale.com/util/zstdframe"
+	"lanhc.com/control/controlhttp/controlhttpserver"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tka"
+	"lanhc.com/tstest/tkatest"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/opt"
+	"lanhc.com/util/httpm"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/must"
+	"lanhc.com/util/rands"
+	"lanhc.com/util/set"
+	"lanhc.com/util/zstdframe"
 )
 
 const msgLimit = 1 << 20 // encrypted message length limit
@@ -68,7 +68,7 @@ type Server struct {
 
 	// SSHPolicy, if non-nil, is sent to every node in MapResponses.
 	// Each node also gets [tailcfg.CapabilitySSH] added to its capability
-	// map, permitting "tailscale up --ssh".
+	// map, permitting "lanhc up --ssh".
 	SSHPolicy *tailcfg.SSHPolicy
 
 	// AllNodesSameUser, if true, makes all created nodes
@@ -102,11 +102,11 @@ type Server struct {
 	// Online=true. This is a coarse stand-in for the per-node
 	// online/offline tracking that production control servers do based
 	// on streaming map sessions: certain disco-key handling fast paths
-	// in [tailscale.com/control/controlclient] and
-	// [tailscale.com/wgengine/userspace] only fire when the peer is
+	// in [lanhc.com/control/controlclient] and
+	// [lanhc.com/wgengine/userspace] only fire when the peer is
 	// reported online, so without this flag they are silently skipped
 	// in tests, which can mask bugs and slow down recovery from disco
-	// rotations. See [tailscale.com/control/controlclient/map.go]
+	// rotations. See [lanhc.com/control/controlclient/map.go]
 	// removeUnwantedDiscoUpdates and
 	// removeUnwantedDiscoUpdatesFromFullNetmapUpdate for callers that
 	// branch on Online.
@@ -155,7 +155,7 @@ type Server struct {
 
 	// nodeUnsignedPeerAPIOnly is the set of nodes that appear in other
 	// nodes' netmaps with tailcfg.Node.UnsignedPeerAPIOnly set, as
-	// Tailscale Funnel ingress nodes do.
+	// Lanhc Funnel ingress nodes do.
 	nodeUnsignedPeerAPIOnly map[key.NodePublic]bool
 
 	// masquerades is the set of masquerades that should be applied to
@@ -569,7 +569,7 @@ func (s *Server) serveWebClient(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case strings.HasPrefix(r.URL.Path, "/machine/webclient/init/"):
 		resp.ID = "testcontrol-webclient-auth"
-		resp.URL = "https://control.tailscale/test-web-auth"
+		resp.URL = "https://control.lanhc/test-web-auth"
 	case strings.HasPrefix(r.URL.Path, "/machine/webclient/wait/"):
 		resp.Complete = true
 	default:
@@ -689,7 +689,7 @@ func (s *Server) SetJailed(a, b key.NodePublic, jailed bool) {
 
 // SetUnsignedPeerAPIOnly sets whether the node with the given key
 // appears in other nodes' netmaps with UnsignedPeerAPIOnly set, as
-// Tailscale Funnel ingress nodes do.
+// Lanhc Funnel ingress nodes do.
 func (s *Server) SetUnsignedPeerAPIOnly(k key.NodePublic, unsigned bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -868,7 +868,7 @@ func (s *Server) getUser(nodeKey key.NodePublic) (*tailcfg.User, *tailcfg.Login)
 		Provider:      "testcontrol",
 		LoginName:     loginName,
 		DisplayName:   displayName,
-		ProfilePicURL: "https://tailscale.com/static/images/marketing/team-carney.jpg",
+		ProfilePicURL: "https://lanhc.com/static/images/marketing/team-carney.jpg",
 	}
 	user := &tailcfg.User{
 		ID:          id,
@@ -1045,7 +1045,7 @@ func (s *Server) serveRegister(w http.ResponseWriter, r *http.Request, mkey key.
 
 		nodeID := len(s.nodes) + 1
 		v4Prefix := netip.PrefixFrom(netaddr.IPv4(100, 64, uint8(nodeID>>8), uint8(nodeID)), 32)
-		v6Prefix := netip.PrefixFrom(tsaddr.Tailscale4To6(v4Prefix.Addr()), 128)
+		v6Prefix := netip.PrefixFrom(tsaddr.Lanhc4To6(v4Prefix.Addr()), 128)
 
 		allowedIPs := []netip.Prefix{
 			v4Prefix,
@@ -1450,7 +1450,7 @@ func (s *Server) serveMap(w http.ResponseWriter, r *http.Request, mkey key.Machi
 	if !req.ReadOnly && !streamingNonUpdate {
 		if ctx.Err() != nil {
 			// The client canceled the request (say, its control client
-			// was shut down mid-request when "tailscale up" or a
+			// was shut down mid-request when "lanhc up" or a
 			// profile switch created a new one), so its contents may
 			// predate newer requests that were already processed.
 			// Don't apply its Hostinfo/endpoints; they may be stale.
@@ -1738,7 +1738,7 @@ func (s *Server) MapResponse(req *tailcfg.MapRequest) (res *tailcfg.MapResponse,
 	res.UserProfiles = s.allUserProfiles()
 
 	v4Prefix := netip.PrefixFrom(netaddr.IPv4(100, 64, uint8(node.ID>>8), uint8(node.ID)), 32)
-	v6Prefix := netip.PrefixFrom(tsaddr.Tailscale4To6(v4Prefix.Addr()), 128)
+	v6Prefix := netip.PrefixFrom(tsaddr.Lanhc4To6(v4Prefix.Addr()), 128)
 
 	res.Node.Addresses = []netip.Prefix{
 		v4Prefix,
@@ -1951,7 +1951,7 @@ func keepClientEndpoint(ipp netip.AddrPort) bool {
 	}
 	if ip.Is6() && ip.IsLinkLocalUnicast() {
 		// We let clients send these for now, but
-		// tailscaled doesn't know how to use them yet
+		// lanhcd doesn't know how to use them yet
 		// so we filter them out for now. A future
 		// MapRequest.Version might signal that
 		// clients know how to use them (e.g. try all

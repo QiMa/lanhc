@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"time"
 
-	"tailscale.com/syncs"
+	"lanhc.com/syncs"
 )
 
 // NewDefaultTransport returns a new *http.Transport configured identically to

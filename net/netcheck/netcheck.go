@@ -23,29 +23,29 @@ import (
 	"syscall"
 	"time"
 
-	"tailscale.com/derp"
-	"tailscale.com/derp/derphttp"
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/hostinfo"
-	"tailscale.com/net/dnscache"
-	"tailscale.com/net/neterror"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/netns"
-	"tailscale.com/net/ping"
-	"tailscale.com/net/portmapper/portmappertype"
-	"tailscale.com/net/sockstats"
-	"tailscale.com/net/stun"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/nettype"
-	"tailscale.com/types/opt"
-	"tailscale.com/types/views"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/testenv"
+	"lanhc.com/derp"
+	"lanhc.com/derp/derphttp"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/hostinfo"
+	"lanhc.com/net/dnscache"
+	"lanhc.com/net/neterror"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/netns"
+	"lanhc.com/net/ping"
+	"lanhc.com/net/portmapper/portmappertype"
+	"lanhc.com/net/sockstats"
+	"lanhc.com/net/stun"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/nettype"
+	"lanhc.com/types/opt"
+	"lanhc.com/types/views"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/testenv"
 )
 
 // Debugging and experimentation tweakables.
@@ -221,7 +221,7 @@ type Client struct {
 
 	// UseDNSCache controls whether this client should use a
 	// *dnscache.Resolver to resolve DERP hostnames, when no IP address is
-	// provided in the DERP map. Note that Tailscale-provided DERP servers
+	// provided in the DERP map. Note that Lanhc-provided DERP servers
 	// all specify explicit IPv4 and IPv6 addresses, so this is mostly
 	// helpful for users with custom DERP servers.
 	//
@@ -280,7 +280,7 @@ func (c *Client) MakeNextReportFull() {
 
 // ReceiveSTUNPacket must be called when a STUN packet is received as a reply to
 // packet the client sent using SendPacket. In Standalone this is performed by
-// the loop started by Standalone, in normal operation in tailscaled incoming
+// the loop started by Standalone, in normal operation in lanhcd incoming
 // STUN replies are routed to this method.
 func (c *Client) ReceiveSTUNPacket(pkt []byte, src netip.AddrPort) {
 	c.vlogf("received STUN packet from %s", src)
@@ -782,7 +782,7 @@ func (c *Client) SetForcePreferredDERP(region int) {
 // HookStartCaptivePortalDetection, if set, is called by GetReport to
 // asynchronously start captive portal detection during a full (non-incremental)
 // netcheck. It is set at init time by the optional
-// tailscale.com/feature/captiveportal/netcheckhook package.
+// lanhc.com/feature/captiveportal/netcheckhook package.
 //
 // The returned done channel is closed when detection has finished (and
 // setCaptivePortal has been called with the result, if it ran); the returned

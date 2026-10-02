@@ -12,19 +12,19 @@ import (
 	"sync"
 
 	gliderssh "github.com/tailscale/gliderssh"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/types/logger"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/types/logger"
 )
 
 func init() {
 	ipnlocal.HookListenSSH.Set(listenSSH)
 }
 
-// listenSSH wraps rawLn with an SSH server that resolves Tailscale peer
+// listenSSH wraps rawLn with an SSH server that resolves Lanhc peer
 // identity for each connection. The returned listener's Accept yields
 // *Session values (as net.Conn).
 func listenSSH(rawLn net.Listener, lb *ipnlocal.LocalBackend, logf logger.Logf) (net.Listener, error) {
-	hostKeys, err := getHostKeys(lb.TailscaleVarRoot(), logf)
+	hostKeys, err := getHostKeys(lb.LanhcVarRoot(), logf)
 	if err != nil {
 		return nil, err
 	}

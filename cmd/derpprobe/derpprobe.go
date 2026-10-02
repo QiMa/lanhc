@@ -17,16 +17,16 @@ import (
 	"time"
 
 	"github.com/tailscale/setec/client/setec"
-	"tailscale.com/prober"
-	"tailscale.com/tsweb"
-	"tailscale.com/types/key"
-	"tailscale.com/version"
+	"lanhc.com/prober"
+	"lanhc.com/tsweb"
+	"lanhc.com/types/key"
+	"lanhc.com/version"
 
 	// Support for prometheus varz in tsweb
-	_ "tailscale.com/tsweb/promvarz"
+	_ "lanhc.com/tsweb/promvarz"
 )
 
-const meshKeyEnvVar = "TAILSCALE_DERPER_MESH_KEY"
+const meshKeyEnvVar = "LANHC_DERPER_MESH_KEY"
 const setecMeshKeyName = "meshkey"
 
 func defaultSetecCacheDir() string {
@@ -35,7 +35,7 @@ func defaultSetecCacheDir() string {
 
 var (
 	dev                = flag.Bool("dev", false, "run in localhost development mode")
-	derpMapURL         = flag.String("derp-map", "https://login.tailscale.com/derpmap/default", "URL to DERP map (https:// or file://) or 'local' to use the local tailscaled's DERP map")
+	derpMapURL         = flag.String("derp-map", "https://login.lanhc.com/derpmap/default", "URL to DERP map (https:// or file://) or 'local' to use the local lanhcd's DERP map")
 	versionFlag        = flag.Bool("version", false, "print version and exit")
 	listen             = flag.String("listen", ":8030", "HTTP listen address")
 	probeOnce          = flag.Bool("once", false, "probe once and print results, then exit; ignores the listen flag")
@@ -46,7 +46,7 @@ var (
 	tlsInterval        = flag.Duration("tls-interval", 15*time.Second, "TLS probe interval")
 	bwInterval         = flag.Duration("bw-interval", 0, "bandwidth probe interval (0 = no bandwidth probing)")
 	bwSize             = flag.Int64("bw-probe-size-bytes", 1_000_000, "bandwidth probe size")
-	bwTUNIPv4Address   = flag.String("bw-tun-ipv4-addr", "", "if specified, bandwidth probes will be performed over a TUN device at this address in order to exercise TCP-in-TCP in similar fashion to TCP over Tailscale via DERP; we will use a /30 subnet including this IP address")
+	bwTUNIPv4Address   = flag.String("bw-tun-ipv4-addr", "", "if specified, bandwidth probes will be performed over a TUN device at this address in order to exercise TCP-in-TCP in similar fashion to TCP over Lanhc via DERP; we will use a /30 subnet including this IP address")
 	qdPacketsPerSecond = flag.Int("qd-packets-per-second", 0, "if greater than 0, queuing delay will be measured continuously using 260 byte packets (approximate size of a CallMeMaybe packet) sent at this rate per second")
 	qdPacketTimeout    = flag.Duration("qd-packet-timeout", 5*time.Second, "queuing delay packets arriving after this period of time from being sent are treated like dropped packets and don't count toward queuing delay timings")
 	regionCodeOrID     = flag.String("region-code", "", "probe only this region (e.g. 'lax' or '17'); if left blank, all regions will be probed")

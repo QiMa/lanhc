@@ -13,9 +13,9 @@ import (
 	"net/http"
 	"strings"
 
-	"tailscale.com/control/ts2021"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
+	"lanhc.com/control/ts2021"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
 )
 
 // RegisterOpts contains options for registering a node.

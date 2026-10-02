@@ -10,8 +10,8 @@ import (
 	"runtime/debug"
 	"testing"
 
-	ts "tailscale.com"
-	"tailscale.com/version"
+	ts "lanhc.com"
+	"lanhc.com/version"
 )
 
 func TestAlpineTag(t *testing.T) {

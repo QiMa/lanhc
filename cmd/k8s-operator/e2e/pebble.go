@@ -23,8 +23,8 @@ func applyPebbleResources(ctx context.Context, cl client.Client) error {
 	if err := cl.Patch(ctx, pebbleService(), client.Apply, owner); err != nil {
 		return fmt.Errorf("failed to apply pebble Service: %w", err)
 	}
-	if err := cl.Patch(ctx, tailscaleNamespace(), client.Apply, owner); err != nil {
-		return fmt.Errorf("failed to apply tailscale Namespace: %w", err)
+	if err := cl.Patch(ctx, lanhcNamespace(), client.Apply, owner); err != nil {
+		return fmt.Errorf("failed to apply lanhc Namespace: %w", err)
 	}
 	if err := cl.Patch(ctx, pebbleExternalNameService(), client.Apply, owner); err != nil {
 		return fmt.Errorf("failed to apply pebble ExternalName Service: %w", err)
@@ -138,19 +138,19 @@ func pebbleService() *corev1.Service {
 	}
 }
 
-func tailscaleNamespace() *corev1.Namespace {
+func lanhcNamespace() *corev1.Namespace {
 	return &corev1.Namespace{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Namespace",
 			APIVersion: "v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "tailscale",
+			Name: "lanhc",
 		},
 	}
 }
 
-// pebbleExternalNameService ensures the operator in the tailscale namespace
+// pebbleExternalNameService ensures the operator in the lanhc namespace
 // can reach pebble on a DNS name (pebble) that matches its TLS cert.
 func pebbleExternalNameService() *corev1.Service {
 	return &corev1.Service{
@@ -160,7 +160,7 @@ func pebbleExternalNameService() *corev1.Service {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "pebble",
-			Namespace: "tailscale",
+			Namespace: "lanhc",
 		},
 		Spec: corev1.ServiceSpec{
 			Type: corev1.ServiceTypeExternalName,

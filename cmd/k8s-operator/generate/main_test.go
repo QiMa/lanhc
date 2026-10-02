@@ -16,8 +16,8 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/tstest/nettest"
-	"tailscale.com/util/cibuild"
+	"lanhc.com/tstest/nettest"
+	"lanhc.com/util/cibuild"
 )
 
 func Test_generate(t *testing.T) {
@@ -58,7 +58,7 @@ func Test_generate(t *testing.T) {
 	if err := helmPackageCmd.Run(); err != nil {
 		t.Fatalf("error packaging Helm chart: %v", err)
 	}
-	helmPackagePath := filepath.Join(tempDir, "tailscale-operator-0.0.1.tgz")
+	helmPackagePath := filepath.Join(tempDir, "lanhc-operator-0.0.1.tgz")
 	helmLintCmd := exec.Command(helmCLIPath, "lint", helmPackagePath)
 	helmLintCmd.Stderr = os.Stderr
 	helmLintCmd.Stdout = os.Stdout
@@ -74,19 +74,19 @@ func Test_generate(t *testing.T) {
 	if err := helmTemplateWithCRDCmd.Run(); err != nil {
 		t.Fatalf("templating Helm chart with CRDs failed: %v", err)
 	}
-	if !strings.Contains(installContentsWithCRD.String(), "name: connectors.tailscale.com") {
+	if !strings.Contains(installContentsWithCRD.String(), "name: connectors.lanhc.com") {
 		t.Errorf("Connector CRD not found in default chart install")
 	}
-	if !strings.Contains(installContentsWithCRD.String(), "name: proxyclasses.tailscale.com") {
+	if !strings.Contains(installContentsWithCRD.String(), "name: proxyclasses.lanhc.com") {
 		t.Errorf("ProxyClass CRD not found in default chart install")
 	}
-	if !strings.Contains(installContentsWithCRD.String(), "name: dnsconfigs.tailscale.com") {
+	if !strings.Contains(installContentsWithCRD.String(), "name: dnsconfigs.lanhc.com") {
 		t.Errorf("DNSConfig CRD not found in default chart install")
 	}
-	if !strings.Contains(installContentsWithCRD.String(), "name: recorders.tailscale.com") {
+	if !strings.Contains(installContentsWithCRD.String(), "name: recorders.lanhc.com") {
 		t.Errorf("Recorder CRD not found in default chart install")
 	}
-	if !strings.Contains(installContentsWithCRD.String(), "name: proxygroups.tailscale.com") {
+	if !strings.Contains(installContentsWithCRD.String(), "name: proxygroups.lanhc.com") {
 		t.Errorf("ProxyGroup CRD not found in default chart install")
 	}
 
@@ -98,19 +98,19 @@ func Test_generate(t *testing.T) {
 	if err := helmTemplateWithoutCRDCmd.Run(); err != nil {
 		t.Fatalf("templating Helm chart without CRDs failed: %v", err)
 	}
-	if strings.Contains(installContentsWithoutCRD.String(), "name: connectors.tailscale.com") {
+	if strings.Contains(installContentsWithoutCRD.String(), "name: connectors.lanhc.com") {
 		t.Errorf("Connector CRD found in chart install that should not contain a CRD")
 	}
-	if strings.Contains(installContentsWithoutCRD.String(), "name: connectors.tailscale.com") {
+	if strings.Contains(installContentsWithoutCRD.String(), "name: connectors.lanhc.com") {
 		t.Errorf("ProxyClass CRD found in chart install that should not contain a CRD")
 	}
-	if strings.Contains(installContentsWithoutCRD.String(), "name: dnsconfigs.tailscale.com") {
+	if strings.Contains(installContentsWithoutCRD.String(), "name: dnsconfigs.lanhc.com") {
 		t.Errorf("DNSConfig CRD found in chart install that should not contain a CRD")
 	}
-	if strings.Contains(installContentsWithoutCRD.String(), "name: recorders.tailscale.com") {
+	if strings.Contains(installContentsWithoutCRD.String(), "name: recorders.lanhc.com") {
 		t.Errorf("Recorder CRD found in chart install that should not contain a CRD")
 	}
-	if strings.Contains(installContentsWithoutCRD.String(), "name: proxygroups.tailscale.com") {
+	if strings.Contains(installContentsWithoutCRD.String(), "name: proxygroups.lanhc.com") {
 		t.Errorf("ProxyGroup CRD found in chart install that should not contain a CRD")
 	}
 }

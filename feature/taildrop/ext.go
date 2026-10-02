@@ -16,24 +16,24 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/cmd/tailscaled/tailscaledhooks"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnext"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
-	"tailscale.com/types/empty"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/osshare"
-	"tailscale.com/util/set"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/cmd/lanhcd/lanhcdhooks"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnext"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
+	"lanhc.com/types/empty"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/osshare"
+	"lanhc.com/util/set"
 )
 
 func init() {
 	ipnext.RegisterExtension("taildrop", newExtension)
 
 	if runtime.GOOS == "windows" {
-		tailscaledhooks.UninstallSystemDaemonWindows.Add(func() {
+		lanhcdhooks.UninstallSystemDaemonWindows.Add(func() {
 			// Remove file sharing from Windows shell.
 			osshare.SetFileSharingEnabled(false, logger.Discard)
 		})
@@ -103,7 +103,7 @@ func (e *Extension) Init(h ipnext.Host) error {
 	h.Hooks().BackendStateChange.Add(e.onBackendStateChange)
 
 	// TODO(nickkhyl): remove this after the profileManager refactoring.
-	// See tailscale/tailscale#15974.
+	// See lanhc/lanhc#15974.
 	// This same workaround appears in feature/portlist/portlist.go.
 	profile, prefs := h.Profiles().CurrentProfileState()
 	e.onChangeProfile(profile, prefs, false)
@@ -193,7 +193,7 @@ func (e *Extension) fileRoot(uid tailcfg.UserID, activeLogin string) (root strin
 	if v := e.directFileRoot; v != "" {
 		return v, true
 	}
-	varRoot := e.sb.TailscaleVarRoot()
+	varRoot := e.sb.LanhcVarRoot()
 	if varRoot == "" {
 		e.logf("Taildrop disabled; no state directory")
 		return "", false
@@ -343,7 +343,7 @@ func (e *Extension) FileTargets() ([]*apitype.FileTarget, error) {
 		return nil, errors.New("not connected to the tailnet")
 	}
 	if !e.hasCapFileSharing() {
-		return nil, errors.New("file sharing not enabled by Tailscale admin")
+		return nil, errors.New("file sharing not enabled by Lanhc admin")
 	}
 	nb := e.nodeBackend()
 	peers := nb.AppendMatchingPeers(nil, func(p tailcfg.NodeView) bool {

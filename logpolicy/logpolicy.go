@@ -29,34 +29,34 @@ import (
 	"time"
 
 	"golang.org/x/term"
-	"tailscale.com/atomicfile"
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/health"
-	"tailscale.com/hostinfo"
-	"tailscale.com/log/filelogger"
-	"tailscale.com/logtail"
-	"tailscale.com/logtail/filch"
-	"tailscale.com/net/dnscache"
-	"tailscale.com/net/dnsfallback"
-	"tailscale.com/net/netknob"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/netns"
-	"tailscale.com/net/netutil"
-	"tailscale.com/net/netx"
-	"tailscale.com/net/tlsdial"
-	"tailscale.com/paths"
-	"tailscale.com/safesocket"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/logid"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/must"
-	"tailscale.com/util/racebuild"
-	"tailscale.com/util/testenv"
-	"tailscale.com/version"
-	"tailscale.com/version/distro"
+	"lanhc.com/atomicfile"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/health"
+	"lanhc.com/hostinfo"
+	"lanhc.com/log/filelogger"
+	"lanhc.com/logtail"
+	"lanhc.com/logtail/filch"
+	"lanhc.com/net/dnscache"
+	"lanhc.com/net/dnsfallback"
+	"lanhc.com/net/netknob"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/netns"
+	"lanhc.com/net/netutil"
+	"lanhc.com/net/netx"
+	"lanhc.com/net/tlsdial"
+	"lanhc.com/paths"
+	"lanhc.com/safesocket"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/logid"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/must"
+	"lanhc.com/util/racebuild"
+	"lanhc.com/util/testenv"
+	"lanhc.com/version"
+	"lanhc.com/version/distro"
 )
 
 // GetLogTarget is an optional hook to register a function
@@ -217,26 +217,26 @@ func LogsDir(logf logger.Logf) string {
 
 	switch runtime.GOOS {
 	case "windows":
-		if version.CmdName() == "tailscaled" {
-			// In the common case, when tailscaled is run as the Local System (as a service),
-			// we want to use %ProgramData% (C:\ProgramData\Tailscale), aside the
+		if version.CmdName() == "lanhcd" {
+			// In the common case, when lanhcd is run as the Local System (as a service),
+			// we want to use %ProgramData% (C:\ProgramData\Lanhc), aside the
 			// system state config with the machine key, etc. But if that directory's
-			// not accessible, then it's probably because the user is running tailscaled
+			// not accessible, then it's probably because the user is running lanhcd
 			// as a regular user (perhaps in userspace-networking/SOCK5 mode) and we should
 			// just use the %LocalAppData% instead. In a user context, %LocalAppData% isn't
 			// subject to random deletions from Windows system updates.
-			dir := filepath.Join(os.Getenv("ProgramData"), "Tailscale")
+			dir := filepath.Join(os.Getenv("ProgramData"), "Lanhc")
 			if winProgramDataAccessible(dir) {
 				logf("logpolicy: using dir %v", dir)
 				return dir
 			}
 		}
-		dir := filepath.Join(os.Getenv("LocalAppData"), "Tailscale")
+		dir := filepath.Join(os.Getenv("LocalAppData"), "Lanhc")
 		logf("logpolicy: using LocalAppData dir %v", dir)
 		return dir
 	case "linux":
 		if distro.Get() == distro.JetKVM {
-			return "/userdata/tailscale/var"
+			return "/userdata/lanhc/var"
 		}
 		// STATE_DIRECTORY is set by systemd 240+ but we support older
 		// systems-d. For example, Ubuntu 18.04 (Bionic Beaver) is 237.
@@ -250,9 +250,9 @@ func LogsDir(logf logger.Logf) string {
 		return ""
 	}
 
-	// Default to e.g. /var/lib/tailscale or /var/db/tailscale on Unix.
-	if d := paths.DefaultTailscaledStateFile(); d != "" {
-		d = filepath.Dir(d) // directory of e.g. "/var/lib/tailscale/tailscaled.state"
+	// Default to e.g. /var/lib/lanhc or /var/db/lanhc on Unix.
+	if d := paths.DefaultLanhcdStateFile(); d != "" {
+		d = filepath.Dir(d) // directory of e.g. "/var/lib/lanhc/lanhcd.state"
 		if err := os.MkdirAll(d, 0700); err == nil {
 			logf("logpolicy: using system state directory %q", d)
 			return d
@@ -261,7 +261,7 @@ func LogsDir(logf logger.Logf) string {
 
 	cacheDir, err := os.UserCacheDir()
 	if err == nil {
-		d := filepath.Join(cacheDir, "Tailscale")
+		d := filepath.Join(cacheDir, "Lanhc")
 		logf("logpolicy: using UserCacheDir, %q", d)
 		return d
 	}
@@ -277,7 +277,7 @@ func LogsDir(logf logger.Logf) string {
 	// No idea where to put stuff. Try to create a temp dir. It'll
 	// mean we might lose some logs and rotate through log IDs, but
 	// it's something.
-	tmp, err := os.MkdirTemp("", "tailscaled-log-*")
+	tmp, err := os.MkdirTemp("", "lanhcd-log-*")
 	if err != nil {
 		panic("no safe place found to store log state")
 	}
@@ -306,7 +306,7 @@ func winProgramDataAccessible(dir string) bool {
 		// TODO: windows ACLs
 		return false
 	}
-	// The C:\ProgramData\Tailscale directory should be locked down
+	// The C:\ProgramData\Lanhc directory should be locked down
 	// by with ACLs to only be readable by the local system so a
 	// regular user shouldn't be able to do this operation:
 	if _, err := os.ReadDir(dir); err != nil {
@@ -316,7 +316,7 @@ func winProgramDataAccessible(dir string) bool {
 }
 
 // tryFixLogStateLocation is a temporary fixup for
-// https://github.com/tailscale/tailscale/issues/247 . We accidentally
+// https://github.com/lanhc/lanhc/issues/247 . We accidentally
 // wrote logging state files to /, and then later to $CACHE_DIRECTORY
 // (which is incorrect because the log ID is not reconstructible if
 // deleted - it's state, not cache data).
@@ -335,13 +335,13 @@ func tryFixLogStateLocation(dir, cmdname string, logf logger.Logf) {
 		return
 	}
 	if cmdname == "" {
-		logf("[unexpected] no cmdname given to tryFixLogStateLocation, please file a bug at https://github.com/tailscale/tailscale")
+		logf("[unexpected] no cmdname given to tryFixLogStateLocation, please file a bug at https://github.com/lanhc/lanhc")
 		return
 	}
 	if dir == "/" {
 		// Trying to store things in / still. That's a bug, but don't
 		// abort hard.
-		logf("[unexpected] storing logging config in /, please file a bug at https://github.com/tailscale/tailscale")
+		logf("[unexpected] storing logging config in /, please file a bug at https://github.com/lanhc/lanhc")
 		return
 	}
 	if os.Getuid() != 0 {
@@ -350,7 +350,7 @@ func tryFixLogStateLocation(dir, cmdname string, logf logger.Logf) {
 	}
 
 	// We stored logs in 2 incorrect places: either /, or CACHE_DIR
-	// (aka /var/cache/tailscale). We want to move files into the
+	// (aka /var/cache/lanhc). We want to move files into the
 	// provided dir, preferring those in CACHE_DIR over those in / if
 	// both exist. If files already exist in dir, don't
 	// overwrite. Finally, once we've maybe moved files around, we
@@ -404,7 +404,7 @@ func tryFixLogStateLocation(dir, cmdname string, logf logger.Logf) {
 	existsInCache := false
 	cacheDir := os.Getenv("CACHE_DIRECTORY")
 	if cacheDir != "" {
-		existsInCache, err = checkExists("/var/cache/tailscale")
+		existsInCache, err = checkExists("/var/cache/lanhc")
 		if err != nil {
 			logf("checking for configs in %s: %v", cacheDir, err)
 		}
@@ -478,7 +478,7 @@ func New(collection string, netMon *netmon.Monitor, health *health.Tracker, logf
 type Options struct {
 	// Collection is a required collection to upload logs under.
 	// Collection is a namespace for the type logs.
-	// For example, logs for a node use "tailnode.log.tailscale.io".
+	// For example, logs for a node use "tailnode.log.lanhc.io".
 	Collection string
 
 	// Dir is an optional directory to store the log configuration.
@@ -528,7 +528,7 @@ type Options struct {
 // Policy.
 func (opts Options) init(disableLogging bool) (*logtail.Config, *Policy) {
 	if hostinfo.IsNATLabGuestVM() {
-		// In NATLab Gokrazy instances, tailscaled comes up concurently with
+		// In NATLab Gokrazy instances, lanhcd comes up concurently with
 		// DHCP and the doesn't have DNS for a while. Wait for DHCP first.
 		awaitGokrazyNetwork()
 	}
@@ -582,35 +582,35 @@ func (opts Options) init(disableLogging bool) (*logtail.Config, *Policy) {
 
 	if runtime.GOOS == "windows" {
 		switch opts.CmdName {
-		case "tailscaled":
-			// Tailscale 1.14 and before stored state under %LocalAppData%
+		case "lanhcd":
+			// Lanhc 1.14 and before stored state under %LocalAppData%
 			// (usually "C:\WINDOWS\system32\config\systemprofile\AppData\Local"
-			// when tailscaled.exe is running as a non-user system service).
+			// when lanhcd.exe is running as a non-user system service).
 			// However it is frequently cleared for almost any reason: Windows
 			// updates, System Restore, even various System Cleaner utilities.
 			//
-			// The Windows service previously ran as tailscale-ipn.exe, so
+			// The Windows service previously ran as lanhc-gui.exe, so
 			// machines which ran very old versions might still have their
-			// log conf named %LocalAppData%\tailscale-ipn.log.conf
+			// log conf named %LocalAppData%\lanhc-gui.log.conf
 			//
-			// Machines which started using Tailscale more recently will have
-			// %LocalAppData%\tailscaled.log.conf
+			// Machines which started using Lanhc more recently will have
+			// %LocalAppData%\lanhcd.log.conf
 			//
-			// Attempt to migrate the log conf to C:\ProgramData\Tailscale
-			oldDir := filepath.Join(os.Getenv("LocalAppData"), "Tailscale")
+			// Attempt to migrate the log conf to C:\ProgramData\Lanhc
+			oldDir := filepath.Join(os.Getenv("LocalAppData"), "Lanhc")
 
-			oldPath := filepath.Join(oldDir, "tailscaled.log.conf")
+			oldPath := filepath.Join(oldDir, "lanhcd.log.conf")
 			if fi, err := os.Stat(oldPath); err != nil || !fi.Mode().IsRegular() {
-				// *Only* if tailscaled.log.conf does not exist,
-				// check for tailscale-ipn.log.conf
-				oldPathOldCmd := filepath.Join(oldDir, "tailscale-ipn.log.conf")
+				// *Only* if lanhcd.log.conf does not exist,
+				// check for lanhc-gui.log.conf
+				oldPathOldCmd := filepath.Join(oldDir, "lanhc-gui.log.conf")
 				if fi, err := os.Stat(oldPathOldCmd); err == nil && fi.Mode().IsRegular() {
 					oldPath = oldPathOldCmd
 				}
 			}
 
 			cfgPath = paths.TryConfigFileMigration(earlyLogf, oldPath, cfgPath)
-		case "tailscale-ipn":
+		case "lanhc-gui":
 			for _, oldBase := range []string{"wg64.log.conf", "wg32.log.conf"} {
 				oldConf := filepath.Join(opts.Dir, oldBase)
 				if fi, err := os.Stat(oldConf); err == nil && fi.Mode().IsRegular() {
@@ -648,7 +648,7 @@ func (opts Options) init(disableLogging bool) (*logtail.Config, *Policy) {
 	}
 
 	if disableLogging {
-		opts.Logf("You have disabled logging. Tailscale will not be able to provide support.")
+		opts.Logf("You have disabled logging. Lanhc will not be able to provide support.")
 		conf.HTTPC = &http.Client{Transport: noopPretendSuccessTransport{}}
 	} else {
 		// Only attach an on-disk filch buffer if we are going to be sending logs.
@@ -664,7 +664,7 @@ func (opts Options) init(disableLogging bool) (*logtail.Config, *Policy) {
 			} else if u.Host == "" {
 				opts.Logf("logpolicy: invalid TS_LOG_TARGET %q: missing host; using default log host", val)
 			} else {
-				opts.Logf("You have enabled a non-default log target. Doing without being told to by Tailscale staff or your network administrator will make getting support difficult.")
+				opts.Logf("You have enabled a non-default log target. Doing without being told to by Lanhc staff or your network administrator will make getting support difficult.")
 				conf.BaseURL = val
 				logHost = u.Host
 			}
@@ -686,8 +686,8 @@ func (opts Options) init(disableLogging bool) (*logtail.Config, *Policy) {
 	if runtime.GOOS == "windows" && conf.Collection == logtail.CollectionNode {
 		logID := newc.PublicID.String()
 		exe, _ := os.Executable()
-		if strings.EqualFold(filepath.Base(exe), "tailscaled.exe") {
-			diskLogf := filelogger.New("tailscale-service", logID, lw.Logf)
+		if strings.EqualFold(filepath.Base(exe), "lanhcd.exe") {
+			diskLogf := filelogger.New("lanhc-service", logID, lw.Logf)
 			logOutput = logger.FuncWriter(diskLogf)
 		}
 	}
@@ -731,9 +731,9 @@ func attachFilchBuffer(conf *logtail.Config, dir, cmdName string, maxFileSize in
 	filchPrefix := filepath.Join(dir, cmdName)
 
 	// NAS disks cannot hibernate if we're writing logs to them all the time.
-	// https://github.com/tailscale/tailscale/issues/3551
+	// https://github.com/lanhc/lanhc/issues/3551
 	if runtime.GOOS == "linux" && (distro.Get() == distro.Synology || distro.Get() == distro.QNAP) {
-		tmpfsLogs := "/tmp/tailscale-logs"
+		tmpfsLogs := "/tmp/lanhc-logs"
 		if err := os.MkdirAll(tmpfsLogs, 0755); err == nil {
 			filchPrefix = filepath.Join(tmpfsLogs, cmdName)
 			filchOptions.MaxFileSize = 1 << 20
@@ -759,7 +759,7 @@ func attachFilchBuffer(conf *logtail.Config, dir, cmdName string, maxFileSize in
 // own dialing.
 //
 // By default it goes nowhere and is only enabled when
-// tailscaled's in verbose mode.
+// lanhcd's in verbose mode.
 //
 // log.Printf isn't used so its own logs don't loop back into logtail
 // in the happy path, thus generating more logs.
@@ -797,12 +797,12 @@ func (p *Policy) Shutdown(ctx context.Context) error {
 // MakeDialFunc creates a net.Dialer.DialContext function specialized for use
 // by logtail.
 // It does the following:
-//   - If DNS lookup fails, consults the bootstrap DNS list of Tailscale hostnames.
+//   - If DNS lookup fails, consults the bootstrap DNS list of Lanhc hostnames.
 //   - If TLS connection fails, try again using LetsEncrypt's built-in root certificate,
 //     for the benefit of older OS platforms which might not include it.
 //
 // The netMon parameter is optional. It should be specified in environments where
-// Tailscaled is manipulating the routing table.
+// Lanhcd is manipulating the routing table.
 func MakeDialFunc(netMon *netmon.Monitor, logf logger.Logf) netx.DialFunc {
 	if netMon == nil {
 		netMon = netmon.NewStatic()
@@ -834,10 +834,10 @@ func dialContext(ctx context.Context, netw, addr string, netMon *netmon.Monitor,
 				err = errors.New(res.Status)
 			}
 			if err != nil {
-				logf("logtail: CONNECT response error from tailscaled: %v", err)
+				logf("logtail: CONNECT response error from lanhcd: %v", err)
 				c.Close()
 			} else {
-				dialLog.Printf("connected via tailscaled")
+				dialLog.Printf("connected via lanhcd")
 				return c, nil
 			}
 		}
@@ -940,7 +940,7 @@ func (opts TransportOptions) New() http.RoundTripper {
 	}
 
 	tr.TLSClientConfig = tlsdial.Config(opts.Health, tr.TLSClientConfig)
-	// Force TLS 1.3 since we know log.tailscale.com supports it.
+	// Force TLS 1.3 since we know log.lanhc.com supports it.
 	tr.TLSClientConfig.MinVersion = tls.VersionTLS13
 
 	return tr

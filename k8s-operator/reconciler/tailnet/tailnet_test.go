@@ -16,10 +16,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/k8s-operator/reconciler/tailnet"
-	"tailscale.com/k8s-operator/tsclient"
-	"tailscale.com/tstest"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/k8s-operator/reconciler/tailnet"
+	"lanhc.com/k8s-operator/tsclient"
+	"lanhc.com/tstest"
 )
 
 func TestReconciler_Reconcile(t *testing.T) {
@@ -69,7 +69,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 					Type:    string(tsapi.TailnetReady),
 					Status:  metav1.ConditionFalse,
 					Reason:  tailnet.ReasonInvalidSecret,
-					Message: `referenced secret "test" does not exist in namespace "tailscale"`,
+					Message: `referenced secret "test" does not exist in namespace "lanhc"`,
 				},
 			},
 		},
@@ -93,7 +93,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 			Secret: &corev1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test",
-					Namespace: "tailscale",
+					Namespace: "lanhc",
 				},
 			},
 			ExpectedConditions: []metav1.Condition{
@@ -125,7 +125,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 			Secret: &corev1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test",
-					Namespace: "tailscale",
+					Namespace: "lanhc",
 				},
 				Data: map[string][]byte{
 					"client_secret": []byte("test"),
@@ -160,7 +160,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 			Secret: &corev1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test",
-					Namespace: "tailscale",
+					Namespace: "lanhc",
 				},
 				Data: map[string][]byte{
 					"client_id": []byte("test"),
@@ -195,7 +195,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 			Secret: &corev1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test",
-					Namespace: "tailscale",
+					Namespace: "lanhc",
 				},
 				Data: map[string][]byte{
 					"client_id":     []byte("test"),
@@ -234,7 +234,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 			Secret: &corev1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test",
-					Namespace: "tailscale",
+					Namespace: "lanhc",
 				},
 				Data: map[string][]byte{
 					"client_id":     []byte("test"),
@@ -249,7 +249,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 					Type:    string(tsapi.TailnetReady),
 					Status:  metav1.ConditionFalse,
 					Reason:  tailnet.ReasonInvalidOAuth,
-					Message: `failed to list tailscale services: EOF (client may be missing the services scope)`,
+					Message: `failed to list lanhc services: EOF (client may be missing the services scope)`,
 				},
 			},
 		},
@@ -273,7 +273,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 			Secret: &corev1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test",
-					Namespace: "tailscale",
+					Namespace: "lanhc",
 				},
 				Data: map[string][]byte{
 					"client_id":     []byte("test"),
@@ -312,7 +312,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 			Secret: &corev1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test",
-					Namespace: "tailscale",
+					Namespace: "lanhc",
 				},
 				Data: map[string][]byte{
 					"client_id":     []byte("test"),
@@ -351,11 +351,11 @@ func TestReconciler_Reconcile(t *testing.T) {
 			Secret: &corev1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test",
-					Namespace: "tailscale",
+					Namespace: "lanhc",
 				},
 				Data: map[string][]byte{
 					"client_id": []byte("test"),
-					"audience":  []byte("https://tailscale.com"),
+					"audience":  []byte("https://lanhc.com"),
 				},
 			},
 			ClientFunc: func(_ *tsapi.Tailnet, _ *corev1.Secret) tsclient.Client {
@@ -388,7 +388,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 				Clock:              clock,
 				Logger:             logger.Sugar(),
 				ClientFunc:         tc.ClientFunc,
-				TailscaleNamespace: "tailscale",
+				LanhcNamespace: "lanhc",
 				Registry:           tsclient.NewProvider(nil),
 			}
 

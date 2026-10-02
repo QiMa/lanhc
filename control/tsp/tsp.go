@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package tsp provides a client for speaking the Tailscale protocol
+// Package tsp provides a client for speaking the Lanhc protocol
 // to a coordination server over Noise.
 package tsp
 
@@ -18,14 +18,14 @@ import (
 	"strconv"
 	"sync"
 
-	"tailscale.com/control/ts2021"
-	"tailscale.com/health"
-	"tailscale.com/ipn"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/version"
+	"lanhc.com/control/ts2021"
+	"lanhc.com/health"
+	"lanhc.com/ipn"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/version"
 )
 
 // DefaultServerURL is the default coordination server base URL,
@@ -35,7 +35,7 @@ var DefaultServerURL = ipn.DefaultControlURL
 // ClientOpts contains options for creating a new Client.
 type ClientOpts struct {
 	// ServerURL is the base URL of the coordination server
-	// (e.g. "https://controlplane.tailscale.com").
+	// (e.g. "https://controlplane.lanhc.com").
 	// If empty, DefaultServerURL is used.
 	ServerURL string
 
@@ -50,7 +50,7 @@ type ClientOpts struct {
 	HealthTracker *health.Tracker
 }
 
-// Client is a Tailscale protocol client that speaks to a coordination
+// Client is a Lanhc protocol client that speaks to a coordination
 // server over Noise.
 type Client struct {
 	opts      ClientOpts

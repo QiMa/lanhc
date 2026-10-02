@@ -13,10 +13,10 @@ import (
 	"github.com/jsimonetti/rtnetlink"
 	"github.com/mdlayher/netlink"
 	"golang.org/x/sys/unix"
-	"tailscale.com/envknob"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/eventbus"
+	"lanhc.com/envknob"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/eventbus"
 )
 
 var debugNetlinkMessages = envknob.RegisterBool("TS_DEBUG_NETLINK")
@@ -28,7 +28,7 @@ type unspecifiedMessage struct{}
 
 func (unspecifiedMessage) ignore() bool { return false }
 
-// RuleDeleted reports that one of Tailscale's policy routing rules
+// RuleDeleted reports that one of Lanhc's policy routing rules
 // was deleted.
 type RuleDeleted struct {
 	// Table is the table number that the deleted rule referenced.
@@ -198,7 +198,7 @@ func (c *nlConn) Receive() (message, error) {
 		if rmsg.Table == tsTable && dst.IsSingleIP() {
 			// Don't log. Spammy and normal to see a bunch of these on start-up,
 			// which we make ourselves.
-		} else if tsaddr.IsTailscaleIP(dst.Addr()) {
+		} else if tsaddr.IsLanhcIP(dst.Addr()) {
 			// Verbose only.
 			c.logf("%s: [v1] src=%v, dst=%v, gw=%v, outif=%v, table=%v", typeStr,
 				condNetAddrPrefix(src), condNetAddrPrefix(dst), condNetAddrIP(gw),
@@ -210,7 +210,7 @@ func (c *nlConn) Receive() (message, error) {
 		}
 		if msg.Header.Type == unix.RTM_DELROUTE {
 			// Just logging it for now.
-			// (Debugging https://github.com/tailscale/tailscale/issues/643)
+			// (Debugging https://github.com/lanhc/lanhc/issues/643)
 			return unspecifiedMessage{}, nil
 		}
 
@@ -228,7 +228,7 @@ func (c *nlConn) Receive() (message, error) {
 		// Probably ourselves adding it.
 		return ignoreMessage{}, nil
 	case unix.RTM_DELRULE:
-		// For https://github.com/tailscale/tailscale/issues/1591 where
+		// For https://github.com/lanhc/lanhc/issues/1591 where
 		// systemd-networkd deletes our rules.
 		var rmsg rtnetlink.RouteMessage
 		err := rmsg.UnmarshalBinary(msg.Data)
@@ -250,7 +250,7 @@ func (c *nlConn) Receive() (message, error) {
 		return ignoreMessage{}, nil
 	case unix.RTM_NEWLINK, unix.RTM_DELLINK:
 		// This is an unhandled message, but don't print an error.
-		// See https://github.com/tailscale/tailscale/issues/6806
+		// See https://github.com/lanhc/lanhc/issues/6806
 		return unspecifiedMessage{}, nil
 	default:
 		c.logf("unhandled netlink msg type %+v, %q", msg.Header, msg.Data)
@@ -292,7 +292,7 @@ type newRouteMessage struct {
 const tsTable = 52
 
 func (m *newRouteMessage) ignore() bool {
-	return m.Table == tsTable || tsaddr.IsTailscaleIP(m.Dst.Addr())
+	return m.Table == tsTable || tsaddr.IsLanhcIP(m.Dst.Addr())
 }
 
 // newAddrMessage is a message for a new address being added.
@@ -303,7 +303,7 @@ type newAddrMessage struct {
 }
 
 func (m *newAddrMessage) ignore() bool {
-	return tsaddr.IsTailscaleIP(m.Addr)
+	return tsaddr.IsLanhcIP(m.Addr)
 }
 
 type ignoreMessage struct{}

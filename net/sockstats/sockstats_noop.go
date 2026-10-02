@@ -1,15 +1,15 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-//go:build !tailscale_go || !(darwin || ios || android || ts_enable_sockstats)
+//go:build !lanhc_go || !(darwin || ios || android || ts_enable_sockstats)
 
 package sockstats
 
 import (
 	"context"
 
-	"tailscale.com/net/netmon"
-	"tailscale.com/types/logger"
+	"lanhc.com/net/netmon"
+	"lanhc.com/types/logger"
 )
 
 const IsAvailable = false

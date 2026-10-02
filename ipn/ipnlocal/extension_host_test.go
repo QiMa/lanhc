@@ -19,21 +19,21 @@ import (
 	deepcmp "github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"tailscale.com/health"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnauth"
-	"tailscale.com/ipn/ipnext"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsd"
-	"tailscale.com/tstest"
-	"tailscale.com/tstime"
-	"tailscale.com/types/key"
-	"tailscale.com/types/lazy"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/persist"
-	"tailscale.com/util/eventbus/eventbustest"
-	"tailscale.com/util/must"
+	"lanhc.com/health"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnauth"
+	"lanhc.com/ipn/ipnext"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsd"
+	"lanhc.com/tstest"
+	"lanhc.com/tstime"
+	"lanhc.com/types/key"
+	"lanhc.com/types/lazy"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/persist"
+	"lanhc.com/util/eventbus/eventbustest"
+	"lanhc.com/util/must"
 )
 
 // defaultCmpOpts are the default options used for deepcmp comparisons in tests.
@@ -1374,7 +1374,7 @@ func (b *testBackend) Sys() *tsd.System {
 }
 func (b *testBackend) SendNotify(ipn.Notify)           { panic("not implemented") }
 func (b *testBackend) NodeBackend() ipnext.NodeBackend { panic("not implemented") }
-func (b *testBackend) TailscaleVarRoot() string        { panic("not implemented") }
+func (b *testBackend) LanhcVarRoot() string        { panic("not implemented") }
 func (b *testBackend) authReconfig()                   { panic("not implemented") }
 
 func (b *testBackend) SwitchToBestProfile(reason string) {

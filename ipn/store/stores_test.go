@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/tstest"
-	"tailscale.com/types/logger"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/tstest"
+	"lanhc.com/types/logger"
 )
 
 func TestNewStore(t *testing.T) {

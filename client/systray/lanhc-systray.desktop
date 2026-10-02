@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Lanhc System Tray
+Comment=Lanhc system tray applet for managing Lanhc
+Exec=/usr/bin/lanhc systray
+TryExec=/usr/bin/lanhc
+Terminal=false
+NoDisplay=true
+StartupNotify=false
+Icon=lanhc
+Categories=Network;System;
+X-GNOME-Autostart-enabled=true

@@ -14,12 +14,12 @@ import (
 	"fmt"
 	"sync"
 
-	"tailscale.com/feature"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnext"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/util/syspolicy/policyclient"
+	"lanhc.com/feature"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnext"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/util/syspolicy/policyclient"
 )
 
 // featureName is the name of the feature implemented by this package.
@@ -35,7 +35,7 @@ func init() {
 var _ ipnext.Extension = (*desktopSessionsExt)(nil)
 
 // desktopSessionsExt extends [LocalBackend] with desktop session management.
-// It keeps Tailscale running in the background if Always-On mode is enabled,
+// It keeps Lanhc running in the background if Always-On mode is enabled,
 // and switches to an appropriate profile when a user signs in or out,
 // locks their screen, or disconnects a remote session.
 type desktopSessionsExt struct {
@@ -159,7 +159,7 @@ func (e *desktopSessionsExt) getBackgroundProfile(profiles ipnext.ProfileStore) 
 		}
 	}
 
-	// If the current profile is empty and not owned by anyone (e.g., tailscaled just started),
+	// If the current profile is empty and not owned by anyone (e.g., lanhcd just started),
 	// or if the current profile's owner has no foreground session, switch to the default profile
 	// of the first user with a foreground session, if any.
 	for _, uid := range foregroundUIDs {

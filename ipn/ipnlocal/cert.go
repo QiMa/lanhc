@@ -11,8 +11,8 @@ import (
 	"net/http"
 	"time"
 
-	"tailscale.com/feature"
-	"tailscale.com/ipn"
+	"lanhc.com/feature"
+	"lanhc.com/ipn"
 )
 
 // TLSCertKeyPair is a TLS public and private key, and whether they were

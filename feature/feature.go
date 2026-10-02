@@ -8,7 +8,7 @@ import (
 	"errors"
 	"reflect"
 
-	"tailscale.com/util/testenv"
+	"lanhc.com/util/testenv"
 )
 
 var ErrUnavailable = errors.New("feature not included in this build")
@@ -108,7 +108,7 @@ type Hooks[Func any] []Func
 // Add adds a hook to the list of hooks.
 //
 // Add should only be called during early program
-// startup before Tailscale has started.
+// startup before Lanhc has started.
 // It is not safe for concurrent use.
 func (h *Hooks[Func]) Add(f Func) {
 	if reflect.ValueOf(f).IsZero() {

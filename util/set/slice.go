@@ -6,7 +6,7 @@ package set
 import (
 	"slices"
 
-	"tailscale.com/types/views"
+	"lanhc.com/types/views"
 )
 
 // Slice is a set of elements tracked in a slice of unique elements.

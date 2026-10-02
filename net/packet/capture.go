@@ -16,7 +16,7 @@ import (
 // within the lifetime of the function.
 type CaptureCallback func(CapturePath, time.Time, []byte, CaptureMeta)
 
-// CaptureSink is the minimal interface from [tailscale.com/feature/capture]'s
+// CaptureSink is the minimal interface from [lanhc.com/feature/capture]'s
 // Sink type that is needed by the core (magicsock/LocalBackend/wgengine/etc).
 // This lets the relativel heavy feature/capture package be optionally linked.
 type CaptureSink interface {
@@ -63,10 +63,10 @@ const (
 	FromLocal CapturePath = 0
 	// FromPeer indicates the packet was logged upon reception from a remote peer.
 	FromPeer CapturePath = 1
-	// SynthesizedToLocal indicates the packet was generated from within tailscaled,
+	// SynthesizedToLocal indicates the packet was generated from within lanhcd,
 	// and is being routed to the local machine's network stack.
 	SynthesizedToLocal CapturePath = 2
-	// SynthesizedToPeer indicates the packet was generated from within tailscaled,
+	// SynthesizedToPeer indicates the packet was generated from within lanhcd,
 	// and is being routed to a remote Wireguard peer.
 	SynthesizedToPeer CapturePath = 3
 

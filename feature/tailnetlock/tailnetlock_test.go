@@ -10,10 +10,10 @@ import (
 	"strings"
 	"testing"
 
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/tka"
-	"tailscale.com/types/key"
-	"tailscale.com/util/must"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/tka"
+	"lanhc.com/types/key"
+	"lanhc.com/util/must"
 )
 
 func TestHandleC2NDebugTKA(t *testing.T) {

@@ -11,16 +11,16 @@ import (
 	"os"
 
 	"go.uber.org/zap"
-	"tailscale.com/client/tailscale/v2"
+	lanhcclient "tailscale.com/client/tailscale/v2"
 
-	"tailscale.com/ipn"
+	"lanhc.com/ipn"
 )
 
 const (
-	oidcJWTPath = "/var/run/secrets/tailscale/serviceaccount/token"
+	oidcJWTPath = "/var/run/secrets/lanhc/serviceaccount/token"
 )
 
-func newTSClient(logger *zap.SugaredLogger, clientID, clientIDPath, clientSecretPath, loginServer string) (*tailscale.Client, error) {
+func newTSClient(logger *zap.SugaredLogger, clientID, clientIDPath, clientSecretPath, loginServer string) (*lanhcclient.Client, error) {
 	baseURL := ipn.DefaultControlURL
 	if loginServer != "" {
 		baseURL = loginServer
@@ -31,8 +31,8 @@ func newTSClient(logger *zap.SugaredLogger, clientID, clientIDPath, clientSecret
 		return nil, err
 	}
 
-	client := &tailscale.Client{
-		UserAgent: "tailscale-k8s-operator",
+	client := &lanhcclient.Client{
+		UserAgent: "lanhc-k8s-operator",
 		BaseURL:   base,
 	}
 
@@ -47,13 +47,13 @@ func newTSClient(logger *zap.SugaredLogger, clientID, clientIDPath, clientSecret
 			return nil, fmt.Errorf("reading client secret %q: %w", clientSecretPath, err)
 		}
 
-		client.Auth = &tailscale.OAuth{
+		client.Auth = &lanhcclient.OAuth{
 			ClientID:     string(clientIDBytes),
 			ClientSecret: string(clientSecretBytes),
 		}
 	} else {
 		// Use workload identity federation.
-		client.Auth = &tailscale.IdentityFederation{
+		client.Auth = &lanhcclient.IdentityFederation{
 			ClientID: clientID,
 			IDTokenFunc: func() (string, error) {
 				token, err := os.ReadFile(oidcJWTPath)

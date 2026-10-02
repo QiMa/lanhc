@@ -10,8 +10,8 @@ import (
 	"testing"
 	"testing/synctest"
 
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/eventbus/eventbustest"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/eventbus/eventbustest"
 )
 
 var doDebug = flag.Bool("debug", false, "Enable debug logging")

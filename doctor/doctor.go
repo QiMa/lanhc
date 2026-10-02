@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // Package doctor contains more in-depth healthchecks that can be run to aid in
-// diagnosing Tailscale issues.
+// diagnosing Lanhc issues.
 package doctor
 
 import (
 	"context"
 	"sync"
 
-	"tailscale.com/types/logger"
+	"lanhc.com/types/logger"
 )
 
 // Check is the interface defining a singular check.

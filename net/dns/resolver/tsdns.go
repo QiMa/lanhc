@@ -23,26 +23,26 @@ import (
 	"time"
 
 	dns "golang.org/x/net/dns/dnsmessage"
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/health"
-	"tailscale.com/net/dns/resolvconffile"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/syncs"
-	"tailscale.com/types/dnstype"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/cloudenv"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/set"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/health"
+	"lanhc.com/net/dns/resolvconffile"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/syncs"
+	"lanhc.com/types/dnstype"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/cloudenv"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/set"
 )
 
-const dnsSymbolicFQDN = "magicdns.localhost-tailscale-daemon."
+const dnsSymbolicFQDN = "magicdns.localhost-lanhc-daemon."
 
 // maxResponseBytes is the maximum size of a response from a Resolver. The
 // actual buffer size will be one larger than this so that we can detect
@@ -54,7 +54,7 @@ const maxResponseBytes = 4095
 // It's short because the source of truth (the netmap-fed host maps)
 // is local and in-memory, so re-queries are nearly free, while
 // anything cached downstream (e.g. mDNSResponder on macOS) delays
-// clients noticing node renames for the full TTL (tailscale/corp#45631).
+// clients noticing node renames for the full TTL (lanhc/corp#45631).
 const defaultTTL = 5 * time.Second
 
 // negativeTTL is how long resolvers may cache the nonexistence of a
@@ -64,7 +64,7 @@ const defaultTTL = 5 * time.Second
 // 2308. Without it, some resolvers (notably mDNSResponder) seem to
 // cache negative entries for a really long time, so a name queried
 // shortly before a node rename doesn't start resolving for a while
-// (tailscale/corp#45631).
+// (lanhc/corp#45631).
 const negativeTTL = 10 * time.Second
 
 // timeNow is time.Now, except in tests.
@@ -72,7 +72,7 @@ var timeNow = time.Now
 
 var (
 	errNotQuery   = errors.New("not a DNS query")
-	errNotOurName = errors.New("not a Tailscale DNS name")
+	errNotOurName = errors.New("not a Lanhc DNS name")
 )
 
 type packet struct {
@@ -225,7 +225,7 @@ func (c *Config) RoutesRequireNoCustomResolvers() bool {
 	return true
 }
 
-// Resolver is a DNS resolver for nodes on the Tailscale network,
+// Resolver is a DNS resolver for nodes on the Lanhc network,
 // associating them with domain names of the form <mynode>.<mydomain>.<root>.
 // If it is asked to resolve a domain that is not of that form,
 // it delegates to upstream nameservers if any are set.
@@ -277,7 +277,7 @@ type MagicDNSHosts interface {
 	LookupHost(dnsname.FQDN) (ips []netip.Addr, ok bool)
 
 	// LookupPTR returns the MagicDNS FQDN of the node that owns
-	// the given Tailscale IP, and whether the IP is known.
+	// the given Lanhc IP, and whether the IP is known.
 	LookupPTR(netip.Addr) (_ dnsname.FQDN, ok bool)
 
 	// SubdomainHost reports whether fqdn names a node with the
@@ -510,7 +510,7 @@ func (r *Resolver) HandlePeerDNSQuery(ctx context.Context, q []byte, from netip.
 
 		var resolvers []resolverAndDelay
 		switch nameserver {
-		case tsaddr.TailscaleServiceIP(), tsaddr.TailscaleServiceIPv6():
+		case tsaddr.LanhcServiceIP(), tsaddr.LanhcServiceIPv6():
 			// If resolv.conf says 100.100.100.100, it's coming right back to us anyway
 			// so avoid the loop through the kernel and just do what we
 			// would've done anyway. By not passing any resolvers, the forwarder
@@ -736,9 +736,9 @@ func (r *Resolver) resolveLocal(domain dnsname.FQDN, typ dns.Type) (netip.Addr, 
 	if domain == dnsSymbolicFQDN {
 		switch typ {
 		case dns.TypeA:
-			return tsaddr.TailscaleServiceIP(), dns.RCodeSuccess
+			return tsaddr.LanhcServiceIP(), dns.RCodeSuccess
 		case dns.TypeAAAA:
-			return tsaddr.TailscaleServiceIPv6(), dns.RCodeSuccess
+			return tsaddr.LanhcServiceIPv6(), dns.RCodeSuccess
 		}
 	}
 	// Special-case: 4via6 DNS names.
@@ -842,10 +842,10 @@ func (r *Resolver) resolveLocal(domain dnsname.FQDN, typ dns.Type) (netip.Addr, 
 // `<IPv4-address-with-hypens-instead-of-dots>-via-<siteid>[.*]`.
 // For example: "192-168-1-2-via-7" or "192-168-1-2-via-7.foo.ts.net."
 //
-// This exists as a convenient mapping into Tailscales 'Via Range'.
+// This exists as a convenient mapping into Lanhcs 'Via Range'.
 //
 // It returns a zero netip.Addr and true to indicate a successful response with
-// an empty answers section if the specified domain is a valid Tailscale 4via6
+// an empty answers section if the specified domain is a valid Lanhc 4via6
 // domain, but the request type is neither quad-A nor ALL.
 func (r *Resolver) resolveViaDomain(dnsName dnsname.FQDN, typ dns.Type) (netip.Addr, bool) {
 	fqdn := string(dnsName.WithoutTrailingDot())
@@ -853,12 +853,12 @@ func (r *Resolver) resolveViaDomain(dnsName dnsname.FQDN, typ dns.Type) (netip.A
 	case dns.TypeA, dns.TypeAAAA, dns.TypeALL:
 		// For Type A requests, we should return a successful response
 		// with an empty answer section rather than an NXDomain
-		// if the specified domain is a valid Tailscale 4via6 domain.
+		// if the specified domain is a valid Lanhc 4via6 domain.
 		//
 		// Therefore, we should continue and parse the domain name first
 		// before deciding whether to return an IPv6 address,
 		// a zero (invalid) netip.Addr and true to indicate a successful empty response,
-		// or a zero netip.Addr and false to indicate that it is not a Tailscale 4via6 domain.
+		// or a zero netip.Addr and false to indicate that it is not a Lanhc 4via6 domain.
 	default:
 		return netip.Addr{}, false
 	}
@@ -870,7 +870,7 @@ func (r *Resolver) resolveViaDomain(dnsName dnsname.FQDN, typ dns.Type) (netip.A
 		return netip.Addr{}, false // not a 4via6 domain
 	}
 	firstLabel, domain, _ := strings.Cut(fqdn, ".") // "192-168-1-2-via-7"
-	if !(domain == "" || dnsname.HasSuffix(domain, "ts.net") || dnsname.HasSuffix(domain, "tailscale.net")) {
+	if !(domain == "" || dnsname.HasSuffix(domain, "ts.net") || dnsname.HasSuffix(domain, "lanhc.net")) {
 		return netip.Addr{}, false
 	}
 	v4hyphens, suffix, ok := strings.Cut(firstLabel, "-via-")
@@ -921,7 +921,7 @@ func (r *Resolver) resolveLocalReverse(name dnsname.FQDN) (dnsname.FQDN, dns.RCo
 
 	// If the requested IP is part of the IPv6 4-to-6 range, it might
 	// correspond to an IPv4 address (assuming IPv4 is enabled).
-	if ip4, ok := tsaddr.Tailscale6to4(ip); ok {
+	if ip4, ok := tsaddr.Lanhc6to4(ip); ok {
 		fqdn, code := r.fqdnForIPLocked(ip4, name)
 		if code == dns.RCodeSuccess {
 			return fqdn, code
@@ -933,10 +933,10 @@ func (r *Resolver) resolveLocalReverse(name dnsname.FQDN) (dnsname.FQDN, dns.RCo
 // r.mu must be held.
 func (r *Resolver) fqdnForIPLocked(ip netip.Addr, name dnsname.FQDN) (dnsname.FQDN, dns.RCode) {
 	// If someone curiously does a reverse lookup on the DNS IP, we
-	// return a domain that helps indicate that Tailscale is using
+	// return a domain that helps indicate that Lanhc is using
 	// this IP for a special purpose and it is not a node on their
 	// tailnet.
-	if ip == tsaddr.TailscaleServiceIP() || ip == tsaddr.TailscaleServiceIPv6() {
+	if ip == tsaddr.LanhcServiceIP() || ip == tsaddr.LanhcServiceIPv6() {
 		return dnsSymbolicFQDN, dns.RCodeSuccess
 	}
 
@@ -1470,7 +1470,7 @@ func (r *Resolver) respond(query []byte) ([]byte, error) {
 
 	// Always try to handle reverse lookups; delegate inside when not found.
 	// This way, queries for existent nodes do not leak,
-	// but we behave gracefully if non-Tailscale nodes exist in CGNATRange.
+	// but we behave gracefully if non-Lanhc nodes exist in CGNATRange.
 	if parser.Question.Type == dns.TypePTR {
 		return r.respondReverse(query, name, parser.response())
 	}

@@ -11,7 +11,7 @@ spec:
     # the container. The `net.ipv4.ip_forward` sysctl is not allowlisted
     # in Kubelet by default.
   - name: sysctler
-    image: "ghcr.io/tailscale/tailscale:latest"
+    image: "ghcr.io/lanhc/lanhc:latest"
     securityContext:
       privileged: true
     command: ["/bin/sh"]
@@ -23,9 +23,9 @@ spec:
         cpu: 1m
         memory: 1Mi
   containers:
-  - name: tailscale
+  - name: lanhc
     imagePullPolicy: Always
-    image: "ghcr.io/tailscale/tailscale:latest"
+    image: "ghcr.io/lanhc/lanhc:latest"
     env:
     # Store the state in a k8s secret
     - name: TS_KUBE_SECRET
@@ -37,7 +37,7 @@ spec:
     - name: TS_AUTHKEY
       valueFrom:
         secretKeyRef:
-          name: tailscale-auth
+          name: lanhc-auth
           key: TS_AUTHKEY
           optional: true
     - name: TS_DEST_IP

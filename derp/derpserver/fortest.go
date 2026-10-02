@@ -4,9 +4,9 @@
 package derpserver
 
 import (
-	"tailscale.com/derp"
-	"tailscale.com/types/key"
-	"tailscale.com/util/testenv"
+	"lanhc.com/derp"
+	"lanhc.com/types/key"
+	"lanhc.com/util/testenv"
 )
 
 // forTest is an unexported type to hide the test-only methods on

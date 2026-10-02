@@ -15,10 +15,10 @@ import (
 	"os"
 	"time"
 
-	"tailscale.com/envknob"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/backoff"
-	"tailscale.com/util/testenv"
+	"lanhc.com/envknob"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/backoff"
+	"lanhc.com/util/testenv"
 )
 
 // AssertNotParallel asserts that t has not been marked as parallel.

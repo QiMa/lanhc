@@ -5,7 +5,7 @@
 
 // Package proxygrouppolicy provides reconciliation logic for the ProxyGroupPolicy custom resource definition. It is
 // responsible for generating ValidatingAdmissionPolicy resources that limit users to a set number of ProxyGroup
-// names that can be used within Service and Ingress resources via the "tailscale.com/proxy-group" annotation.
+// names that can be used within Service and Ingress resources via the "lanhc.com/proxy-group" annotation.
 package proxygrouppolicy
 
 import (
@@ -23,8 +23,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/util/set"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/util/set"
 )
 
 type (
@@ -188,29 +188,29 @@ const (
 	// Empty allowlist behavior:
 	//   If the list is empty, any present annotation will fail membership,
 	//   effectively acting as "deny-all".
-	ingressCEL = `request.kind.kind != "Ingress" || !("tailscale.com/proxy-group" in object.metadata.annotations) || object.metadata.annotations["tailscale.com/proxy-group"] in [%s]`
+	ingressCEL = `request.kind.kind != "Ingress" || !("lanhc.com/proxy-group" in object.metadata.annotations) || object.metadata.annotations["lanhc.com/proxy-group"] in [%s]`
 
 	// ingressServiceCEL enforces proxy-group annotation rules for Services
-	// that are using the tailscale load balancer.
+	// that are using the lanhc load balancer.
 	//
 	// Logic:
 	//
 	//   - If the object is NOT a Service → allow
-	//   - If Service does NOT use loadBalancerClass "tailscale" → allow
+	//   - If Service does NOT use loadBalancerClass "lanhc" → allow
 	//     (egress policy will handle those)
 	//   - If annotation is absent → allow
 	//   - If annotation is present → must be in allowlist
 	//
-	// This makes ingress policy apply ONLY to tailscale Services.
-	ingressServiceCEL = `request.kind.kind != "Service" || !((has(object.spec.loadBalancerClass) && object.spec.loadBalancerClass == "tailscale") || ("tailscale.com/expose" in object.metadata.annotations && object.metadata.annotations["tailscale.com/expose"] == "true")) || (!("tailscale.com/proxy-group" in object.metadata.annotations) || object.metadata.annotations["tailscale.com/proxy-group"] in [%s])`
+	// This makes ingress policy apply ONLY to lanhc Services.
+	ingressServiceCEL = `request.kind.kind != "Service" || !((has(object.spec.loadBalancerClass) && object.spec.loadBalancerClass == "lanhc") || ("lanhc.com/expose" in object.metadata.annotations && object.metadata.annotations["lanhc.com/expose"] == "true")) || (!("lanhc.com/proxy-group" in object.metadata.annotations) || object.metadata.annotations["lanhc.com/proxy-group"] in [%s])`
 	// egressCEL enforces proxy-group annotation rules for Services that
-	// are NOT using the tailscale load balancer.
+	// are NOT using the lanhc load balancer.
 	//
 	// Logic:
 	//
-	//   - If Service uses loadBalancerClass "tailscale" → allow
+	//   - If Service uses loadBalancerClass "lanhc" → allow
 	//     (ingress policy handles those)
-	//	 - If Service uses "tailscale.com/expose" → allow
+	//	 - If Service uses "lanhc.com/expose" → allow
 	//     (ingress policy handles those)
 	//   - If annotation is absent → allow
 	//   - If annotation is present → must be in allowlist
@@ -220,7 +220,7 @@ const (
 	//
 	// This expression is mutually exclusive with ingressServiceCEL,
 	// preventing policy conflicts.
-	egressCEL = `((has(object.spec.loadBalancerClass) && object.spec.loadBalancerClass == "tailscale") || ("tailscale.com/expose" in object.metadata.annotations && object.metadata.annotations["tailscale.com/expose"] == "true")) || !("tailscale.com/proxy-group" in object.metadata.annotations) || object.metadata.annotations["tailscale.com/proxy-group"] in [%s]`
+	egressCEL = `((has(object.spec.loadBalancerClass) && object.spec.loadBalancerClass == "lanhc") || ("lanhc.com/expose" in object.metadata.annotations && object.metadata.annotations["lanhc.com/expose"] == "true")) || !("lanhc.com/proxy-group" in object.metadata.annotations) || object.metadata.annotations["lanhc.com/proxy-group"] in [%s]`
 )
 
 func (r *Reconciler) generateIngressPolicy(ctx context.Context, namespace string, names set.Set[string]) (*admr.ValidatingAdmissionPolicy, error) {
@@ -244,7 +244,7 @@ func (r *Reconciler) generateIngressPolicy(ctx context.Context, namespace string
 		Spec: admr.ValidatingAdmissionPolicySpec{
 			FailurePolicy: new(admr.Fail),
 			MatchConstraints: &admr.MatchResources{
-				// The operator allows ingress via Ingress resources & Service resources (that use the "tailscale" load
+				// The operator allows ingress via Ingress resources & Service resources (that use the "lanhc" load
 				// balancer class), so we have two resource rules here with multiple validation expressions that attempt
 				// to keep out of each other's way.
 				ResourceRules: []admr.NamedRuleWithOperations{
@@ -329,8 +329,8 @@ func (r *Reconciler) generateEgressPolicy(ctx context.Context, namespace string,
 }
 
 const (
-	denyMessage   = `Annotation "tailscale.com/proxy-group" cannot be used on this resource in this namespace`
-	messageFormat = `If set, annotation "tailscale.com/proxy-group" must be one of [%s]`
+	denyMessage   = `Annotation "lanhc.com/proxy-group" cannot be used on this resource in this namespace`
+	messageFormat = `If set, annotation "lanhc.com/proxy-group" must be one of [%s]`
 )
 
 func generateValidation(names set.Set[string], format string) admr.Validation {

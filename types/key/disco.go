@@ -11,7 +11,7 @@ import (
 	"go4.org/mem"
 	"golang.org/x/crypto/curve25519"
 	"golang.org/x/crypto/nacl/box"
-	"tailscale.com/types/structs"
+	"lanhc.com/types/structs"
 )
 
 const (
@@ -152,7 +152,7 @@ func (k DiscoPublic) Raw32() [32]byte {
 	return k.k
 }
 
-// ShortString returns the Tailscale conventional debug representation
+// ShortString returns the Lanhc conventional debug representation
 // of a disco key.
 func (k DiscoPublic) ShortString() string {
 	if k.IsZero() {

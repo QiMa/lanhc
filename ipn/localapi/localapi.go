@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package localapi contains the HTTP server handlers for tailscaled's API server.
+// Package localapi contains the HTTP server handlers for lanhcd's API server.
 package localapi
 
 import (
@@ -25,35 +25,35 @@ import (
 	"time"
 
 	"golang.org/x/net/dns/dnsmessage"
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/hostinfo"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnauth"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/logtail"
-	"tailscale.com/net/neterror"
-	"tailscale.com/net/netns"
-	"tailscale.com/net/netutil"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
-	"tailscale.com/types/appctype"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/logid"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/def"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/httpm"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/osdiag"
-	"tailscale.com/util/rands"
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/version"
-	"tailscale.com/wgengine/magicsock"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/hostinfo"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnauth"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/logtail"
+	"lanhc.com/net/neterror"
+	"lanhc.com/net/netns"
+	"lanhc.com/net/netutil"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
+	"lanhc.com/types/appctype"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/logid"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/def"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/httpm"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/osdiag"
+	"lanhc.com/util/rands"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/version"
+	"lanhc.com/wgengine/magicsock"
 )
 
 var (
@@ -148,7 +148,7 @@ func init() {
 	// their own features if/when they graduate.
 	if buildfeatures.HasDebug {
 		Register("id-token", (*Handler).serveIDToken)
-		Register("alpha-set-device-attrs", (*Handler).serveSetDeviceAttrs) // see tailscale/corp#24690
+		Register("alpha-set-device-attrs", (*Handler).serveSetDeviceAttrs) // see lanhc/corp#24690
 		Register("handle-push-message", (*Handler).serveHandlePushMessage)
 		Register("set-push-device-token", (*Handler).serveSetPushDeviceToken)
 	}
@@ -251,8 +251,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid localapi request", http.StatusForbidden)
 		return
 	}
-	w.Header().Set("Tailscale-Version", version.Long())
-	w.Header().Set("Tailscale-Cap", strconv.Itoa(int(tailcfg.CurrentCapabilityVersion)))
+	w.Header().Set("Lanhc-Version", version.Long())
+	w.Header().Set("Lanhc-Cap", strconv.Itoa(int(tailcfg.CurrentCapabilityVersion)))
 	w.Header().Set("Content-Security-Policy", `default-src 'none'; frame-ancestors 'none'; script-src 'none'; script-src-elem 'none'; script-src-attr 'none'`)
 	w.Header().Set("X-Frame-Options", "DENY")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
@@ -283,7 +283,7 @@ var validLocalHostForTesting = false
 
 // validHost reports whether h is a valid Host header value for a LocalAPI request.
 func (h *Handler) validHost(hostname string) bool {
-	// The client code sends a hostname of "local-tailscaled.sock".
+	// The client code sends a hostname of "local-lanhcd.sock".
 	switch hostname {
 	case "", apitype.LocalAPIHost:
 		return true
@@ -345,7 +345,7 @@ func (h *Handler) logRequest(method, route string) {
 }
 
 func (*Handler) serveLocalAPIRoot(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "tailscaled\n")
+	io.WriteString(w, "lanhcd\n")
 }
 
 // serveIDToken handles requests to get an OIDC ID token.
@@ -499,7 +499,7 @@ func (h *Handler) serveBugReport(w http.ResponseWriter, r *http.Request) {
 	case errors.Is(err, io.EOF):
 		// good
 	case errors.Is(err, io.ErrUnexpectedEOF):
-		// this happens when Ctrl-C'ing the tailscale client; don't
+		// this happens when Ctrl-C'ing the lanhc client; don't
 		// bother logging an error
 	default:
 		// Log but continue anyway.
@@ -519,7 +519,7 @@ func (h *Handler) serveWhoIs(w http.ResponseWriter, r *http.Request) {
 // serveSetDeviceAttrs is (as of 2024-12-30) an experimental LocalAPI handler to
 // set device attributes via the control plane.
 //
-// See tailscale/corp#24690.
+// See lanhc/corp#24690.
 func (h *Handler) serveSetDeviceAttrs(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	if !h.PermitWrite {
@@ -640,7 +640,7 @@ func (h *Handler) serveGoroutines(w http.ResponseWriter, r *http.Request) {
 	w.Write(buf)
 }
 
-// serveLogTap taps into the tailscaled/logtail server output and streams
+// serveLogTap taps into the lanhcd/logtail server output and streams
 // it to the client.
 func (h *Handler) serveLogTap(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -1327,15 +1327,15 @@ func (h *Handler) serveDial(w http.ResponseWriter, r *http.Request) {
 
 	addr := net.JoinHostPort(hostStr, portStr)
 
-	// Check whether the resolved address is a Tailscale route.
+	// Check whether the resolved address is a Lanhc route.
 	// If not, tell the client to dial it directly so the connection
 	// comes from the calling user's UID rather than our root-owned daemon.
-	ipp, viaTailscale, err := h.b.Dialer().UserDialPlan(r.Context(), network, addr)
+	ipp, viaLanhc, err := h.b.Dialer().UserDialPlan(r.Context(), network, addr)
 	if err != nil {
 		http.Error(w, "resolve failure: "+err.Error(), http.StatusBadGateway)
 		return
 	}
-	if !viaTailscale {
+	if !viaLanhc {
 		w.Header().Set("Dial-Self", "true")
 		w.Header().Set("Dial-Addr", ipp.String())
 		w.WriteHeader(http.StatusOK)
@@ -1348,7 +1348,7 @@ func (h *Handler) serveDial(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Dial via Tailscale with the original hostname so UserDial can
+	// Dial via Lanhc with the original hostname so UserDial can
 	// resolve all addresses and race across families (happy eyeballs).
 	outConn, err := h.b.Dialer().UserDial(r.Context(), network, addr)
 	if err != nil {
@@ -1478,7 +1478,7 @@ func (h *Handler) serveSetGUIVisible(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type setGUIVisibleRequest struct {
-		IsVisible bool   // whether the Tailscale client UI is now presented to the user
+		IsVisible bool   // whether the Lanhc client UI is now presented to the user
 		SessionID string // the last SessionID sent to the client in ipn.Notify.SessionID
 	}
 	var req setGUIVisibleRequest
@@ -1841,7 +1841,7 @@ func (h *Handler) serveSuggestExitNode(w http.ResponseWriter, r *http.Request) {
 		// However, we retain it for backwards compatibility.
 		//
 		// The original implementation used to only allow GET requests,
-		// but since this endpoint powers the `tailscale exit-node suggest` command
+		// but since this endpoint powers the `lanhc exit-node suggest` command
 		// whose results can change based on the shape of the network,
 		// it was never a proper GET method in the first place.
 		//
@@ -1886,13 +1886,13 @@ func (h *Handler) serveSuggestExitNode(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(res)
 }
 
-// Shutdown is an eventbus value published when tailscaled shutdown
+// Shutdown is an eventbus value published when lanhcd shutdown
 // is requested via LocalAPI. Its only consumer is [ipnserver.Server].
 type Shutdown struct{}
 
-// serveShutdown shuts down tailscaled. It requires write access
-// and the [pkey.AllowTailscaledRestart] policy to be enabled.
-// See tailscale/corp#32674.
+// serveShutdown shuts down lanhcd. It requires write access
+// and the [pkey.AllowLanhcdRestart] policy to be enabled.
+// See lanhc/corp#32674.
 func (h *Handler) serveShutdown(w http.ResponseWriter, r *http.Request) {
 	if r.Method != httpm.POST {
 		http.Error(w, "only POST allowed", http.StatusMethodNotAllowed)
@@ -1905,7 +1905,7 @@ func (h *Handler) serveShutdown(w http.ResponseWriter, r *http.Request) {
 	}
 
 	polc := h.b.Sys().PolicyClientOrDefault()
-	if permitShutdown, _ := polc.GetBoolean(pkey.AllowTailscaledRestart, false); !permitShutdown {
+	if permitShutdown, _ := polc.GetBoolean(pkey.AllowLanhcdRestart, false); !permitShutdown {
 		http.Error(w, "shutdown access denied by policy", http.StatusForbidden)
 		return
 	}

@@ -3,7 +3,7 @@
 
 // The tsidp command is an OpenID Connect Identity Provider server.
 //
-// See https://github.com/tailscale/tailscale/issues/10263 for background.
+// See https://github.com/lanhc/lanhc/issues/10263 for background.
 package main
 
 import (
@@ -37,22 +37,22 @@ import (
 
 	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
-	"tailscale.com/client/local"
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/envknob"
-	"tailscale.com/hostinfo"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsnet"
-	"tailscale.com/types/key"
-	"tailscale.com/types/lazy"
-	"tailscale.com/types/opt"
-	"tailscale.com/types/views"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/must"
-	"tailscale.com/util/rands"
-	"tailscale.com/version"
+	"lanhc.com/client/local"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/envknob"
+	"lanhc.com/hostinfo"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsnet"
+	"lanhc.com/types/key"
+	"lanhc.com/types/lazy"
+	"lanhc.com/types/opt"
+	"lanhc.com/types/views"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/must"
+	"lanhc.com/util/rands"
+	"lanhc.com/version"
 )
 
 // ctxConn is a key to look up a net.Conn stored in an HTTP request's context.
@@ -75,8 +75,8 @@ var (
 	flagVerbose                       = flag.Bool("verbose", false, "be verbose")
 	flagPort                          = flag.Int("port", 443, "port to listen on")
 	flagLocalPort                     = flag.Int("local-port", -1, "allow requests from localhost")
-	flagUseLocalTailscaled            = flag.Bool("use-local-tailscaled", false, "use local tailscaled instead of tsnet")
-	flagFunnel                        = flag.Bool("funnel", false, "use Tailscale Funnel to make tsidp available on the public internet")
+	flagUseLocalLanhcd            = flag.Bool("use-local-lanhcd", false, "use local lanhcd instead of tsnet")
+	flagFunnel                        = flag.Bool("funnel", false, "use Lanhc Funnel to make tsidp available on the public internet")
 	flagHostname                      = flag.String("hostname", "idp", "tsnet hostname to use instead of idp")
 	flagDir                           = flag.String("dir", "", "tsnet state directory; a default one will be created if not provided")
 	flagAllowInsecureRegistrationBool opt.Bool
@@ -99,7 +99,7 @@ func main() {
 	flag.Parse()
 	ctx := context.Background()
 	if !envknob.UseWIPCode() {
-		log.Fatal("cmd/tsidp is a work in progress and has not been security reviewed;\nits use requires TAILSCALE_USE_WIP_CODE=1 be set in the environment for now.")
+		log.Fatal("cmd/tsidp is a work in progress and has not been security reviewed;\nits use requires LANHC_USE_WIP_CODE=1 be set in the environment for now.")
 	}
 
 	var (
@@ -113,7 +113,7 @@ func main() {
 		lns []net.Listener
 	)
 
-	if *flagUseLocalTailscaled {
+	if *flagUseLocalLanhcd {
 		lc = &local.Client{}
 		st, err = lc.StatusWithoutPeers(ctx)
 		if err != nil {
@@ -121,7 +121,7 @@ func main() {
 		}
 		portStr := fmt.Sprint(*flagPort)
 		anySuccess := false
-		for _, ip := range st.TailscaleIPs {
+		for _, ip := range st.LanhcIPs {
 			ln, err := net.Listen("tcp", net.JoinHostPort(ip.String(), portStr))
 			if err != nil {
 				log.Printf("failed to listen on %v: %v", ip, err)
@@ -134,7 +134,7 @@ func main() {
 			lns = append(lns, ln)
 		}
 		if !anySuccess {
-			log.Fatalf("failed to listen on any of %v", st.TailscaleIPs)
+			log.Fatalf("failed to listen on any of %v", st.LanhcIPs)
 		}
 
 		if flagDir == nil || *flagDir == "" {
@@ -146,15 +146,15 @@ func main() {
 			rootPath = filepath.Join(configDir, "tsidp")
 		}
 
-		// tailscaled needs to be setting an HTTP header for funneled requests
+		// lanhcd needs to be setting an HTTP header for funneled requests
 		// that older versions don't provide.
 		// TODO(naman): is this the correct check?
 		if *flagFunnel && !version.AtLeast(st.Version, "1.71.0") {
-			log.Fatalf("Local tailscaled not new enough to support -funnel. Update Tailscale or use tsnet mode.")
+			log.Fatalf("Local lanhcd not new enough to support -funnel. Update Lanhc or use tsnet mode.")
 		}
-		cleanup, watcherChan, err = serveOnLocalTailscaled(ctx, lc, st, uint16(*flagPort), *flagFunnel)
+		cleanup, watcherChan, err = serveOnLocalLanhcd(ctx, lc, st, uint16(*flagPort), *flagFunnel)
 		if err != nil {
-			log.Fatalf("could not serve on local tailscaled: %v", err)
+			log.Fatalf("could not serve on local lanhcd: %v", err)
 		}
 		defer cleanup()
 	} else {
@@ -195,7 +195,7 @@ func main() {
 	srv := &idpServer{
 		lc:                        lc,
 		funnel:                    *flagFunnel,
-		localTSMode:               *flagUseLocalTailscaled,
+		localTSMode:               *flagUseLocalLanhcd,
 		rootPath:                  rootPath,
 		allowInsecureRegistration: getAllowInsecureRegistration(),
 	}
@@ -269,11 +269,11 @@ func main() {
 	}
 }
 
-// serveOnLocalTailscaled starts a serve session using an already-running
-// tailscaled instead of starting a fresh tsnet server, making something
+// serveOnLocalLanhcd starts a serve session using an already-running
+// lanhcd instead of starting a fresh tsnet server, making something
 // listening on clientDNSName:dstPort accessible over serve/funnel.
-func serveOnLocalTailscaled(ctx context.Context, lc *local.Client, st *ipnstate.Status, dstPort uint16, shouldFunnel bool) (cleanup func(), watcherChan chan error, err error) {
-	// In order to support funneling out in local tailscaled mode, we need
+func serveOnLocalLanhcd(ctx context.Context, lc *local.Client, st *ipnstate.Status, dstPort uint16, shouldFunnel bool) (cleanup func(), watcherChan chan error, err error) {
+	// In order to support funneling out in local lanhcd mode, we need
 	// to add a serve config to forward the listeners we bound above and
 	// allow those forwarders to be funneled out.
 	sc, err := lc.GetServeConfig(ctx)
@@ -365,7 +365,7 @@ type authRequest struct {
 	rpNodeID tailcfg.NodeID
 
 	// funnelRP is non-nil if the request is from a relying party outside the
-	// tailnet, via Tailscale Funnel. It is mutually exclusive with rpNodeID
+	// tailnet, via Lanhc Funnel. It is mutually exclusive with rpNodeID
 	// and localRP.
 	funnelRP *funnelClient
 
@@ -524,7 +524,7 @@ func (s *idpServer) authorize(w http.ResponseWriter, r *http.Request) {
 
 	var remoteAddr string
 	if s.localTSMode {
-		// in local tailscaled mode, the local tailscaled is forwarding us
+		// in local lanhcd mode, the local lanhcd is forwarding us
 		// HTTP requests, so reading r.RemoteAddr will just get us our own
 		// address.
 		remoteAddr = r.Header.Get("X-Forwarded-For")
@@ -940,7 +940,7 @@ func (s *idpServer) serveToken(w http.ResponseWriter, r *http.Request) {
 
 	now := time.Now()
 	_, tcd, _ := strings.Cut(n.Name(), ".")
-	tsClaims := tailscaleClaims{
+	tsClaims := lanhcClaims{
 		Claims: jwt.Claims{
 			Audience:  jwt.Audience{ar.clientID},
 			Expiry:    jwt.NewNumericDate(now.Add(5 * time.Minute)),
@@ -1107,11 +1107,11 @@ type openIDProviderMetadata struct {
 	// Currently we fill out the REQUIRED fields, scopes_supported and claims_supported.
 }
 
-type tailscaleClaims struct {
+type lanhcClaims struct {
 	jwt.Claims `json:",inline"`
 	Nonce      string                    `json:"nonce,omitempty"` // the nonce from the request
 	Key        key.NodePublic            `json:"key"`             // the node public key
-	Addresses  views.Slice[netip.Prefix] `json:"addresses"`       // the Tailscale IPs of the node
+	Addresses  views.Slice[netip.Prefix] `json:"addresses"`       // the Lanhc IPs of the node
 	NodeID     tailcfg.NodeID            `json:"nid"`             // the stable node ID
 	NodeName   string                    `json:"node"`            // name of the node
 	Tailnet    string                    `json:"tailnet"`         // tailnet (like tail-scale.ts.net)
@@ -1131,7 +1131,7 @@ var (
 		// Standard claims, these correspond to fields in jwt.Claims.
 		"sub", "aud", "exp", "iat", "iss", "jti", "nbf", "username", "email",
 
-		// Tailscale claims, these correspond to fields in tailscaleClaims.
+		// Lanhc claims, these correspond to fields in lanhcClaims.
 		"key", "addresses", "nid", "node", "tailnet", "tags", "user", "uid",
 	})
 
@@ -1173,7 +1173,7 @@ func (s *idpServer) serveOpenIDConfig(w http.ResponseWriter, r *http.Request) {
 
 	if !s.allowInsecureRegistration {
 		// When insecure registration is NOT allowed, use a single authorization endpoint for all request types
-		// This will be the same regardless of if the user is on localhost, tailscale, or funnel.
+		// This will be the same regardless of if the user is on localhost, lanhc, or funnel.
 		authorizeEndpoint = fmt.Sprintf("%s/authorize", s.serverURL)
 		rpEndpoint = s.serverURL
 	} else {
@@ -1465,11 +1465,11 @@ func parseID[T ~int64](input string) (_ T, ok bool) {
 	return T(i), true
 }
 
-// isFunnelRequest checks if an HTTP request is coming over Tailscale Funnel.
+// isFunnelRequest checks if an HTTP request is coming over Lanhc Funnel.
 func isFunnelRequest(r *http.Request) bool {
-	// If we're funneling through the local tailscaled, it will set this HTTP
+	// If we're funneling through the local lanhcd, it will set this HTTP
 	// header.
-	if r.Header.Get("Tailscale-Funnel-Request") != "" {
+	if r.Header.Get("Lanhc-Funnel-Request") != "" {
 		return true
 	}
 

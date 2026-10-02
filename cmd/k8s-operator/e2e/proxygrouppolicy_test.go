@@ -12,7 +12,7 @@ import (
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
 )
 
 // See [TestMain] for test requirements.
@@ -43,8 +43,8 @@ func TestProxyGroupPolicy(t *testing.T) {
 			Name:      "egress-to-proxy-group",
 			Namespace: metav1.NamespaceDefault,
 			Annotations: map[string]string{
-				"tailscale.com/tailnet-fqdn": "test.something.ts.net",
-				"tailscale.com/proxy-group":  "test",
+				"lanhc.com/tailnet-fqdn": "test.something.ts.net",
+				"lanhc.com/proxy-group":  "test",
 			},
 		},
 		Spec: corev1.ServiceSpec{
@@ -76,12 +76,12 @@ func TestProxyGroupPolicy(t *testing.T) {
 			Name:      "ingress-to-proxy-group",
 			Namespace: metav1.NamespaceDefault,
 			Annotations: map[string]string{
-				"tailscale.com/proxy-group": "test",
+				"lanhc.com/proxy-group": "test",
 			},
 		},
 		Spec: corev1.ServiceSpec{
 			Type:              corev1.ServiceTypeLoadBalancer,
-			LoadBalancerClass: new("tailscale"),
+			LoadBalancerClass: new("lanhc"),
 			Ports: []corev1.ServicePort{
 				{
 					Port:     8080,
@@ -107,11 +107,11 @@ func TestProxyGroupPolicy(t *testing.T) {
 			Name:      "ingress-to-proxy-group",
 			Namespace: metav1.NamespaceDefault,
 			Annotations: map[string]string{
-				"tailscale.com/proxy-group": "test",
+				"lanhc.com/proxy-group": "test",
 			},
 		},
 		Spec: networkingv1.IngressSpec{
-			IngressClassName: new("tailscale"),
+			IngressClassName: new("lanhc"),
 			DefaultBackend: &networkingv1.IngressBackend{
 				Service: &networkingv1.IngressServiceBackend{
 					Name: "nginx",

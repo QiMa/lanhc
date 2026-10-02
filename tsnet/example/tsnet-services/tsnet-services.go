@@ -8,7 +8,7 @@
 //  1. Add access controls which (i) define a new ACL tag, (ii) allow the demo
 //     node to host the Service, and (iii) allow peers on the tailnet to reach
 //     the Service. A sample ACL policy is provided below.
-//  2. [Generate an auth key] using the Tailscale admin panel. When doing so, add
+//  2. [Generate an auth key] using the Lanhc admin panel. When doing so, add
 //     your new tag to your key (Service hosts must be tagged nodes).
 //  3. [Define a Service]. For the purposes of this demo, it must be defined to
 //     listen on TCP port 443. Note that you only need to follow Step 1 in the
@@ -35,8 +35,8 @@
 //	   "ip": ["*"],
 //	],
 //
-// [Define a Service]: https://tailscale.com/kb/1552/tailscale-services#step-1-define-a-tailscale-service
-// [Generate an auth key]: https://tailscale.com/kb/1085/auth-keys#generate-an-auth-key
+// [Define a Service]: https://lanhc.com/kb/1552/lanhc-services#step-1-define-a-lanhc-service
+// [Generate an auth key]: https://lanhc.com/kb/1085/auth-keys#generate-an-auth-key
 package main
 
 import (
@@ -45,7 +45,7 @@ import (
 	"log"
 	"net/http"
 
-	"tailscale.com/tsnet"
+	"lanhc.com/tsnet"
 )
 
 var (

@@ -1,11 +1,11 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-//! A thin wrapper that finds and execs the Tailscale Go toolchain without
+//! A thin wrapper that finds and execs the Lanhc Go toolchain without
 //! going through cmd.exe, avoiding its argument mangling (cmd.exe treats ^
 //! as an escape character, breaking -run "^$" and similar, and = signs
 //! also cause issues in PowerShell→cmd.exe argument passing).
-//! See https://github.com/tailscale/tailscale/issues/19255.
+//! See https://github.com/lanhc/lanhc/issues/19255.
 //!
 //! This replaces tool/go.cmd. When PowerShell resolves `./tool/go`, it
 //! prefers go.exe over go.cmd, so this binary is used automatically.
@@ -167,7 +167,7 @@ pub extern "C" fn mainCRTStartup() -> ! {
 }
 
 unsafe fn main_impl() -> ! {
-    // Get our own exe path, e.g. "C:\Users\...\tailscale\tool\go.exe".
+    // Get our own exe path, e.g. "C:\Users\...\lanhc\tool\go.exe".
     let mut exe = WBuf::<4096>::new();
     exe.len = GetModuleFileNameW(null_mut(), exe.buf.as_mut_ptr(), exe.buf.len() as u32) as usize;
     if exe.len == 0 {

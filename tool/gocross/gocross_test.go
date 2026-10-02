@@ -6,14 +6,14 @@ package main
 import (
 	"testing"
 
-	"tailscale.com/tstest/deptest"
+	"lanhc.com/tstest/deptest"
 )
 
 func TestDeps(t *testing.T) {
 	deptest.DepChecker{
 		BadDeps: map[string]string{
-			"tailscale.com/tailcfg": "circular dependency via go generate",
-			"tailscale.com/version": "circular dependency via go generate",
+			"lanhc.com/tailcfg": "circular dependency via go generate",
+			"lanhc.com/version": "circular dependency via go generate",
 		},
 	}.Check(t)
 }

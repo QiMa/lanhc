@@ -1,0 +1,12 @@
+[Unit]
+Description=Wait for Lanhc to be online
+After=lanhcd.service
+Requires=lanhcd.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/lanhc wait
+RemainAfterExit=yes
+
+[Install]
+WantedBy=lanhc-online.target

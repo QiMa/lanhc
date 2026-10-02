@@ -8,10 +8,10 @@ package ipnlocal
 import (
 	"errors"
 
-	"tailscale.com/feature"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/persist"
+	"lanhc.com/feature"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/persist"
 )
 
 func init() {

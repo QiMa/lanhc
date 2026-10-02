@@ -6,10 +6,10 @@
 package controlhttpcommon
 
 // UpgradeHeader is the value of the Upgrade HTTP header used to
-// indicate the Tailscale control protocol.
-const UpgradeHeaderValue = "tailscale-control-protocol"
+// indicate the Lanhc control protocol.
+const UpgradeHeaderValue = "lanhc-control-protocol"
 
 // handshakeHeaderName is the HTTP request header that can
 // optionally contain base64-encoded initial handshake
 // payload, to save an RTT.
-const HandshakeHeaderName = "X-Tailscale-Handshake"
+const HandshakeHeaderName = "X-Lanhc-Handshake"

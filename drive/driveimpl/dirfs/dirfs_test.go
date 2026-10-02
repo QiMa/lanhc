@@ -15,8 +15,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/tailscale/xnet/webdav"
-	"tailscale.com/drive/driveimpl/shared"
-	"tailscale.com/tstest"
+	"lanhc.com/drive/driveimpl/shared"
+	"lanhc.com/tstest"
 )
 
 func TestStat(t *testing.T) {

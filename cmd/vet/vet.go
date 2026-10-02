@@ -8,9 +8,9 @@ import (
 	_ "embed"
 
 	"golang.org/x/tools/go/analysis/unitchecker"
-	"tailscale.com/cmd/vet/jsontags"
-	"tailscale.com/cmd/vet/lowerell"
-	"tailscale.com/cmd/vet/subtestnames"
+	"lanhc.com/cmd/vet/jsontags"
+	"lanhc.com/cmd/vet/lowerell"
+	"lanhc.com/cmd/vet/subtestnames"
 )
 
 //go:embed jsontags_allowlist
@@ -18,7 +18,7 @@ var jsontagsAllowlistSource string
 
 func init() {
 	jsontags.RegisterAllowlist(jsontags.ParseAllowlist(jsontagsAllowlistSource))
-	jsontags.RegisterPureIsZeroMethods(jsontags.PureIsZeroMethodsInTailscaleModule)
+	jsontags.RegisterPureIsZeroMethods(jsontags.PureIsZeroMethodsInLanhcModule)
 }
 
 func main() {

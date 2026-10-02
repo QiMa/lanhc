@@ -14,6 +14,6 @@ import (
 	_ "github.com/gokrazy/kernel.amd64"
 	_ "github.com/gokrazy/serial-busybox"
 	_ "github.com/tailscale/ts-gokrazy/gokrazyinit"
-	_ "tailscale.com/cmd/tailscale"
-	_ "tailscale.com/cmd/tailscaled"
+	_ "lanhc.com/cmd/lanhc"
+	_ "lanhc.com/cmd/lanhcd"
 )

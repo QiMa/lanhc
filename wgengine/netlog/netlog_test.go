@@ -17,11 +17,11 @@ import (
 	jsonv2 "github.com/go-json-experiment/json"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/bools"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/netlogtype"
-	"tailscale.com/wgengine/router"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/bools"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/netlogtype"
+	"lanhc.com/wgengine/router"
 )
 
 // nodeAndUser pairs a [tailcfg.NodeView] with its owning user profile.
@@ -126,7 +126,7 @@ func TestEmbedNodeInfo(t *testing.T) {
 	}{
 		{true, 0x6, addrPort("100.1.2.3:80"), addrPort("100.1.2.4:1812"), 88, 278, 34, 887},
 		{true, 0x6, addrPort("100.1.2.3:443"), addrPort("100.1.2.5:1742"), 96, 635, 23, 790},
-		{true, 0x6, addrPort("100.1.2.3:443"), addrPort("100.1.2.6:1175"), 48, 94, 86, 618}, // unknown peer (in Tailscale IP space, but not a known peer)
+		{true, 0x6, addrPort("100.1.2.3:443"), addrPort("100.1.2.6:1175"), 48, 94, 86, 618}, // unknown peer (in Lanhc IP space, but not a known peer)
 		{true, 0x6, addrPort("100.1.2.3:80"), addrPort("192.168.1.241:713"), 43, 154, 66, 883},
 		{true, 0x6, addrPort("100.1.2.3:80"), addrPort("192.168.2.241:713"), 43, 154, 66, 883}, // not in the subnet, must be exit traffic
 		{true, 0x6, addrPort("100.1.2.3:80"), addrPort("172.16.5.18:713"), 7, 243, 40, 59},

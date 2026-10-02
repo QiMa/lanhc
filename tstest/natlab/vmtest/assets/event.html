@@ -31,7 +31,7 @@
 <span id="dhcp-{{.NodeName}}-{{.NIC}}" hx-swap-oob="innerHTML">Got {{.Detail}}</span>
 {{end}}
 
-{{if eq .Type "tailscale"}}
+{{if eq .Type "lanhc"}}
 <span id="ts-{{.NodeName}}" hx-swap-oob="innerHTML">{{.Detail}}</span>
 {{end}}
 

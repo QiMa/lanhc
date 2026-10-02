@@ -4,8 +4,8 @@
 package tailcfg
 
 import (
-	"tailscale.com/types/key"
-	"tailscale.com/types/tkatype"
+	"lanhc.com/types/key"
+	"lanhc.com/types/tkatype"
 )
 
 // TKAInitBeginRequest submits a genesis AUM to seed the creation of the
@@ -69,9 +69,9 @@ type TKAInitFinishRequest struct {
 	// in the tailnet.
 	Signatures map[NodeID]tkatype.MarshaledSignature
 
-	// SupportDisablement is a disablement secret for Tailscale support.
+	// SupportDisablement is a disablement secret for Lanhc support.
 	// This is only generated if --gen-disablement-for-support is specified
-	// in an invocation to 'tailscale lock init'.
+	// in an invocation to 'lanhc lock init'.
 	SupportDisablement []byte `json:",omitempty"`
 }
 

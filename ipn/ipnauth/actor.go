@@ -8,9 +8,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/ipn"
-	"tailscale.com/tailcfg"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/ipn"
+	"lanhc.com/tailcfg"
 )
 
 // AuditLogFunc is any function that can be used to log audit actions performed by an [Actor].
@@ -39,7 +39,7 @@ type Actor interface {
 	Context() context.Context
 
 	// CheckProfileAccess checks whether the actor has the necessary access rights
-	// to perform a given action on the specified Tailscale profile.
+	// to perform a given action on the specified Lanhc profile.
 	// It returns an error if access is denied.
 	//
 	// If the auditLogger is non-nil, it is used to write details about the action
@@ -49,7 +49,7 @@ type Actor interface {
 	// IsLocalSystem reports whether the actor is the Windows' Local System account.
 	//
 	// Deprecated: this method exists for compatibility with the current (as of 2024-08-27)
-	// permission model and will be removed as we progress on tailscale/corp#18342.
+	// permission model and will be removed as we progress on lanhc/corp#18342.
 	IsLocalSystem() bool
 
 	// IsLocalAdmin reports whether the actor has administrative access to the
@@ -57,10 +57,10 @@ type Actor interface {
 	//
 	// The operatorUID is only used on Unix-like platforms and specifies the ID
 	// of a local user (in the os/user.User.Uid string form) who is allowed to
-	// operate tailscaled without being root or using sudo.
+	// operate lanhcd without being root or using sudo.
 	//
 	// Deprecated: this method exists for compatibility with the current (as of 2024-08-27)
-	// permission model and will be removed as we progress on tailscale/corp#18342.
+	// permission model and will be removed as we progress on lanhc/corp#18342.
 	IsLocalAdmin(operatorUID string) bool
 }
 
@@ -72,7 +72,7 @@ type ActorCloser interface {
 }
 
 // ClientID is an opaque, comparable value used to identify a connected LocalAPI
-// client, such as a connected Tailscale GUI or CLI. It does not necessarily
+// client, such as a connected Lanhc GUI or CLI. It does not necessarily
 // correspond to the same [net.Conn] or any physical session.
 //
 // Its zero value is valid, but does not represent a specific connected client.

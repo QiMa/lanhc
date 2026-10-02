@@ -17,8 +17,8 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/kube/egressservices"
-	"tailscale.com/kube/kubetypes"
+	"lanhc.com/kube/egressservices"
+	"lanhc.com/kube/kubetypes"
 )
 
 func Test_updatesForSvc(t *testing.T) {

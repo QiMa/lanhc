@@ -29,19 +29,19 @@ import (
 	"go4.org/netipx"
 	"golang.org/x/sys/unix"
 	"golang.org/x/time/rate"
-	"tailscale.com/envknob"
-	"tailscale.com/health"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/tsconst"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/opt"
-	"tailscale.com/types/preftype"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/linuxfw"
-	"tailscale.com/util/set"
-	"tailscale.com/version/distro"
-	"tailscale.com/wgengine/router"
+	"lanhc.com/envknob"
+	"lanhc.com/health"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/tsconst"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/opt"
+	"lanhc.com/types/preftype"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/linuxfw"
+	"lanhc.com/util/set"
+	"lanhc.com/version/distro"
+	"lanhc.com/wgengine/router"
 )
 
 func init() {
@@ -173,7 +173,7 @@ func newUserspaceRouterAdvanced(logf logger.Logf, tunname string, netMon *netmon
 	// which coupled with an ip rule:
 	//  2001: from all fwmark 0x100/0x3f00 lookup 1
 	//
-	// has the effect of gobbling tailscale packets, because tailscale by default installs
+	// has the effect of gobbling lanhc packets, because lanhc by default installs
 	// its policy routing rules at priority 52xx.
 	//
 	// As such, if we are running on openWRT, detect a mwan3 config, AND detect a rule
@@ -332,7 +332,7 @@ type AddIPRules struct{}
 // onIPRuleDeleted is the callback from the network monitor for when an IP
 // policy rule is deleted. See Issue 1591.
 //
-// If an ip rule is deleted (with pref number 52xx, as Tailscale sets), then
+// If an ip rule is deleted (with pref number 52xx, as Lanhc sets), then
 // set a timer to restore our rules, in case they were deleted. The timer lets
 // us do one fixup in response to a batch of rule deletes. It also lets us
 // delay arbitrarily to prevent a high-speed fight over the rule between
@@ -361,7 +361,7 @@ func (r *linuxRouter) onIPRuleDeleted(table uint8, priority uint32) {
 
 	time.AfterFunc(rr.Delay()+250*time.Millisecond, func() {
 		if r.ruleRestorePending.Swap(false) && !r.closed.Load() {
-			r.logf("somebody (likely systemd-networkd) deleted ip rules; restoring Tailscale's")
+			r.logf("somebody (likely systemd-networkd) deleted ip rules; restoring Lanhc's")
 			r.justAddIPRules()
 		}
 	})
@@ -482,18 +482,18 @@ func (r *linuxRouter) Set(cfg *router.Config) error {
 	r.addrs = newAddrs
 
 	// r.addrs only tracks what this instance configured, so it misses
-	// Tailscale addresses a previous instance left on a persistent tailscale0.
+	// Lanhc addresses a previous instance left on a persistent lanhc0.
 	// After the reconcile above (so our own addresses and their loopback rules
-	// are installed first), sweep any Tailscale-range interface address that
+	// are installed first), sweep any Lanhc-range interface address that
 	// isn't desired and that we don't already track (prevAddrs). Like cidrDiff,
 	// this trusts cfg.LocalAddrs to be authoritative. See #19974.
 	//
 	// TODO(bcreane): a late orphan with no config change -- IPv6 becoming
 	// available, or an external re-add -- isn't caught here; re-run this sweep on
-	// netmon.ChangeDelta to handle it. See tailscale/corp#43882.
+	// netmon.ChangeDelta to handle it. See lanhc/corp#43882.
 	wantAddrs := set.SetOf(cfg.LocalAddrs)
 	if r.lastScanAddrs == nil || !r.lastScanAddrs.Equal(wantAddrs) {
-		if ifaceAddrs, err := r.tailscaleInterfaceAddrs(); err != nil {
+		if ifaceAddrs, err := r.lanhcInterfaceAddrs(); err != nil {
 			r.logf("router: enumerating interface addresses failed, skipping orphan cleanup: %v", err)
 		} else {
 			r.lastScanAddrs = wantAddrs
@@ -511,7 +511,7 @@ func (r *linuxRouter) Set(cfg *router.Config) error {
 				removed = append(removed, p)
 			}
 			if len(removed) > 0 {
-				r.logf("router: removed %d stale Tailscale address(es) from %s left by a previous instance: %v", len(removed), r.tunname, removed)
+				r.logf("router: removed %d stale Lanhc address(es) from %s left by a previous instance: %v", len(removed), r.tunname, removed)
 			}
 		}
 	}
@@ -610,7 +610,7 @@ func (r *linuxRouter) Set(cfg *router.Config) error {
 }
 
 // setCGNATDropModeLocked clears old rules and add new rules for the desired
-// behavior for incoming non-Tailscale CGNAT packets.
+// behavior for incoming non-Lanhc CGNAT packets.
 // [linuxRouter.mu] must be held.
 func (r *linuxRouter) setCGNATDropModeLocked(want linuxfw.CGNATMode) error {
 	if want == r.cgnatMode {
@@ -640,7 +640,7 @@ var dockerStatefulFilteringWarnable = health.Register(&health.Warnable{
 	Code:     "docker-stateful-filtering",
 	Title:    "Docker with stateful filtering",
 	Severity: health.SeverityMedium,
-	Text:     health.StaticMessage("Stateful filtering is enabled and Docker was detected; this may prevent Docker containers on this host from resolving DNS and connecting to Tailscale nodes. See https://tailscale.com/s/stateful-docker"),
+	Text:     health.StaticMessage("Stateful filtering is enabled and Docker was detected; this may prevent Docker containers on this host from resolving DNS and connecting to Lanhc nodes. See https://lanhc.com/s/stateful-docker"),
 })
 
 func (r *linuxRouter) updateStatefulFilteringWithDockerWarning(cfg *router.Config) {
@@ -654,13 +654,13 @@ func (r *linuxRouter) updateStatefulFilteringWithDockerWarning(cfg *router.Confi
 
 	// TODO(andrew-d,maisem): we might want to check if we're running in a
 	// container, since, if so, stateful filtering might prevent other
-	// containers from connecting through the Tailscale in this container.
+	// containers from connecting through the Lanhc in this container.
 	//
-	// For now, just check for the case where we're running Tailscale on
+	// For now, just check for the case where we're running Lanhc on
 	// the host and Docker is also running.
 
 	// If this node isn't a subnet router or exit node, then we would never
-	// have allowed traffic from a Docker container in to Tailscale, since
+	// have allowed traffic from a Docker container in to Lanhc, since
 	// there wouldn't be an AllowedIP for the container's source IP. So we
 	// don't need to warn in this case.
 	//
@@ -758,7 +758,7 @@ func (r *linuxRouter) setNetfilterModeLocked(mode preftype.NetfilterMode) error 
 	}
 
 	// Depending on the netfilter mode we switch from and to, we may
-	// have created the Tailscale netfilter chains. If so, we have to
+	// have created the Lanhc netfilter chains. If so, we have to
 	// go back through existing router state, and add the netfilter
 	// rules for that state.
 	//
@@ -902,7 +902,7 @@ func (r *linuxRouter) setNetfilterModeLocked(mode preftype.NetfilterMode) error 
 }
 
 // getV6FilteringAvailable returns true if the router is able to setup the
-// required tailscale filter rules for IPv6.
+// required lanhc filter rules for IPv6.
 func (r *linuxRouter) getV6FilteringAvailable() bool {
 	if r.nfr == nil {
 		return false
@@ -1048,24 +1048,24 @@ func (r *linuxRouter) delAddrRaw(addr netip.Prefix) error {
 }
 
 // isDeletableAddr reports whether ip, found on the tunnel interface, is a
-// Tailscale-range address the live router should delete. It excludes IPv6 when
+// Lanhc-range address the live router should delete. It excludes IPv6 when
 // IPv6 is unavailable so the Set-time sweep doesn't churn on addresses this
-// instance couldn't have installed; the teardown path uses [tailscaleAddrs]
-// instead and removes every Tailscale-range address.
+// instance couldn't have installed; the teardown path uses [lanhcAddrs]
+// instead and removes every Lanhc-range address.
 func (r *linuxRouter) isDeletableAddr(ip netip.Addr) bool {
 	ip = ip.Unmap()
-	if !tsaddr.IsTailscaleIP(ip) {
+	if !tsaddr.IsLanhcIP(ip) {
 		return false
 	}
 	return !ip.Is6() || r.getV6Available()
 }
 
-// tailscaleAddrs yields only the Tailscale-range addresses from addrs, per
-// [tsaddr.IsTailscaleIP].
-func tailscaleAddrs(addrs iter.Seq[netip.Prefix]) iter.Seq[netip.Prefix] {
+// lanhcAddrs yields only the Lanhc-range addresses from addrs, per
+// [tsaddr.IsLanhcIP].
+func lanhcAddrs(addrs iter.Seq[netip.Prefix]) iter.Seq[netip.Prefix] {
 	return func(yield func(netip.Prefix) bool) {
 		for p := range addrs {
-			if tsaddr.IsTailscaleIP(p.Addr()) && !yield(p) {
+			if tsaddr.IsLanhcIP(p.Addr()) && !yield(p) {
 				return
 			}
 		}
@@ -1084,12 +1084,12 @@ func (r *linuxRouter) deletableAddrs(addrs iter.Seq[netip.Prefix]) iter.Seq[neti
 	}
 }
 
-// tailscaleInterfaceAddrs yields the addresses on the tunnel interface,
+// lanhcInterfaceAddrs yields the addresses on the tunnel interface,
 // preserving each kernel prefix length so a later delete matches. It errors if
 // the interface can't be read.
-func (r *linuxRouter) tailscaleInterfaceAddrs() (iter.Seq[netip.Prefix], error) {
+func (r *linuxRouter) lanhcInterfaceAddrs() (iter.Seq[netip.Prefix], error) {
 	if r.useIPCommand() {
-		return r.tailscaleInterfaceAddrsIPCommand()
+		return r.lanhcInterfaceAddrsIPCommand()
 	}
 	link, err := r.link()
 	if err != nil {
@@ -1111,10 +1111,10 @@ func (r *linuxRouter) tailscaleInterfaceAddrs() (iter.Seq[netip.Prefix], error) 
 	return slices.Values(ret), nil
 }
 
-// tailscaleInterfaceAddrsIPCommand is the "ip" command implementation of
-// [linuxRouter.tailscaleInterfaceAddrs], used in tests and when
+// lanhcInterfaceAddrsIPCommand is the "ip" command implementation of
+// [linuxRouter.lanhcInterfaceAddrs], used in tests and when
 // TS_DEBUG_USE_IP_COMMAND is set.
-func (r *linuxRouter) tailscaleInterfaceAddrsIPCommand() (iter.Seq[netip.Prefix], error) {
+func (r *linuxRouter) lanhcInterfaceAddrsIPCommand() (iter.Seq[netip.Prefix], error) {
 	out, err := r.cmd.output("ip", "-oneline", "addr", "show", "dev", r.tunname)
 	if err != nil {
 		return nil, err
@@ -1153,7 +1153,7 @@ func orphanedAddrs(kernelAddrs iter.Seq[netip.Prefix], desired []netip.Prefix) i
 }
 
 // addLoopbackRule adds a firewall rule to permit loopback traffic to
-// a local Tailscale IP.
+// a local Lanhc IP.
 func (r *linuxRouter) addLoopbackRule(addr netip.Addr) error {
 	if r.netfilterMode == netfilterOff {
 		return nil
@@ -1169,7 +1169,7 @@ func (r *linuxRouter) addLoopbackRule(addr netip.Addr) error {
 }
 
 // delLoopbackRule removes the firewall rule permitting loopback
-// traffic to a Tailscale IP.
+// traffic to a Lanhc IP.
 func (r *linuxRouter) delLoopbackRule(addr netip.Addr) error {
 	if r.netfilterMode == netfilterOff {
 		return nil
@@ -1221,7 +1221,7 @@ func (r *linuxRouter) addThrowRoute(cidr netip.Prefix) error {
 	}
 	err := netlink.RouteReplace(&netlink.Route{
 		Dst:   netipx.PrefixIPNet(cidr.Masked()),
-		Table: tailscaleRouteTable.Num,
+		Table: lanhcRouteTable.Num,
 		Type:  unix.RTN_THROW,
 	})
 	if err != nil {
@@ -1236,7 +1236,7 @@ func (r *linuxRouter) addRouteDef(routeDef []string, cidr netip.Prefix) error {
 	}
 	args := append([]string{"ip", "route", "add"}, routeDef...)
 	if r.ipRuleAvailable {
-		args = append(args, "table", tailscaleRouteTable.ipCmdArg())
+		args = append(args, "table", lanhcRouteTable.ipCmdArg())
 	}
 	err := r.cmd.run(args...)
 	if err == nil {
@@ -1317,7 +1317,7 @@ func (r *linuxRouter) delRouteDef(routeDef []string, cidr netip.Prefix) error {
 	}
 	args := append([]string{"ip", "route", "del"}, routeDef...)
 	if r.ipRuleAvailable {
-		args = append(args, "table", tailscaleRouteTable.ipCmdArg())
+		args = append(args, "table", lanhcRouteTable.ipCmdArg())
 	}
 	err := r.cmd.run(args...)
 	if err != nil {
@@ -1344,7 +1344,7 @@ func dashFam(ip netip.Addr) string {
 func (r *linuxRouter) hasRoute(routeDef []string, cidr netip.Prefix) (bool, error) {
 	args := append([]string{"ip", dashFam(cidr.Addr()), "route", "show"}, routeDef...)
 	if r.ipRuleAvailable {
-		args = append(args, "table", tailscaleRouteTable.ipCmdArg())
+		args = append(args, "table", lanhcRouteTable.ipCmdArg())
 	}
 	out, err := r.cmd.output(args...)
 	if err != nil {
@@ -1374,7 +1374,7 @@ func (r *linuxRouter) linkIndex() (int, error) {
 // routeTable returns the route table to use.
 func (r *linuxRouter) routeTable() int {
 	if r.ipRuleAvailable {
-		return tailscaleRouteTable.Num
+		return lanhcRouteTable.Num
 	}
 	return 0
 }
@@ -1499,9 +1499,9 @@ func (r *linuxRouter) addrFamilies() []addrFamily {
 	return []addrFamily{v4}
 }
 
-// addIPRules adds the policy routing rule that avoids tailscaled
+// addIPRules adds the policy routing rule that avoids lanhcd
 // routing loops. If the rule exists and appears to be a
-// tailscale-managed rule, it is gracefully replaced.
+// lanhc-managed rule, it is gracefully replaced.
 func (r *linuxRouter) addIPRules() error {
 	if !r.ipRuleAvailable {
 		return nil
@@ -1555,7 +1555,7 @@ var (
 	mainRouteTable    = newRouteTable("main", 254)
 	defaultRouteTable = newRouteTable("default", 253)
 
-	// tailscaleRouteTable is the routing table number for Tailscale
+	// lanhcRouteTable is the routing table number for Lanhc
 	// network routes. See addIPRules for the detailed policy routing
 	// logic that ends up doing lookups within that table.
 	//
@@ -1571,10 +1571,10 @@ var (
 	// stay in the 0-255 range even though linux itself supports
 	// larger numbers. (but nowadays we use netlink directly and
 	// aren't affected by the busybox binary's limitations)
-	tailscaleRouteTable = newRouteTable("tailscale", 52)
+	lanhcRouteTable = newRouteTable("lanhc", 52)
 )
 
-// baseIPRules are the policy routing rules that Tailscale uses, when not
+// baseIPRules are the policy routing rules that Lanhc uses, when not
 // running on a UBNT device.
 //
 // The priority is the value represented here added to r.ipPolicyPrefBase,
@@ -1608,33 +1608,33 @@ var baseIPRules = []netlink.Rule{
 	},
 	// If neither of those matched (no default route on this system?)
 	// then packets from us should be aborted rather than falling through
-	// to the tailscale routes, because that would create routing loops.
+	// to the lanhc routes, because that would create routing loops.
 	{
 		Priority: 50,
 		Mark:     tsconst.LinuxBypassMarkNum,
 		Type:     unix.RTN_UNREACHABLE,
 	},
 	// If we get to this point, capture all packets and send them
-	// through to the tailscale route table. For apps other than us
+	// through to the lanhc route table. For apps other than us
 	// (ie. with no fwmark set), this is the first routing table, so
 	// it takes precedence over all the others, ie. VPN routes always
 	// beat non-VPN routes.
 	{
 		Priority: 70,
-		Table:    tailscaleRouteTable.Num,
+		Table:    lanhcRouteTable.Num,
 	},
 	// If that didn't match, then non-fwmark packets fall through to the
 	// usual rules (pref 32766 and 32767, ie. main and default).
 }
 
-// ubntIPRules are the policy routing rules that Tailscale uses, when running
+// ubntIPRules are the policy routing rules that Lanhc uses, when running
 // on a UBNT device.
 //
 // The priority is the value represented here added to
 // r.ipPolicyPrefBase, which is usually 5200.
 //
 // This represents an experiment that will be used to gather more information.
-// If this goes well, Tailscale may opt to use this for all of Linux.
+// If this goes well, Lanhc may opt to use this for all of Linux.
 var ubntIPRules = []netlink.Rule{
 	// non-fwmark packets fall through to the usual rules (pref 32766 and 32767,
 	// ie. main and default).
@@ -1642,11 +1642,11 @@ var ubntIPRules = []netlink.Rule{
 		Priority: 70,
 		Invert:   true,
 		Mark:     tsconst.LinuxBypassMarkNum,
-		Table:    tailscaleRouteTable.Num,
+		Table:    lanhcRouteTable.Num,
 	},
 }
 
-// ipRules returns the appropriate list of ip rules to be used by Tailscale. See
+// ipRules returns the appropriate list of ip rules to be used by Lanhc. See
 // comments on baseIPRules and ubntIPRules for more details.
 func ipRules() []netlink.Rule {
 	if getDistroFunc() == distro.UBNT {
@@ -1732,7 +1732,7 @@ func (r *linuxRouter) delRoutes() error {
 }
 
 // delIPRules removes the policy routing rules that avoid
-// tailscaled routing loops, if it exists.
+// lanhcd routing loops, if it exists.
 func (r *linuxRouter) delIPRules() error {
 	if !r.ipRuleAvailable {
 		return nil
@@ -1927,7 +1927,7 @@ func platformCanNetfilter() bool {
 		// Synology doesn't support iptables or nftables. Attempting to run it
 		// just blocks for a long time while it logs about failures.
 		//
-		// See https://github.com/tailscale/tailscale/issues/11737 for one such
+		// See https://github.com/lanhc/lanhc/issues/11737 for one such
 		// prior regression where we tried to run iptables on Synology.
 		return false
 	}
@@ -1948,8 +1948,8 @@ func cleanUp(logf logger.Logf, interfaceName string) {
 	removeOrphanedAddrsForCleanup(logf, osCommandRunner{ambientCapNetAdmin: useAmbientCaps()}, interfaceName)
 }
 
-// removeOrphanedAddrsForCleanup removes every Tailscale-range address from
-// interfaceName. On the teardown path (tailscaled --cleanup, and the cleanup at
+// removeOrphanedAddrsForCleanup removes every Lanhc-range address from
+// interfaceName. On the teardown path (lanhcd --cleanup, and the cleanup at
 // daemon start) there is no desired config or running router, so every such
 // address is an orphan. Best-effort: failures are logged, not returned.
 func removeOrphanedAddrsForCleanup(logf logger.Logf, cmd commandRunner, interfaceName string) {
@@ -1962,16 +1962,16 @@ func removeOrphanedAddrsForCleanup(logf logger.Logf, cmd commandRunner, interfac
 		tunname: interfaceName,
 		cmd:     cmd,
 	}
-	ifaceAddrs, err := r.tailscaleInterfaceAddrs()
+	ifaceAddrs, err := r.lanhcInterfaceAddrs()
 	if err != nil {
 		r.logf("enumerating %s addresses for cleanup failed: %v", interfaceName, err)
 		return
 	}
-	// Unlike the live sweep's deletableAddrs, tailscaleAddrs keeps IPv6 too: a
+	// Unlike the live sweep's deletableAddrs, lanhcAddrs keeps IPv6 too: a
 	// previous instance may have left a ULA orphan even though this process never
 	// brought IPv6 up. delAddress is idempotent, so a no-op v6 delete is harmless.
 	var removed []netip.Prefix
-	for p := range tailscaleAddrs(ifaceAddrs) {
+	for p := range lanhcAddrs(ifaceAddrs) {
 		if err := r.delAddress(p); err != nil {
 			r.logf("removing stale address %v from %s during cleanup failed: %v", p, interfaceName, err)
 			continue
@@ -1979,7 +1979,7 @@ func removeOrphanedAddrsForCleanup(logf logger.Logf, cmd commandRunner, interfac
 		removed = append(removed, p)
 	}
 	if len(removed) > 0 {
-		r.logf("removed %d stale Tailscale address(es) from %s during cleanup: %v", len(removed), interfaceName, removed)
+		r.logf("removed %d stale Lanhc address(es) from %s during cleanup: %v", len(removed), interfaceName, removed)
 	}
 }
 

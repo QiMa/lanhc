@@ -16,20 +16,20 @@ import (
 	"time"
 
 	"golang.org/x/oauth2"
-	"tailscale.com/feature"
-	"tailscale.com/internal/client/tailscale"
-	"tailscale.com/ipn"
-	"tailscale.com/wif"
+	"lanhc.com/feature"
+	"lanhc.com/internal/client/lanhc"
+	"lanhc.com/ipn"
+	"lanhc.com/wif"
 )
 
 func init() {
 	feature.Register("identityfederation")
-	tailscale.HookResolveAuthKeyViaWIF.Set(resolveAuthKey)
-	tailscale.HookExchangeJWTForTokenViaWIF.Set(exchangeJWTForToken)
+	lanhc.HookResolveAuthKeyViaWIF.Set(resolveAuthKey)
+	lanhc.HookExchangeJWTForTokenViaWIF.Set(exchangeJWTForToken)
 }
 
 // resolveAuthKey uses OIDC identity federation to exchange the provided ID token and client ID for an authkey.
-func resolveAuthKey(ctx context.Context, args tailscale.ResolveAuthKeyWIFArgs) (string, error) {
+func resolveAuthKey(ctx context.Context, args lanhc.ResolveAuthKeyWIFArgs) (string, error) {
 	if args.ClientID == "" {
 		return "", nil // Short-circuit, no client ID means not using identity federation
 	}
@@ -56,7 +56,7 @@ func resolveAuthKey(ctx context.Context, args tailscale.ResolveAuthKeyWIFArgs) (
 		return "", fmt.Errorf("failed to parse optional config attributes: %w", err)
 	}
 
-	accessToken, err := exchangeJWTForToken(ctx, tailscale.ExchangeJWTForTokenWIFArgs{
+	accessToken, err := exchangeJWTForToken(ctx, lanhc.ExchangeJWTForTokenWIFArgs{
 		BaseURL:  args.BaseURL,
 		ClientID: strippedID,
 		IDToken:  args.IDToken,
@@ -65,16 +65,16 @@ func resolveAuthKey(ctx context.Context, args tailscale.ResolveAuthKeyWIFArgs) (
 		return "", fmt.Errorf("failed to exchange JWT for access token: %w", err)
 	}
 	if accessToken == "" {
-		return "", errors.New("received empty access token from Tailscale")
+		return "", errors.New("received empty access token from Lanhc")
 	}
 
-	tsClient := tailscale.NewClient("-", tailscale.APIKey(accessToken))
-	tsClient.UserAgent = "tailscale-cli-identity-federation"
+	tsClient := lanhc.NewClient("-", lanhc.APIKey(accessToken))
+	tsClient.UserAgent = "lanhc-cli-identity-federation"
 	tsClient.BaseURL = args.BaseURL
 
-	authkey, _, err := tsClient.CreateKey(ctx, tailscale.KeyCapabilities{
-		Devices: tailscale.KeyDeviceCapabilities{
-			Create: tailscale.KeyDeviceCreateCapabilities{
+	authkey, _, err := tsClient.CreateKey(ctx, lanhc.KeyCapabilities{
+		Devices: lanhc.KeyDeviceCapabilities{
+			Create: lanhc.KeyDeviceCreateCapabilities{
 				Reusable:      false,
 				Ephemeral:     ephemeral,
 				Preauthorized: preauth,
@@ -120,8 +120,8 @@ func parseOptionalAttributes(clientID string) (strippedID string, ephemeral bool
 	return strippedID, ephemeral, preauthorized, nil
 }
 
-// exchangeJWTForToken exchanges a JWT for a Tailscale access token.
-func exchangeJWTForToken(ctx context.Context, args tailscale.ExchangeJWTForTokenWIFArgs) (string, error) {
+// exchangeJWTForToken exchanges a JWT for a Lanhc access token.
+func exchangeJWTForToken(ctx context.Context, args lanhc.ExchangeJWTForTokenWIFArgs) (string, error) {
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 	ctx = context.WithValue(ctx, oauth2.HTTPClient, httpClient)
 

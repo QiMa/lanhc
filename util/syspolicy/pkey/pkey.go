@@ -26,33 +26,33 @@ const (
 	LogTarget  Key = "LogTarget" // default ""; if blank logging uses logtail.DefaultHost.
 	Tailnet    Key = "Tailnet"   // default ""; if blank, no tailnet name is sent to the server.
 
-	// AlwaysOn is a boolean key that controls whether Tailscale
+	// AlwaysOn is a boolean key that controls whether Lanhc
 	// should always remain in a connected state, and the user should
 	// not be able to disconnect at their discretion.
 	//
 	// Warning: This policy setting is experimental and may change or be removed in the future.
-	// It may also not be fully supported by all Tailscale clients until it is out of experimental status.
-	// See tailscale/corp#26247, tailscale/corp#26248 and tailscale/corp#26249 for more information.
+	// It may also not be fully supported by all Lanhc clients until it is out of experimental status.
+	// See lanhc/corp#26247, lanhc/corp#26248 and lanhc/corp#26249 for more information.
 	AlwaysOn Key = "AlwaysOn.Enabled"
 
 	// AlwaysOnOverrideWithReason is a boolean key that alters the behavior
-	// of [AlwaysOn]. When true, the user is allowed to disconnect Tailscale
+	// of [AlwaysOn]. When true, the user is allowed to disconnect Lanhc
 	// by providing a reason. The reason is logged and sent to the control
 	// for auditing purposes. It has no effect when [AlwaysOn] is false.
 	AlwaysOnOverrideWithReason Key = "AlwaysOn.OverrideWithReason"
 
 	// ReconnectAfter is a string value formatted for use with time.ParseDuration()
 	// that defines the duration after which the client should automatically reconnect
-	// to the Tailscale network following a user-initiated disconnect.
+	// to the Lanhc network following a user-initiated disconnect.
 	// An empty string or a zero duration disables automatic reconnection.
 	ReconnectAfter Key = "ReconnectAfter"
 
-	// AllowTailscaledRestart is a boolean key that controls whether users with write access
-	// to the LocalAPI are allowed to shutdown tailscaled with the intention of restarting it.
-	// On Windows, tailscaled will be restarted automatically by the service process
-	// (see babysitProc in cmd/tailscaled/tailscaled_windows.go).
-	// On other platforms, it is the client's responsibility to restart tailscaled.
-	AllowTailscaledRestart Key = "AllowTailscaledRestart"
+	// AllowLanhcdRestart is a boolean key that controls whether users with write access
+	// to the LocalAPI are allowed to shutdown lanhcd with the intention of restarting it.
+	// On Windows, lanhcd will be restarted automatically by the service process
+	// (see babysitProc in cmd/lanhcd/lanhcd_windows.go).
+	// On other platforms, it is the client's responsibility to restart lanhcd.
+	AllowLanhcdRestart Key = "AllowLanhcdRestart"
 
 	// ExitNodeID is the exit node's node id. default ""; if blank, no exit node is forced.
 	// Exit node ID takes precedence over exit node IP.
@@ -65,8 +65,8 @@ const (
 	// It is typically used in conjunction with [ExitNodeID] set to "auto:any".
 	//
 	// Warning: This policy setting is experimental and may change, be renamed or removed in the future.
-	// It may also not be fully supported by all Tailscale clients until it is out of experimental status.
-	// See tailscale/corp#29969.
+	// It may also not be fully supported by all Lanhc clients until it is out of experimental status.
+	// See lanhc/corp#29969.
 	AllowExitNodeOverride Key = "ExitNode.AllowOverride"
 
 	// Keys with a string value that specifies an option: "always", "never", "user-decides".
@@ -76,12 +76,12 @@ const (
 	EnableIncomingConnections Key = "AllowIncomingConnections"
 	EnableServerMode          Key = "UnattendedMode"
 	ExitNodeAllowLANAccess    Key = "ExitNodeAllowLANAccess"
-	EnableTailscaleDNS        Key = "UseTailscaleDNSSettings"
-	EnableTailscaleSubnets    Key = "UseTailscaleSubnets"
+	EnableLanhcDNS        Key = "UseLanhcDNSSettings"
+	EnableLanhcSubnets    Key = "UseLanhcSubnets"
 
 	// EnableDNSRegistration is a string value that can be set to "always", "never"
 	// or "user-decides". It controls whether DNS registration and dynamic DNS
-	// updates are enabled for the Tailscale interface. For historical reasons
+	// updates are enabled for the Lanhc interface. For historical reasons
 	// and to maintain compatibility with existing setups, the default is "never".
 	// It is only used on Windows.
 	EnableDNSRegistration Key = "EnableDNSRegistration"
@@ -136,7 +136,7 @@ const (
 	FlushDNSOnSessionUnlock Key = "FlushDNSOnSessionUnlock"
 
 	// EncryptState is a boolean setting that specifies whether to encrypt the
-	// tailscaled state file.
+	// lanhcd state file.
 	// Windows and Linux use a TPM device, Apple uses the Keychain.
 	// It's a noop on other platforms.
 	EncryptState Key = "EncryptState"
@@ -150,19 +150,19 @@ const (
 	// Key is a string value that specifies an option: "always", "never", "user-decides".
 	// The default is "user-decides" unless otherwise stated.
 	PostureChecking Key = "PostureChecking"
-	// DeviceSerialNumber is the serial number of the device that is running Tailscale.
+	// DeviceSerialNumber is the serial number of the device that is running Lanhc.
 	// This is used on Android, iOS and tvOS to allow IT administrators to manually give us a serial number via MDM.
 	// We are unable to programmatically get the serial number on mobile due to sandboxing restrictions.
 	DeviceSerialNumber Key = "DeviceSerialNumber"
 
-	// ManagedByOrganizationName indicates the name of the organization managing the Tailscale
+	// ManagedByOrganizationName indicates the name of the organization managing the Lanhc
 	// install. It is displayed inside the client UI in a prominent location.
 	ManagedByOrganizationName Key = "ManagedByOrganizationName"
 	// ManagedByCaption is an info message displayed inside the client UI as a caption when
 	// ManagedByOrganizationName is set. It can be used to provide a pointer to support resources
-	// for Tailscale within the organization.
+	// for Lanhc within the organization.
 	ManagedByCaption Key = "ManagedByCaption"
-	// ManagedByURL is a valid URL pointing to a support help desk for Tailscale within the
+	// ManagedByURL is a valid URL pointing to a support help desk for Lanhc within the
 	// organization. A button in the client UI provides easy access to this URL.
 	ManagedByURL Key = "ManagedByURL"
 
@@ -175,10 +175,10 @@ const (
 	// formatted as per pkix.Name.String(). The Subject may be that of the identity
 	// itself, an intermediate CA or the root CA.
 	//
-	// Example: "CN=Tailscale Inc Test Root CA,OU=Tailscale Inc Test Certificate Authority,O=Tailscale Inc,ST=ON,C=CA"
+	// Example: "CN=Lanhc Inc Test Root CA,OU=Lanhc Inc Test Certificate Authority,O=Lanhc Inc,ST=ON,C=CA"
 	MachineCertificateSubject Key = "MachineCertificateSubject"
 
-	// Hostname is the hostname of the device that is running Tailscale.
+	// Hostname is the hostname of the device that is running Lanhc.
 	// When this policy is set, it overrides the hostname that the client
 	// would otherwise obtain from the OS, e.g. by calling os.Hostname().
 	Hostname Key = "Hostname"

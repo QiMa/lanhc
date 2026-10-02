@@ -23,14 +23,14 @@ var ProxyClassKind = "ProxyClass"
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
 // ProxyClass describes a set of configuration parameters that can be applied to
-// proxy resources created by the Tailscale Kubernetes operator.
-// To apply a given ProxyClass to resources created for a tailscale Ingress or
-// Service, use tailscale.com/proxy-class=<proxyclass-name> label. To apply a
+// proxy resources created by the Lanhc Kubernetes operator.
+// To apply a given ProxyClass to resources created for a lanhc Ingress or
+// Service, use lanhc.com/proxy-class=<proxyclass-name> label. To apply a
 // given ProxyClass to resources created for a Connector, use
 // connector.spec.proxyClass field.
 // ProxyClass is a cluster scoped resource.
 // More info:
-// https://tailscale.com/kb/1445/kubernetes-operator-customization#cluster-resource-customization-using-proxyclass-custom-resource
+// https://lanhc.com/kb/1445/kubernetes-operator-customization#cluster-resource-customization-using-proxyclass-custom-resource
 type ProxyClass struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -54,28 +54,28 @@ type ProxyClassList struct {
 }
 
 type ProxyClassSpec struct {
-	// Configuration parameters for the proxy's StatefulSet. Tailscale
+	// Configuration parameters for the proxy's StatefulSet. Lanhc
 	// Kubernetes operator deploys a StatefulSet for each of the user
-	// configured proxies (Tailscale Ingress, Tailscale Service, Connector).
+	// configured proxies (Lanhc Ingress, Lanhc Service, Connector).
 	// +optional
 	StatefulSet *StatefulSet `json:"statefulSet"`
 	// Configuration for proxy metrics. Metrics are currently not supported
 	// for egress proxies and for Ingress proxies that have been configured
-	// with tailscale.com/experimental-forward-cluster-traffic-via-ingress
+	// with lanhc.com/experimental-forward-cluster-traffic-via-ingress
 	// annotation. Note that the metrics are currently considered unstable
 	// and will likely change in breaking ways in the future - we only
 	// recommend that you use those for debugging purposes.
 	// +optional
 	Metrics *Metrics `json:"metrics,omitempty"`
-	// TailscaleConfig contains options to configure the tailscale-specific
+	// LanhcConfig contains options to configure the lanhc-specific
 	// parameters of proxies.
 	// +optional
-	TailscaleConfig *TailscaleConfig `json:"tailscale,omitempty"`
+	LanhcConfig *LanhcConfig `json:"lanhc,omitempty"`
 	// Set UseLetsEncryptStagingEnvironment to true to issue TLS
 	// certificates for any HTTPS endpoints exposed to the tailnet from
 	// LetsEncrypt's staging environment.
 	// https://letsencrypt.org/docs/staging-environment/
-	// This setting only affects Tailscale Ingress resources.
+	// This setting only affects Lanhc Ingress resources.
 	// By default Ingress TLS certificates are issued from LetsEncrypt's
 	// production environment.
 	// Changing this setting true -> false, will result in any
@@ -88,7 +88,7 @@ type ProxyClassSpec struct {
 	UseLetsEncryptStagingEnvironment bool `json:"useLetsEncryptStagingEnvironment,omitempty"`
 	// Configuration for 'static endpoints' on proxies in order to facilitate
 	// direct connections from other devices on the tailnet.
-	// See https://tailscale.com/kb/1445/kubernetes-operator-customization#static-endpoints.
+	// See https://lanhc.com/kb/1445/kubernetes-operator-customization#static-endpoints.
 	// +optional
 	StaticEndpoints *StaticEndpointsConfig `json:"staticEndpoints,omitempty"`
 }
@@ -206,12 +206,12 @@ func (pr PortRange) IsValid() bool {
 	return pr.Port <= pr.EndPort
 }
 
-type TailscaleConfig struct {
+type LanhcConfig struct {
 	// AcceptRoutes can be set to true to make the proxy instance accept
 	// routes advertized by other nodes on the tailnet, such as subnet
 	// routes.
-	// This is equivalent of passing --accept-routes flag to a tailscale Linux client.
-	// https://tailscale.com/kb/1019/subnets#use-your-subnet-routes-from-other-devices
+	// This is equivalent of passing --accept-routes flag to a lanhc Linux client.
+	// https://lanhc.com/kb/1019/subnets#use-your-subnet-routes-from-other-devices
 	// Defaults to false.
 	AcceptRoutes bool `json:"acceptRoutes,omitempty"`
 }
@@ -219,7 +219,7 @@ type TailscaleConfig struct {
 type StatefulSet struct {
 	// Labels that will be added to the StatefulSet created for the proxy.
 	// Any labels specified here will be merged with the default labels
-	// applied to the StatefulSet by the Tailscale Kubernetes operator as
+	// applied to the StatefulSet by the Lanhc Kubernetes operator as
 	// well as any other labels that might have been applied by other
 	// actors.
 	// Label keys and values must be valid Kubernetes label keys and values.
@@ -228,7 +228,7 @@ type StatefulSet struct {
 	Labels Labels `json:"labels,omitempty"`
 	// Annotations that will be added to the StatefulSet created for the proxy.
 	// Any Annotations specified here will be merged with the default annotations
-	// applied to the StatefulSet by the Tailscale Kubernetes operator as
+	// applied to the StatefulSet by the Lanhc Kubernetes operator as
 	// well as any other annotations that might have been applied by other
 	// actors.
 	// Annotations must be valid Kubernetes annotations.
@@ -243,32 +243,32 @@ type StatefulSet struct {
 type Pod struct {
 	// Labels that will be added to the proxy Pod.
 	// Any labels specified here will be merged with the default labels
-	// applied to the Pod by the Tailscale Kubernetes operator.
+	// applied to the Pod by the Lanhc Kubernetes operator.
 	// Label keys and values must be valid Kubernetes label keys and values.
 	// https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set
 	// +optional
 	Labels Labels `json:"labels,omitempty"`
 	// Annotations that will be added to the proxy Pod.
 	// Any annotations specified here will be merged with the default
-	// annotations applied to the Pod by the Tailscale Kubernetes operator.
+	// annotations applied to the Pod by the Lanhc Kubernetes operator.
 	// Annotations must be valid Kubernetes annotations.
 	// https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
 	// Proxy Pod's affinity rules.
-	// By default, the Tailscale Kubernetes operator does not apply any affinity rules.
+	// By default, the Lanhc Kubernetes operator does not apply any affinity rules.
 	// https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#affinity
 	// +optional
 	Affinity *corev1.Affinity `json:"affinity,omitempty"`
-	// Configuration for the proxy container running tailscale.
+	// Configuration for the proxy container running lanhc.
 	// +optional
-	TailscaleContainer *Container `json:"tailscaleContainer,omitempty"`
+	LanhcContainer *Container `json:"lanhcContainer,omitempty"`
 	// Configuration for the proxy init container that enables forwarding.
 	// Not valid to apply to ProxyGroups of type "kube-apiserver".
 	// +optional
-	TailscaleInitContainer *Container `json:"tailscaleInitContainer,omitempty"`
+	LanhcInitContainer *Container `json:"lanhcInitContainer,omitempty"`
 	// Proxy Pod's security context.
-	// By default Tailscale Kubernetes operator does not apply any Pod
+	// By default Lanhc Kubernetes operator does not apply any Pod
 	// security context.
 	// https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#security-context-2
 	// +optional
@@ -282,29 +282,29 @@ type Pod struct {
 	// +optional
 	NodeName string `json:"nodeName,omitempty"`
 	// Proxy Pod's node selector.
-	// By default Tailscale Kubernetes operator does not apply any node
+	// By default Lanhc Kubernetes operator does not apply any node
 	// selector.
 	// https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#scheduling
 	// +optional
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// Proxy Pod's tolerations.
-	// By default Tailscale Kubernetes operator does not apply any
+	// By default Lanhc Kubernetes operator does not apply any
 	// tolerations.
 	// https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#scheduling
 	// +optional
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 	// Proxy Pod's topology spread constraints.
-	// By default Tailscale Kubernetes operator does not apply any topology spread constraints.
+	// By default Lanhc Kubernetes operator does not apply any topology spread constraints.
 	// https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
 	// +optional
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 	// PriorityClassName for the proxy Pod.
-	// By default Tailscale Kubernetes operator does not apply any priority class.
+	// By default Lanhc Kubernetes operator does not apply any priority class.
 	// https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#scheduling
 	// +optional
 	PriorityClassName string `json:"priorityClassName,omitempty"`
 	// DNSPolicy defines how DNS will be configured for the proxy Pod.
-	// By default the Tailscale Kubernetes Operator does not set a DNS policy (uses cluster default).
+	// By default the Lanhc Kubernetes Operator does not set a DNS policy (uses cluster default).
 	// https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy
 	// +kubebuilder:validation:Enum=ClusterFirstWithHostNet;ClusterFirst;Default;None
 	// +optional
@@ -318,22 +318,22 @@ type Pod struct {
 
 // +kubebuilder:validation:XValidation:rule="!(has(self.serviceMonitor) && self.serviceMonitor.enable  && !self.enable)",message="ServiceMonitor can only be enabled if metrics are enabled"
 type Metrics struct {
-	// Setting enable to true will make the proxy serve Tailscale metrics
+	// Setting enable to true will make the proxy serve Lanhc metrics
 	// at <pod-ip>:9002/metrics.
 	// A metrics Service named <proxy-statefulset>-metrics will also be created in the operator's namespace and will
 	// serve the metrics at <service-ip>:9002/metrics.
 	//
 	// In 1.78.x and 1.80.x, this field also serves as the default value for
-	// .spec.statefulSet.pod.tailscaleContainer.debug.enable. From 1.82.0, both
+	// .spec.statefulSet.pod.lanhcContainer.debug.enable. From 1.82.0, both
 	// fields will independently default to false.
 	//
 	// Defaults to false.
 	Enable bool `json:"enable"`
-	// Enable to create a Prometheus ServiceMonitor for scraping the proxy's Tailscale metrics.
+	// Enable to create a Prometheus ServiceMonitor for scraping the proxy's Lanhc metrics.
 	// The ServiceMonitor will select the metrics Service that gets created when metrics are enabled.
 	// The ingested metrics for each Service monitor will have labels to identify the proxy:
 	// ts_proxy_type: ingress_service|ingress_resource|connector|proxygroup
-	// ts_proxy_parent_name: name of the parent resource (i.e name of the Connector, Tailscale Ingress, Tailscale Service or ProxyGroup)
+	// ts_proxy_parent_name: name of the parent resource (i.e name of the Connector, Lanhc Ingress, Lanhc Service or ProxyGroup)
 	// ts_proxy_parent_namespace: namespace of the parent resource (if the parent resource is not cluster scoped)
 	// job: ts_<proxy type>_[<parent namespace>]_<parent_name>
 	// +optional
@@ -375,24 +375,24 @@ type Container struct {
 	// List of environment variables to set in the container.
 	// https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#environment-variables
 	// Note that environment variables provided here will take precedence
-	// over Tailscale-specific environment variables set by the operator,
-	// however running proxies with custom values for Tailscale environment
+	// over Lanhc-specific environment variables set by the operator,
+	// however running proxies with custom values for Lanhc environment
 	// variables (i.e TS_USERSPACE) is not recommended and might break in
 	// the future.
 	// +optional
 	Env []Env `json:"env,omitempty"`
-	// Container image name. By default images are pulled from docker.io/tailscale,
-	// but the official images are also available at ghcr.io/tailscale.
+	// Container image name. By default images are pulled from docker.io/lanhc,
+	// but the official images are also available at ghcr.io/lanhc.
 	//
 	// For all uses except on ProxyGroups of type "kube-apiserver", this image must
-	// be either tailscale/tailscale, or an equivalent mirror of that image.
+	// be either lanhc/lanhc, or an equivalent mirror of that image.
 	// To apply to ProxyGroups of type "kube-apiserver", this image must be
-	// tailscale/k8s-proxy or a mirror of that image.
+	// lanhc/k8s-proxy or a mirror of that image.
 	//
-	// For "tailscale/tailscale"-based proxies, specifying image name here will
+	// For "lanhc/lanhc"-based proxies, specifying image name here will
 	// override any proxy image values specified via the Kubernetes operator's
 	// Helm chart values or PROXY_IMAGE env var in the operator Deployment.
-	// For "tailscale/k8s-proxy"-based proxies, there is currently no way to
+	// For "lanhc/k8s-proxy"-based proxies, there is currently no way to
 	// configure your own default, and this field is the only way to use a
 	// custom image.
 	//
@@ -405,7 +405,7 @@ type Container struct {
 	// +optional
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 	// Container resource requirements.
-	// By default Tailscale Kubernetes operator does not apply any resource
+	// By default Lanhc Kubernetes operator does not apply any resource
 	// requirements. The amount of resources required wil depend on the
 	// amount of resources the operator needs to parse, usage patterns and
 	// cluster size.
@@ -414,11 +414,11 @@ type Container struct {
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 	// Container security context.
 	// Security context specified here will override the security context set by the operator.
-	// By default the operator sets the Tailscale container and the Tailscale init container to privileged
-	// for proxies created for Tailscale ingress and egress Service, Connector and ProxyGroup.
-	// You can reduce the permissions of the Tailscale container to cap NET_ADMIN by
+	// By default the operator sets the Lanhc container and the Lanhc init container to privileged
+	// for proxies created for Lanhc ingress and egress Service, Connector and ProxyGroup.
+	// You can reduce the permissions of the Lanhc container to cap NET_ADMIN by
 	// installing device plugin in your cluster and configuring the proxies tun device to be created
-	// by the device plugin, see  https://github.com/tailscale/tailscale/issues/10814#issuecomment-2479977752
+	// by the device plugin, see  https://github.com/lanhc/lanhc/issues/10814#issuecomment-2479977752
 	// https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#security-context
 	// +optional
 	SecurityContext *corev1.SecurityContext `json:"securityContext,omitempty"`
@@ -429,7 +429,7 @@ type Container struct {
 }
 
 type Debug struct {
-	// Enable tailscaled's HTTP pprof endpoints at <pod-ip>:9001/debug/pprof/
+	// Enable lanhcd's HTTP pprof endpoints at <pod-ip>:9001/debug/pprof/
 	// and internal debug metrics endpoint at <pod-ip>:9001/debug/metrics, where
 	// 9001 is a container port named "debug". The endpoints and their responses
 	// may change in backwards incompatible ways in the future, and should not

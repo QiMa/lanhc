@@ -19,10 +19,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmTypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/store"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/types/logger"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/store"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/types/logger"
 )
 
 func init() {
@@ -79,8 +79,8 @@ type awsStore struct {
 //
 // Note that we store the entire store in a single parameter
 // key, therefore if the state is above 8kb, it can cause
-// Tailscaled to only store new state in-memory and
-// restarting Tailscaled can fail until you delete your state
+// Lanhcd to only store new state in-memory and
+// restarting Lanhcd can fail until you delete your state
 // from the AWS Parameter Store.
 //
 // If you want to specify an optional KMS key,

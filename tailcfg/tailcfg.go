@@ -1,11 +1,11 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package tailcfg contains types used by the Tailscale protocol with between
+// Package tailcfg contains types used by the Lanhc protocol with between
 // the node and the coordination server.
 package tailcfg
 
-//go:generate go run tailscale.com/cmd/viewer --type=User,Node,Hostinfo,NetInfo,Login,DNSConfig,RegisterResponse,RegisterResponseAuth,RegisterRequest,DERPHomeParams,DERPRegion,DERPMap,DERPNode,SSHRule,SSHAction,SSHPrincipal,ControlDialPlan,Location,UserProfile,VIPService,SSHPolicy --clonefunc
+//go:generate go run lanhc.com/cmd/viewer --type=User,Node,Hostinfo,NetInfo,Login,DNSConfig,RegisterResponse,RegisterResponseAuth,RegisterRequest,DERPHomeParams,DERPRegion,DERPMap,DERPNode,SSHRule,SSHAction,SSHPrincipal,ControlDialPlan,Location,UserProfile,VIPService,SSHPolicy --clonefunc
 
 import (
 	"bytes"
@@ -21,16 +21,16 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/types/dnstype"
-	"tailscale.com/types/key"
-	"tailscale.com/types/opt"
-	"tailscale.com/types/structs"
-	"tailscale.com/types/tkatype"
-	"tailscale.com/types/views"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/slicesx"
-	"tailscale.com/util/vizerror"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/types/dnstype"
+	"lanhc.com/types/key"
+	"lanhc.com/types/opt"
+	"lanhc.com/types/structs"
+	"lanhc.com/types/tkatype"
+	"lanhc.com/types/views"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/slicesx"
+	"lanhc.com/util/vizerror"
 )
 
 // CapabilityVersion represents the client's capability level. That
@@ -67,11 +67,11 @@ type CapabilityVersion int
 //   - 17: 2021-04-18: MapResponse.Domain empty means unchanged
 //   - 18: 2021-04-19: MapResponse.Node nil means unchanged (all fields now omitempty)
 //   - 19: 2021-04-21: MapResponse.Debug.SleepSeconds
-//   - 20: 2021-06-11: MapResponse.LastSeen used even less (https://github.com/tailscale/tailscale/issues/2107)
+//   - 20: 2021-06-11: MapResponse.LastSeen used even less (https://github.com/lanhc/lanhc/issues/2107)
 //   - 21: 2021-06-15: added MapResponse.DNSConfig.CertDomains
 //   - 22: 2021-06-16: added MapResponse.DNSConfig.ExtraRecords
 //   - 23: 2021-08-25: DNSConfig.Routes values may be empty (for ExtraRecords support in 1.14.1+)
-//   - 24: 2021-09-18: MapResponse.Health from control to node; node shows in "tailscale status"
+//   - 24: 2021-09-18: MapResponse.Health from control to node; node shows in "lanhc status"
 //   - 25: 2021-11-01: MapResponse.Debug.Exit
 //   - 26: 2022-01-12: (nothing, just bumping for 1.20.0)
 //   - 27: 2022-02-18: start of SSHPolicy being respected
@@ -88,7 +88,7 @@ type CapabilityVersion int
 //   - 39: 2022-08-15: clients can talk Noise over arbitrary HTTPS port
 //   - 40: 2022-08-22: added Node.KeySignature, PeersChangedPatch.KeySignature
 //   - 41: 2022-08-30: uses 100.100.100.100 for route-less ExtraRecords if global nameservers is set
-//   - 42: 2022-09-06: NextDNS DoH support; see https://github.com/tailscale/tailscale/pull/5556
+//   - 42: 2022-09-06: NextDNS DoH support; see https://github.com/lanhc/lanhc/pull/5556
 //   - 43: 2022-09-21: clients can return usernames for SSH
 //   - 44: 2022-09-22: MapResponse.ControlDialPlan
 //   - 45: 2022-09-26: c2n /debug/{goroutines,prefs,metrics}
@@ -156,11 +156,11 @@ type CapabilityVersion int
 //   - 107: 2024-10-30: add App Connector to conffile (PR #13942)
 //   - 108: 2024-11-08: Client sends ServicesHash in Hostinfo, understands c2n GET /vip-services.
 //   - 109: 2024-11-18: Client supports filtertype.Match.SrcCaps (issue #12542)
-//   - 110: 2024-12-12: removed never-before-used Tailscale SSH public key support (#14373)
+//   - 110: 2024-12-12: removed never-before-used Lanhc SSH public key support (#14373)
 //   - 111: 2025-01-14: Client supports a peer having Node.HomeDERP (issue #14636)
 //   - 112: 2025-01-14: Client interprets AllowedIPs of nil as meaning same as Addresses
 //   - 113: 2025-01-20: Client communicates to control whether funnel is enabled by sending Hostinfo.IngressEnabled (#14688)
-//   - 114: 2025-01-30: NodeAttrMaxKeyDuration CapMap defined, clients might use it (no tailscaled code change) (#14829)
+//   - 114: 2025-01-30: NodeAttrMaxKeyDuration CapMap defined, clients might use it (no lanhcd code change) (#14829)
 //   - 115: 2025-03-07: Client understands DERPRegion.NoMeasureNoHome.
 //   - 116: 2025-05-05: Client serves MagicDNS "AAAA" if NodeAttrMagicDNSPeerAAAA set on self node
 //   - 117: 2025-05-28: Client understands DisplayMessages (structured health messages), but not necessarily PrimaryAction.
@@ -172,7 +172,7 @@ type CapabilityVersion int
 //   - 123: 2025-07-28: fix deadlock regression from cryptokey routing change (issue #16651)
 //   - 124: 2025-08-08: removed NodeAttrDisableMagicSockCryptoRouting support, crypto routing is now mandatory
 //   - 125: 2025-08-11: dnstype.Resolver adds UseWithExitNode field.
-//   - 126: 2025-09-17: Client uses seamless key renewal unless disabled by control (tailscale/corp#31479)
+//   - 126: 2025-09-17: Client uses seamless key renewal unless disabled by control (lanhc/corp#31479)
 //   - 127: 2025-09-19: can handle C2N /debug/netmap.
 //   - 128: 2025-10-02: can handle C2N /debug/health.
 //   - 129: 2025-10-04: Fixed sleep/wake deadlock in magicsock when using peer relay (PR #17449)
@@ -196,7 +196,7 @@ const CurrentCapabilityVersion CapabilityVersion = 142
 //
 // To be nice, control plane servers should not use int64s that are too large to
 // fit in a JavaScript number (see JavaScript's Number.MAX_SAFE_INTEGER).
-// The Tailscale-hosted control plane stopped allocating large integers in
+// The Lanhc-hosted control plane stopped allocating large integers in
 // March 2023 but nodes prior to that may have IDs larger than
 // MAX_SAFE_INTEGER (2^53 – 1).
 //
@@ -212,7 +212,7 @@ func (u UserID) IsZero() bool {
 
 // LoginID is an [ID] for a [Login].
 //
-// It is not used in the Tailscale client, but is used in the control plane.
+// It is not used in the Lanhc client, but is used in the control plane.
 type LoginID ID
 
 func (u LoginID) IsZero() bool {
@@ -221,12 +221,12 @@ func (u LoginID) IsZero() bool {
 
 // NodeID is a unique integer ID for a node.
 //
-// It's global within a control plane URL ("tailscale up --login-server") and is
+// It's global within a control plane URL ("lanhc up --login-server") and is
 // (as of 2025-01-06) never re-used even after a node is deleted.
 //
 // To be nice, control plane servers should not use int64s that are too large to
 // fit in a JavaScript number (see JavaScript's Number.MAX_SAFE_INTEGER).
-// The Tailscale-hosted control plane stopped allocating large integers in
+// The Lanhc-hosted control plane stopped allocating large integers in
 // March 2023 but nodes prior to that may have node IDs larger than
 // MAX_SAFE_INTEGER (2^53 – 1).
 //
@@ -246,7 +246,7 @@ func (u NodeID) IsZero() bool {
 // Being a string, it's safer to use in JavaScript without worrying about the
 // size of the integer, as documented on [NodeID].
 //
-// But in general, Tailscale APIs can accept either a [NodeID] integer or a
+// But in general, Lanhc APIs can accept either a [NodeID] integer or a
 // [StableNodeID] string when referring to a node.
 type StableNodeID string
 
@@ -254,7 +254,7 @@ func (u StableNodeID) IsZero() bool {
 	return u == ""
 }
 
-// User is a Tailscale user.
+// User is a Lanhc user.
 //
 // A user can have multiple logins associated with it (e.g. gmail and github oauth).
 // (Note: none of our UIs support this yet.)
@@ -263,7 +263,7 @@ func (u StableNodeID) IsZero() bool {
 // display name and profile picture.
 //
 // Other properties must be the same for all logins associated with a user.
-// In particular: domain. If a user has a "tailscale.io" domain login, they cannot
+// In particular: domain. If a user has a "lanhc.io" domain login, they cannot
 // have a general gmail address login associated with the user.
 type User struct {
 	ID            UserID
@@ -276,7 +276,7 @@ type User struct {
 // particular tailnet.
 type Login struct {
 	_             structs.Incomparable
-	ID            LoginID // unused in the Tailscale client
+	ID            LoginID // unused in the Lanhc client
 	Provider      string  // "google", "github", "okta_foo", etc.
 	LoginName     string  // an email address or "email-ish" string (like alice@github)
 	DisplayName   string  // from the IdP
@@ -348,7 +348,7 @@ func MarshalCapJSON[T any](capRule T) (RawMessage, error) {
 	return RawMessage(string(bs)), nil
 }
 
-// Node is a Tailscale device in a tailnet.
+// Node is a Lanhc device in a tailnet.
 type Node struct {
 	ID       NodeID
 	StableID StableNodeID
@@ -392,7 +392,7 @@ type Node struct {
 	// integer.
 	//
 	// Deprecated: HomeDERP has replaced this, but old servers might still send
-	// this field. See tailscale/tailscale#14636. Do not use this field in code
+	// this field. See lanhc/lanhc#14636. Do not use this field in code
 	// other than in the upgradeNode func, which canonicalizes it to HomeDERP
 	// if it arrives as a LegacyDERPString string on the wire.
 	LegacyDERPString string `json:"DERP,omitzero"` // DERP-in-IP:port ("127.3.3.40:N") endpoint
@@ -442,7 +442,7 @@ type Node struct {
 	//    "https://tailscale.com/cap/is-admin"
 	//    "https://tailscale.com/cap/file-sharing"
 	//
-	// Deprecated: use CapMap instead. See https://github.com/tailscale/tailscale/issues/11508
+	// Deprecated: use CapMap instead. See https://github.com/lanhc/lanhc/issues/11508
 	Capabilities []NodeCapability `json:",omitempty"`
 
 	// CapMap is a map of capabilities to their optional argument/data values.
@@ -470,7 +470,7 @@ type Node struct {
 	// UnsignedPeerAPIOnly means that this node is not signed nor subject to TKA
 	// restrictions. However, in exchange for that privilege, it does not get
 	// network access. It can only access this node's peerapi, which may not let
-	// it do anything. It is the tailscaled client's job to double-check the
+	// it do anything. It is the lanhcd client's job to double-check the
 	// MapResponse's PacketFilter to verify that its AllowedIPs will not be
 	// accepted by the packet filter.
 	UnsignedPeerAPIOnly bool `json:",omitzero"`
@@ -506,7 +506,7 @@ type Node struct {
 	// This only applies to traffic originating from the current node to the
 	// peer or any of its subnets. Traffic originating from subnet routes will
 	// not be masqueraded (e.g. in case of --snat-subnet-routes).
-	SelfNodeV4MasqAddrForThisPeer *netip.Addr `json:",omitzero"` // TODO: de-pointer: tailscale/tailscale#17978
+	SelfNodeV4MasqAddrForThisPeer *netip.Addr `json:",omitzero"` // TODO: de-pointer: lanhc/lanhc#17978
 
 	// SelfNodeV6MasqAddrForThisPeer is the IPv6 that this peer knows the current node as.
 	// It may be empty if the peer knows the current node by its native
@@ -521,9 +521,9 @@ type Node struct {
 	// This only applies to traffic originating from the current node to the
 	// peer or any of its subnets. Traffic originating from subnet routes will
 	// not be masqueraded (e.g. in case of --snat-subnet-routes).
-	SelfNodeV6MasqAddrForThisPeer *netip.Addr `json:",omitzero"` // TODO: de-pointer: tailscale/tailscale#17978
+	SelfNodeV6MasqAddrForThisPeer *netip.Addr `json:",omitzero"` // TODO: de-pointer: lanhc/lanhc#17978
 
-	// IsWireGuardOnly indicates that this is a non-Tailscale WireGuard peer, it
+	// IsWireGuardOnly indicates that this is a non-Lanhc WireGuard peer, it
 	// is not expected to speak Disco or DERP, and it must have Endpoints in
 	// order to be reachable.
 	IsWireGuardOnly bool `json:",omitzero"`
@@ -665,7 +665,7 @@ func (n *Node) InitDisplayNames(networkMagicDNSSuffix string) {
 
 // MachineStatus is the state of a [Node]'s approval into a tailnet.
 //
-// A "node" and a "machine" are often 1:1, but technically a Tailscale
+// A "node" and a "machine" are often 1:1, but technically a Lanhc
 // daemon has one machine key and can have multiple nodes (e.g. different
 // users on Windows) for that one machine key.
 type MachineStatus int
@@ -806,10 +806,10 @@ type Service struct {
 	//
 	//     * "peerapi4": peerapi is available on IPv4; Port is the
 	//        port number that the peerapi is running on the
-	//        node's Tailscale IPv4 address.
+	//        node's Lanhc IPv4 address.
 	//     * "peerapi6": peerapi is available on IPv6; Port is the
 	//        port number that the peerapi is running on the
-	//        node's Tailscale IPv6 address.
+	//        node's Lanhc IPv6 address.
 	//     * "peerapi-dns-proxy": the local peerapi service supports
 	//        being a DNS proxy (when the node is an exit
 	//        node). For this service, the Port number must only be 1.
@@ -829,7 +829,7 @@ type Service struct {
 }
 
 // Location represents geographical location data about a
-// Tailscale host. Location is optional and only set if
+// Lanhc host. Location is optional and only set if
 // explicitly declared by a node.
 type Location struct {
 	Country     string `json:",omitempty"` // User friendly country name, with proper capitalization ("Canada")
@@ -858,7 +858,7 @@ type Location struct {
 	Priority int `json:",omitempty"`
 }
 
-// Hostinfo contains a summary of a Tailscale host.
+// Hostinfo contains a summary of a Lanhc host.
 //
 // Because it contains pointers (slices), this type should not be used
 // as a value type.
@@ -874,9 +874,9 @@ type Hostinfo struct {
 	// "15.6.1" or "12.4.0". For Windows it's like "10.0.19044.1889". For
 	// FreeBSD it's like "12.3-STABLE".
 	//
-	// For Linux, prior to Tailscale 1.32, we jammed a bunch of fields into this
+	// For Linux, prior to Lanhc 1.32, we jammed a bunch of fields into this
 	// string on Linux, like "Debian 10.4; kernel=xxx; container; env=kn" and so
-	// on. As of Tailscale 1.32, this is simply the kernel version on Linux, like
+	// on. As of Lanhc 1.32, this is simply the kernel version on Linux, like
 	// "5.10.0-17-amd64".
 	OSVersion string `json:",omitzero"`
 
@@ -886,11 +886,11 @@ type Hostinfo struct {
 	DistroVersion  string   `json:",omitzero"` // "20.04", ...
 	DistroCodeName string   `json:",omitzero"` // "jammy", "bullseye", ...
 
-	// App is used to disambiguate Tailscale clients that run using tsnet.
+	// App is used to disambiguate Lanhc clients that run using tsnet.
 	App string `json:",omitzero"` // "k8s-operator", "golinks", ...
 
 	Desktop         opt.Bool `json:",omitzero"` // if a desktop was detected on Linux
-	Package         string   `json:",omitzero"` // Tailscale package to disambiguate ("choco", "appstore", etc; "" for unknown)
+	Package         string   `json:",omitzero"` // Lanhc package to disambiguate ("choco", "appstore", etc; "" for unknown)
 	DeviceModel     string   `json:",omitzero"` // mobile phone model ("Pixel 3a", "iPhone12,3")
 	PushDeviceToken string   `json:",omitzero"` // macOS/iOS APNs device token for notifications (and Android in the future)
 	Hostname        string   `json:",omitzero"` // name of the host the client runs on
@@ -907,7 +907,7 @@ type Hostinfo struct {
 	RemoteConfig bool `json:",omitzero"`
 
 	// WireIngress indicates that the node would like to be wired up server-side
-	// (DNS, etc) to be able to use Tailscale Funnel, even if it's not currently
+	// (DNS, etc) to be able to use Lanhc Funnel, even if it's not currently
 	// enabled. For example, the user might only use it for intermittent
 	// foreground CLI serve sessions, for which they'd like it to work right
 	// away, even if it's disabled most of the time. As an optimization, this is
@@ -941,7 +941,7 @@ type Hostinfo struct {
 	ExitNodeID      StableNodeID   `json:",omitzero"` // the client’s selected exit node, empty when unselected.
 
 	// Location represents geographical location data about a
-	// Tailscale host. Location is optional and only set if
+	// Lanhc host. Location is optional and only set if
 	// explicitly declared by a node.
 	Location *Location `json:",omitzero"`
 
@@ -1054,15 +1054,15 @@ type VIPService struct {
 	Active bool
 }
 
-// TailscaleSSHEnabled reports whether or not this node is acting as a
-// Tailscale SSH server.
-func (hi *Hostinfo) TailscaleSSHEnabled() bool {
+// LanhcSSHEnabled reports whether or not this node is acting as a
+// Lanhc SSH server.
+func (hi *Hostinfo) LanhcSSHEnabled() bool {
 	// Currently, we use `SSH_HostKeys` as a proxy for this. However, we may later
-	// include non-Tailscale host keys, and will add a separate flag to rely on.
+	// include non-Lanhc host keys, and will add a separate flag to rely on.
 	return hi != nil && len(hi.SSH_HostKeys) > 0
 }
 
-func (v HostinfoView) TailscaleSSHEnabled() bool { return v.ж.TailscaleSSHEnabled() }
+func (v HostinfoView) LanhcSSHEnabled() bool { return v.ж.LanhcSSHEnabled() }
 
 // NetInfo contains information about the host's network state.
 type NetInfo struct {
@@ -1127,7 +1127,7 @@ type NetInfo struct {
 	// debug iptables-vs-nftables issues. The string is of the form
 	// "{nft,ift}-REASON", like "nft-forced" or "ipt-default". Empty means
 	// either not Linux or a configuration in which the host firewall rules
-	// are not managed by tailscaled.
+	// are not managed by lanhcd.
 	FirewallMode string `json:",omitzero"`
 
 	// Update BasicallyEqual when adding fields.
@@ -1602,9 +1602,9 @@ const (
 	PeerCapabilityTaildriveSharer PeerCapability = "tailscale.com/cap/drive-sharer"
 
 	// PeerCapabilityKubernetes grants a peer Kubernetes-specific
-	// capabilities, such as the ability to impersonate specific Tailscale
+	// capabilities, such as the ability to impersonate specific Lanhc
 	// user groups as Kubernetes user groups. This capability is read by
-	// peers that are Tailscale Kubernetes operator instances.
+	// peers that are Lanhc Kubernetes operator instances.
 	PeerCapabilityKubernetes PeerCapability = "tailscale.com/cap/kubernetes"
 
 	// PeerCapabilityRelay grants the ability for a peer to allocate relay
@@ -1670,7 +1670,7 @@ func (c NodeCapMap) Contains(cap NodeCapability) bool {
 // a capability to have no values (nil slice); such capabilities can be tested
 // for by using the HasCapability method.
 //
-// The values are opaque to Tailscale, but are passed through from the ACLs to
+// The values are opaque to Lanhc, but are passed through from the ACLs to
 // the application via the WhoIs API.
 type PeerCapMap map[PeerCapability][]RawMessage
 
@@ -1736,7 +1736,7 @@ type FilterRule struct {
 	// a "*" SrcIPs value, the corresponding SrcBits value is
 	// ignored.
 	//
-	// This is still present in this file because the Tailscale control plane
+	// This is still present in this file because the Lanhc control plane
 	// code still uses this type, for 118 clients that are still connected as of
 	// 2024-06-18, 3.5 years after the last release that used this type.
 	SrcBits []int `json:",omitempty"`
@@ -1752,7 +1752,7 @@ type FilterRule struct {
 	// As a special case, nil or empty means TCP, UDP, and ICMP.
 	//
 	// Numbers outside the uint8 range (below 0 or above 255) are
-	// reserved for Tailscale's use. Unknown ones are ignored.
+	// reserved for Lanhc's use. Unknown ones are ignored.
 	//
 	// Depending on the IPProto values, DstPorts may or may not be
 	// used.
@@ -1794,14 +1794,14 @@ type DNSConfig struct {
 	// optionally contain a trailing dot but no leading dot.
 	//
 	// If the value is an empty slice, that means the suffix should still
-	// be handled by Tailscale's built-in resolver (100.100.100.100), such
+	// be handled by Lanhc's built-in resolver (100.100.100.100), such
 	// as for the purpose of handling ExtraRecords.
 	Routes map[string][]*dnstype.Resolver `json:",omitempty"`
 
 	// FallbackResolvers is like Resolvers, but is only used if a
 	// split DNS configuration is requested in a configuration that
 	// doesn't work yet without explicit default resolvers.
-	// https://github.com/tailscale/tailscale/issues/1743
+	// https://github.com/lanhc/lanhc/issues/1743
 	FallbackResolvers []*dnstype.Resolver `json:",omitempty"`
 	// Domains are the search domains to use.
 	// Search domains must be FQDNs, but *without* the trailing dot.
@@ -1876,10 +1876,10 @@ const (
 	PingDisco PingType = "disco"
 	// PingTSMP performs a ping, using the IP layer, but avoiding the OS IP stack.
 	PingTSMP PingType = "TSMP"
-	// PingICMP performs a ping between two tailscale nodes using ICMP that is
+	// PingICMP performs a ping between two lanhc nodes using ICMP that is
 	// received by the target systems IP stack.
 	PingICMP PingType = "ICMP"
-	// PingPeerAPI performs a ping between two tailscale nodes using ICMP that is
+	// PingPeerAPI performs a ping between two lanhc nodes using ICMP that is
 	// received by the target systems IP stack.
 	PingPeerAPI PingType = "peerapi"
 )
@@ -1934,17 +1934,17 @@ type PingRequest struct {
 }
 
 // PingResponse provides result information for a TSMP or Disco PingRequest.
-// Typically populated from an ipnstate.PingResult used in `tailscale ping`.
+// Typically populated from an ipnstate.PingResult used in `lanhc ping`.
 type PingResponse struct {
 	Type PingType // ping type, such as TSMP or disco.
 
 	IP       string `json:",omitempty"` // ping destination
-	NodeIP   string `json:",omitempty"` // Tailscale IP of node handling IP (different for subnet routers)
+	NodeIP   string `json:",omitempty"` // Lanhc IP of node handling IP (different for subnet routers)
 	NodeName string `json:",omitempty"` // DNS name base or (possibly not unique) hostname
 
 	// Err contains a short description of error conditions if the PingRequest
 	// could not be fulfilled for some reason.
-	// e.g. "100.1.2.3 is local Tailscale IP"
+	// e.g. "100.1.2.3 is local Lanhc IP"
 	Err string `json:",omitempty"`
 
 	// LatencySeconds reports measurement of the round-trip time of a message to
@@ -2207,7 +2207,7 @@ type MapResponse struct {
 	// changes from the control plane are ignored.
 	//
 	// Deprecated: use NodeAttrDefaultAutoUpdate instead. See
-	// https://github.com/tailscale/tailscale/issues/11502.
+	// https://github.com/lanhc/lanhc/issues/11502.
 	DeprecatedDefaultAutoUpdate opt.Bool `json:"DefaultAutoUpdate,omitempty"`
 }
 
@@ -2218,7 +2218,7 @@ type DisplayMessage struct {
 	// Title is a string that the GUI uses as title for this message. The title
 	// should be short and fit in a single line. It should not end in a period.
 	//
-	// Example: "Network may be blocking Tailscale".
+	// Example: "Network may be blocking Lanhc".
 	//
 	// See the various instantiations of [health.Warnable] for more examples.
 	Title string
@@ -2226,7 +2226,7 @@ type DisplayMessage struct {
 	// Text is an extended string that the GUI will display to the user. This
 	// could be multiple sentences explaining the issue in more detail.
 	//
-	// Example: "macOS Screen Time seems to be blocking Tailscale. Try disabling
+	// Example: "macOS Screen Time seems to be blocking Lanhc. Try disabling
 	// Screen Time in System Settings > Screen Time > Content & Privacy > Access
 	// to Web Content."
 	//
@@ -2477,7 +2477,7 @@ type Oauth2Token struct {
 //
 // It must be a URL like "https://tailscale.com/cap/file-sharing", or a
 // well-known capability name like "funnel". The latter is only allowed for
-// Tailscale-defined capabilities.
+// Lanhc-defined capabilities.
 //
 // Unlike PeerCapability, NodeCapability is not in context of a peer and is
 // granted to the node itself.
@@ -2556,7 +2556,7 @@ const (
 	// Debug logging capabilities
 
 	// CapabilityDebugTSDNSResolution enables verbose debug logging for DNS
-	// resolution for Tailscale-controlled domains (the control server, log
+	// resolution for Lanhc-controlled domains (the control server, log
 	// server, DERP servers, etc.)
 	CapabilityDebugTSDNSResolution NodeCapability = "https://tailscale.com/cap/debug-ts-dns-resolution"
 
@@ -2599,7 +2599,7 @@ const (
 
 	// NodeAttrDisableDeltaUpdates makes the client not process updates via the
 	// delta update mechanism and should instead treat all netmap changes as
-	// "full" ones as tailscaled did in 1.48.x and earlier.
+	// "full" ones as lanhcd did in 1.48.x and earlier.
 	NodeAttrDisableDeltaUpdates NodeCapability = "disable-delta-updates"
 
 	// NodeAttrRandomizeClientPort makes magicsock UDP bind to
@@ -2674,14 +2674,14 @@ const (
 	NodeAttrUserDialUseRoutes NodeCapability = "user-dial-routes"
 
 	// NodeAttrSSHBehaviorV1 forces SSH to use the V1 behavior (no su, run SFTP in-process)
-	// Added 2024-05-29 in Tailscale version 1.68.
+	// Added 2024-05-29 in Lanhc version 1.68.
 	NodeAttrSSHBehaviorV1 NodeCapability = "ssh-behavior-v1"
 
 	// NodeAttrSSHBehaviorV2 forces SSH to use the V2 behavior (use su, run SFTP in child process).
 	// This overrides NodeAttrSSHBehaviorV1 if set.
 	// See forceV1Behavior in ssh/tailssh/incubator.go for distinction between
 	// V1 and V2 behavior.
-	// Added 2024-08-06 in Tailscale version 1.72.
+	// Added 2024-08-06 in Lanhc version 1.72.
 	NodeAttrSSHBehaviorV2 NodeCapability = "ssh-behavior-v2"
 
 	// NodeAttrDisableSplitDNSWhenNoCustomResolvers indicates that the node's
@@ -2705,10 +2705,10 @@ const (
 	NodeAttrDisableLocalDNSOverrideViaNRPT NodeCapability = "disable-local-dns-override-via-nrpt"
 
 	// NodeAttrDisableMagicSockCryptoRouting disables the use of the
-	// magicsock cryptorouting hook. See tailscale/corp#20732.
+	// magicsock cryptorouting hook. See lanhc/corp#20732.
 	//
 	// Deprecated: NodeAttrDisableMagicSockCryptoRouting is deprecated as of
-	// CapabilityVersion 124, CryptoRouting is now mandatory. See tailscale/corp#31083.
+	// CapabilityVersion 124, CryptoRouting is now mandatory. See lanhc/corp#31083.
 	NodeAttrDisableMagicSockCryptoRouting NodeCapability = "disable-magicsock-crypto-routing"
 
 	// NodeAttrDisableCaptivePortalDetection instructs the client to not perform captive portal detection
@@ -2717,7 +2717,7 @@ const (
 
 	// NodeAttrDisableSkipStatusQueue is set when the node should disable skipping
 	// of queued netmap.NetworkMap between the controlclient and LocalBackend.
-	// See tailscale/tailscale#14768.
+	// See lanhc/lanhc#14768.
 	NodeAttrDisableSkipStatusQueue NodeCapability = "disable-skip-status-queue"
 
 	// NodeAttrSSHEnvironmentVariables enables logic for handling environment variables sent
@@ -2762,7 +2762,7 @@ const (
 	NodeAttrDisableRelayClient NodeCapability = "disable-relay-client"
 
 	// NodeAttrMagicDNSPeerAAAA is a capability that tells the node's MagicDNS
-	// server to answer AAAA queries about its peers. See tailscale/tailscale#1152.
+	// server to answer AAAA queries about its peers. See lanhc/lanhc#1152.
 	NodeAttrMagicDNSPeerAAAA NodeCapability = "magicdns-aaaa"
 
 	// NodeAttrDNSSubdomainResolve, when set on Self or a Peer node, indicates
@@ -2773,7 +2773,7 @@ const (
 	NodeAttrDNSSubdomainResolve NodeCapability = "dns-subdomain-resolve"
 
 	// NodeAttrTrafficSteering configures the node to use the traffic
-	// steering subsystem for via routes. See tailscale/corp#29966.
+	// steering subsystem for via routes. See lanhc/corp#29966.
 	NodeAttrTrafficSteering NodeCapability = "traffic-steering"
 
 	// NodeAttrTailnetDisplayName is an optional alternate name for the tailnet
@@ -2795,7 +2795,7 @@ const (
 	// NodeAttrClientSideReachabilityRouteCheck configures the node to use
 	// the routecheck subsystem to determine reachability when choosing
 	// connectors. This relies on [NodeAttrClientSideReachability] being set.
-	// See tailscale/tailscale#17367.
+	// See lanhc/lanhc#17367.
 	//
 	// It is temporary and will be ignored once its behaviour becomes the default.
 	NodeAttrClientSideReachabilityRouteCheck NodeCapability = "client-side-reachability-routecheck"
@@ -2817,7 +2817,7 @@ const (
 
 	// NodeAttrForceRegisterMagicDNSIPv4Only forces the client to only register
 	// its MagicDNS IPv4 address with systemd/etc, and not both its IPv4 and IPv6 addresses.
-	// See https://github.com/tailscale/tailscale/issues/15404.
+	// See https://github.com/lanhc/lanhc/issues/15404.
 	// TODO(bradfitz): remove this a few releases after 2026-02-16.
 	NodeAttrForceRegisterMagicDNSIPv4Only NodeCapability = "force-register-magicdns-ipv4-only"
 
@@ -2836,19 +2836,19 @@ const (
 
 	// NodeAttrDisableLinuxCGNATDropRule tells Linux clients to not insert a
 	// blanket firewall DROP rule for inbound traffic from the CGNAT IP range
-	// that does not originate from the Tailscale network interface.
+	// that does not originate from the Lanhc network interface.
 	// This enables access to off-tailnet endpoints within that IP range.
 	NodeAttrDisableLinuxCGNATDropRule NodeCapability = "disable-linux-cgnat-drop-rule"
 
 	// NodeAttrEmitRuntimeMetrics enables emission of [runtime/metrics] as
-	// [tailscale.com/util/clientmetric]'s.
+	// [lanhc.com/util/clientmetric]'s.
 	NodeAttrEmitRuntimeMetrics NodeCapability = "emit-runtime-metrics"
 
 	// NodeAttrDisableUDPGRO disables UDP GRO (UDP_GRO socket option on Linux)
 	// on the magicsock UDP socket. It exists so control can mitigate kernel
 	// regressions that cause throughput or correctness issues with UDP GRO on
 	// specific OS/kernel versions, without requiring a client release. See
-	// https://github.com/tailscale/tailscale/issues/19777 for example.
+	// https://github.com/lanhc/lanhc/issues/19777 for example.
 	// Currently only consulted on Linux; may apply to other platforms as they
 	// gain UDP GRO support.
 	NodeAttrDisableUDPGRO NodeCapability = "disable-udp-gro"
@@ -2857,25 +2857,25 @@ const (
 	// Linux) on the magicsock UDP socket. It exists so control can mitigate
 	// kernel regressions that cause throughput or correctness issues with UDP
 	// GSO on specific OS/kernel versions, without requiring a client release.
-	// See https://github.com/tailscale/tailscale/issues/19777 for example.
+	// See https://github.com/lanhc/lanhc/issues/19777 for example.
 	// Currently only consulted on Linux; may apply to other platforms as they
 	// gain UDP GSO support.
 	NodeAttrDisableUDPGSO NodeCapability = "disable-udp-gso"
 
-	// NodeAttrDisableTUNUDPGRO disables UDP GRO on the Tailscale TUN device.
+	// NodeAttrDisableTUNUDPGRO disables UDP GRO on the Lanhc TUN device.
 	// It exists so control can mitigate kernel regressions that cause
 	// throughput or correctness issues with TUN UDP GRO on specific OS/kernel
 	// versions, without requiring a client release. See
-	// https://github.com/tailscale/tailscale/issues/13041 for example.
+	// https://github.com/lanhc/lanhc/issues/13041 for example.
 	// Currently only consulted on Linux; may apply to other platforms as they
 	// gain TUN UDP GRO support.
 	NodeAttrDisableTUNUDPGRO NodeCapability = "disable-tun-udp-gro"
 
-	// NodeAttrDisableTUNTCPGRO disables TCP GRO on the Tailscale TUN device.
+	// NodeAttrDisableTUNTCPGRO disables TCP GRO on the Lanhc TUN device.
 	// It exists so control can mitigate kernel regressions that cause
 	// throughput or correctness issues with TUN TCP GRO on specific OS/kernel
 	// versions, without requiring a client release. See
-	// https://github.com/tailscale/tailscale/issues/13041 for example.
+	// https://github.com/lanhc/lanhc/issues/13041 for example.
 	// Currently only consulted on Linux; may apply to other platforms as they
 	// gain TUN TCP GRO support.
 	NodeAttrDisableTUNTCPGRO NodeCapability = "disable-tun-tcp-gro"
@@ -2886,7 +2886,7 @@ const (
 	// fragments are all equal in length, at a small payload and packet overhead
 	// cost. It exists so control can mitigate kernel regressions that mangle
 	// UDP headers or checksums for equal-length GSO batches, without requiring
-	// a client release. See https://github.com/tailscale/tailscale/issues/19777.
+	// a client release. See https://github.com/lanhc/lanhc/issues/19777.
 	NodeAttrNeverGSOEqualTail NodeCapability = "never-gso-equal-tail"
 )
 
@@ -2902,7 +2902,7 @@ const (
 
 // SetDNSRequest is a request to add a DNS record.
 //
-// This is used to let tailscaled clients complete their ACME DNS-01 challenges
+// This is used to let lanhcd clients complete their ACME DNS-01 challenges
 // (so people can use LetsEncrypt, etc) to get TLS certificates for
 // their foo.bar.ts.net MagicDNS names.
 //
@@ -2957,7 +2957,7 @@ type HealthChangeRequest struct {
 // current node's device posture attributes.
 //
 // As of 2024-12-30, this is an experimental dev feature
-// for internal testing. See tailscale/corp#24690.
+// for internal testing. See lanhc/corp#24690.
 //
 // This is JSON-encoded and sent over the control plane connection to:
 //
@@ -2979,14 +2979,14 @@ type SetDeviceAttributesRequest struct {
 // Attributes not in the map are left unchanged.
 // The value can be a string, float64, bool, or nil to delete.
 //
-// See https://tailscale.com/s/api-device-posture-attrs.
+// See https://lanhc.com/s/api-device-posture-attrs.
 //
 // TODO(bradfitz): add struct type for specifying optional associated data
 // for each attribute value, like an expiry time?
 type AttrUpdate map[string]any
 
 // SSHPolicy is the policy for how to handle incoming SSH connections
-// over Tailscale.
+// over Lanhc.
 type SSHPolicy struct {
 	// Rules are the rules to process for an incoming SSH connection. The first
 	// matching rule takes its action and stops processing further rules.
@@ -3092,7 +3092,7 @@ type SSHAction struct {
 	// wire format for encoding/json v1). It must not use a jsonv2
 	// format tag; the mere presence of one makes Go 1.27's
 	// encoding/json fail to decode the struct. See
-	// https://github.com/tailscale/tailscale/issues/20528.
+	// https://github.com/lanhc/lanhc/issues/20528.
 	SessionDuration time.Duration `json:"sessionDuration,omitempty"`
 
 	// AllowAgentForwarding, if true, allows accepted connections to forward
@@ -3108,7 +3108,7 @@ type SSHAction struct {
 	// response, it should be re-fetched as long as the SSH
 	// session is open.
 	//
-	// The following variables in the URL are expanded by tailscaled:
+	// The following variables in the URL are expanded by lanhcd:
 	//
 	//   * $SRC_NODE_IP (URL escaped)
 	//   * $SRC_NODE_ID (Node.ID as int64 string)
@@ -3282,7 +3282,7 @@ type WebClientAuthResponse struct {
 }
 
 // OverTLSPublicKeyResponse is the JSON response to /key?v=<n>
-// over HTTPS (regular TLS) to the Tailscale control plane server,
+// over HTTPS (regular TLS) to the Lanhc control plane server,
 // where the 'v' argument is the client's current capability version
 // (previously known as the "MapRequest version").
 //
@@ -3331,10 +3331,10 @@ type TokenResponse struct {
 	//   `jti` | Random token identifier
 	//   `nbf` | Not before time
 	//
-	// It also encodes the following Tailscale specific claims:
+	// It also encodes the following Lanhc specific claims:
 	//
 	//   `key`       | the node public key
-	//   `addresses` | the Tailscale IPs of the node
+	//   `addresses` | the Lanhc IPs of the node
 	//   `nid`       | the node ID
 	//   `node`      | the name of the node
 	//   `domain`    | the domain of the node, it has the same format as MapResponse.Domain.
@@ -3367,23 +3367,23 @@ type PeerChange struct {
 	Endpoints []netip.AddrPort `json:",omitempty"`
 
 	// Key, if non-nil, means that the NodeID's wireguard public key changed.
-	Key *key.NodePublic `json:",omitzero"` // TODO: de-pointer: tailscale/tailscale#17978
+	Key *key.NodePublic `json:",omitzero"` // TODO: de-pointer: lanhc/lanhc#17978
 
 	// KeySignature, if non-nil, means that the signature of the wireguard
 	// public key has changed.
 	KeySignature tkatype.MarshaledSignature `json:",omitempty"`
 
 	// DiscoKey, if non-nil, means that the NodeID's discokey changed.
-	DiscoKey *key.DiscoPublic `json:",omitzero"` // TODO: de-pointer: tailscale/tailscale#17978
+	DiscoKey *key.DiscoPublic `json:",omitzero"` // TODO: de-pointer: lanhc/lanhc#17978
 
 	// Online, if non-nil, means that the NodeID's online status changed.
 	Online *bool `json:",omitzero"`
 
 	// LastSeen, if non-nil, means that the NodeID's online status changed.
-	LastSeen *time.Time `json:",omitzero"` // TODO: de-pointer: tailscale/tailscale#17978
+	LastSeen *time.Time `json:",omitzero"` // TODO: de-pointer: lanhc/lanhc#17978
 
 	// KeyExpiry, if non-nil, changes the NodeID's key expiry.
-	KeyExpiry *time.Time `json:",omitzero"` // TODO: de-pointer: tailscale/tailscale#17978
+	KeyExpiry *time.Time `json:",omitzero"` // TODO: de-pointer: lanhc/lanhc#17978
 }
 
 // DerpMagicIP is a fake WireGuard endpoint IP address that means to
@@ -3447,7 +3447,7 @@ type ServiceIPMappings map[ServiceName][]netip.Addr
 // this value to determine which protocol or application to use when
 // handling the action.
 //
-// Well-known Tailscale types are defined as constants in this package.
+// Well-known Lanhc types are defined as constants in this package.
 // They are plain slugs (e.g. "ssh", "http") with no URL prefix.
 //
 // When a type corresponds to an application layer protocol with a
@@ -3547,7 +3547,7 @@ func (t ServiceActionType) Valid() bool {
 // ServiceActionAttribute represents an attribute key for a [ServiceAction].
 // A given attribute's applicability depends on the [ServiceAction.Type].
 //
-// Well-known Tailscale attributes are defined as constants in this package.
+// Well-known Lanhc attributes are defined as constants in this package.
 // Values are [RawMessage] (raw JSON) whose schema depends on the attribute.
 //
 // Clients should ignore attributes they do not recognize.
@@ -3586,7 +3586,7 @@ const (
 	ServiceActionAttributeSkipUsername ServiceActionAttribute = "tailscale.com/cap/skip-username"
 )
 
-// ServiceAction describes an action that a Tailscale
+// ServiceAction describes an action that a Lanhc
 // client can invoke for a [ServiceDetails].
 //
 // Clients should ignore actions with types they do not recognize.

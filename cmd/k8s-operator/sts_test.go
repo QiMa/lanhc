@@ -21,8 +21,8 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/kube/kubetypes"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/kube/kubetypes"
 )
 
 // Test_statefulSetNameBase tests that parent name portion in a StatefulSet name
@@ -93,7 +93,7 @@ func Test_applyProxyClassToStatefulSet(t *testing.T) {
 							{Name: "edns0"},
 						},
 					},
-					TailscaleContainer: &tsapi.Container{
+					LanhcContainer: &tsapi.Container{
 						SecurityContext: &corev1.SecurityContext{
 							Privileged: new(true),
 						},
@@ -103,9 +103,9 @@ func Test_applyProxyClassToStatefulSet(t *testing.T) {
 						},
 						Env:             []tsapi.Env{{Name: "foo", Value: "bar"}, {Name: "TS_USERSPACE", Value: "true"}, {Name: "bar"}},
 						ImagePullPolicy: "IfNotPresent",
-						Image:           "ghcr.io/my-repo/tailscale:v0.01testsomething",
+						Image:           "ghcr.io/my-repo/lanhc:v0.01testsomething",
 					},
-					TailscaleInitContainer: &tsapi.Container{
+					LanhcInitContainer: &tsapi.Container{
 						SecurityContext: &corev1.SecurityContext{
 							Privileged: new(true),
 							RunAsUser:  new(int64(0)),
@@ -116,7 +116,7 @@ func Test_applyProxyClassToStatefulSet(t *testing.T) {
 						},
 						Env:             []tsapi.Env{{Name: "foo", Value: "bar"}, {Name: "TS_USERSPACE", Value: "true"}, {Name: "bar"}},
 						ImagePullPolicy: "IfNotPresent",
-						Image:           "ghcr.io/my-repo/tailscale:v0.01testsomething",
+						Image:           "ghcr.io/my-repo/lanhc:v0.01testsomething",
 					},
 				},
 			},
@@ -146,7 +146,7 @@ func Test_applyProxyClassToStatefulSet(t *testing.T) {
 
 					return &tsapi.StatefulSet{
 						Pod: &tsapi.Pod{
-							TailscaleContainer: &tsapi.Container{
+							LanhcContainer: &tsapi.Container{
 								Debug: &tsapi.Debug{Enable: *debug},
 							},
 						},
@@ -174,12 +174,12 @@ func Test_applyProxyClassToStatefulSet(t *testing.T) {
 	env := []corev1.EnvVar{{Name: "TS_HOSTNAME", Value: "nginx"}}
 	userspaceProxySS.Labels = labels
 	userspaceProxySS.Annotations = annots
-	userspaceProxySS.Spec.Template.Spec.Containers[0].Image = "tailscale/tailscale:v0.0.1"
+	userspaceProxySS.Spec.Template.Spec.Containers[0].Image = "lanhc/lanhc:v0.0.1"
 	userspaceProxySS.Spec.Template.Spec.Containers[0].Env = env
 	nonUserspaceProxySS.ObjectMeta.Labels = labels
 	nonUserspaceProxySS.ObjectMeta.Annotations = annots
 	nonUserspaceProxySS.Spec.Template.Spec.Containers[0].Env = env
-	nonUserspaceProxySS.Spec.Template.Spec.InitContainers[0].Image = "tailscale/tailscale:v0.0.1"
+	nonUserspaceProxySS.Spec.Template.Spec.InitContainers[0].Image = "lanhc/lanhc:v0.0.1"
 
 	// 1. Test that a ProxyClass with all fields set gets correctly applied
 	// to a Statefulset built from non-userspace proxy template.
@@ -195,21 +195,21 @@ func Test_applyProxyClassToStatefulSet(t *testing.T) {
 	wantSS.Spec.Template.Spec.Affinity = proxyClassAllOpts.Spec.StatefulSet.Pod.Affinity
 	wantSS.Spec.Template.Spec.Tolerations = proxyClassAllOpts.Spec.StatefulSet.Pod.Tolerations
 	wantSS.Spec.Template.Spec.TopologySpreadConstraints = proxyClassAllOpts.Spec.StatefulSet.Pod.TopologySpreadConstraints
-	wantSS.Spec.Template.Spec.Containers[0].SecurityContext = proxyClassAllOpts.Spec.StatefulSet.Pod.TailscaleContainer.SecurityContext
-	wantSS.Spec.Template.Spec.InitContainers[0].SecurityContext = proxyClassAllOpts.Spec.StatefulSet.Pod.TailscaleInitContainer.SecurityContext
-	wantSS.Spec.Template.Spec.Containers[0].Resources = proxyClassAllOpts.Spec.StatefulSet.Pod.TailscaleContainer.Resources
-	wantSS.Spec.Template.Spec.InitContainers[0].Resources = proxyClassAllOpts.Spec.StatefulSet.Pod.TailscaleInitContainer.Resources
+	wantSS.Spec.Template.Spec.Containers[0].SecurityContext = proxyClassAllOpts.Spec.StatefulSet.Pod.LanhcContainer.SecurityContext
+	wantSS.Spec.Template.Spec.InitContainers[0].SecurityContext = proxyClassAllOpts.Spec.StatefulSet.Pod.LanhcInitContainer.SecurityContext
+	wantSS.Spec.Template.Spec.Containers[0].Resources = proxyClassAllOpts.Spec.StatefulSet.Pod.LanhcContainer.Resources
+	wantSS.Spec.Template.Spec.InitContainers[0].Resources = proxyClassAllOpts.Spec.StatefulSet.Pod.LanhcInitContainer.Resources
 	wantSS.Spec.Template.Spec.InitContainers[0].Env = append(wantSS.Spec.Template.Spec.InitContainers[0].Env, []corev1.EnvVar{{Name: "foo", Value: "bar"}, {Name: "TS_USERSPACE", Value: "true"}, {Name: "bar"}}...)
 	wantSS.Spec.Template.Spec.Containers[0].Env = append(wantSS.Spec.Template.Spec.Containers[0].Env, []corev1.EnvVar{{Name: "foo", Value: "bar"}, {Name: "TS_USERSPACE", Value: "true"}, {Name: "bar"}}...)
-	wantSS.Spec.Template.Spec.Containers[0].Image = "ghcr.io/my-repo/tailscale:v0.01testsomething"
+	wantSS.Spec.Template.Spec.Containers[0].Image = "ghcr.io/my-repo/lanhc:v0.01testsomething"
 	wantSS.Spec.Template.Spec.Containers[0].ImagePullPolicy = "IfNotPresent"
-	wantSS.Spec.Template.Spec.InitContainers[0].Image = "ghcr.io/my-repo/tailscale:v0.01testsomething"
+	wantSS.Spec.Template.Spec.InitContainers[0].Image = "ghcr.io/my-repo/lanhc:v0.01testsomething"
 	wantSS.Spec.Template.Spec.InitContainers[0].ImagePullPolicy = "IfNotPresent"
 	wantSS.Spec.Template.Spec.PriorityClassName = proxyClassAllOpts.Spec.StatefulSet.Pod.PriorityClassName
 	wantSS.Spec.Template.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet
 	wantSS.Spec.Template.Spec.DNSConfig = proxyClassAllOpts.Spec.StatefulSet.Pod.DNSConfig
 
-	gotSS := applyProxyClassToStatefulSet(proxyClassAllOpts, nonUserspaceProxySS.DeepCopy(), new(tailscaleSTSConfig), zl.Sugar())
+	gotSS := applyProxyClassToStatefulSet(proxyClassAllOpts, nonUserspaceProxySS.DeepCopy(), new(lanhcSTSConfig), zl.Sugar())
 	if diff := cmp.Diff(gotSS, wantSS); diff != "" {
 		t.Errorf("Unexpected result applying ProxyClass with all fields set to a StatefulSet for non-userspace proxy (-got +want):\n%s", diff)
 	}
@@ -222,7 +222,7 @@ func Test_applyProxyClassToStatefulSet(t *testing.T) {
 	updateMap(wantSS.ObjectMeta.Annotations, proxyClassJustLabels.Spec.StatefulSet.Annotations)
 	wantSS.Spec.Template.Labels = proxyClassJustLabels.Spec.StatefulSet.Pod.Labels.Parse()
 	wantSS.Spec.Template.Annotations = proxyClassJustLabels.Spec.StatefulSet.Pod.Annotations
-	gotSS = applyProxyClassToStatefulSet(proxyClassJustLabels, nonUserspaceProxySS.DeepCopy(), new(tailscaleSTSConfig), zl.Sugar())
+	gotSS = applyProxyClassToStatefulSet(proxyClassJustLabels, nonUserspaceProxySS.DeepCopy(), new(lanhcSTSConfig), zl.Sugar())
 	if diff := cmp.Diff(gotSS, wantSS); diff != "" {
 		t.Errorf("Unexpected result applying ProxyClass with custom labels and annotations to a StatefulSet for non-userspace proxy (-got +want):\n%s", diff)
 	}
@@ -241,15 +241,15 @@ func Test_applyProxyClassToStatefulSet(t *testing.T) {
 	wantSS.Spec.Template.Spec.Affinity = proxyClassAllOpts.Spec.StatefulSet.Pod.Affinity
 	wantSS.Spec.Template.Spec.Tolerations = proxyClassAllOpts.Spec.StatefulSet.Pod.Tolerations
 	wantSS.Spec.Template.Spec.TopologySpreadConstraints = proxyClassAllOpts.Spec.StatefulSet.Pod.TopologySpreadConstraints
-	wantSS.Spec.Template.Spec.Containers[0].SecurityContext = proxyClassAllOpts.Spec.StatefulSet.Pod.TailscaleContainer.SecurityContext
-	wantSS.Spec.Template.Spec.Containers[0].Resources = proxyClassAllOpts.Spec.StatefulSet.Pod.TailscaleContainer.Resources
+	wantSS.Spec.Template.Spec.Containers[0].SecurityContext = proxyClassAllOpts.Spec.StatefulSet.Pod.LanhcContainer.SecurityContext
+	wantSS.Spec.Template.Spec.Containers[0].Resources = proxyClassAllOpts.Spec.StatefulSet.Pod.LanhcContainer.Resources
 	wantSS.Spec.Template.Spec.Containers[0].Env = append(wantSS.Spec.Template.Spec.Containers[0].Env, []corev1.EnvVar{{Name: "foo", Value: "bar"}, {Name: "TS_USERSPACE", Value: "true"}, {Name: "bar"}}...)
 	wantSS.Spec.Template.Spec.Containers[0].ImagePullPolicy = "IfNotPresent"
-	wantSS.Spec.Template.Spec.Containers[0].Image = "ghcr.io/my-repo/tailscale:v0.01testsomething"
+	wantSS.Spec.Template.Spec.Containers[0].Image = "ghcr.io/my-repo/lanhc:v0.01testsomething"
 	wantSS.Spec.Template.Spec.PriorityClassName = proxyClassAllOpts.Spec.StatefulSet.Pod.PriorityClassName
 	wantSS.Spec.Template.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet
 	wantSS.Spec.Template.Spec.DNSConfig = proxyClassAllOpts.Spec.StatefulSet.Pod.DNSConfig
-	gotSS = applyProxyClassToStatefulSet(proxyClassAllOpts, userspaceProxySS.DeepCopy(), new(tailscaleSTSConfig), zl.Sugar())
+	gotSS = applyProxyClassToStatefulSet(proxyClassAllOpts, userspaceProxySS.DeepCopy(), new(lanhcSTSConfig), zl.Sugar())
 	if diff := cmp.Diff(gotSS, wantSS); diff != "" {
 		t.Errorf("Unexpected result applying ProxyClass with all options to a StatefulSet for a userspace proxy (-got +want):\n%s", diff)
 	}
@@ -261,7 +261,7 @@ func Test_applyProxyClassToStatefulSet(t *testing.T) {
 	updateMap(wantSS.ObjectMeta.Annotations, proxyClassJustLabels.Spec.StatefulSet.Annotations)
 	wantSS.Spec.Template.Labels = proxyClassJustLabels.Spec.StatefulSet.Pod.Labels.Parse()
 	wantSS.Spec.Template.Annotations = proxyClassJustLabels.Spec.StatefulSet.Pod.Annotations
-	gotSS = applyProxyClassToStatefulSet(proxyClassJustLabels, userspaceProxySS.DeepCopy(), new(tailscaleSTSConfig), zl.Sugar())
+	gotSS = applyProxyClassToStatefulSet(proxyClassJustLabels, userspaceProxySS.DeepCopy(), new(lanhcSTSConfig), zl.Sugar())
 	if diff := cmp.Diff(gotSS, wantSS); diff != "" {
 		t.Errorf("Unexpected result applying ProxyClass with custom labels and annotations to a StatefulSet for a userspace proxy (-got +want):\n%s", diff)
 	}
@@ -270,7 +270,7 @@ func Test_applyProxyClassToStatefulSet(t *testing.T) {
 	wantSS = nonUserspaceProxySS.DeepCopy()
 	wantSS.Spec.Template.Spec.Containers[0].Env = append(wantSS.Spec.Template.Spec.Containers[0].Env,
 		corev1.EnvVar{Name: "TS_DEBUG_ADDR_PORT", Value: "$(POD_IP):9001"},
-		corev1.EnvVar{Name: "TS_TAILSCALED_EXTRA_ARGS", Value: "--debug=$(TS_DEBUG_ADDR_PORT)"},
+		corev1.EnvVar{Name: "TS_LANHCD_EXTRA_ARGS", Value: "--debug=$(TS_DEBUG_ADDR_PORT)"},
 		corev1.EnvVar{Name: "TS_LOCAL_ADDR_PORT", Value: "$(POD_IP):9002"},
 		corev1.EnvVar{Name: "TS_ENABLE_METRICS", Value: "true"},
 	)
@@ -278,7 +278,7 @@ func Test_applyProxyClassToStatefulSet(t *testing.T) {
 		{Name: "debug", Protocol: "TCP", ContainerPort: 9001},
 		{Name: "metrics", Protocol: "TCP", ContainerPort: 9002},
 	}
-	gotSS = applyProxyClassToStatefulSet(proxyClassWithMetricsDebug(true, nil), nonUserspaceProxySS.DeepCopy(), new(tailscaleSTSConfig), zl.Sugar())
+	gotSS = applyProxyClassToStatefulSet(proxyClassWithMetricsDebug(true, nil), nonUserspaceProxySS.DeepCopy(), new(lanhcSTSConfig), zl.Sugar())
 	if diff := cmp.Diff(gotSS, wantSS); diff != "" {
 		t.Errorf("Unexpected result applying ProxyClass with metrics enabled to a StatefulSet (-got +want):\n%s", diff)
 	}
@@ -290,7 +290,7 @@ func Test_applyProxyClassToStatefulSet(t *testing.T) {
 		corev1.EnvVar{Name: "TS_ENABLE_METRICS", Value: "true"},
 	)
 	wantSS.Spec.Template.Spec.Containers[0].Ports = []corev1.ContainerPort{{Name: "metrics", Protocol: "TCP", ContainerPort: 9002}}
-	gotSS = applyProxyClassToStatefulSet(proxyClassWithMetricsDebug(true, new(false)), nonUserspaceProxySS.DeepCopy(), new(tailscaleSTSConfig), zl.Sugar())
+	gotSS = applyProxyClassToStatefulSet(proxyClassWithMetricsDebug(true, new(false)), nonUserspaceProxySS.DeepCopy(), new(lanhcSTSConfig), zl.Sugar())
 	if diff := cmp.Diff(gotSS, wantSS); diff != "" {
 		t.Errorf("Unexpected result applying ProxyClass with metrics enabled to a StatefulSet (-got +want):\n%s", diff)
 	}
@@ -299,16 +299,16 @@ func Test_applyProxyClassToStatefulSet(t *testing.T) {
 	wantSS = nonUserspaceProxySS.DeepCopy()
 	wantSS.Spec.Template.Spec.Containers[0].Env = append(wantSS.Spec.Template.Spec.Containers[0].Env,
 		corev1.EnvVar{Name: "TS_DEBUG_ADDR_PORT", Value: "$(POD_IP):9001"},
-		corev1.EnvVar{Name: "TS_TAILSCALED_EXTRA_ARGS", Value: "--debug=$(TS_DEBUG_ADDR_PORT)"},
+		corev1.EnvVar{Name: "TS_LANHCD_EXTRA_ARGS", Value: "--debug=$(TS_DEBUG_ADDR_PORT)"},
 	)
 	wantSS.Spec.Template.Spec.Containers[0].Ports = []corev1.ContainerPort{{Name: "debug", Protocol: "TCP", ContainerPort: 9001}}
-	gotSS = applyProxyClassToStatefulSet(proxyClassWithMetricsDebug(false, new(true)), nonUserspaceProxySS.DeepCopy(), new(tailscaleSTSConfig), zl.Sugar())
+	gotSS = applyProxyClassToStatefulSet(proxyClassWithMetricsDebug(false, new(true)), nonUserspaceProxySS.DeepCopy(), new(lanhcSTSConfig), zl.Sugar())
 	if diff := cmp.Diff(gotSS, wantSS); diff != "" {
 		t.Errorf("Unexpected result applying ProxyClass with metrics enabled to a StatefulSet (-got +want):\n%s", diff)
 	}
 
 	// 8. A Kubernetes API proxy with letsencrypt staging enabled
-	gotSS = applyProxyClassToStatefulSet(proxyClassAllOpts, nonUserspaceProxySS.DeepCopy(), &tailscaleSTSConfig{proxyType: string(tsapi.ProxyGroupTypeKubernetesAPIServer)}, zl.Sugar())
+	gotSS = applyProxyClassToStatefulSet(proxyClassAllOpts, nonUserspaceProxySS.DeepCopy(), &lanhcSTSConfig{proxyType: string(tsapi.ProxyGroupTypeKubernetesAPIServer)}, zl.Sugar())
 	verifyEnvVar(t, gotSS, "TS_DEBUG_ACME_DIRECTORY_URL", letsEncryptStagingEndpoint)
 }
 
@@ -324,75 +324,75 @@ func Test_mergeStatefulSetLabelsOrAnnots(t *testing.T) {
 			name:    "no-custom-labels-none-present",
 			current: map[string]string{kubetypes.LabelManaged: "true", LabelParentName: "foo", LabelParentType: "svc", LabelParentNamespace: "foo"},
 			want:    map[string]string{kubetypes.LabelManaged: "true", LabelParentName: "foo", LabelParentType: "svc", LabelParentNamespace: "foo"},
-			managed: tailscaleManagedLabels,
+			managed: lanhcManagedLabels,
 		},
 		{
 			name:    "no-custom-labels-some-present",
 			current: map[string]string{"foo": "bar", "something.io/foo": "bar", kubetypes.LabelManaged: "true", LabelParentName: "foo", LabelParentType: "svc", LabelParentNamespace: "foo"},
 			want:    map[string]string{kubetypes.LabelManaged: "true", LabelParentName: "foo", LabelParentType: "svc", LabelParentNamespace: "foo"},
-			managed: tailscaleManagedLabels,
+			managed: lanhcManagedLabels,
 		},
 		{
 			name:    "custom-labels-with-managed-only",
 			current: map[string]string{kubetypes.LabelManaged: "true", LabelParentName: "foo", LabelParentType: "svc", LabelParentNamespace: "foo"},
 			custom:  map[string]string{"foo": "bar", "something.io/foo": "bar"},
 			want:    map[string]string{"foo": "bar", "something.io/foo": "bar", kubetypes.LabelManaged: "true", LabelParentName: "foo", LabelParentType: "svc", LabelParentNamespace: "foo"},
-			managed: tailscaleManagedLabels,
+			managed: lanhcManagedLabels,
 		},
 		{
 			name:    "custom-labels-stale-removed",
 			current: map[string]string{"foo": "bar", "bar": "baz", "app": "1234", kubetypes.LabelManaged: "true", LabelParentName: "foo", LabelParentType: "svc", LabelParentNamespace: "foo"},
 			custom:  map[string]string{"foo": "bar", "something.io/foo": "bar"},
 			want:    map[string]string{"foo": "bar", "something.io/foo": "bar", "app": "1234", kubetypes.LabelManaged: "true", LabelParentName: "foo", LabelParentType: "svc", LabelParentNamespace: "foo"},
-			managed: tailscaleManagedLabels,
+			managed: lanhcManagedLabels,
 		},
 		{
 			name:    "no-current-labels-return-custom",
 			custom:  map[string]string{"foo": "bar", "something.io/foo": "bar"},
 			want:    map[string]string{"foo": "bar", "something.io/foo": "bar"},
-			managed: tailscaleManagedLabels,
+			managed: lanhcManagedLabels,
 		},
 		{
 			name:    "no-current-no-custom-return-empty",
 			want:    map[string]string{},
-			managed: tailscaleManagedLabels,
+			managed: lanhcManagedLabels,
 		},
 		{
 			name:    "no-custom-annots-none-present",
 			current: map[string]string{podAnnotationLastSetClusterIP: "1.2.3.4"},
 			want:    map[string]string{podAnnotationLastSetClusterIP: "1.2.3.4"},
-			managed: tailscaleManagedAnnotations,
+			managed: lanhcManagedAnnotations,
 		},
 		{
 			name:    "no-custom-annots-some-present",
 			current: map[string]string{"foo": "bar", "something.io/foo": "bar", podAnnotationLastSetClusterIP: "1.2.3.4"},
 			want:    map[string]string{podAnnotationLastSetClusterIP: "1.2.3.4"},
-			managed: tailscaleManagedAnnotations,
+			managed: lanhcManagedAnnotations,
 		},
 		{
 			name:    "custom-annots-with-managed-only",
 			current: map[string]string{podAnnotationLastSetClusterIP: "1.2.3.4"},
 			custom:  map[string]string{"foo": "bar", "something.io/foo": "bar"},
 			want:    map[string]string{"foo": "bar", "something.io/foo": "bar", podAnnotationLastSetClusterIP: "1.2.3.4"},
-			managed: tailscaleManagedAnnotations,
+			managed: lanhcManagedAnnotations,
 		},
 		{
 			name:    "custom-annots-stale-removed",
 			current: map[string]string{"foo": "bar", "something.io/foo": "bar", podAnnotationLastSetClusterIP: "1.2.3.4"},
 			custom:  map[string]string{"something.io/foo": "bar"},
 			want:    map[string]string{"something.io/foo": "bar", podAnnotationLastSetClusterIP: "1.2.3.4"},
-			managed: tailscaleManagedAnnotations,
+			managed: lanhcManagedAnnotations,
 		},
 		{
 			name:    "no-current-annots-return-custom",
 			custom:  map[string]string{"foo": "bar", "something.io/foo": "bar"},
 			want:    map[string]string{"foo": "bar", "something.io/foo": "bar"},
-			managed: tailscaleManagedAnnotations,
+			managed: lanhcManagedAnnotations,
 		},
 		{
 			name:    "no-current-annots-no-custom-return-empty",
 			want:    map[string]string{},
-			managed: tailscaleManagedAnnotations,
+			managed: lanhcManagedAnnotations,
 		},
 	}
 	for _, tt := range tests {

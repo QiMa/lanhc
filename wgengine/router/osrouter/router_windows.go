@@ -22,13 +22,13 @@ import (
 	"github.com/tailscale/wireguard-go/tun"
 	"golang.org/x/sys/windows"
 	"golang.zx2c4.com/wireguard/windows/tunnel/winipcfg"
-	"tailscale.com/health"
-	"tailscale.com/net/dns"
-	"tailscale.com/net/netmon"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/backoff"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/wgengine/router"
+	"lanhc.com/health"
+	"lanhc.com/net/dns"
+	"lanhc.com/net/netmon"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/backoff"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/wgengine/router"
 )
 
 func init() {
@@ -127,7 +127,7 @@ func (r *winRouter) Close() error {
 // firewallTweaker changes the Windows firewall. Normally this wouldn't be so complicated,
 // but it can be REALLY SLOW to change the Windows firewall for reasons not understood.
 // Like 4 minutes slow. But usually it's tens of milliseconds.
-// See https://github.com/tailscale/tailscale/issues/785.
+// See https://github.com/lanhc/lanhc/issues/785.
 // So this tracks the desired state and runs the actual adjusting code asynchronously.
 type firewallTweaker struct {
 	logf    logger.Logf
@@ -167,7 +167,7 @@ type firewallTweaker struct {
 
 func (ft *firewallTweaker) clear() { ft.set(nil, nil, nil) }
 
-// set takes CIDRs to allow, and the routes that point into the Tailscale tun interface.
+// set takes CIDRs to allow, and the routes that point into the Lanhc tun interface.
 // Empty slices remove firewall rules.
 //
 // set takes ownership of cidrs, but not routes.
@@ -276,40 +276,40 @@ func (ft *firewallTweaker) doAsyncSet() {
 // doSet creates and deletes firewall rules to make the system state
 // match the values of local, killswitch, clear and procRule.
 //
-// local is the list of local Tailscale addresses (formatted as CIDR
+// local is the list of local Lanhc addresses (formatted as CIDR
 // prefixes) to allow through the Windows firewall.
 // killswitch, if true, enables the wireguard-windows based internet
-// killswitch to prevent use of non-Tailscale default routes.
-// clear, if true, removes all tailscale address firewall rules before
+// killswitch to prevent use of non-Lanhc default routes.
+// clear, if true, removes all lanhc address firewall rules before
 // adding local.
-// procRule, if true, installs a firewall rule that permits the Tailscale
+// procRule, if true, installs a firewall rule that permits the Lanhc
 // process to dial out as it pleases.
 //
 // Must only be invoked from doAsyncSet.
 func (ft *firewallTweaker) doSet(local []string, killswitch bool, clear bool, procRule bool, allowedRoutes []netip.Prefix) error {
 	if clear {
-		ft.logf("clearing Tailscale-In firewall rules...")
+		ft.logf("clearing Lanhc-In firewall rules...")
 		// We ignore the error here, because netsh returns an error for
 		// deleting something that doesn't match.
 		// TODO(bradfitz): care? That'd involve querying it before/after to see
 		// whether it was necessary/worked. But the output format is localized,
 		// so can't rely on parsing English. Maybe need to use OLE, not netsh.exe?
-		d, _ := ft.runFirewall("delete", "rule", "name=Tailscale-In", "dir=in")
-		ft.logf("cleared Tailscale-In firewall rules in %v", d)
+		d, _ := ft.runFirewall("delete", "rule", "name=Lanhc-In", "dir=in")
+		ft.logf("cleared Lanhc-In firewall rules in %v", d)
 	}
 	if procRule {
-		ft.logf("deleting any prior Tailscale-Process rule...")
-		d, err := ft.runFirewall("delete", "rule", "name=Tailscale-Process", "dir=in") // best effort
+		ft.logf("deleting any prior Lanhc-Process rule...")
+		d, err := ft.runFirewall("delete", "rule", "name=Lanhc-Process", "dir=in") // best effort
 		if err == nil {
-			ft.logf("removed old Tailscale-Process rule in %v", d)
+			ft.logf("removed old Lanhc-Process rule in %v", d)
 		}
 		var exe string
 		exe, err = os.Executable()
 		if err != nil {
-			ft.logf("failed to find Executable for Tailscale-Process rule: %v", err)
+			ft.logf("failed to find Executable for Lanhc-Process rule: %v", err)
 		} else {
-			ft.logf("adding Tailscale-Process rule to allow UDP for %q ...", exe)
-			d, err = ft.runFirewall("add", "rule", "name=Tailscale-Process",
+			ft.logf("adding Lanhc-Process rule to allow UDP for %q ...", exe)
+			d, err = ft.runFirewall("add", "rule", "name=Lanhc-Process",
 				"dir=in",
 				"action=allow",
 				"edge=yes",
@@ -319,24 +319,24 @@ func (ft *firewallTweaker) doSet(local []string, killswitch bool, clear bool, pr
 				"enable=yes",
 			)
 			if err != nil {
-				ft.logf("error adding Tailscale-Process rule: %v", err)
+				ft.logf("error adding Lanhc-Process rule: %v", err)
 			} else {
 				ft.mu.Lock()
 				ft.didProcRule = true
 				ft.mu.Unlock()
-				ft.logf("added Tailscale-Process rule in %v", d)
+				ft.logf("added Lanhc-Process rule in %v", d)
 			}
 		}
 	}
 	for _, cidr := range local {
-		ft.logf("adding Tailscale-In rule to allow %v ...", cidr)
+		ft.logf("adding Lanhc-In rule to allow %v ...", cidr)
 		var d time.Duration
-		d, err := ft.runFirewall("add", "rule", "name=Tailscale-In", "dir=in", "action=allow", "localip="+cidr, "profile=private,domain", "enable=yes")
+		d, err := ft.runFirewall("add", "rule", "name=Lanhc-In", "dir=in", "action=allow", "localip="+cidr, "profile=private,domain", "enable=yes")
 		if err != nil {
-			ft.logf("error adding Tailscale-In rule to allow %v: %v", cidr, err)
+			ft.logf("error adding Lanhc-In rule to allow %v: %v", cidr, err)
 			return err
 		}
-		ft.logf("added Tailscale-In rule to allow %v in %v", cidr, d)
+		ft.logf("added Lanhc-In rule to allow %v in %v", cidr, d)
 	}
 
 	if !killswitch {

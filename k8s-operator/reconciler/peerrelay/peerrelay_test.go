@@ -29,17 +29,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	tailscaleclient "tailscale.com/client/tailscale/v2"
+	lanhcclient "tailscale.com/client/tailscale/v2"
 
-	"tailscale.com/ipn"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/k8s-operator/reconciler/peerrelay"
-	"tailscale.com/k8s-operator/tsclient"
+	"lanhc.com/ipn"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/k8s-operator/reconciler/peerrelay"
+	"lanhc.com/k8s-operator/tsclient"
 )
 
 const (
-	tailscaleNamespace = "tailscale"
-	testProxyImage     = "tailscale/tailscale:test"
+	lanhcNamespace = "lanhc"
+	testProxyImage     = "lanhc/lanhc:test"
 )
 
 func testResolver(_ context.Context, _ string, host string) ([]netip.Addr, error) {
@@ -120,10 +120,10 @@ func TestReconciler_Reconcile(t *testing.T) {
 					Protocol: corev1.ProtocolUDP,
 					Selector: map[string]string{"statefulset.kubernetes.io/pod-name": "peerrelay-test-0"},
 					Labels: map[string]string{
-						"tailscale.com/managed":              "true",
-						"tailscale.com/parent-resource-type": "peerrelay",
-						"tailscale.com/parent-resource":      "test",
-						"tailscale.com/peer-relay-replica":   "0",
+						"lanhc.com/managed":              "true",
+						"lanhc.com/parent-resource-type": "peerrelay",
+						"lanhc.com/parent-resource":      "test",
+						"lanhc.com/peer-relay-replica":   "0",
 					},
 					Annotations: map[string]string{
 						"service.beta.kubernetes.io/aws-load-balancer-type":            "external",
@@ -145,9 +145,9 @@ func TestReconciler_Reconcile(t *testing.T) {
 				Spec:       tsapi.PeerRelaySpec{Replicas: new(int32(3))},
 			},
 			ExpectedServices: []expectedService{
-				{Name: "peerrelay-test-0", Labels: map[string]string{"tailscale.com/peer-relay-replica": "0"}},
-				{Name: "peerrelay-test-1", Labels: map[string]string{"tailscale.com/peer-relay-replica": "1"}},
-				{Name: "peerrelay-test-2", Labels: map[string]string{"tailscale.com/peer-relay-replica": "2"}},
+				{Name: "peerrelay-test-0", Labels: map[string]string{"lanhc.com/peer-relay-replica": "0"}},
+				{Name: "peerrelay-test-1", Labels: map[string]string{"lanhc.com/peer-relay-replica": "1"}},
+				{Name: "peerrelay-test-2", Labels: map[string]string{"lanhc.com/peer-relay-replica": "2"}},
 			},
 			ExpectStatefulSetSpec: &statefulSetSpec{Replicas: 3, Image: testProxyImage},
 		},
@@ -274,12 +274,12 @@ func TestReconciler_Reconcile(t *testing.T) {
 				&corev1.Service{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "peerrelay-test-0",
-						Namespace: tailscaleNamespace,
+						Namespace: lanhcNamespace,
 						Labels: map[string]string{
-							"tailscale.com/managed":              "true",
-							"tailscale.com/parent-resource-type": "peerrelay",
-							"tailscale.com/parent-resource":      "test",
-							"tailscale.com/peer-relay-replica":   "0",
+							"lanhc.com/managed":              "true",
+							"lanhc.com/parent-resource-type": "peerrelay",
+							"lanhc.com/parent-resource":      "test",
+							"lanhc.com/peer-relay-replica":   "0",
 						},
 						Annotations: map[string]string{
 							"service.beta.kubernetes.io/aws-load-balancer-scheme": "internal",
@@ -300,7 +300,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 					Port:     41641,
 					Protocol: corev1.ProtocolUDP,
 					Labels: map[string]string{
-						"tailscale.com/managed": "true",
+						"lanhc.com/managed": "true",
 					},
 					Annotations: map[string]string{
 						"service.beta.kubernetes.io/aws-load-balancer-scheme": "internet-facing", // drift corrected
@@ -652,12 +652,12 @@ func TestReconciler_Reconcile(t *testing.T) {
 				&corev1.Service{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "peerrelay-test-0",
-						Namespace: tailscaleNamespace,
+						Namespace: lanhcNamespace,
 						Labels: map[string]string{
-							"tailscale.com/managed":              "true",
-							"tailscale.com/parent-resource-type": "peerrelay",
-							"tailscale.com/parent-resource":      "test",
-							"tailscale.com/peer-relay-replica":   "0",
+							"lanhc.com/managed":              "true",
+							"lanhc.com/parent-resource-type": "peerrelay",
+							"lanhc.com/parent-resource":      "test",
+							"lanhc.com/peer-relay-replica":   "0",
 						},
 						Annotations: map[string]string{
 							eipAllocationsAnnotation: "eipalloc-stale",
@@ -702,7 +702,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 			PeerRelay: &tsapi.PeerRelay{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:              "test",
-					Finalizers:        []string{"tailscale.com/finalizer"},
+					Finalizers:        []string{"lanhc.com/finalizer"},
 					DeletionTimestamp: new(metav1.Now()),
 				},
 				Spec: tsapi.PeerRelaySpec{Replicas: new(int32(2))},
@@ -716,7 +716,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 				&appsv1.StatefulSet{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "test",
-						Namespace: tailscaleNamespace,
+						Namespace: lanhcNamespace,
 					},
 				},
 			},
@@ -740,7 +740,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 			fc := builder.Build()
 			r := peerrelay.NewReconciler(peerrelay.ReconcilerOptions{
 				Client:             fc,
-				TailscaleNamespace: tailscaleNamespace,
+				LanhcNamespace: lanhcNamespace,
 				ProxyImage:         testProxyImage,
 				DefaultTags:        []string{"tag:test-peer-relay"},
 				Clients:            &fakeClientProvider{client: &fakeTSClient{}},
@@ -757,7 +757,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 			}
 
 			var svcs corev1.ServiceList
-			if err = fc.List(t.Context(), &svcs, client.InNamespace(tailscaleNamespace)); err != nil {
+			if err = fc.List(t.Context(), &svcs, client.InNamespace(lanhcNamespace)); err != nil {
 				t.Fatal(err)
 			}
 
@@ -797,7 +797,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 			case err != nil:
 				t.Fatalf("failed to refetch PeerRelay: %v", err)
 			case tc.ExpectFinalizer:
-				if !slices.Contains(pr.Finalizers, "tailscale.com/finalizer") {
+				if !slices.Contains(pr.Finalizers, "lanhc.com/finalizer") {
 					t.Errorf("expected finalizer to be set, got %v", pr.Finalizers)
 				}
 			}
@@ -829,7 +829,7 @@ func assertStatefulSet(t *testing.T, fc client.Client, prName string, want *stat
 
 	stsName := "peerrelay-" + prName
 	var ss appsv1.StatefulSet
-	err := fc.Get(t.Context(), types.NamespacedName{Namespace: tailscaleNamespace, Name: stsName}, &ss)
+	err := fc.Get(t.Context(), types.NamespacedName{Namespace: lanhcNamespace, Name: stsName}, &ss)
 	switch {
 	case gone:
 		if !apierrors.IsNotFound(err) {
@@ -869,7 +869,7 @@ func assertStatefulSet(t *testing.T, fc client.Client, prName string, want *stat
 	if !slices.ContainsFunc(c.Env, func(e corev1.EnvVar) bool {
 		return e.Name == "TS_ENABLE_HEALTH_CHECK" && e.Value == "true"
 	}) {
-		t.Errorf("expected TS_ENABLE_HEALTH_CHECK=true on the tailscaled container, got env %v", c.Env)
+		t.Errorf("expected TS_ENABLE_HEALTH_CHECK=true on the lanhcd container, got env %v", c.Env)
 	}
 
 	if !slices.ContainsFunc(c.Ports, func(p corev1.ContainerPort) bool {
@@ -908,10 +908,10 @@ func assertSecretsForType(t *testing.T, fc client.Client, prName, secretType, la
 	t.Helper()
 
 	var list corev1.SecretList
-	if err := fc.List(t.Context(), &list, client.InNamespace(tailscaleNamespace), client.MatchingLabels(map[string]string{
-		"tailscale.com/parent-resource-type": "peerrelay",
-		"tailscale.com/parent-resource":      prName,
-		"tailscale.com/secret-type":          secretType,
+	if err := fc.List(t.Context(), &list, client.InNamespace(lanhcNamespace), client.MatchingLabels(map[string]string{
+		"lanhc.com/parent-resource-type": "peerrelay",
+		"lanhc.com/parent-resource":      prName,
+		"lanhc.com/secret-type":          secretType,
 	})); err != nil {
 		t.Fatal(err)
 	}
@@ -997,12 +997,12 @@ func managedService(prName string, idx int) *corev1.Service {
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("peerrelay-%s-%d", prName, idx),
-			Namespace: tailscaleNamespace,
+			Namespace: lanhcNamespace,
 			Labels: map[string]string{
-				"tailscale.com/managed":              "true",
-				"tailscale.com/parent-resource-type": "peerrelay",
-				"tailscale.com/parent-resource":      prName,
-				"tailscale.com/peer-relay-replica":   fmt.Sprintf("%d", idx),
+				"lanhc.com/managed":              "true",
+				"lanhc.com/parent-resource-type": "peerrelay",
+				"lanhc.com/parent-resource":      prName,
+				"lanhc.com/peer-relay-replica":   fmt.Sprintf("%d", idx),
 			},
 		},
 		Spec: corev1.ServiceSpec{Type: corev1.ServiceTypeLoadBalancer},
@@ -1023,15 +1023,15 @@ const (
 
 func managedStatefulSet(prName string, replicas, ready int32) *appsv1.StatefulSet {
 	labels := map[string]string{
-		"tailscale.com/managed":              "true",
-		"tailscale.com/parent-resource-type": "peerrelay",
-		"tailscale.com/parent-resource":      prName,
+		"lanhc.com/managed":              "true",
+		"lanhc.com/parent-resource-type": "peerrelay",
+		"lanhc.com/parent-resource":      prName,
 	}
 	stsName := "peerrelay-" + prName
 	return &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      stsName,
-			Namespace: tailscaleNamespace,
+			Namespace: lanhcNamespace,
 			Labels:    labels,
 		},
 		Spec: appsv1.StatefulSetSpec{
@@ -1051,18 +1051,18 @@ func managedConfigSecret(prName string, idx int) *corev1.Secret {
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("peerrelay-%s-%d-config", prName, idx),
-			Namespace: tailscaleNamespace,
+			Namespace: lanhcNamespace,
 			Labels: map[string]string{
-				"tailscale.com/managed":              "true",
-				"tailscale.com/parent-resource-type": "peerrelay",
-				"tailscale.com/parent-resource":      prName,
-				"tailscale.com/peer-relay-replica":   fmt.Sprintf("%d", idx),
+				"lanhc.com/managed":              "true",
+				"lanhc.com/parent-resource-type": "peerrelay",
+				"lanhc.com/parent-resource":      prName,
+				"lanhc.com/peer-relay-replica":   fmt.Sprintf("%d", idx),
 			},
 		},
 	}
 }
 
-func TestReconciler_TailscaledConfig(t *testing.T) {
+func TestReconciler_LanhcdConfig(t *testing.T) {
 	t.Parallel()
 
 	logger, err := zap.NewDevelopment()
@@ -1087,7 +1087,7 @@ func TestReconciler_TailscaledConfig(t *testing.T) {
 
 	r := peerrelay.NewReconciler(peerrelay.ReconcilerOptions{
 		Client:             fc,
-		TailscaleNamespace: tailscaleNamespace,
+		LanhcNamespace: lanhcNamespace,
 		ProxyImage:         testProxyImage,
 		DefaultTags:        []string{"tag:test-peer-relay"},
 		Clients:            &fakeClientProvider{client: &fakeTSClient{}},
@@ -1099,7 +1099,7 @@ func TestReconciler_TailscaledConfig(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got0 := readTailscaledConfig(t, fc, "peerrelay-test-0-config")
+	got0 := readLanhcdConfig(t, fc, "peerrelay-test-0-config")
 	if got0.RelayServerPort == nil || *got0.RelayServerPort != 41641 {
 		t.Errorf("replica 0: expected RelayServerPort=41641, got %v", got0.RelayServerPort)
 	}
@@ -1116,7 +1116,7 @@ func TestReconciler_TailscaledConfig(t *testing.T) {
 		t.Errorf("replica 0: expected hostname=test-0, got %v", got0.Hostname)
 	}
 
-	got1 := readTailscaledConfig(t, fc, "peerrelay-test-1-config")
+	got1 := readLanhcdConfig(t, fc, "peerrelay-test-1-config")
 	if got1.RelayServerPort == nil || *got1.RelayServerPort != 41641 {
 		t.Errorf("replica 1: expected RelayServerPort=41641, got %v", got1.RelayServerPort)
 	}
@@ -1126,11 +1126,11 @@ func TestReconciler_TailscaledConfig(t *testing.T) {
 	}
 }
 
-func readTailscaledConfig(t *testing.T, fc client.Client, secretName string) ipn.ConfigVAlpha {
+func readLanhcdConfig(t *testing.T, fc client.Client, secretName string) ipn.ConfigVAlpha {
 	t.Helper()
 
 	var secret corev1.Secret
-	if err := fc.Get(t.Context(), types.NamespacedName{Namespace: tailscaleNamespace, Name: secretName}, &secret); err != nil {
+	if err := fc.Get(t.Context(), types.NamespacedName{Namespace: lanhcNamespace, Name: secretName}, &secret); err != nil {
 		t.Fatalf("failed to get config Secret %q: %v", secretName, err)
 	}
 
@@ -1182,7 +1182,7 @@ type fakeTSClient struct {
 	tsclient.Client
 
 	mu            sync.Mutex
-	keyCalls      []tailscaleclient.CreateKeyRequest
+	keyCalls      []lanhcclient.CreateKeyRequest
 	deviceDeletes []string
 	nextKey       []string
 }
@@ -1190,7 +1190,7 @@ type fakeTSClient struct {
 func (c *fakeTSClient) Keys() tsclient.KeyResource       { return (*fakeKeys)(c) }
 func (c *fakeTSClient) Devices() tsclient.DeviceResource { return (*fakeDevices)(c) }
 
-func (c *fakeTSClient) CreateAuthKeyCalls() []tailscaleclient.CreateKeyRequest {
+func (c *fakeTSClient) CreateAuthKeyCalls() []lanhcclient.CreateKeyRequest {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return slices.Clone(c.keyCalls)
@@ -1204,7 +1204,7 @@ func (c *fakeTSClient) DeviceDeletes() []string {
 
 type fakeKeys fakeTSClient
 
-func (k *fakeKeys) CreateAuthKey(_ context.Context, req tailscaleclient.CreateKeyRequest) (*tailscaleclient.Key, error) {
+func (k *fakeKeys) CreateAuthKey(_ context.Context, req lanhcclient.CreateKeyRequest) (*lanhcclient.Key, error) {
 	c := (*fakeTSClient)(k)
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -1216,10 +1216,10 @@ func (k *fakeKeys) CreateAuthKey(_ context.Context, req tailscaleclient.CreateKe
 	} else {
 		key = fmt.Sprintf("auth-key-%d", len(c.keyCalls))
 	}
-	return &tailscaleclient.Key{Key: key}, nil
+	return &lanhcclient.Key{Key: key}, nil
 }
 
-func (k *fakeKeys) List(_ context.Context, _ bool) ([]tailscaleclient.Key, error) { return nil, nil }
+func (k *fakeKeys) List(_ context.Context, _ bool) ([]lanhcclient.Key, error) { return nil, nil }
 
 type fakeDevices fakeTSClient
 
@@ -1231,11 +1231,11 @@ func (d *fakeDevices) Delete(_ context.Context, id string) error {
 	return nil
 }
 
-func (d *fakeDevices) List(_ context.Context, _ ...tailscaleclient.ListDevicesOptions) ([]tailscaleclient.Device, error) {
+func (d *fakeDevices) List(_ context.Context, _ ...lanhcclient.ListDevicesOptions) ([]lanhcclient.Device, error) {
 	return nil, nil
 }
 
-func (d *fakeDevices) Get(_ context.Context, _ string) (*tailscaleclient.Device, error) {
+func (d *fakeDevices) Get(_ context.Context, _ string) (*lanhcclient.Device, error) {
 	return nil, nil
 }
 
@@ -1258,7 +1258,7 @@ func TestReconciler_AuthKey_Lifecycle(t *testing.T) {
 		tsc := &fakeTSClient{nextKey: []string{"tskey-abc"}}
 		r := peerrelay.NewReconciler(peerrelay.ReconcilerOptions{
 			Client:             fc,
-			TailscaleNamespace: tailscaleNamespace,
+			LanhcNamespace: lanhcNamespace,
 			ProxyImage:         testProxyImage,
 			DefaultTags:        []string{"tag:k8s-peer-relay"},
 			Clients:            &fakeClientProvider{client: tsc},
@@ -1279,7 +1279,7 @@ func TestReconciler_AuthKey_Lifecycle(t *testing.T) {
 			t.Errorf("expected default tags, got %v", gotTags)
 		}
 
-		conf := readTailscaledConfig(t, fc, "peerrelay-test-0-config")
+		conf := readLanhcdConfig(t, fc, "peerrelay-test-0-config")
 		if conf.AuthKey == nil || *conf.AuthKey != "tskey-abc" {
 			t.Errorf("expected AuthKey=tskey-abc in config, got %v", conf.AuthKey)
 		}
@@ -1296,7 +1296,7 @@ func TestReconciler_AuthKey_Lifecycle(t *testing.T) {
 		tsc := &fakeTSClient{nextKey: []string{"tskey-first", "tskey-second"}}
 		r := peerrelay.NewReconciler(peerrelay.ReconcilerOptions{
 			Client:             fc,
-			TailscaleNamespace: tailscaleNamespace,
+			LanhcNamespace: lanhcNamespace,
 			ProxyImage:         testProxyImage,
 			DefaultTags:        []string{"tag:k8s-peer-relay"},
 			Clients:            &fakeClientProvider{client: tsc},
@@ -1315,7 +1315,7 @@ func TestReconciler_AuthKey_Lifecycle(t *testing.T) {
 			t.Errorf("expected 1 CreateAuthKey call across two reconciles, got %d", got)
 		}
 
-		conf := readTailscaledConfig(t, fc, "peerrelay-test-0-config")
+		conf := readLanhcdConfig(t, fc, "peerrelay-test-0-config")
 		if conf.AuthKey == nil || *conf.AuthKey != "tskey-first" {
 			t.Errorf("expected AuthKey preserved as tskey-first, got %v", conf.AuthKey)
 		}
@@ -1337,7 +1337,7 @@ func TestReconciler_AuthKey_Lifecycle(t *testing.T) {
 
 		r := peerrelay.NewReconciler(peerrelay.ReconcilerOptions{
 			Client:             fc,
-			TailscaleNamespace: tailscaleNamespace,
+			LanhcNamespace: lanhcNamespace,
 			ProxyImage:         testProxyImage,
 			DefaultTags:        []string{"tag:k8s-peer-relay"},
 			Clients:            &fakeClientProvider{client: tsc},
@@ -1369,18 +1369,18 @@ func TestReconciler_DeletesTailnetDevices(t *testing.T) {
 	}
 
 	// stateSecret seeds a Secret shaped like the ones the reconciler pre-creates: parent-resource labels + the
-	// tailscale.com/secret-type=state marker, containing (optionally) a device_id entry as if tailscaled had
+	// lanhc.com/secret-type=state marker, containing (optionally) a device_id entry as if lanhcd had
 	// written it.
 	stateSecret := func(prName, name string, idx int32, deviceID string) *corev1.Secret {
 		labels := map[string]string{
-			"tailscale.com/managed":              "true",
-			"tailscale.com/parent-resource-type": "peerrelay",
-			"tailscale.com/parent-resource":      prName,
-			"tailscale.com/peer-relay-replica":   fmt.Sprintf("%d", idx),
-			"tailscale.com/secret-type":          "state",
+			"lanhc.com/managed":              "true",
+			"lanhc.com/parent-resource-type": "peerrelay",
+			"lanhc.com/parent-resource":      prName,
+			"lanhc.com/peer-relay-replica":   fmt.Sprintf("%d", idx),
+			"lanhc.com/secret-type":          "state",
 		}
 		s := &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: tailscaleNamespace, Labels: labels},
+			ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: lanhcNamespace, Labels: labels},
 		}
 		if deviceID != "" {
 			s.Data = map[string][]byte{"device_id": []byte(deviceID)}
@@ -1392,7 +1392,7 @@ func TestReconciler_DeletesTailnetDevices(t *testing.T) {
 		pr := &tsapi.PeerRelay{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:              "test",
-				Finalizers:        []string{"tailscale.com/finalizer"},
+				Finalizers:        []string{"lanhc.com/finalizer"},
 				DeletionTimestamp: new(metav1.Now()),
 			},
 			Spec: tsapi.PeerRelaySpec{Replicas: new(int32(2))},
@@ -1412,7 +1412,7 @@ func TestReconciler_DeletesTailnetDevices(t *testing.T) {
 		tsc := &fakeTSClient{}
 		r := peerrelay.NewReconciler(peerrelay.ReconcilerOptions{
 			Client:             fc,
-			TailscaleNamespace: tailscaleNamespace,
+			LanhcNamespace: lanhcNamespace,
 			ProxyImage:         testProxyImage,
 			DefaultTags:        []string{"tag:test-peer-relay"},
 			Clients:            &fakeClientProvider{client: tsc},
@@ -1431,12 +1431,12 @@ func TestReconciler_DeletesTailnetDevices(t *testing.T) {
 		// Our state Secrets should be gone; the unrelated PeerRelay's state Secret should still be present.
 		for _, name := range []string{"peerrelay-test-0", "peerrelay-test-1"} {
 			var s corev1.Secret
-			if err = fc.Get(t.Context(), types.NamespacedName{Namespace: tailscaleNamespace, Name: name}, &s); !apierrors.IsNotFound(err) {
+			if err = fc.Get(t.Context(), types.NamespacedName{Namespace: lanhcNamespace, Name: name}, &s); !apierrors.IsNotFound(err) {
 				t.Errorf("expected state Secret %q gone, got err=%v", name, err)
 			}
 		}
 		var other corev1.Secret
-		if err = fc.Get(t.Context(), types.NamespacedName{Namespace: tailscaleNamespace, Name: "peerrelay-other-0"}, &other); err != nil {
+		if err = fc.Get(t.Context(), types.NamespacedName{Namespace: lanhcNamespace, Name: "peerrelay-other-0"}, &other); err != nil {
 			t.Errorf("unexpected: state Secret for other PeerRelay was removed: %v", err)
 		}
 	})
@@ -1461,7 +1461,7 @@ func TestReconciler_DeletesTailnetDevices(t *testing.T) {
 		tsc := &fakeTSClient{}
 		r := peerrelay.NewReconciler(peerrelay.ReconcilerOptions{
 			Client:             fc,
-			TailscaleNamespace: tailscaleNamespace,
+			LanhcNamespace: lanhcNamespace,
 			ProxyImage:         testProxyImage,
 			DefaultTags:        []string{"tag:test-peer-relay"},
 			Clients:            &fakeClientProvider{client: tsc},
@@ -1481,13 +1481,13 @@ func TestReconciler_DeletesTailnetDevices(t *testing.T) {
 		}
 
 		var kept corev1.Secret
-		if err = fc.Get(t.Context(), types.NamespacedName{Namespace: tailscaleNamespace, Name: "peerrelay-test-0"}, &kept); err != nil {
+		if err = fc.Get(t.Context(), types.NamespacedName{Namespace: lanhcNamespace, Name: "peerrelay-test-0"}, &kept); err != nil {
 			t.Errorf("expected replica 0 state Secret preserved: %v", err)
 		}
 
 		for _, name := range []string{"peerrelay-test-1", "peerrelay-test-2"} {
 			var s corev1.Secret
-			if err = fc.Get(t.Context(), types.NamespacedName{Namespace: tailscaleNamespace, Name: name}, &s); !apierrors.IsNotFound(err) {
+			if err = fc.Get(t.Context(), types.NamespacedName{Namespace: lanhcNamespace, Name: name}, &s); !apierrors.IsNotFound(err) {
 				t.Errorf("expected state Secret %q gone after scale-down, got err=%v", name, err)
 			}
 		}
@@ -1515,7 +1515,7 @@ func TestReconciler_TailnetUnavailable(t *testing.T) {
 
 	r := peerrelay.NewReconciler(peerrelay.ReconcilerOptions{
 		Client:             fc,
-		TailscaleNamespace: tailscaleNamespace,
+		LanhcNamespace: lanhcNamespace,
 		ProxyImage:         testProxyImage,
 		DefaultTags:        []string{"tag:test-peer-relay"},
 		Clients:            &fakeClientProvider{err: errors.New("tailnet missing: not ready")},
@@ -1544,7 +1544,7 @@ func TestReconciler_TailnetUnavailable(t *testing.T) {
 	}
 
 	var svcs corev1.ServiceList
-	if err = fc.List(t.Context(), &svcs, client.InNamespace(tailscaleNamespace)); err != nil {
+	if err = fc.List(t.Context(), &svcs, client.InNamespace(lanhcNamespace)); err != nil {
 		t.Fatal(err)
 	}
 	if len(svcs.Items) != 0 {
@@ -1571,12 +1571,12 @@ func TestReconciler_AppliesProxyClass(t *testing.T) {
 			StatefulSet: &tsapi.StatefulSet{
 				Labels: tsapi.Labels{
 					"team":                          "networking",
-					"tailscale.com/parent-resource": "hijack-attempt", // must NOT overwrite reconciler-managed value
+					"lanhc.com/parent-resource": "hijack-attempt", // must NOT overwrite reconciler-managed value
 				},
 				Annotations: map[string]string{"observability.example.com/scrape": "true"},
 				Pod: &tsapi.Pod{
 					NodeSelector: map[string]string{"pool": "peer-relays"},
-					TailscaleContainer: &tsapi.Container{
+					LanhcContainer: &tsapi.Container{
 						Resources: corev1.ResourceRequirements{
 							Requests: corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("100m")},
 							Limits:   corev1.ResourceList{corev1.ResourceMemory: resource.MustParse("256Mi")},
@@ -1596,7 +1596,7 @@ func TestReconciler_AppliesProxyClass(t *testing.T) {
 
 	r := peerrelay.NewReconciler(peerrelay.ReconcilerOptions{
 		Client:             fc,
-		TailscaleNamespace: tailscaleNamespace,
+		LanhcNamespace: lanhcNamespace,
 		ProxyImage:         testProxyImage,
 		DefaultTags:        []string{"tag:test-peer-relay"},
 		Clients:            &fakeClientProvider{client: &fakeTSClient{}},
@@ -1609,7 +1609,7 @@ func TestReconciler_AppliesProxyClass(t *testing.T) {
 	}
 
 	var ss appsv1.StatefulSet
-	if err = fc.Get(t.Context(), types.NamespacedName{Namespace: tailscaleNamespace, Name: "peerrelay-test"}, &ss); err != nil {
+	if err = fc.Get(t.Context(), types.NamespacedName{Namespace: lanhcNamespace, Name: "peerrelay-test"}, &ss); err != nil {
 		t.Fatal(err)
 	}
 
@@ -1617,7 +1617,7 @@ func TestReconciler_AppliesProxyClass(t *testing.T) {
 		t.Errorf("expected StatefulSet label team=networking, got %q", got)
 	}
 
-	if got := ss.Labels["tailscale.com/parent-resource"]; got != "test" {
+	if got := ss.Labels["lanhc.com/parent-resource"]; got != "test" {
 		t.Errorf("expected reconciler-managed parent-resource label preserved as %q, got %q", "test", got)
 	}
 

@@ -3,9 +3,9 @@
 
 //go:build linux
 
-// The containerboot binary is a wrapper for starting tailscaled in a container.
+// The containerboot binary is a wrapper for starting lanhcd in a container.
 // It handles reading the desired mode of operation out of environment
-// variables, bringing up and authenticating Tailscale, and any other
+// variables, bringing up and authenticating Lanhc, and any other
 // kubernetes-specific side jobs.
 //
 // As with most container things, configuration is passed through environment
@@ -31,38 +31,38 @@
 //     value will cause containerboot to stop acting as a subnet router for any
 //     previously advertised routes. To accept routes, use TS_EXTRA_ARGS to pass
 //     in --accept-routes.
-//   - TS_DEST_IP: proxy all incoming Tailscale traffic to the given
+//   - TS_DEST_IP: proxy all incoming Lanhc traffic to the given
 //     destination defined by an IP address.
-//   - TS_EXPERIMENTAL_DEST_DNS_NAME: proxy all incoming Tailscale traffic to the given
+//   - TS_EXPERIMENTAL_DEST_DNS_NAME: proxy all incoming Lanhc traffic to the given
 //     destination defined by a DNS name. The DNS name will be periodically resolved and firewall rules updated accordingly.
 //     This is currently intended to be used by the Kubernetes operator (ExternalName Services).
 //     This is an experimental env var and will likely change in the future.
-//   - TS_TAILNET_TARGET_IP: proxy all incoming non-Tailscale traffic to the given
+//   - TS_TAILNET_TARGET_IP: proxy all incoming non-Lanhc traffic to the given
 //     destination defined by an IP.
-//   - TS_TAILNET_TARGET_FQDN: proxy all incoming non-Tailscale traffic to the given
+//   - TS_TAILNET_TARGET_FQDN: proxy all incoming non-Lanhc traffic to the given
 //     destination defined by a MagicDNS name.
-//   - TS_TAILSCALED_EXTRA_ARGS: extra arguments to 'tailscaled'.
-//   - TS_EXTRA_ARGS: extra arguments to 'tailscale up'.
+//   - TS_LANHCD_EXTRA_ARGS: extra arguments to 'lanhcd'.
+//   - TS_EXTRA_ARGS: extra arguments to 'lanhc up'.
 //   - TS_USERSPACE: run with userspace networking (the default)
 //     instead of kernel networking.
-//   - TS_STATE_DIR: the directory in which to store tailscaled
+//   - TS_STATE_DIR: the directory in which to store lanhcd
 //     state. The data should persist across container
 //     restarts.
 //   - TS_ACCEPT_DNS: whether to use the tailnet's DNS configuration.
 //   - TS_KUBE_SECRET: the name of the Kubernetes secret in which to
-//     store tailscaled state.
+//     store lanhcd state.
 //   - TS_SOCKS5_SERVER: the address on which to listen for SOCKS5
 //     proxying into the tailnet.
 //   - TS_OUTBOUND_HTTP_PROXY_LISTEN: the address on which to listen
 //     for HTTP proxying into the tailnet.
-//   - TS_SOCKET: the path where the tailscaled LocalAPI socket should
+//   - TS_SOCKET: the path where the lanhcd LocalAPI socket should
 //     be created.
 //   - TS_AUTH_ONCE: if true, only attempt to log in if not already
 //     logged in. If false (the default, for backwards
 //     compatibility), forcibly log in every time the
 //     container starts.
 //   - TS_SERVE_CONFIG: if specified, is the file path where the ipn.ServeConfig is located.
-//     It will be applied once tailscaled is up and running. If the file contains
+//     It will be applied once lanhcd is up and running. If the file contains
 //     ${TS_CERT_DOMAIN}, it will be replaced with the value of the available FQDN.
 //     It cannot be used in conjunction with TS_DEST_IP. The file is watched for changes,
 //     and will be re-applied when it changes.
@@ -72,25 +72,25 @@
 //     check endpoints if enabled via TS_ENABLE_METRICS and/or TS_ENABLE_HEALTH_CHECK.
 //     Defaults to [::]:9002, serving on all available interfaces.
 //   - TS_ENABLE_METRICS: if true, a metrics endpoint will be served at /metrics on
-//     the address specified by TS_LOCAL_ADDR_PORT. See https://tailscale.com/kb/1482/client-metrics
+//     the address specified by TS_LOCAL_ADDR_PORT. See https://lanhc.com/kb/1482/client-metrics
 //     for more information on the metrics exposed.
 //   - TS_ENABLE_HEALTH_CHECK: if true, a health check endpoint will be served at /healthz on
 //     the address specified by TS_LOCAL_ADDR_PORT. The health endpoint will return 200
 //     OK if this node has at least one tailnet IP address, otherwise returns 503.
 //     NB: the health criteria might change in the future.
 //   - TS_EXPERIMENTAL_VERSIONED_CONFIG_DIR: if specified, a path to a
-//     directory that containers tailscaled config in file. The config file needs to be
-//     named cap-<current-tailscaled-cap>.hujson. If this is set, TS_HOSTNAME,
+//     directory that containers lanhcd config in file. The config file needs to be
+//     named cap-<current-lanhcd-cap>.hujson. If this is set, TS_HOSTNAME,
 //     TS_EXTRA_ARGS, TS_AUTHKEY, TS_CLIENT_ID, TS_CLIENT_SECRET, TS_ID_TOKEN,
 //     TS_ROUTES, TS_ACCEPT_DNS, TS_AUDIENCE env vars must not be set. If this is set,
-//     containerboot only runs `tailscaled --config <path-to-this-configfile>`
-//     and not `tailscale up` or `tailscale set`.
+//     containerboot only runs `lanhcd --config <path-to-this-configfile>`
+//     and not `lanhc up` or `lanhc set`.
 //     The config file contents are currently read once on container start.
 //     NB: This env var is currently experimental and the logic will likely change!
 //     TS_EXPERIMENTAL_ENABLE_FORWARDING_OPTIMIZATIONS: set to true to
 //     autoconfigure the default network interface for optimal performance for
-//     Tailscale subnet router/exit node.
-//     https://tailscale.com/kb/1320/performance-best-practices#linux-optimizations-for-subnet-routers-and-exit-nodes
+//     Lanhc subnet router/exit node.
+//     https://lanhc.com/kb/1320/performance-best-practices#linux-optimizations-for-subnet-routers-and-exit-nodes
 //     NB: This env var is currently experimental and the logic will likely change!
 //   - EXPERIMENTAL_ALLOW_PROXYING_CLUSTER_TRAFFIC_VIA_INGRESS: if set to true
 //     and if this containerboot instance is an L7 ingress proxy (created by
@@ -110,12 +110,12 @@
 //     string (e.g. "90s", "3m").
 //
 // When running on Kubernetes, containerboot defaults to storing state in the
-// "tailscale" kube secret. To store state on local disk instead, set
+// "lanhc" kube secret. To store state on local disk instead, set
 // TS_KUBE_SECRET="" and TS_STATE_DIR=/path/to/storage/dir. The state dir should
 // be persistent storage.
 //
 // Additionally, if TS_AUTHKEY is not set and the TS_KUBE_SECRET contains an
-// "authkey" field, that key is used as the tailscale authkey.
+// "authkey" field, that key is used as the lanhc authkey.
 package main
 
 import (
@@ -142,24 +142,24 @@ import (
 	"github.com/benbjohnson/immutable"
 	"golang.org/x/sys/unix"
 
-	"tailscale.com/client/local"
-	"tailscale.com/health"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnstate"
-	kubeutils "tailscale.com/k8s-operator"
-	"tailscale.com/kube/authkey"
-	healthz "tailscale.com/kube/health"
-	"tailscale.com/kube/kubetypes"
-	klc "tailscale.com/kube/localclient"
-	"tailscale.com/kube/metrics"
-	"tailscale.com/kube/services"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/views"
-	"tailscale.com/util/deephash"
-	"tailscale.com/util/def"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/linuxfw"
+	"lanhc.com/client/local"
+	"lanhc.com/health"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnstate"
+	kubeutils "lanhc.com/k8s-operator"
+	"lanhc.com/kube/authkey"
+	healthz "lanhc.com/kube/health"
+	"lanhc.com/kube/kubetypes"
+	klc "lanhc.com/kube/localclient"
+	"lanhc.com/kube/metrics"
+	"lanhc.com/kube/services"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/views"
+	"lanhc.com/util/deephash"
+	"lanhc.com/util/def"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/linuxfw"
 )
 
 func newNetfilterRunner(logf logger.Logf) (linuxfw.NetfilterRunner, error) {
@@ -225,7 +225,7 @@ func (s netmapState) processNotify(ctx context.Context, client *local.Client, n 
 	if n.SelfChange != nil {
 		dns, err := client.DNSConfig(ctx)
 		if err != nil {
-			log.Printf("error refreshing DNS config from tailscaled: %v", err)
+			log.Printf("error refreshing DNS config from lanhcd: %v", err)
 		} else if dns != nil {
 			s.dnsExtraRecords = views.SliceOf(dns.ExtraRecords)
 			s.certDomains = views.SliceOf(dns.CertDomains)
@@ -283,7 +283,7 @@ func nodeFromPeerStatus(ps *ipnstate.PeerStatus) *tailcfg.Node {
 		Name:     ps.DNSName,
 		Key:      ps.PublicKey,
 	}
-	for _, ip := range ps.TailscaleIPs {
+	for _, ip := range ps.LanhcIPs {
 		n.Addresses = append(n.Addresses, netip.PrefixFrom(ip, ip.BitLen()))
 	}
 	if ps.AllowedIPs != nil {
@@ -342,9 +342,9 @@ func run() error {
 		if cfg.ProxyTargetIP != "" || cfg.ProxyTargetDNSName != "" || cfg.Routes != nil || cfg.TailnetTargetIP != "" || cfg.TailnetTargetFQDN != "" {
 			if err := ensureIPForwarding(cfg.Root, cfg.ProxyTargetIP, cfg.TailnetTargetIP, cfg.TailnetTargetFQDN, cfg.Routes); err != nil {
 				log.Printf("Failed to enable IP forwarding: %v", err)
-				log.Printf("To run tailscale as a proxy or router container, IP forwarding must be enabled.")
+				log.Printf("To run lanhc as a proxy or router container, IP forwarding must be enabled.")
 				if cfg.InKubernetes {
-					return fmt.Errorf("you can either set the sysctls as a privileged initContainer, or run the tailscale container with privileged=true.")
+					return fmt.Errorf("you can either set the sysctls as a privileged initContainer, or run the lanhc container with privileged=true.")
 				} else {
 					return fmt.Errorf("you can fix this by running the container with privileged=true, or the equivalent in your container runtime that permits access to sysctls.")
 				}
@@ -363,9 +363,9 @@ func run() error {
 	bootCtx, cancel := context.WithTimeout(ctx, cfg.BootCtxTimeout)
 	defer cancel()
 
-	var tailscaledConfigAuthkey string
+	var lanhcdConfigAuthkey string
 	if isOneStepConfig(cfg) {
-		tailscaledConfigAuthkey = authkey.AuthKeyFromConfig(cfg.TailscaledConfigFilePath)
+		lanhcdConfigAuthkey = authkey.AuthKeyFromConfig(cfg.LanhcdConfigFilePath)
 	}
 
 	var kc *kubeClient
@@ -381,19 +381,19 @@ func run() error {
 		// hasKubeStateStore because although we know we're in kube, that
 		// doesn't guarantee the state store is properly configured.
 		if hasKubeStateStore(cfg) {
-			if err := kc.resetContainerbootState(bootCtx, cfg.PodUID, tailscaledConfigAuthkey); err != nil {
+			if err := kc.resetContainerbootState(bootCtx, cfg.PodUID, lanhcdConfigAuthkey); err != nil {
 				return fmt.Errorf("error clearing previous state from Secret: %w", err)
 			}
 		}
 	}
 
-	client, daemonProcess, err := startTailscaled(bootCtx, cfg)
+	client, daemonProcess, err := startLanhcd(bootCtx, cfg)
 	if err != nil {
-		return fmt.Errorf("failed to bring up tailscale: %w", err)
+		return fmt.Errorf("failed to bring up lanhc: %w", err)
 	}
-	killTailscaled := func() {
+	killLanhcd := func() {
 		// The default termination grace period for a Pod is 30s. We wait 25s at
-		// most so that we still reserve some of that budget for tailscaled
+		// most so that we still reserve some of that budget for lanhcd
 		// to receive and react to a SIGTERM before the SIGKILL that k8s
 		// will send at the end of the grace period.
 		ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
@@ -405,7 +405,7 @@ func run() error {
 		}
 
 		if hasKubeStateStore(cfg) {
-			// Check we're not shutting tailscaled down while it's still writing
+			// Check we're not shutting lanhcd down while it's still writing
 			// state. If we authenticate and fail to write all the state, we'll
 			// never recover automatically.
 			log.Printf("Checking for consistent state")
@@ -414,12 +414,12 @@ func run() error {
 				log.Printf("Error waiting for consistent state on shutdown: %v", err)
 			}
 		}
-		log.Printf("Sending SIGTERM to tailscaled")
+		log.Printf("Sending SIGTERM to lanhcd")
 		if err := daemonProcess.Signal(unix.SIGTERM); err != nil {
-			log.Fatalf("error shutting tailscaled down: %v", err)
+			log.Fatalf("error shutting lanhcd down: %v", err)
 		}
 	}
-	defer killTailscaled()
+	defer killLanhcd()
 
 	var healthCheck *healthz.Healthz
 	ep := &egressProxy{}
@@ -463,28 +463,28 @@ func run() error {
 
 	w, err := client.WatchIPNBus(bootCtx, containerbootWatchMask|ipn.NotifyInitialPrefs|ipn.NotifyInitialHealthState)
 	if err != nil {
-		return fmt.Errorf("failed to watch tailscaled for updates: %w", err)
+		return fmt.Errorf("failed to watch lanhcd for updates: %w", err)
 	}
 
-	// Now that we've started tailscaled, we can symlink the socket to the
+	// Now that we've started lanhcd, we can symlink the socket to the
 	// default location if needed.
-	const defaultTailscaledSocketPath = "/var/run/tailscale/tailscaled.sock"
-	if cfg.Socket != "" && cfg.Socket != defaultTailscaledSocketPath {
+	const defaultLanhcdSocketPath = "/var/run/lanhc/lanhcd.sock"
+	if cfg.Socket != "" && cfg.Socket != defaultLanhcdSocketPath {
 		// If we were given a socket path, symlink it to the default location so
 		// that the CLI can find it without any extra flags.
 		// See #6849.
 
-		dir := filepath.Dir(defaultTailscaledSocketPath)
+		dir := filepath.Dir(defaultLanhcdSocketPath)
 		err := os.MkdirAll(dir, 0700)
 		if err == nil {
-			err = syscall.Symlink(cfg.Socket, defaultTailscaledSocketPath)
+			err = syscall.Symlink(cfg.Socket, defaultLanhcdSocketPath)
 		}
 		if err != nil {
-			log.Printf("[warning] failed to symlink socket: %v\n\tTo interact with the Tailscale CLI please use `tailscale --socket=%q`", err, cfg.Socket)
+			log.Printf("[warning] failed to symlink socket: %v\n\tTo interact with the Lanhc CLI please use `lanhc --socket=%q`", err, cfg.Socket)
 		}
 	}
 
-	// Because we're still shelling out to `tailscale up` to get access to its
+	// Because we're still shelling out to `lanhc up` to get access to its
 	// flag parser, we have to stop watching the IPN bus so that we can block on
 	// the subcommand without stalling anything. Then once it's done, we resume
 	// watching the bus.
@@ -492,25 +492,25 @@ func run() error {
 	// Depending on the requested mode of operation, this auth step happens at
 	// different points in containerboot's lifecycle, hence the helper function.
 	didLogin := false
-	authTailscale := func() error {
+	authLanhc := func() error {
 		if didLogin {
 			return nil
 		}
 		didLogin = true
 		w.Close()
-		if err := tailscaleUp(bootCtx, cfg); err != nil {
-			return fmt.Errorf("failed to auth tailscale: %w", err)
+		if err := lanhcUp(bootCtx, cfg); err != nil {
+			return fmt.Errorf("failed to auth lanhc: %w", err)
 		}
 		w, err = client.WatchIPNBus(bootCtx, containerbootWatchMask)
 		if err != nil {
-			return fmt.Errorf("rewatching tailscaled for updates after auth: %w", err)
+			return fmt.Errorf("rewatching lanhcd for updates after auth: %w", err)
 		}
 		return nil
 	}
 
 	if isTwoStepConfigAlwaysAuth(cfg) {
-		if err := authTailscale(); err != nil {
-			return fmt.Errorf("failed to auth tailscale: %w", err)
+		if err := authLanhc(); err != nil {
+			return fmt.Errorf("failed to auth lanhc: %w", err)
 		}
 	}
 
@@ -518,19 +518,19 @@ authLoop:
 	for {
 		n, err := w.Next()
 		if err != nil {
-			return fmt.Errorf("failed to read from tailscaled: %w", err)
+			return fmt.Errorf("failed to read from lanhcd: %w", err)
 		}
 
 		if state, ok := notifyState(n); ok {
 			switch state {
 			case ipn.NeedsLogin:
 				if isOneStepConfig(cfg) {
-					// This could happen if this is the first time tailscaled was run for this
+					// This could happen if this is the first time lanhcd was run for this
 					// device and the auth key was not passed via the configfile.
 					if hasKubeStateStore(cfg) {
 						log.Printf("Auth key missing or invalid (NeedsLogin state), disconnecting from control and requesting new key from operator")
 
-						err := kc.setAndWaitForAuthKeyReissue(ctx, client, cfg, tailscaledConfigAuthkey)
+						err := kc.setAndWaitForAuthKeyReissue(ctx, client, cfg, lanhcdConfigAuthkey)
 						if err != nil {
 							return fmt.Errorf("failed to get a reissued authkey: %w", err)
 						}
@@ -541,24 +541,24 @@ authLoop:
 						return nil
 					}
 
-					return errors.New("invalid state: tailscaled daemon started with a config file, but tailscale is not logged in: ensure you pass a valid auth key in the config file")
+					return errors.New("invalid state: lanhcd daemon started with a config file, but lanhc is not logged in: ensure you pass a valid auth key in the config file")
 				}
 
-				if err := authTailscale(); err != nil {
-					return fmt.Errorf("failed to auth tailscale: %w", err)
+				if err := authLanhc(); err != nil {
+					return fmt.Errorf("failed to auth lanhc: %w", err)
 				}
 			case ipn.NeedsMachineAuth:
 				log.Printf("machine authorization required, please visit the admin panel")
 			case ipn.Running:
 				// Technically, all we want is to keep monitoring the bus for
 				// netmap updates. However, in order to make the container crash
-				// if tailscale doesn't initially come up, the watch has a
+				// if lanhc doesn't initially come up, the watch has a
 				// startup deadline on it. So, we have to break out of this
 				// watch loop, cancel the watch, and watch again with no
 				// deadline to continue monitoring for changes.
 				break authLoop
 			default:
-				log.Printf("tailscaled in state %q, waiting", state)
+				log.Printf("lanhcd in state %q, waiting", state)
 			}
 		}
 
@@ -570,7 +570,7 @@ authLoop:
 				if isOneStepConfig(cfg) && hasKubeStateStore(cfg) {
 					log.Printf("Auth key failed to authenticate (may be expired or single-use), disconnecting from control and requesting new key from operator")
 
-					err := kc.setAndWaitForAuthKeyReissue(ctx, client, cfg, tailscaledConfigAuthkey)
+					err := kc.setAndWaitForAuthKeyReissue(ctx, client, cfg, lanhcdConfigAuthkey)
 					if err != nil {
 						return fmt.Errorf("failed to get a reissued authkey: %w", err)
 					}
@@ -589,8 +589,8 @@ authLoop:
 	if isTwoStepConfigAuthOnce(cfg) {
 		// Now that we are authenticated, we can set/reset any of the
 		// settings that we need to.
-		if err := tailscaleSet(ctx, cfg); err != nil {
-			return fmt.Errorf("failed to auth tailscale: %w", err)
+		if err := lanhcSet(ctx, cfg); err != nil {
+			return fmt.Errorf("failed to auth lanhc: %w", err)
 		}
 	}
 
@@ -615,20 +615,20 @@ authLoop:
 
 	w, err = client.WatchIPNBus(ctx, containerbootWatchMask)
 	if err != nil {
-		return fmt.Errorf("rewatching tailscaled for updates after auth: %w", err)
+		return fmt.Errorf("rewatching lanhcd for updates after auth: %w", err)
 	}
 
-	// If tailscaled config was read from a mounted file, watch the file for updates and reload.
+	// If lanhcd config was read from a mounted file, watch the file for updates and reload.
 	cfgWatchErrChan := make(chan error)
 	cfgWatchCtx, cfgWatchCancel := context.WithCancel(ctx)
 	defer cfgWatchCancel()
-	if cfg.TailscaledConfigFilePath != "" {
-		go watchTailscaledConfigChanges(cfgWatchCtx, cfg.TailscaledConfigFilePath, client, cfgWatchErrChan)
+	if cfg.LanhcdConfigFilePath != "" {
+		go watchLanhcdConfigChanges(cfgWatchCtx, cfg.LanhcdConfigFilePath, client, cfgWatchErrChan)
 	}
 
 	var (
 		startupTasksDone       = false
-		currentIPs             deephash.Sum // tailscale IPs assigned to device
+		currentIPs             deephash.Sum // lanhc IPs assigned to device
 		currentDeviceID        deephash.Sum // device ID
 		currentDeviceEndpoints deephash.Sum // device FQDN and IPs
 
@@ -714,16 +714,16 @@ runLoop:
 		var processNetmap bool
 		select {
 		case <-ctx.Done():
-			// Although killTailscaled() is deferred earlier, if we
+			// Although killLanhcd() is deferred earlier, if we
 			// have started the reaper defined below, we need to
-			// kill tailscaled and let reaper clean up child
+			// kill lanhcd and let reaper clean up child
 			// processes.
-			killTailscaled()
+			killLanhcd()
 			break runLoop
 		case err := <-errChan:
-			return fmt.Errorf("failed to read from tailscaled: %w", err)
+			return fmt.Errorf("failed to read from lanhcd: %w", err)
 		case err := <-cfgWatchErrChan:
-			return fmt.Errorf("failed to watch tailscaled config: %w", err)
+			return fmt.Errorf("failed to watch lanhcd config: %w", err)
 		case n := <-notifyChan:
 			nmState = nmState.processNotify(ctx, client, n)
 			if state, ok := notifyState(n); ok && state != ipn.Running {
@@ -732,7 +732,7 @@ runLoop:
 				// control flow required to make it work now is hard. So, just crash
 				// the container and rely on the container runtime to restart us,
 				// whereupon we'll go through initial auth again.
-				return fmt.Errorf("tailscaled left running state (now in state %q), exiting", state)
+				return fmt.Errorf("lanhcd left running state (now in state %q), exiting", state)
 			}
 			if n.InitialStatus != nil || n.SelfChange != nil || len(n.PeersChanged) != 0 || len(n.PeersRemoved) != 0 || len(n.PeerChangedPatch) != 0 {
 				processNetmap = true
@@ -882,9 +882,9 @@ runLoop:
 			// Only store device FQDN and IP addresses to
 			// Kubernetes Secret when any required proxy
 			// route setup has succeeded. IPs and FQDN are
-			// read from the Secret by the Tailscale
+			// read from the Secret by the Lanhc
 			// Kubernetes operator and, for some proxy
-			// types, such as Tailscale Ingress, advertized
+			// types, such as Lanhc Ingress, advertized
 			// on the Ingress status. Writing them to the
 			// Secret only after the proxy routing has been
 			// set up ensures that the operator does not
@@ -979,10 +979,10 @@ runLoop:
 					}()
 				}
 
-				// Wait on tailscaled process. It won't be cleaned up by default when the
+				// Wait on lanhcd process. It won't be cleaned up by default when the
 				// container exits as it is not PID1. TODO (irbekrm): perhaps we can replace the
 				// reaper by a running cmd.Wait in a goroutine immediately after starting
-				// tailscaled?
+				// lanhcd?
 				reaper := func() {
 					defer wg.Done()
 					for {
@@ -992,9 +992,9 @@ runLoop:
 							continue
 						}
 						if err != nil {
-							log.Fatalf("Waiting for tailscaled to exit: %v", err)
+							log.Fatalf("Waiting for lanhcd to exit: %v", err)
 						}
-						log.Print("tailscaled exited")
+						log.Print("lanhcd exited")
 						os.Exit(0)
 					}
 				}
@@ -1074,20 +1074,20 @@ func contextWithExitSignalWatch() (context.Context, func()) {
 	return ctx, f
 }
 
-// tailscaledConfigFilePath returns the path to the tailscaled config file that
+// lanhcdConfigFilePath returns the path to the lanhcd config file that
 // should be used for the current capability version. It is determined by the
 // TS_EXPERIMENTAL_VERSIONED_CONFIG_DIR environment variable and looks for a
 // file named cap-<capability_version>.hujson in the directory. It searches for
 // the highest capability version that is less than or equal to the current
 // capability version.
-func tailscaledConfigFilePath() string {
+func lanhcdConfigFilePath() string {
 	dir := os.Getenv("TS_EXPERIMENTAL_VERSIONED_CONFIG_DIR")
 	if dir == "" {
 		return ""
 	}
 	fe, err := os.ReadDir(dir)
 	if err != nil {
-		log.Fatalf("error reading tailscaled config directory %q: %v", dir, err)
+		log.Fatalf("error reading lanhcd config directory %q: %v", dir, err)
 	}
 	maxCompatVer := tailcfg.CapabilityVersion(-1)
 	for _, e := range fe {
@@ -1106,10 +1106,10 @@ func tailscaledConfigFilePath() string {
 		}
 	}
 	if maxCompatVer == -1 {
-		log.Fatalf("no tailscaled config file found in %q for current capability version %d", dir, tailcfg.CurrentCapabilityVersion)
+		log.Fatalf("no lanhcd config file found in %q for current capability version %d", dir, tailcfg.CurrentCapabilityVersion)
 	}
-	filePath := filepath.Join(dir, kubeutils.TailscaledConfigFileName(maxCompatVer))
-	log.Printf("Using tailscaled config file %q to match current capability version %d", filePath, tailcfg.CurrentCapabilityVersion)
+	filePath := filepath.Join(dir, kubeutils.LanhcdConfigFileName(maxCompatVer))
+	log.Printf("Using lanhcd config file %q to match current capability version %d", filePath, tailcfg.CurrentCapabilityVersion)
 	return filePath
 }
 
@@ -1137,7 +1137,7 @@ func runHTTPServer(mux *http.ServeMux, addr string) (close func() error) {
 }
 
 // resolveTailnetFQDN resolves a tailnet FQDN to a list of IP prefixes, which
-// can be either a peer device, a Tailscale Service, or a 4via6 synthesized
+// can be either a peer device, a Lanhc Service, or a 4via6 synthesized
 // DNS name (e.g. "10-1-0-5-via-7.tailnet.ts.net").
 func resolveTailnetFQDN(nm netmapState, fqdn string) ([]netip.Prefix, error) {
 	dnsFQDN, err := dnsname.ToFQDN(fqdn)
@@ -1157,7 +1157,7 @@ func resolveTailnetFQDN(nm netmapState, fqdn string) ([]netip.Prefix, error) {
 		return ret, nil
 	}
 
-	// If not found yet, check for a matching Tailscale Service.
+	// If not found yet, check for a matching Lanhc Service.
 	if svcIPs := serviceIPsFromNetMap(nm, dnsFQDN); len(svcIPs) != 0 {
 		return svcIPs, nil
 	}
@@ -1174,11 +1174,11 @@ func resolveTailnetFQDN(nm netmapState, fqdn string) ([]netip.Prefix, error) {
 		return nil, fmt.Errorf("resolved 4via6 address %v for %q but no peer advertises a route containing it", addr, fqdn)
 	}
 
-	return nil, fmt.Errorf("could not find Tailscale node, service or 4via6 address %q; it either does not exist, or not reachable because of ACLs", fqdn)
+	return nil, fmt.Errorf("could not find Lanhc node, service or 4via6 address %q; it either does not exist, or not reachable because of ACLs", fqdn)
 }
 
-// serviceIPsFromNetMap returns all IPs of a Tailscale Service if its FQDN is
-// found in the netmap. Note that Tailscale Services are not a first-class
+// serviceIPsFromNetMap returns all IPs of a Lanhc Service if its FQDN is
+// found in the netmap. Note that Lanhc Services are not a first-class
 // object in the netmap, so we guess based on DNS ExtraRecords and AllowedIPs.
 func serviceIPsFromNetMap(nm netmapState, fqdn dnsname.FQDN) []netip.Prefix {
 	var extraRecords []tailcfg.DNSRecord
@@ -1196,7 +1196,7 @@ func serviceIPsFromNetMap(nm netmapState, fqdn dnsname.FQDN) []netip.Prefix {
 		return nil
 	}
 
-	// Validate we can see a peer advertising the Tailscale Service.
+	// Validate we can see a peer advertising the Lanhc Service.
 	var prefixes []netip.Prefix
 	for _, extraRecord := range extraRecords {
 		ip, err := netip.ParseAddr(extraRecord.Value)

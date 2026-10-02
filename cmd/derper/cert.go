@@ -28,7 +28,7 @@ import (
 
 	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
-	"tailscale.com/tailcfg"
+	"lanhc.com/tailcfg"
 )
 
 var unsafeHostnameCharacters = regexp.MustCompile(`[^a-zA-Z0-9-\.]`)
@@ -88,13 +88,13 @@ func certProviderByCertMode(mode, dir, hostname string, ipCerts bool, eabKID, ea
 				Key: keyBytes,
 			}
 		}
-		if hostname == "derp.tailscale.com" {
+		if hostname == "derp.lanhc.com" {
 			certManager.HostPolicy = prodAutocertHostPolicy
 		}
 		if email != "" {
 			certManager.Email = email
-		} else if hostname == "derp.tailscale.com" {
-			certManager.Email = "security@tailscale.com"
+		} else if hostname == "derp.lanhc.com" {
+			certManager.Email = "security@lanhc.com"
 		}
 		if ipCerts {
 			return newIPCertManager(dir, email, "", certManager)
@@ -150,7 +150,7 @@ func NewManualCertManager(certdir, hostname string) (certProvider, error) {
 			CertName: fmt.Sprintf("sha256-raw:%-02x", sha256.Sum256(x509Cert.Raw)),
 		}
 		dnJSON, _ := json.Marshal(dn)
-		log.Printf("Using self-signed certificate for IP address %q. Configure it in DERPMap using: (https://tailscale.com/s/custom-derp)\n  %s", hostname, dnJSON)
+		log.Printf("Using self-signed certificate for IP address %q. Configure it in DERPMap using: (https://lanhc.com/s/custom-derp)\n  %s", hostname, dnJSON)
 	}
 	return &manualCertManager{
 		cert:       &cert,

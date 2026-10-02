@@ -17,14 +17,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/kube/egressservices"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tstest"
-	"tailscale.com/util/mak"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/kube/egressservices"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tstest"
+	"lanhc.com/util/mak"
 )
 
-func TestTailscaleEgressEndpointSlices(t *testing.T) {
+func TestLanhcEgressEndpointSlices(t *testing.T) {
 	clock := tstest.NewClock(tstest.ClockOpts{})
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{

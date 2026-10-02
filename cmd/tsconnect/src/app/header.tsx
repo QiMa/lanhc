@@ -18,7 +18,7 @@ export function Header({ state, ipn }: { state: IPNState; ipn?: IPN }) {
   return (
     <div class="bg-gray-100 border-b border-gray-200 pt-4 pb-2">
       <header class="container mx-auto px-4 flex flex-row items-center">
-        <h1 class="text-3xl font-bold grow">Tailscale Connect</h1>
+        <h1 class="text-3xl font-bold grow">Lanhc Connect</h1>
         <div class="text-gray-600">{stateText}</div>
         {logoutButton}
       </header>

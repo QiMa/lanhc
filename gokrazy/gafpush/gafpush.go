@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // gafpush pushes a Gokrazy Archive Format (GAF) file to a running
-// Tailscale appliance over the network without moving the SD card.
+// Lanhc appliance over the network without moving the SD card.
 //
 // The flow:
 //  1. scp the GAF to /perm/gafpush.tmp on the appliance (via
 //     breakglass's SFTP subsystem).
 //  2. SSH into the appliance and run
-//     tailscale update -- --gokrazy-update-from-url=file:///perm/gafpush.tmp --unsigned
+//     lanhc update -- --gokrazy-update-from-url=file:///perm/gafpush.tmp --unsigned
 //     which copies the file into a tmp GAF, writes partitions, switches
 //     root, and reboots.
 //  3. Wait for the appliance to come back on SSH; then remove
@@ -82,7 +82,7 @@ func main() {
 		"-o", "UserKnownHostsFile=/dev/null",
 		"-o", "ConnectTimeout=10",
 		"root@"+target,
-		"tailscale", "update", "--",
+		"lanhc", "update", "--",
 		"--gokrazy-update-from-url="+fileURL,
 		"--unsigned",
 	)

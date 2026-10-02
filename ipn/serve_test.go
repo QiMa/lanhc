@@ -6,8 +6,8 @@ package ipn
 import (
 	"testing"
 
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/tailcfg"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/tailcfg"
 )
 
 func TestCheckFunnelAccess(t *testing.T) {
@@ -544,11 +544,11 @@ func TestIsServingUnixAny(t *testing.T) {
 // IsServingUnixAny accordingly. Otherwise, you can just add your new field
 // below and move on.
 //
-// IsServingUnixAny helps avoid a class of vulnerabilities in which tailscaled
-// (by means of tailscale serve) gives non-root users access to Unix sockets
+// IsServingUnixAny helps avoid a class of vulnerabilities in which lanhcd
+// (by means of lanhc serve) gives non-root users access to Unix sockets
 // they otherwise would not have access to (e.g. /var/run/docker.sock). As of
 // 2026-06-03, serving Unix sockets at all requires root permissions, and
-// IsServingUnixAny is how tailscaled knows when to enforce this restriction.
+// IsServingUnixAny is how lanhcd knows when to enforce this restriction.
 //
 // See https://github.com/tailscale/corp/issues/41998
 var _ ServeConfig = struct {

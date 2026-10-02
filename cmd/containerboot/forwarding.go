@@ -15,7 +15,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"tailscale.com/util/linuxfw"
+	"lanhc.com/util/linuxfw"
 )
 
 // ensureIPForwarding enables IPv4/IPv6 forwarding for the container.
@@ -112,15 +112,15 @@ func installEgressForwardingRule(_ context.Context, dstStr string, tsIPs []netip
 		break
 	}
 	if !local.IsValid() {
-		return fmt.Errorf("no tailscale IP matching family of %s found in %v", dstStr, tsIPs)
+		return fmt.Errorf("no lanhc IP matching family of %s found in %v", dstStr, tsIPs)
 	}
-	if err := nfr.DNATNonTailscaleTraffic("tailscale0", dst); err != nil {
+	if err := nfr.DNATNonLanhcTraffic("lanhc0", dst); err != nil {
 		return fmt.Errorf("installing egress proxy rules: %w", err)
 	}
 	if err := nfr.EnsureSNATForDst(local, dst); err != nil {
 		return fmt.Errorf("installing egress proxy rules: %w", err)
 	}
-	if err := nfr.ClampMSSToPMTU("tailscale0", dst); err != nil {
+	if err := nfr.ClampMSSToPMTU("lanhc0", dst); err != nil {
 		return fmt.Errorf("installing egress proxy rules: %w", err)
 	}
 	return nil
@@ -147,7 +147,7 @@ func installTSForwardingRuleForDestination(_ context.Context, dstFilter string, 
 		break
 	}
 	if !local.IsValid() {
-		return fmt.Errorf("no tailscale IP matching family of %s found in %v", dstFilter, tsIPs)
+		return fmt.Errorf("no lanhc IP matching family of %s found in %v", dstFilter, tsIPs)
 	}
 	if err := nfr.AddDNATRule(dst, local); err != nil {
 		return fmt.Errorf("installing rule for forwarding traffic to tailnet IP: %w", err)
@@ -176,15 +176,15 @@ func installIngressForwardingRule(_ context.Context, dstStr string, tsIPs []neti
 		break
 	}
 	if proxyHasIPv4Address && dst.Is6() {
-		log.Printf("Warning: proxy backend ClusterIP is an IPv6 address and the proxy has a IPv4 tailnet address. You might need to disable IPv4 address allocation for the proxy for forwarding to work. See https://github.com/tailscale/tailscale/issues/12156")
+		log.Printf("Warning: proxy backend ClusterIP is an IPv6 address and the proxy has a IPv4 tailnet address. You might need to disable IPv4 address allocation for the proxy for forwarding to work. See https://github.com/lanhc/lanhc/issues/12156")
 	}
 	if !local.IsValid() {
-		return fmt.Errorf("no tailscale IP matching family of %s found in %v", dstStr, tsIPs)
+		return fmt.Errorf("no lanhc IP matching family of %s found in %v", dstStr, tsIPs)
 	}
 	if err := nfr.AddDNATRule(local, dst); err != nil {
 		return fmt.Errorf("installing ingress proxy rules: %w", err)
 	}
-	if err := nfr.ClampMSSToPMTU("tailscale0", dst); err != nil {
+	if err := nfr.ClampMSSToPMTU("lanhc0", dst); err != nil {
 		return fmt.Errorf("installing ingress proxy rules: %w", err)
 	}
 	return nil
@@ -233,25 +233,25 @@ func installIngressForwardingRuleForDNSTarget(_ context.Context, backendAddrs []
 			return fmt.Errorf("installing DNAT rules for ingress backends %+#v: %w", backendTargets, err)
 		}
 		// The backend might advertize MSS higher than that of the
-		// tailscale interfaces. Clamp MSS of packets going out via
-		// tailscale0 interface to its MTU to prevent broken connections
+		// lanhc interfaces. Clamp MSS of packets going out via
+		// lanhc0 interface to its MTU to prevent broken connections
 		// in environments where path MTU discovery is not working.
-		if err := nfr.ClampMSSToPMTU("tailscale0", dst); err != nil {
-			return fmt.Errorf("adding rule to clamp traffic via tailscale0: %v", err)
+		if err := nfr.ClampMSSToPMTU("lanhc0", dst); err != nil {
+			return fmt.Errorf("adding rule to clamp traffic via lanhc0: %v", err)
 		}
 		return nil
 	}
 
 	if len(v4Backends) != 0 {
 		if !tsv4.IsValid() {
-			log.Printf("backend targets %v contain at least one IPv4 address, but this node's Tailscale IPs do not contain a valid IPv4 address: %v", backendAddrs, tsIPs)
+			log.Printf("backend targets %v contain at least one IPv4 address, but this node's Lanhc IPs do not contain a valid IPv4 address: %v", backendAddrs, tsIPs)
 		} else if err := updateFirewall(tsv4, v4Backends); err != nil {
 			return fmt.Errorf("Installing IPv4 firewall rules: %w", err)
 		}
 	}
 	if len(v6Backends) != 0 && !tsv6.IsValid() {
 		if !tsv6.IsValid() {
-			log.Printf("backend targets %v contain at least one IPv6 address, but this node's Tailscale IPs do not contain a valid IPv6 address: %v", backendAddrs, tsIPs)
+			log.Printf("backend targets %v contain at least one IPv6 address, but this node's Lanhc IPs do not contain a valid IPv6 address: %v", backendAddrs, tsIPs)
 		} else if !nfr.HasIPV6NAT() {
 			log.Printf("backend targets %v contain at least one IPv6 address, but the chosen firewall mode does not support IPv6 NAT", backendAddrs)
 		} else if err := updateFirewall(tsv6, v6Backends); err != nil {

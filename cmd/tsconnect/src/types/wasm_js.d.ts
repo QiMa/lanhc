@@ -79,7 +79,7 @@ declare global {
 
   type IPNNetMapPeerNode = IPNNetMapNode & {
     online?: boolean
-    tailscaleSSHEnabled: boolean
+    lanhcSSHEnabled: boolean
   }
 
   /** Mirrors values from ipn/backend.go */

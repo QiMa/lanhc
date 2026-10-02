@@ -22,7 +22,7 @@ func TestBasics(t *testing.T) {
 	if runtime.GOOS != "windows" {
 		sock = filepath.Join(dir, "test")
 	} else {
-		sock = fmt.Sprintf(`\\.\pipe\tailscale-test`)
+		sock = fmt.Sprintf(`\\.\pipe\lanhc-test`)
 		t.Cleanup(downgradeSDDL())
 	}
 

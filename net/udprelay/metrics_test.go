@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	qt "github.com/frankban/quicktest"
-	"tailscale.com/util/usermetric"
+	"lanhc.com/util/usermetric"
 )
 
 func TestMetricsLifecycle(t *testing.T) {
@@ -21,9 +21,9 @@ func TestMetricsLifecycle(t *testing.T) {
 	// Expect certain prom names registered.
 	have := r.MetricNames()
 	want := []string{
-		"tailscaled_peer_relay_forwarded_packets_total",
-		"tailscaled_peer_relay_forwarded_bytes_total",
-		"tailscaled_peer_relay_endpoints",
+		"lanhcd_peer_relay_forwarded_packets_total",
+		"lanhcd_peer_relay_forwarded_bytes_total",
+		"lanhcd_peer_relay_endpoints",
 	}
 	slices.Sort(have)
 	slices.Sort(want)

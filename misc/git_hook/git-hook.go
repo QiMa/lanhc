@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// The git-hook command is Tailscale's git hook binary, built and
+// The git-hook command is Lanhc's git hook binary, built and
 // installed under .git/hooks/ts-git-hook-bin by the launcher at
 // .git/hooks/ts-git-hook. misc/add-git-hooks.go writes the initial
 // launcher; subsequent HOOK_VERSION bumps trigger self-rebuilds.
@@ -19,14 +19,14 @@ import (
 	"os"
 	"strings"
 
-	"tailscale.com/misc/git_hook/githook"
+	"lanhc.com/misc/git_hook/githook"
 )
 
 var pushRemotes = []string{
-	"git@github.com:tailscale/tailscale",
-	"git@github.com:tailscale/tailscale.git",
-	"https://github.com/tailscale/tailscale",
-	"https://github.com/tailscale/tailscale.git",
+	"git@github.com:lanhc/lanhc",
+	"git@github.com:lanhc/lanhc.git",
+	"https://github.com/lanhc/lanhc",
+	"https://github.com/lanhc/lanhc.git",
 }
 
 // hooks are the hook names this binary handles. Used by install to

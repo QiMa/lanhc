@@ -21,7 +21,7 @@ import (
 	"github.com/fogleman/gg"
 )
 
-// tsLogo represents the Tailscale logo displayed as the systray icon.
+// tsLogo represents the Lanhc logo displayed as the systray icon.
 type tsLogo struct {
 	// dots represents the state of the 3x3 dot grid in the logo.
 	// A 0 represents a gray dot, any other value is a white dot.
@@ -42,7 +42,7 @@ var (
 		0, 0, 0,
 	}}
 
-	// connected is the normal Tailscale logo
+	// connected is the normal Lanhc logo
 	connected = tsLogo{dots: [9]byte{
 		0, 0, 0,
 		1, 1, 1,
@@ -132,7 +132,7 @@ var (
 		}},
 	}
 
-	// exitNodeOnline is the Tailscale logo with an additional arrow overlay in the corner.
+	// exitNodeOnline is the Lanhc logo with an additional arrow overlay in the corner.
 	exitNodeOnline = tsLogo{
 		dots: [9]byte{
 			0, 0, 0,
@@ -172,7 +172,7 @@ var (
 		},
 	}
 
-	// exitNodeOffline is the Tailscale logo with a red "x" in the corner.
+	// exitNodeOffline is the Lanhc logo with a red "x" in the corner.
 	exitNodeOffline = tsLogo{
 		dots: [9]byte{
 			0, 0, 0,
@@ -255,7 +255,7 @@ func (logo tsLogo) render() *bytes.Buffer {
 }
 
 // renderWithBorder returns a PNG image of the logo with the specified border width.
-// One border unit is equal to the radius of a tailscale logo dot.
+// One border unit is equal to the radius of a lanhc logo dot.
 func (logo tsLogo) renderWithBorder(borderUnits int) *bytes.Buffer {
 	const radius = 25
 	dim := radius * (8 + borderUnits*2)

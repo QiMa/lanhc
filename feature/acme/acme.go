@@ -5,7 +5,7 @@
 // associated [ipnext.Extension]. The extension owns the per-LocalBackend
 // ACME serialization mutex, in-flight cert tracking, the refresh loop's
 // cancel func, and the test-only cert override; together with the cert
-// acquisition logic in this package, it is everything tailscaled needs
+// acquisition logic in this package, it is everything lanhcd needs
 // to obtain and renew TLS certificates via ACME.
 //
 // In builds without ACME support (js or ts_omit_acme), this package is
@@ -22,18 +22,18 @@ import (
 	"sync/atomic"
 	"time"
 
-	"tailscale.com/feature"
-	"tailscale.com/health"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnext"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/syncs"
-	xacme "tailscale.com/tempfork/acme"
-	"tailscale.com/tsconst"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
+	"lanhc.com/feature"
+	"lanhc.com/health"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnext"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/syncs"
+	xacme "lanhc.com/tempfork/acme"
+	"lanhc.com/tsconst"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
 )
 
 // featureName is the name of the feature implemented by this package.

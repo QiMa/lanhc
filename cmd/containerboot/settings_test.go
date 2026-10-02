@@ -239,7 +239,7 @@ func TestConfigFromEnvEmptyDefaults(t *testing.T) {
 		{
 			env:  "TS_SOCKET",
 			get:  func(c *settings) string { return c.Socket },
-			want: "/tmp/tailscaled.sock",
+			want: "/tmp/lanhcd.sock",
 		},
 		{
 			env:  "TS_LOCAL_ADDR_PORT",
@@ -274,7 +274,7 @@ func TestConfigFromEnvKubeSecret(t *testing.T) {
 		value        string
 		want         string
 	}{
-		{name: "in_kubernetes_unset", inKubernetes: true, unset: true, want: "tailscale"},
+		{name: "in_kubernetes_unset", inKubernetes: true, unset: true, want: "lanhc"},
 		{name: "in_kubernetes_empty", inKubernetes: true, value: "", want: ""},
 		{name: "in_kubernetes_set", inKubernetes: true, value: "custom", want: "custom"},
 		{name: "not_in_kubernetes_unset", inKubernetes: false, unset: true, want: ""},

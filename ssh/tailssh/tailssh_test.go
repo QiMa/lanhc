@@ -37,21 +37,21 @@ import (
 	gliderssh "github.com/tailscale/gliderssh"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
-	"tailscale.com/cmd/testwrapper/flakytest"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/net/memnet"
-	"tailscale.com/sessionrecording"
-	"tailscale.com/tailcfg"
-	testssh "tailscale.com/tempfork/sshtest/ssh"
-	"tailscale.com/tsd"
-	"tailscale.com/tstest"
-	"tailscale.com/types/logid"
-	"tailscale.com/util/cibuild"
-	"tailscale.com/util/lineiter"
-	"tailscale.com/util/must"
-	"tailscale.com/version/distro"
-	"tailscale.com/wgengine"
+	"lanhc.com/cmd/testwrapper/flakytest"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/net/memnet"
+	"lanhc.com/sessionrecording"
+	"lanhc.com/tailcfg"
+	testssh "lanhc.com/tempfork/sshtest/ssh"
+	"lanhc.com/tsd"
+	"lanhc.com/tstest"
+	"lanhc.com/types/logid"
+	"lanhc.com/util/cibuild"
+	"lanhc.com/util/lineiter"
+	"lanhc.com/util/must"
+	"lanhc.com/version/distro"
+	"lanhc.com/wgengine"
 )
 
 func TestMatchRule(t *testing.T) {
@@ -436,7 +436,7 @@ func newSSHRule(action *tailcfg.SSHAction) *tailcfg.SSHRule {
 
 func TestSSHRecordingCancelsSessionsOnUploadFailure(t *testing.T) {
 	if runtime.GOOS == "darwin" {
-		flakytest.Mark(t, "https://github.com/tailscale/tailscale/issues/7707")
+		flakytest.Mark(t, "https://github.com/lanhc/lanhc/issues/7707")
 	}
 	if runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
 		t.Skipf("skipping on %q; only runs on linux and darwin", runtime.GOOS)
@@ -748,11 +748,11 @@ func TestSSHAuthFlow(t *testing.T) {
 	varRoot := t.TempDir()
 	acceptRule := newSSHRule(&tailcfg.SSHAction{
 		Accept:  true,
-		Message: "Welcome to Tailscale SSH!",
+		Message: "Welcome to Lanhc SSH!",
 	})
 	bobRule := newSSHRule(&tailcfg.SSHAction{
 		Accept:  true,
-		Message: "Welcome to Tailscale SSH!",
+		Message: "Welcome to Lanhc SSH!",
 	})
 	bobRule.SSHUsers = map[string]string{"bob": "bob"}
 	rejectRule := newSSHRule(&tailcfg.SSHAction{
@@ -780,7 +780,7 @@ func TestSSHAuthFlow(t *testing.T) {
 				varRoot:    varRoot,
 			},
 			authErr:     true,
-			wantBanners: []string{"tailscale: tailnet policy does not permit you to SSH to this node\n"},
+			wantBanners: []string{"lanhc: tailnet policy does not permit you to SSH to this node\n"},
 		},
 		{
 			name: "user-mismatch",
@@ -790,7 +790,7 @@ func TestSSHAuthFlow(t *testing.T) {
 				matchingRule: bobRule,
 			},
 			authErr:     true,
-			wantBanners: []string{`tailscale: tailnet policy does not permit you to SSH as user "alice"` + "\n"},
+			wantBanners: []string{`lanhc: tailnet policy does not permit you to SSH as user "alice"` + "\n"},
 		},
 		{
 			name:    "user-mismatch-numeric-username",
@@ -801,7 +801,7 @@ func TestSSHAuthFlow(t *testing.T) {
 				matchingRule: bobRule,
 			},
 			authErr:     true,
-			wantBanners: []string{`tailscale: tailnet policy does not permit you to SSH as user "321"` + "\n"},
+			wantBanners: []string{`lanhc: tailnet policy does not permit you to SSH as user "321"` + "\n"},
 		},
 		{
 			name:    "user-mismatch-root-uid",
@@ -812,7 +812,7 @@ func TestSSHAuthFlow(t *testing.T) {
 				matchingRule: autogroupNonrootRule,
 			},
 			authErr:     true,
-			wantBanners: []string{`tailscale: tailnet policy does not permit you to SSH as user "0"` + "\n"},
+			wantBanners: []string{`lanhc: tailnet policy does not permit you to SSH as user "0"` + "\n"},
 		},
 		{
 			name:    "user-mismatch-root-uid-leading-space",
@@ -823,7 +823,7 @@ func TestSSHAuthFlow(t *testing.T) {
 				matchingRule: autogroupNonrootRule,
 			},
 			authErr:     true,
-			wantBanners: []string{`tailscale: tailnet policy does not permit you to SSH as user " 0"` + "\n"},
+			wantBanners: []string{`lanhc: tailnet policy does not permit you to SSH as user " 0"` + "\n"},
 		},
 		{
 			name:    "user-mismatch-root-uid-force-password-auth",
@@ -834,7 +834,7 @@ func TestSSHAuthFlow(t *testing.T) {
 				matchingRule: autogroupNonrootRule,
 			},
 			authErr:     true,
-			wantBanners: []string{`tailscale: tailnet policy does not permit you to SSH as user "0"` + "\n"},
+			wantBanners: []string{`lanhc: tailnet policy does not permit you to SSH as user "0"` + "\n"},
 		},
 		{
 			name:    "user-mismatch-double-zero-force-password-auth",
@@ -845,7 +845,7 @@ func TestSSHAuthFlow(t *testing.T) {
 				matchingRule: autogroupNonrootRule,
 			},
 			authErr:     true,
-			wantBanners: []string{`tailscale: tailnet policy does not permit you to SSH as user "00"` + "\n"},
+			wantBanners: []string{`lanhc: tailnet policy does not permit you to SSH as user "00"` + "\n"},
 		},
 		{
 			name:    "user-mismatch-leading-plus",
@@ -856,7 +856,7 @@ func TestSSHAuthFlow(t *testing.T) {
 				matchingRule: autogroupNonrootRule,
 			},
 			authErr:     true,
-			wantBanners: []string{`tailscale: tailnet policy does not permit you to SSH as user "+0"` + "\n"},
+			wantBanners: []string{`lanhc: tailnet policy does not permit you to SSH as user "+0"` + "\n"},
 		},
 		{
 			name: "accept",
@@ -865,7 +865,7 @@ func TestSSHAuthFlow(t *testing.T) {
 				varRoot:      varRoot,
 				matchingRule: acceptRule,
 			},
-			wantBanners: []string{"Welcome to Tailscale SSH!"},
+			wantBanners: []string{"Welcome to Lanhc SSH!"},
 		},
 		{
 			name: "reject",
@@ -889,7 +889,7 @@ func TestSSHAuthFlow(t *testing.T) {
 					"accept": acceptRule.Action,
 				},
 			},
-			wantBanners: []string{"Welcome to Tailscale SSH!"},
+			wantBanners: []string{"Welcome to Lanhc SSH!"},
 		},
 		{
 			name: "multi-check",
@@ -908,7 +908,7 @@ func TestSSHAuthFlow(t *testing.T) {
 					"check2": acceptRule.Action,
 				},
 			},
-			wantBanners: []string{"First", "url-here", "Welcome to Tailscale SSH!"},
+			wantBanners: []string{"First", "url-here", "Welcome to Lanhc SSH!"},
 		},
 		{
 			name: "check-reject",
@@ -935,7 +935,7 @@ func TestSSHAuthFlow(t *testing.T) {
 				matchingRule: acceptRule,
 			},
 			usesPassword: true,
-			wantBanners:  []string{"Welcome to Tailscale SSH!"},
+			wantBanners:  []string{"Welcome to Lanhc SSH!"},
 		},
 	}
 	s := &server{
@@ -1113,7 +1113,7 @@ func TestSSH(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Remove the auth checks for the test
-	sc.insecureSkipTailscaleAuth = true
+	sc.insecureSkipLanhcAuth = true
 
 	u, err := user.Current()
 	if err != nil {
@@ -1173,7 +1173,7 @@ func TestSSH(t *testing.T) {
 
 	t.Run("env", func(t *testing.T) {
 		if cibuild.On() {
-			t.Skip("Skipping for now; see https://github.com/tailscale/tailscale/issues/4051")
+			t.Skip("Skipping for now; see https://github.com/lanhc/lanhc/issues/4051")
 		}
 		cmd := execSSH("LANG=foo env")
 		cmd.Env = append(os.Environ(), "LOCAL_ENV=bar")
@@ -1231,7 +1231,7 @@ func TestSSH(t *testing.T) {
 
 	t.Run("stdin", func(t *testing.T) {
 		if cibuild.On() {
-			t.Skip("Skipping for now; see https://github.com/tailscale/tailscale/issues/4051")
+			t.Skip("Skipping for now; see https://github.com/lanhc/lanhc/issues/4051")
 		}
 		cmd := execSSH("cat")
 		var outBuf bytes.Buffer

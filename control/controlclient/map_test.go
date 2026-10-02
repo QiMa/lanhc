@@ -20,21 +20,21 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"go4.org/mem"
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/health"
-	"tailscale.com/ipn"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/tstime"
-	"tailscale.com/types/dnstype"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/persist"
-	"tailscale.com/util/eventbus/eventbustest"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/must"
-	"tailscale.com/util/zstdframe"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/health"
+	"lanhc.com/ipn"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/tstime"
+	"lanhc.com/types/dnstype"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/persist"
+	"lanhc.com/util/eventbus/eventbustest"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/must"
+	"lanhc.com/util/zstdframe"
 )
 
 func eps(s ...string) []netip.AddrPort {
@@ -2075,7 +2075,7 @@ func TestLearnZstdOfKeepAlive(t *testing.T) {
 	}
 }
 
-func TestPeerIDAndKeyByTailscaleIP(t *testing.T) {
+func TestPeerIDAndKeyByLanhcIP(t *testing.T) {
 	peerKey1 := key.NewNode().Public()
 	peerKey2 := key.NewNode().Public()
 
@@ -2100,9 +2100,9 @@ func TestPeerIDAndKeyByTailscaleIP(t *testing.T) {
 	})
 
 	t.Run("known_ip_peer1", func(t *testing.T) {
-		gotID, gotKey, ok := ms.PeerIDAndKeyByTailscaleIP(netip.MustParseAddr("100.64.0.1"))
+		gotID, gotKey, ok := ms.PeerIDAndKeyByLanhcIP(netip.MustParseAddr("100.64.0.1"))
 		if !ok {
-			t.Fatal("PeerIDAndKeyByTailscaleIP returned ok=false, want true")
+			t.Fatal("PeerIDAndKeyByLanhcIP returned ok=false, want true")
 		}
 		if gotID != peer1.ID {
 			t.Errorf("NodeID = %v, want %v", gotID, peer1.ID)
@@ -2113,9 +2113,9 @@ func TestPeerIDAndKeyByTailscaleIP(t *testing.T) {
 	})
 
 	t.Run("known_ip_peer2_v6", func(t *testing.T) {
-		gotID, gotKey, ok := ms.PeerIDAndKeyByTailscaleIP(netip.MustParseAddr("fd7a:115c::2"))
+		gotID, gotKey, ok := ms.PeerIDAndKeyByLanhcIP(netip.MustParseAddr("fd7a:115c::2"))
 		if !ok {
-			t.Fatal("PeerIDAndKeyByTailscaleIP returned ok=false, want true")
+			t.Fatal("PeerIDAndKeyByLanhcIP returned ok=false, want true")
 		}
 		if gotID != peer2.ID {
 			t.Errorf("NodeID = %v, want %v", gotID, peer2.ID)
@@ -2126,9 +2126,9 @@ func TestPeerIDAndKeyByTailscaleIP(t *testing.T) {
 	})
 
 	t.Run("unknown_ip", func(t *testing.T) {
-		gotID, gotKey, ok := ms.PeerIDAndKeyByTailscaleIP(netip.MustParseAddr("100.64.0.99"))
+		gotID, gotKey, ok := ms.PeerIDAndKeyByLanhcIP(netip.MustParseAddr("100.64.0.99"))
 		if ok {
-			t.Errorf("PeerIDAndKeyByTailscaleIP returned ok=true for unknown IP, got id=%v key=%v", gotID, gotKey)
+			t.Errorf("PeerIDAndKeyByLanhcIP returned ok=true for unknown IP, got id=%v key=%v", gotID, gotKey)
 		}
 	})
 }

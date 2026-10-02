@@ -20,15 +20,15 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/k8s-operator/tsclient"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tstest"
-	"tailscale.com/util/mak"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/k8s-operator/tsclient"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tstest"
+	"lanhc.com/util/mak"
 )
 
 func TestConnector(t *testing.T) {
-	// Create a Connector that defines a Tailscale node that advertises
+	// Create a Connector that defines a Lanhc node that advertises
 	// 10.40.0.0/14 route and acts as an exit node.
 	cn := &tsapi.Connector{
 		ObjectMeta: metav1.ObjectMeta{
@@ -37,7 +37,7 @@ func TestConnector(t *testing.T) {
 		},
 		TypeMeta: metav1.TypeMeta{
 			Kind:       tsapi.ConnectorKind,
-			APIVersion: "tailscale.com/v1alpha1",
+			APIVersion: "lanhc.com/v1alpha1",
 		},
 		Spec: tsapi.ConnectorSpec{
 			Replicas: new(int32(1)),
@@ -62,12 +62,12 @@ func TestConnector(t *testing.T) {
 	cr := &ConnectorReconciler{
 		Client:   fc,
 		recorder: record.NewFakeRecorder(10),
-		ssr: &tailscaleSTSReconciler{
+		ssr: &lanhcSTSReconciler{
 			Client:            fc,
 			clients:           tsclient.NewProvider(ft),
 			defaultTags:       []string{"tag:k8s"},
 			operatorNamespace: "operator-ns",
-			proxyImage:        "tailscale/tailscale",
+			proxyImage:        "lanhc/lanhc",
 		},
 		clock:  cl,
 		logger: zl.Sugar(),
@@ -97,7 +97,7 @@ func TestConnector(t *testing.T) {
 		mak.Set(&secret.Data, "device_ips", []byte(`["127.0.0.1", "::1"]`))
 	})
 	expectReconciled(t, cr, "", "test")
-	cn.Finalizers = append(cn.Finalizers, "tailscale.com/finalizer")
+	cn.Finalizers = append(cn.Finalizers, "lanhc.com/finalizer")
 	cn.Status.IsExitNode = cn.Spec.ExitNode
 	cn.Status.SubnetRoutes = cn.Spec.SubnetRouter.AdvertiseRoutes.Stringify()
 	cn.Status.Hostname = hostname
@@ -180,7 +180,7 @@ func TestConnector(t *testing.T) {
 		},
 		TypeMeta: metav1.TypeMeta{
 			Kind:       tsapi.ConnectorKind,
-			APIVersion: "tailscale.io/v1alpha1",
+			APIVersion: "lanhc.io/v1alpha1",
 		},
 		Spec: tsapi.ConnectorSpec{
 			Replicas: new(int32(1)),
@@ -243,7 +243,7 @@ func TestConnectorWithProxyClass(t *testing.T) {
 		},
 		TypeMeta: metav1.TypeMeta{
 			Kind:       tsapi.ConnectorKind,
-			APIVersion: "tailscale.io/v1alpha1",
+			APIVersion: "lanhc.io/v1alpha1",
 		},
 		Spec: tsapi.ConnectorSpec{
 			Replicas: new(int32(1)),
@@ -268,12 +268,12 @@ func TestConnectorWithProxyClass(t *testing.T) {
 	cr := &ConnectorReconciler{
 		Client: fc,
 		clock:  cl,
-		ssr: &tailscaleSTSReconciler{
+		ssr: &lanhcSTSReconciler{
 			Client:            fc,
 			clients:           tsclient.NewProvider(ft),
 			defaultTags:       []string{"tag:k8s"},
 			operatorNamespace: "operator-ns",
-			proxyImage:        "tailscale/tailscale",
+			proxyImage:        "lanhc/lanhc",
 		},
 		logger: zl.Sugar(),
 	}
@@ -340,7 +340,7 @@ func TestConnectorWithAppConnector(t *testing.T) {
 		},
 		TypeMeta: metav1.TypeMeta{
 			Kind:       tsapi.ConnectorKind,
-			APIVersion: "tailscale.io/v1alpha1",
+			APIVersion: "lanhc.io/v1alpha1",
 		},
 		Spec: tsapi.ConnectorSpec{
 			Replicas:     new(int32(1)),
@@ -362,12 +362,12 @@ func TestConnectorWithAppConnector(t *testing.T) {
 	cr := &ConnectorReconciler{
 		Client: fc,
 		clock:  cl,
-		ssr: &tailscaleSTSReconciler{
+		ssr: &lanhcSTSReconciler{
 			Client:            fc,
 			clients:           tsclient.NewProvider(ft),
 			defaultTags:       []string{"tag:k8s"},
 			operatorNamespace: "operator-ns",
-			proxyImage:        "tailscale/tailscale",
+			proxyImage:        "lanhc/lanhc",
 		},
 		logger:   zl.Sugar(),
 		recorder: fr,
@@ -389,7 +389,7 @@ func TestConnectorWithAppConnector(t *testing.T) {
 	expectEqual(t, fc, expectedSTS(t, fc, opts), removeResourceReqs)
 	// Connector's ready condition should be set to true
 
-	cn.ObjectMeta.Finalizers = append(cn.ObjectMeta.Finalizers, "tailscale.com/finalizer")
+	cn.ObjectMeta.Finalizers = append(cn.ObjectMeta.Finalizers, "lanhc.com/finalizer")
 	cn.Status.IsAppConnector = true
 	cn.Status.Devices = []tsapi.ConnectorDevice{}
 	cn.Status.Conditions = []metav1.Condition{{
@@ -439,7 +439,7 @@ func TestConnectorWithMultipleReplicas(t *testing.T) {
 		},
 		TypeMeta: metav1.TypeMeta{
 			Kind:       tsapi.ConnectorKind,
-			APIVersion: "tailscale.io/v1alpha1",
+			APIVersion: "lanhc.io/v1alpha1",
 		},
 		Spec: tsapi.ConnectorSpec{
 			Replicas:       new(int32(3)),
@@ -462,12 +462,12 @@ func TestConnectorWithMultipleReplicas(t *testing.T) {
 	cr := &ConnectorReconciler{
 		Client: fc,
 		clock:  cl,
-		ssr: &tailscaleSTSReconciler{
+		ssr: &lanhcSTSReconciler{
 			Client:            fc,
 			clients:           tsclient.NewProvider(ft),
 			defaultTags:       []string{"tag:k8s"},
 			operatorNamespace: "operator-ns",
-			proxyImage:        "tailscale/tailscale",
+			proxyImage:        "lanhc/lanhc",
 		},
 		logger:   zl.Sugar(),
 		recorder: fr,

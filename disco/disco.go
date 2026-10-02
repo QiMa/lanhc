@@ -28,7 +28,7 @@ import (
 	"time"
 
 	"go4.org/mem"
-	"tailscale.com/types/key"
+	"lanhc.com/types/key"
 )
 
 // Magic is the 6 byte header of all discovery messages.
@@ -194,10 +194,10 @@ func parsePing(ver uint8, p []byte) (m *Ping, err error) {
 type CallMeMaybe struct {
 	// MyNumber is what the peer believes its endpoints are.
 	//
-	// Prior to Tailscale 1.4, the endpoints were exchanged purely
+	// Prior to Lanhc 1.4, the endpoints were exchanged purely
 	// between nodes and the control server.
 	//
-	// Starting with Tailscale 1.4, clients advertise their endpoints.
+	// Starting with Lanhc 1.4, clients advertise their endpoints.
 	// Older clients won't use this, but newer clients should
 	// use any endpoints in here that aren't included from control.
 	//
@@ -456,7 +456,7 @@ func parseBindUDPRelayEndpointAnswer(ver uint8, p []byte) (m *BindUDPRelayEndpoi
 }
 
 // AllocateUDPRelayEndpointRequest is a message sent only over DERP to request
-// allocation of a relay endpoint on a [tailscale.com/net/udprelay.Server]
+// allocation of a relay endpoint on a [lanhc.com/net/udprelay.Server]
 type AllocateUDPRelayEndpointRequest struct {
 	// ClientDisco are the Disco public keys of the clients that should be
 	// permitted to handshake with the endpoint.
@@ -538,23 +538,23 @@ const udpRelayEndpointLenMinusAddrPorts = key.DiscoPublicRawLen + // ServerDisco
 	8 + // BindLifetime
 	8 // SteadyStateLifetime
 
-// UDPRelayEndpoint is a mirror of [tailscale.com/net/udprelay/endpoint.ServerEndpoint],
+// UDPRelayEndpoint is a mirror of [lanhc.com/net/udprelay/endpoint.ServerEndpoint],
 // refer to it for field documentation. [UDPRelayEndpoint] is carried in both
 // [CallMeMaybeVia] and [AllocateUDPRelayEndpointResponse] messages.
 type UDPRelayEndpoint struct {
-	// ServerDisco is [tailscale.com/net/udprelay/endpoint.ServerEndpoint.ServerDisco]
+	// ServerDisco is [lanhc.com/net/udprelay/endpoint.ServerEndpoint.ServerDisco]
 	ServerDisco key.DiscoPublic
-	// ClientDisco is [tailscale.com/net/udprelay/endpoint.ServerEndpoint.ClientDisco]
+	// ClientDisco is [lanhc.com/net/udprelay/endpoint.ServerEndpoint.ClientDisco]
 	ClientDisco [2]key.DiscoPublic
-	// LamportID is [tailscale.com/net/udprelay/endpoint.ServerEndpoint.LamportID]
+	// LamportID is [lanhc.com/net/udprelay/endpoint.ServerEndpoint.LamportID]
 	LamportID uint64
-	// VNI is [tailscale.com/net/udprelay/endpoint.ServerEndpoint.VNI]
+	// VNI is [lanhc.com/net/udprelay/endpoint.ServerEndpoint.VNI]
 	VNI uint32
-	// BindLifetime is [tailscale.com/net/udprelay/endpoint.ServerEndpoint.BindLifetime]
+	// BindLifetime is [lanhc.com/net/udprelay/endpoint.ServerEndpoint.BindLifetime]
 	BindLifetime time.Duration
-	// SteadyStateLifetime is [tailscale.com/net/udprelay/endpoint.ServerEndpoint.SteadyStateLifetime]
+	// SteadyStateLifetime is [lanhc.com/net/udprelay/endpoint.ServerEndpoint.SteadyStateLifetime]
 	SteadyStateLifetime time.Duration
-	// AddrPorts is [tailscale.com/net/udprelay/endpoint.ServerEndpoint.AddrPorts]
+	// AddrPorts is [lanhc.com/net/udprelay/endpoint.ServerEndpoint.AddrPorts]
 	AddrPorts []netip.AddrPort
 }
 
@@ -620,13 +620,13 @@ func (m *UDPRelayEndpoint) decode(b []byte) error {
 // CallMeMaybeVia is a message sent only over DERP to request that the recipient
 // try to open up a magicsock path back to the sender. The 'Via' in
 // CallMeMaybeVia highlights that candidate paths are served through an
-// intermediate relay, likely a [tailscale.com/net/udprelay.Server].
+// intermediate relay, likely a [lanhc.com/net/udprelay.Server].
 //
 // Usage of the candidate paths in magicsock requires a 3-way handshake
 // involving [BindUDPRelayEndpoint], [BindUDPRelayEndpointChallenge], and
 // [BindUDPRelayEndpointAnswer].
 //
-// CallMeMaybeVia mirrors [tailscale.com/net/udprelay/endpoint.ServerEndpoint],
+// CallMeMaybeVia mirrors [lanhc.com/net/udprelay/endpoint.ServerEndpoint],
 // which contains field documentation.
 //
 // The recipient may choose to not open a path back if it's already happy with

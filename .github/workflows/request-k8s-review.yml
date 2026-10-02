@@ -36,4 +36,4 @@ jobs:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
           url: ${{ github.event.pull_request.html_url }}
         run: |
-          gh pr edit "$url" --add-reviewer tailscale/k8s-devs
+          gh pr edit "$url" --add-reviewer lanhc/k8s-devs

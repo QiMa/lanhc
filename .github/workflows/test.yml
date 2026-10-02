@@ -161,10 +161,10 @@ jobs:
       if: matrix.buildflags == '' # skip on race builder
       working-directory: src
       run: |
-        ./build_dist.sh --extra-small ./cmd/tailscaled
-        ./build_dist.sh --box ./cmd/tailscaled
-        ./build_dist.sh --extra-small --box ./cmd/tailscaled
-        rm -f tailscaled
+        ./build_dist.sh --extra-small ./cmd/lanhcd
+        ./build_dist.sh --box ./cmd/lanhcd
+        ./build_dist.sh --extra-small --box ./cmd/lanhcd
+        rm -f lanhcd
       env:
         GOARCH: ${{ matrix.goarch }}
     - name: get qemu # for tstest/archtest
@@ -224,7 +224,7 @@ jobs:
       contents: read # This is required for actions/checkout
     # ci-windows-github-1 is a 2022 GitHub-managed runner in our org with 8 cores
     # and 32 GB of RAM. It is connected to a private Azure VNet that hosts cigocached.
-    # https://github.com/organizations/tailscale/settings/actions/github-hosted-runners/5
+    # https://github.com/organizations/lanhc/settings/actions/github-hosted-runners/5
     runs-on: ci-windows-github-1
     needs: gomod-cache
     name: Windows (${{ matrix.name || matrix.shard}})
@@ -481,7 +481,7 @@ jobs:
         GOOS: ios
         GOARCH: arm64
 
-  crossmin: # cross-compile for platforms where we only check cmd/tailscale{,d}
+  crossmin: # cross-compile for platforms where we only check cmd/lanhc{,d}
     needs: gomod-cache
     strategy:
       fail-fast: false # don't abort the entire matrix if one element fails
@@ -528,7 +528,7 @@ jobs:
           ${{ runner.os }}-${{ matrix.goos }}-${{ matrix.goarch }}-go-
     - name: build core
       working-directory: src
-      run: ./tool/go build ./cmd/tailscale ./cmd/tailscaled
+      run: ./tool/go build ./cmd/lanhc ./cmd/lanhcd
       env:
         GOOS: ${{ matrix.goos }}
         GOARCH: ${{ matrix.goarch }}
@@ -565,7 +565,7 @@ jobs:
       # Super minimal Android build that doesn't even use CGO and doesn't build everything that's needed
       # and is only arm64. But it's a smoke build: it's not meant to catch everything. But it'll catch
       # some Android breakages early.
-      # TODO(bradfitz): better; see https://github.com/tailscale/tailscale/issues/4482
+      # TODO(bradfitz): better; see https://github.com/lanhc/lanhc/issues/4482
     - name: Restore Go module cache
       uses: actions/cache/restore@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
       with:
@@ -609,7 +609,7 @@ jobs:
           ${{ runner.os }}-js-wasm-go-
     - name: build tsconnect client
       working-directory: src
-      run: ./tool/go build ./cmd/tsconnect/wasm ./cmd/tailscale/cli
+      run: ./tool/go build ./cmd/tsconnect/wasm ./cmd/lanhc/cli
       env:
         GOOS: js
         GOARCH: wasm
@@ -644,7 +644,7 @@ jobs:
           ~\AppData\Local\go-build
         key: ${{ runner.os }}-js-wasm-go-${{ hashFiles('**/go.sum') }}-${{ github.job }}-${{ github.run_id }}
 
-  tailscale_go: # Subset of tests that depend on our custom Go toolchain.
+  lanhc_go: # Subset of tests that depend on our custom Go toolchain.
     runs-on: ubuntu-24.04
     needs: gomod-cache
     steps:
@@ -658,8 +658,8 @@ jobs:
         path: gomodcache
         key: ${{ needs.gomod-cache.outputs.cache-key }}
         enableCrossOsArchive: true
-    - name: test tailscale_go
-      run: ./tool/go test -tags=tailscale_go,ts_enable_sockstats ./net/sockstats/...
+    - name: test lanhc_go
+      run: ./tool/go test -tags=lanhc_go,ts_enable_sockstats ./net/sockstats/...
 
 
   fuzz:
@@ -686,7 +686,7 @@ jobs:
       # contribute to the job's overall pass/fail evaluation.
       continue-on-error: true
       with:
-       oss-fuzz-project-name: 'tailscale'
+       oss-fuzz-project-name: 'lanhc'
        dry-run: false
        language: go
     - name: report unexpectedly broken fuzz build
@@ -714,7 +714,7 @@ jobs:
       # hash is just the tip of master.
       uses: google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@f277aafb36f358582fdb24a41a9a52f2e097a2fd
       with:
-        oss-fuzz-project-name: 'tailscale'
+        oss-fuzz-project-name: 'lanhc'
         fuzz-seconds: 150
         dry-run: false
         language: go
@@ -891,7 +891,7 @@ jobs:
       - cross
       - ios
       - wasm
-      - tailscale_go
+      - lanhc_go
       - fuzz
       - depaware
       - go_generate
@@ -936,7 +936,7 @@ jobs:
       - cross
       - ios
       - wasm
-      - tailscale_go
+      - lanhc_go
       - fuzz
       - depaware
       - go_generate
@@ -961,7 +961,7 @@ jobs:
       - cross
       - crossmin
       - ios
-      - tailscale_go
+      - lanhc_go
       - depaware
       - go_generate
       - make_tidy

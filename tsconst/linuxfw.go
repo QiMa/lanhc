@@ -3,9 +3,9 @@
 
 package tsconst
 
-// Linux firewall constants used by Tailscale.
+// Linux firewall constants used by Lanhc.
 
-// The following bits are added to packet marks for Tailscale use.
+// The following bits are added to packet marks for Lanhc use.
 //
 // We tried to pick bits sufficiently out of the way that it's
 // unlikely to collide with existing uses. We have 4 bytes of mark
@@ -31,13 +31,13 @@ const (
 	LinuxFwmarkMask    = "0xff0000"
 	LinuxFwmarkMaskNum = 0xff0000
 
-	// Packet is from Tailscale and to a subnet route destination, so
+	// Packet is from Lanhc and to a subnet route destination, so
 	// is allowed to be routed through this machine.
 	LinuxSubnetRouteMark    = "0x40000"
 	LinuxSubnetRouteMarkNum = 0x40000
 
-	// Packet was originated by tailscaled itself, and must not be
-	// routed over the Tailscale network.
+	// Packet was originated by lanhcd itself, and must not be
+	// routed over the Lanhc network.
 	LinuxBypassMark    = "0x80000"
 	LinuxBypassMarkNum = 0x80000
 )

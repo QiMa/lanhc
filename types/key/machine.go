@@ -11,7 +11,7 @@ import (
 	"go4.org/mem"
 	"golang.org/x/crypto/curve25519"
 	"golang.org/x/crypto/nacl/box"
-	"tailscale.com/types/structs"
+	"lanhc.com/types/structs"
 )
 
 const (
@@ -32,7 +32,7 @@ const (
 )
 
 // MachinePrivate is a machine key, used for communication with the
-// Tailscale coordination server.
+// Lanhc coordination server.
 type MachinePrivate struct {
 	_ structs.Incomparable // == isn't constant-time
 	k [32]byte
@@ -206,7 +206,7 @@ func (k MachinePublic) IsZero() bool {
 	return k == MachinePublic{}
 }
 
-// ShortString returns the Tailscale conventional debug representation
+// ShortString returns the Lanhc conventional debug representation
 // of a public key: the first five base64 digits of the key, in square
 // brackets.
 func (k MachinePublic) ShortString() string {

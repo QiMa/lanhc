@@ -19,8 +19,8 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/ipn"
-	"tailscale.com/tstest"
+	"lanhc.com/ipn"
+	"lanhc.com/tstest"
 )
 
 func TestExpandProxyArgUnix(t *testing.T) {
@@ -187,7 +187,7 @@ func TestReverseProxyConfigurationUnix(t *testing.T) {
 	}
 }
 
-func TestServeBlocksTailscaledSocket(t *testing.T) {
+func TestServeBlocksLanhcdSocket(t *testing.T) {
 	// Use /tmp to avoid macOS socket path length limits
 	tmpDir, err := os.MkdirTemp("/tmp", "ts-test-*")
 	if err != nil {
@@ -195,33 +195,33 @@ func TestServeBlocksTailscaledSocket(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	tailscaledSocket := filepath.Join(tmpDir, "ts.sock")
+	lanhcdSocket := filepath.Join(tmpDir, "ts.sock")
 
 	// Create actual socket file
-	listener, err := net.Listen("unix", tailscaledSocket)
+	listener, err := net.Listen("unix", lanhcdSocket)
 	if err != nil {
-		t.Fatalf("failed to create tailscaled socket: %v", err)
+		t.Fatalf("failed to create lanhcd socket: %v", err)
 	}
 	defer listener.Close()
 
 	b := newTestBackend(t)
-	b.sys.SocketPath = tailscaledSocket
+	b.sys.SocketPath = lanhcdSocket
 
-	// Direct path to tailscaled socket should be blocked
-	_, err = b.proxyHandlerForBackend("unix:" + tailscaledSocket)
-	if !errors.Is(err, ErrProxyToTailscaledSocket) {
-		t.Errorf("direct path: got err=%v, want ErrProxyToTailscaledSocket", err)
+	// Direct path to lanhcd socket should be blocked
+	_, err = b.proxyHandlerForBackend("unix:" + lanhcdSocket)
+	if !errors.Is(err, ErrProxyToLanhcdSocket) {
+		t.Errorf("direct path: got err=%v, want ErrProxyToLanhcdSocket", err)
 	}
 
-	// Symlink to tailscaled socket should be blocked
+	// Symlink to lanhcd socket should be blocked
 	symlinkPath := filepath.Join(tmpDir, "link")
-	if err := os.Symlink(tailscaledSocket, symlinkPath); err != nil {
+	if err := os.Symlink(lanhcdSocket, symlinkPath); err != nil {
 		t.Fatalf("failed to create symlink: %v", err)
 	}
 
 	_, err = b.proxyHandlerForBackend("unix:" + symlinkPath)
-	if !errors.Is(err, ErrProxyToTailscaledSocket) {
-		t.Errorf("symlink: got err=%v, want ErrProxyToTailscaledSocket", err)
+	if !errors.Is(err, ErrProxyToLanhcdSocket) {
+		t.Errorf("symlink: got err=%v, want ErrProxyToLanhcdSocket", err)
 	}
 
 	// Different socket should work

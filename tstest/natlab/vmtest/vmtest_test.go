@@ -13,17 +13,17 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/client/local"
-	"tailscale.com/ipn"
-	"tailscale.com/net/udprelay/status"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/tstest/integration/testcontrol"
-	"tailscale.com/tstest/natlab/vmtest"
-	"tailscale.com/tstest/natlab/vnet"
-	"tailscale.com/types/key"
-	"tailscale.com/types/netmap"
-	"tailscale.com/util/set"
+	"lanhc.com/client/local"
+	"lanhc.com/ipn"
+	"lanhc.com/net/udprelay/status"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/tstest/integration/testcontrol"
+	"lanhc.com/tstest/natlab/vmtest"
+	"lanhc.com/tstest/natlab/vnet"
+	"lanhc.com/types/key"
+	"lanhc.com/types/netmap"
+	"lanhc.com/util/set"
 )
 
 // skipIfNotMacOSArm64 skips the test when the host isn't a macOS arm64 host.
@@ -89,7 +89,7 @@ func TestSubnetRouterFedora(t *testing.T) {
 }
 
 // TestFedoraDNSDirect verifies that provisioning a Fedora node with
-// WithDNSMode(DNSDirect) — which masks systemd-resolved — makes tailscaled
+// WithDNSMode(DNSDirect) — which masks systemd-resolved — makes lanhcd
 // select the "direct" DNS backend instead of the image default
 // ("systemd-resolved"). This is what lets one distro image cover multiple DNS
 // backends, so adding a distro isn't "basically equivalent" to the others.
@@ -155,14 +155,14 @@ func TestSiteToSite(t *testing.T) {
 
 // testSiteToSite runs a site-to-site subnet routing test with
 // --snat-subnet-routes=false, verifying that original source IPs are preserved
-// across Tailscale subnet routes.
+// across Lanhc subnet routes.
 //
 // Topology:
 //
 //	Site A:  backend-a (10.1.0.0/24) ← → sr-a (WAN + LAN-A)
 //	Site B:  backend-b (10.2.0.0/24) ← → sr-b (WAN + LAN-B)
 //
-// Both subnet routers are on Tailscale with --snat-subnet-routes=false.
+// Both subnet routers are on Lanhc with --snat-subnet-routes=false.
 // The test sends HTTP from backend-a to backend-b through the subnet routers
 // and verifies that backend-b sees backend-a's LAN IP (not the subnet router's).
 func testSiteToSite(t *testing.T, srOS vmtest.OSImage) {
@@ -187,7 +187,7 @@ func testSiteToSite(t *testing.T, srOS vmtest.OSImage) {
 		vmtest.AdvertiseRoutes("10.2.0.0/24"),
 		vmtest.SNATSubnetRoutes(false))
 
-	// Backend servers on each site's LAN (not on Tailscale).
+	// Backend servers on each site's LAN (not on Lanhc).
 	// Use Ubuntu so we can SSH in to add static routes.
 	backendA := env.AddNode("backend-a", lanA,
 		vmtest.OS(vmtest.Ubuntu2404),
@@ -224,7 +224,7 @@ func testSiteToSite(t *testing.T, srOS vmtest.OSImage) {
 	staticRouteStep.End(nil)
 
 	// Make an HTTP request from backend-a to backend-b through the subnet routers.
-	// TTA's /http-get falls back to direct dial on non-Tailscale nodes.
+	// TTA's /http-get falls back to direct dial on non-Lanhc nodes.
 	httpStep.Begin()
 	backendBIP := backendB.LanIP(lanB)
 	body := env.HTTPGet(backendA, fmt.Sprintf("http://%s:8080/", backendBIP))
@@ -244,7 +244,7 @@ func testSiteToSite(t *testing.T, srOS vmtest.OSImage) {
 }
 
 // TestInterNetworkTCP verifies that vnet routes raw TCP between simulated
-// networks: a non-Tailscale VM on one NAT'd LAN can reach a webserver on a
+// networks: a non-Lanhc VM on one NAT'd LAN can reach a webserver on a
 // different network using a 1:1 NAT, and the webserver sees the client's
 // network's WAN IP as the source (post-NAT).
 func TestInterNetworkTCP(t *testing.T) {
@@ -451,8 +451,8 @@ func TestSubnetRouterAndExitNode(t *testing.T) {
 // Ubuntu node via Taildrop, and the receiver gets the same content.
 //
 // Topology: two Ubuntu nodes, each behind its own EasyNAT, both joined to the
-// tailnet. The sender runs `tailscale file cp` to push to the receiver's
-// Tailscale IP; the receiver then runs `tailscale file get --wait` to fetch
+// tailnet. The sender runs `lanhc file cp` to push to the receiver's
+// Lanhc IP; the receiver then runs `lanhc file get --wait` to fetch
 // it.
 func TestTaildrop(t *testing.T) {
 	env := vmtest.New(t, vmtest.SameTailnetUser())
@@ -582,12 +582,12 @@ func TestExitNode(t *testing.T) {
 // the AAAA connect attempt fails (exit node has no IPv6 egress),
 // but the A attempt succeeds.
 //
-// Fixes tailscale/tailscale#13257 and #19792.
+// Fixes lanhc/lanhc#13257 and #19792.
 func TestExitNodeV4Only(t *testing.T) {
 	env := vmtest.New(t)
 
 	// Exit node network: IPv4 only (no IPv6 prefix → CanV6()=false).
-	// It advertises both 0.0.0.0/0 and ::/0 (required by tailscale up)
+	// It advertises both 0.0.0.0/0 and ::/0 (required by lanhc up)
 	// but the network has no IPv6 WAN, so v6 traffic will be dropped.
 	exitNet := env.AddNetwork("2.0.0.1", "192.168.2.1/24", vnet.EasyNAT)
 	// Client network: dual-stack so Go's net.Resolver prefers AAAA.
@@ -599,7 +599,7 @@ func TestExitNodeV4Only(t *testing.T) {
 		vmtest.OS(vmtest.Gokrazy),
 		// Force AAAA addresses first in userDialResolveAll results so
 		// the old single-IP code path would pick an unreachable v6 addr.
-		vnet.TailscaledEnv{Key: "TS_DEBUG_PREFER_IPV6_USERDIAL", Value: "1"})
+		vnet.LanhcdEnv{Key: "TS_DEBUG_PREFER_IPV6_USERDIAL", Value: "1"})
 	exit := env.AddNode("exit", exitNet,
 		vmtest.OS(vmtest.Gokrazy),
 		vmtest.AdvertiseRoutes("0.0.0.0/0,::/0"))
@@ -656,8 +656,8 @@ func TestExitNodeV4Only(t *testing.T) {
 //
 //	rotate (LocalAPI rotate-disco-key) → ping B → A
 //	rotate (LocalAPI rotate-disco-key) → ping A → B
-//	restart  (SIGKILL tailscaled)      → ping B → A
-//	restart  (SIGKILL tailscaled)      → ping A → B
+//	restart  (SIGKILL lanhcd)      → ping B → A
+//	restart  (SIGKILL lanhcd)      → ping A → B
 //
 // Plus an initial A→B TSMP ping with a generous 30s budget to bring up the
 // WireGuard tunnel before the rotations begin (so the post-rotation pings
@@ -674,8 +674,8 @@ func TestExitNodeV4Only(t *testing.T) {
 //     only touches local disco state; without the WantRunning bounce, B
 //     keeps using stale per-peer session keys against A and A drops
 //     everything until B's WG rekey timer eventually fires).
-//   - SIGKILL of tailscaled (via TTA's /kill-tailscaled): the gokrazy
-//     supervisor respawns tailscaled, fully resetting B's magicsock and
+//   - SIGKILL of lanhcd (via TTA's /kill-lanhcd): the gokrazy
+//     supervisor respawns lanhcd, fully resetting B's magicsock and
 //     wgengine state in addition to rotating the disco key.
 //
 // Each post-rotation ping currently gets a 15-second budget. On a
@@ -738,8 +738,8 @@ func TestDiscoKeyChange(t *testing.T) {
 	phases := []*phase{
 		{name: "rotate (LocalAPI), b → a", pingFrom: b, pingTo: a, rotate: func() { env.RotateDiscoKey(b) }},
 		{name: "rotate (LocalAPI), a → b", pingFrom: a, pingTo: b, rotate: func() { env.RotateDiscoKey(b) }},
-		{name: "restart, b → a", pingFrom: b, pingTo: a, rotate: func() { env.RestartTailscaled(b) }},
-		{name: "restart, a → b", pingFrom: a, pingTo: b, rotate: func() { env.RestartTailscaled(b) }},
+		{name: "restart, b → a", pingFrom: b, pingTo: a, rotate: func() { env.RestartLanhcd(b) }},
+		{name: "restart, a → b", pingFrom: a, pingTo: b, rotate: func() { env.RestartLanhcd(b) }},
 	}
 
 	pingABStep := env.AddStep("Ping a → b TSMP (establish tunnel)")
@@ -942,24 +942,24 @@ func TestHomeDERPReportedAfterRelogin(t *testing.T) {
 	verifyStep.End(nil)
 }
 
-// TestMullvadExitNode verifies that a Tailscale client whose netmap contains
+// TestMullvadExitNode verifies that a Lanhc client whose netmap contains
 // a plain-WireGuard exit node (the way Mullvad exit nodes are wired up by
 // the control plane) can route internet traffic through it, with the source
 // IP rewritten to the per-client Mullvad-assigned address.
 //
 // Topology:
 //
-//	client (Tailscale, gokrazy)         — clientNet (EasyNAT)     WAN 1.0.0.1
+//	client (Lanhc, gokrazy)         — clientNet (EasyNAT)     WAN 1.0.0.1
 //	mullvad (Ubuntu, userspace WG)      — mullvadNet (One2OneNAT) WAN 2.0.0.1
-//	webserver (no Tailscale, gokrazy)   — webNet     (One2OneNAT) WAN 5.0.0.1
+//	webserver (no Lanhc, gokrazy)   — webNet     (One2OneNAT) WAN 5.0.0.1
 //
 // The mullvad VM impersonates a Mullvad WireGuard server. After boot, the
 // test asks its TTA agent to bring up a userspace WireGuard interface (a
-// real Linux TUN driven by wireguard-go) that pins the client's Tailscale
+// real Linux TUN driven by wireguard-go) that pins the client's Lanhc
 // node public key as its only allowed peer, sets up IP-forwarding + a
 // MASQUERADE rule, and reports the WG server's freshly generated public
 // key back. Userspace vs kernel WireGuard makes no difference on the wire
-// — what's being tested is Tailscale's plain-WireGuard exit-node code
+// — what's being tested is Lanhc's plain-WireGuard exit-node code
 // path, not the kernel module.
 //
 // The test then injects a netmap peer with IsWireGuardOnly=true,
@@ -1010,7 +1010,7 @@ func TestMullvadExitNode(t *testing.T) {
 	env.Start()
 
 	// Bring up the WG server inside mullvad's TTA, pinning the client's
-	// Tailscale node public key as the sole allowed peer.
+	// Lanhc node public key as the sole allowed peer.
 	wgUpStep.Begin()
 	clientStatus := env.Status(client)
 	mullvadPub := env.BringUpMullvadWGServer(mullvad,
@@ -1123,7 +1123,7 @@ func TestCachedNetmapAfterRestart(t *testing.T) {
 
 	connectStep := env.AddStep("Establish initial TSMP tunnel")
 	cutControlStep := env.AddStep("Cut control server access")
-	restartStep := env.AddStep("Restart tailscaled on both nodes")
+	restartStep := env.AddStep("Restart lanhcd on both nodes")
 	netmapCheckStep := env.AddStep("Check netmap loaded is cached")
 	pingStep := env.AddStep("Ping a → b TSMP (cached netmap, no control)")
 
@@ -1145,8 +1145,8 @@ func TestCachedNetmapAfterRestart(t *testing.T) {
 	cutControlStep.End(nil)
 
 	restartStep.Begin()
-	env.RestartTailscaled(a)
-	env.RestartTailscaled(b)
+	env.RestartLanhcd(a)
+	env.RestartLanhcd(b)
 	restartStep.End(nil)
 
 	netmapCheckStep.Begin()
@@ -1196,7 +1196,7 @@ func TestDirectConnectionWithCachedNetmapOnOneNode(t *testing.T) {
 	for _, testPingFrom := range []string{"offline", "online"} {
 		t.Run(fmt.Sprintf("ping_from_%s", testPingFrom), func(t *testing.T) {
 			if testPingFrom == "online" {
-				t.Skip("https://github.com/tailscale/tailscale/issues/19843")
+				t.Skip("https://github.com/lanhc/lanhc/issues/19843")
 			}
 			env := vmtest.New(t)
 
@@ -1217,7 +1217,7 @@ func TestDirectConnectionWithCachedNetmapOnOneNode(t *testing.T) {
 			}
 			checkInitialMetrics := env.AddStep("Check initial client metrics")
 			cutControlStep := env.AddStep("Cut control server access from a")
-			restartStep := env.AddStep("Restart tailscaled on a")
+			restartStep := env.AddStep("Restart lanhcd on a")
 			tsmpPingStep := env.AddStep(fmt.Sprintf("%s TSMP (cached netmap, no control)", pStr))
 			discoPingStep := env.AddStep(fmt.Sprintf("%s Disco (want Direct)", pStr))
 			checkFinalMetrics := env.AddStep("Check final client metrics")
@@ -1242,7 +1242,7 @@ func TestDirectConnectionWithCachedNetmapOnOneNode(t *testing.T) {
 			cutControlStep.End(nil)
 
 			restartStep.Begin()
-			env.RestartTailscaled(a)
+			env.RestartLanhcd(a)
 			restartStep.End(nil)
 
 			// Set the direction of the ping.
@@ -1287,7 +1287,7 @@ func TestDirectConnectionWithCachedNetmapOnOneNode(t *testing.T) {
 // however not be sent if there is not endpoints on the online node which is
 // possible in the event where a node has registered but not finished STUN.
 func TestDirectConnectionWithCachedNetmapOnTwoNodes(t *testing.T) {
-	t.Skip("https://github.com/tailscale/tailscale/issues/19843")
+	t.Skip("https://github.com/lanhc/lanhc/issues/19843")
 	env := vmtest.New(t)
 
 	aNet := env.AddNetwork("1.0.0.1", "192.168.1.1/24", vnet.EasyNAT)
@@ -1302,7 +1302,7 @@ func TestDirectConnectionWithCachedNetmapOnTwoNodes(t *testing.T) {
 
 	checkInitialMetrics := env.AddStep("Check initial client metrics")
 	cutControlStep := env.AddStep("Cut control server access")
-	restartStep := env.AddStep("Restart tailscaled on a")
+	restartStep := env.AddStep("Restart lanhcd on a")
 	tsmpPingStep := env.AddStep("Ping a → b TSMP (cached netmap, no control)")
 	discoPingStep := env.AddStep("Ping a → b Disco (want Direct)")
 	checkFinalMetrics := env.AddStep("Check final client metrics")
@@ -1329,8 +1329,8 @@ func TestDirectConnectionWithCachedNetmapOnTwoNodes(t *testing.T) {
 	cutControlStep.End(nil)
 
 	restartStep.Begin()
-	env.RestartTailscaled(a)
-	env.RestartTailscaled(b)
+	env.RestartLanhcd(a)
+	env.RestartLanhcd(b)
 	restartStep.End(nil)
 
 	tsmpPingStep.Begin()
@@ -1353,10 +1353,10 @@ func TestDirectConnectionWithCachedNetmapOnTwoNodes(t *testing.T) {
 	checkFinalMetrics.End(nil)
 }
 
-// TestPeerRelay verifies that two Tailscale nodes whose direct UDP path is
+// TestPeerRelay verifies that two Lanhc nodes whose direct UDP path is
 // impossible at the network layer (both behind HardNAT, with no port-mapping
 // services on either of their networks) can still communicate via a third
-// Tailscale node configured as a peer-relay server.
+// Lanhc node configured as a peer-relay server.
 //
 // Topology:
 //
@@ -1406,7 +1406,7 @@ func TestPeerRelay(t *testing.T) {
 	// disco probe rode a peer relay (vs Endpoint for direct UDP or
 	// DERPRegionID for DERP).
 	pingStep.Begin()
-	bIP := env.Status(b).Self.TailscaleIPs[0]
+	bIP := env.Status(b).Self.LanhcIPs[0]
 	var lastDetail string
 	err = tstest.WaitFor(60*time.Second, func() error {
 		ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)

@@ -24,22 +24,22 @@ import (
 	"strings"
 	"testing"
 
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/health"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnauth"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsd"
-	"tailscale.com/tstest"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/logid"
-	"tailscale.com/util/eventbus/eventbustest"
-	"tailscale.com/util/slicesx"
-	"tailscale.com/wgengine"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/health"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnauth"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsd"
+	"lanhc.com/tstest"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/logid"
+	"lanhc.com/util/eventbus/eventbustest"
+	"lanhc.com/util/slicesx"
+	"lanhc.com/wgengine"
 )
 
 func handlerForTest(t testing.TB, h *Handler) *Handler {
@@ -151,9 +151,9 @@ func (b whoIsBackend) PeerCapsForService(src netip.Addr, svcName tailcfg.Service
 
 // Tests that the WhoIs handler accepts IPs, IP:ports, or nodekeys.
 //
-// From https://github.com/tailscale/tailscale/pull/9714 (a PR that is effectively a bug report)
+// From https://github.com/lanhc/lanhc/pull/9714 (a PR that is effectively a bug report)
 //
-// And https://github.com/tailscale/tailscale/issues/12465
+// And https://github.com/lanhc/lanhc/issues/12465
 func TestWhoIsArgTypes(t *testing.T) {
 	h := handlerForTest(t, &Handler{
 		PermitRead: true,
@@ -903,7 +903,7 @@ func TestServeDialSelf(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest("POST", "http://local-tailscaled.sock/localapi/v0/dial", nil)
+			req := httptest.NewRequest("POST", "http://local-lanhcd.sock/localapi/v0/dial", nil)
 			req.Header.Set("Connection", "upgrade")
 			req.Header.Set("Upgrade", "ts-dial")
 			req.Header.Set("Dial-Host", tt.host)

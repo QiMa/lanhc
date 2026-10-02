@@ -14,12 +14,12 @@ import (
 	"net/http"
 	"strings"
 
-	"tailscale.com/metrics"
-	"tailscale.com/tsweb/varz"
-	"tailscale.com/util/set"
+	"lanhc.com/metrics"
+	"lanhc.com/tsweb/varz"
+	"lanhc.com/util/set"
 )
 
-// Registry tracks user-facing metrics of various Tailscale subsystems.
+// Registry tracks user-facing metrics of various Lanhc subsystems.
 type Registry struct {
 	vars expvar.Map
 

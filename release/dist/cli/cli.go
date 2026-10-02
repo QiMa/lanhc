@@ -17,8 +17,8 @@ import (
 	"time"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
-	"tailscale.com/clientupdate/distsign"
-	"tailscale.com/release/dist"
+	"lanhc.com/clientupdate/distsign"
+	"lanhc.com/release/dist"
 )
 
 // CLI returns a CLI root command to build release packages.
@@ -30,7 +30,7 @@ func CLI(getTargets func() ([]dist.Target, error)) *ffcli.Command {
 	return &ffcli.Command{
 		Name:       "dist",
 		ShortUsage: "dist [flags] <command> [command flags]",
-		ShortHelp:  "Build tailscale release packages for distribution",
+		ShortHelp:  "Build lanhc release packages for distribution",
 		LongHelp:   `For help on subcommands, add --help after: "dist list --help".`,
 		Subcommands: []*ffcli.Command{
 			{

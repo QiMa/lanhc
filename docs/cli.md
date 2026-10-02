@@ -1,7 +1,7 @@
-# Tailscale CLI evolution guidelines
+# Lanhc CLI evolution guidelines
 
-This document offers guidance for evolving the Tailscale core command-line
-interface(s), principally `tailscale` (and, where relevant, `tailscaled`). It
+This document offers guidance for evolving the Lanhc core command-line
+interface(s), principally `lanhc` (and, where relevant, `lanhcd`). It
 is intentionally lightweight. It describes the *spirit* we want to preserve as
 the CLI grows, not a rigid specification. As with all style guides, some of it
 is subjective and exists mainly to codify existing conventions and promote
@@ -47,7 +47,7 @@ to be, and several of their specifics do not apply to us. In particular:
 
 ## Guiding principles
 
-The Tailscale CLI is one of the most visible parts of the product. It is used
+The Lanhc CLI is one of the most visible parts of the product. It is used
 interactively by humans, embedded in scripts and pipelines, read by screen
 readers, and depended on for automation. Small decisions compound. We would
 rather do the harder work of getting a surface right than take the easier
@@ -55,7 +55,7 @@ short-term path of adding one more toggle.
 
 ### Keep overall configurability low
 
-We aim to keep the overall configurability of the Tailscale client *low*. It is
+We aim to keep the overall configurability of the Lanhc client *low*. It is
 strongly preferred to identify broadly common solutions to heterogeneous user
 challenges and apply them holistically, rather than exposing large configuration
 surfaces.
@@ -73,22 +73,22 @@ necessary, add it deliberately and in the right place (see below).
 
 ### Top-level commands
 
-The top-level command surface (`tailscale <command>`) is precious. Every
+The top-level command surface (`lanhc <command>`) is precious. Every
 addition there is effectively permanent and competes for the user's attention
 and memory. We want it to grow slowly.
 
 Some commands earn a place at the top level because they are used so frequently
 that the brevity is worth it:
 
-* `tailscale set` and `tailscale get` are fine as independent top-level
+* `lanhc set` and `lanhc get` are fine as independent top-level
   commands, in large part *because their usage is so frequent*. The cost of an
   extra level of nesting would be paid constantly.
 
-### Prefer `tailscale <noun> <verb>` for features
+### Prefer `lanhc <noun> <verb>` for features
 
 For new "feature"-oriented designs, we will generally prefer a
-`tailscale <noun> <verb>` structure (for example `tailscale <feature> status`,
-`tailscale <feature> enable`). This lets a feature's surface grow over time
+`lanhc <noun> <verb>` structure (for example `lanhc <feature> status`,
+`lanhc <feature> enable`). This lets a feature's surface grow over time
 without growing the top-level CLI surface too quickly. New verbs and options
 live under the noun, where they are discoverable in context and do not crowd the
 root.
@@ -99,13 +99,13 @@ awkward. Naturalness and usability win over structural purity.
 
 ### Noun naming
 
-Prefer **singular** nouns (`tailscale cert`, `tailscale ip`) unless a singular
+Prefer **singular** nouns (`lanhc cert`, `lanhc ip`) unless a singular
 form is strongly unnatural for the concept. Consistency in number makes commands
 easier to predict and remember.
 
-### `tailscale up` is closed for extension
+### `lanhc up` is closed for extension
 
-`tailscale up` is now effectively **closed for extension**. New configuration
+`lanhc up` is now effectively **closed for extension**. New configuration
 features should prefer to go into `set` rather than `up`.
 
 The reason is historical and concrete: `up` has the long-standing problem that
@@ -119,7 +119,7 @@ without that footgun. New knobs belong there.
 Existing surfaces should be extended where appropriate, provided the extension
 does not substantially change the *spirit* of the surface.
 
-For example, adding new target query types to `tailscale ip` is a good fit where
+For example, adding new target query types to `lanhc ip` is a good fit where
 those targets are sufficiently visible to clients: it is the same operation
 ("resolve a thing to an IP") applied to more inputs. That is extension in the
 spirit of the command, not scope creep.
@@ -127,10 +127,10 @@ spirit of the command, not scope creep.
 ### Avoid arbitrary growth in complexity
 
 Resist the temptation to grow a command to match the full surface of some
-external tool it resembles. For example, `tailscale ssh` does **not** intend to
+external tool it resembles. For example, `lanhc ssh` does **not** intend to
 reimplement the full flag surface of `ssh` over time. Doing so would be an
 enormous and open-ended maintenance burden, and `ssh` itself is essentially
-ubiquitously available and already serves that purpose. A Tailscale command
+ubiquitously available and already serves that purpose. A Lanhc command
 should do its job well, not absorb an entire adjacent ecosystem.
 
 ## Debug commands
@@ -152,9 +152,9 @@ Most configuration should be **profile-local** preferences, set and read via
 `set`/`get`, and modifiable at runtime. This is where the overwhelming majority
 of user-facing configuration belongs.
 
-### `tailscaled` flags are a last resort
+### `lanhcd` flags are a last resort
 
-Daemon (`tailscaled`) command-line flags should ideally be added **only** when a
+Daemon (`lanhcd`) command-line flags should ideally be added **only** when a
 setting is truly *process-global* and *immutable after launch*. If something can
 reasonably be a profile-local preference that is changeable via `set`/`get`, it
 should be, not a daemon flag.
@@ -164,14 +164,14 @@ might want to change per-profile or at runtime.
 
 Daemon flags are also, in practice, **almost Linux-only**. Most GUI platforms
 (for example macOS, Windows, and mobile) make it very difficult for a user to
-adjust how the tailscale backend (e.g. `tailscaled`) is launched, so a setting
+adjust how the lanhc backend (e.g. `lanhcd`) is launched, so a setting
 that lives only in a daemon flag is effectively unreachable for most of our
 users. This is another reason to prefer profile-local preferences via
 `set`/`get`, which work uniformly across platforms.
 
 ### Prefer preferences over environment variables
 
-For both `tailscale` and `tailscaled` configuration surfaces, prefer
+For both `lanhc` and `lanhcd` configuration surfaces, prefer
 preferences (`set`/`get`) over environment variables. Environment variables are
 hard to discover, hard to deprecate, and tend to leak into permanence.
 
@@ -192,7 +192,7 @@ preserves our freedom to change or delete them.
 
 Commands should offer a **stable** JSON format behind a `--json` flag. Once a
 feature is generally available (GA), that JSON format is maintained in a
-backward-compatible way as much as possible, in keeping with Tailscale's broad
+backward-compatible way as much as possible, in keeping with Lanhc's broad
 compatibility policy.
 
 Backward compatibility here means existing fields keep their meaning. **Adding
@@ -265,7 +265,7 @@ sparingly.
 
 Major changes in behavior or output based on TTY detection are an impediment to
 use and should not be added arbitrarily. Requiring something like
-`tailscale foo | less` in order to *discover* a behavior should not become a
+`lanhc foo | less` in order to *discover* a behavior should not become a
 standard pattern: it is a usability issue that excludes many users, including
 those using screen readers and automation.
 
@@ -287,7 +287,7 @@ When adding or changing CLI surface, ask:
 * Could this be a profile-local preference via `set`/`get` instead of a new
   top-level command, a `up` flag, a daemon flag, or an env var? Usually it
   should be.
-* Does it fit a `tailscale <noun> <verb>` shape without being awkward?
+* Does it fit a `lanhc <noun> <verb>` shape without being awkward?
 * Is the noun singular (unless that's strongly unnatural)?
 * Does it provide stable `--json` output, and is the human output plain,
   screen-reader-friendly, and free of color-only meaning?

@@ -9,8 +9,8 @@ import (
 	"errors"
 
 	"golang.org/x/sys/unix"
-	"tailscale.com/disco"
-	"tailscale.com/net/tstun"
+	"lanhc.com/disco"
+	"lanhc.com/net/tstun"
 )
 
 // Peer path MTU routines shared by platforms that implement it.

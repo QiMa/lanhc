@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"tailscale.com/derp/derpserver"
-	"tailscale.com/tstest/deptest"
+	"lanhc.com/derp/derpserver"
+	"lanhc.com/tstest/deptest"
 )
 
 func TestProdAutocertHostPolicy(t *testing.T) {
@@ -20,15 +20,15 @@ func TestProdAutocertHostPolicy(t *testing.T) {
 		in     string
 		wantOK bool
 	}{
-		{"derp.tailscale.com", true},
-		{"derp.tailscale.com.", true},
-		{"derp1.tailscale.com", true},
-		{"derp1b.tailscale.com", true},
-		{"derp2.tailscale.com", true},
-		{"derp02.tailscale.com", true},
-		{"derp-nyc.tailscale.com", true},
-		{"derpfoo.tailscale.com", true},
-		{"derp02.bar.tailscale.com", false},
+		{"derp.lanhc.com", true},
+		{"derp.lanhc.com.", true},
+		{"derp1.lanhc.com", true},
+		{"derp1b.lanhc.com", true},
+		{"derp2.lanhc.com", true},
+		{"derp02.lanhc.com", true},
+		{"derp-nyc.lanhc.com", true},
+		{"derpfoo.lanhc.com", true},
+		{"derp02.bar.lanhc.com", false},
 		{"example.net", false},
 	}
 	for _, tt := range tests {
@@ -55,8 +55,8 @@ func TestNoContent(t *testing.T) {
 		},
 		{
 			name:  "valid-challenge-hostname",
-			input: "ts_derp99b.tailscale.com",
-			want:  "response ts_derp99b.tailscale.com",
+			input: "ts_derp99b.lanhc.com",
+			want:  "response ts_derp99b.lanhc.com",
 		},
 		{
 			name:  "invalid-challenge",
@@ -102,11 +102,11 @@ func TestDeps(t *testing.T) {
 	deptest.DepChecker{
 		BadDeps: map[string]string{
 			"testing":                            "do not use testing package in production code",
-			"gvisor.dev/gvisor/pkg/buffer":       "https://github.com/tailscale/tailscale/issues/9756",
-			"gvisor.dev/gvisor/pkg/cpuid":        "https://github.com/tailscale/tailscale/issues/9756",
-			"gvisor.dev/gvisor/pkg/tcpip":        "https://github.com/tailscale/tailscale/issues/9756",
-			"gvisor.dev/gvisor/pkg/tcpip/header": "https://github.com/tailscale/tailscale/issues/9756",
-			"tailscale.com/net/packet":           "not needed in derper",
+			"gvisor.dev/gvisor/pkg/buffer":       "https://github.com/lanhc/lanhc/issues/9756",
+			"gvisor.dev/gvisor/pkg/cpuid":        "https://github.com/lanhc/lanhc/issues/9756",
+			"gvisor.dev/gvisor/pkg/tcpip":        "https://github.com/lanhc/lanhc/issues/9756",
+			"gvisor.dev/gvisor/pkg/tcpip/header": "https://github.com/lanhc/lanhc/issues/9756",
+			"lanhc.com/net/packet":           "not needed in derper",
 			"github.com/gaissmai/bart":           "not needed in derper",
 			"database/sql/driver":                "not needed in derper", // previously came in via github.com/google/uuid
 		},
@@ -128,8 +128,8 @@ func TestTemplate(t *testing.T) {
 	if !strings.Contains(str, "If you suspect abuse") {
 		t.Error("Output is missing abuse mailto")
 	}
-	if !strings.Contains(str, "Tailscale Security Policies") {
-		t.Error("Output is missing Tailscale Security Policies link")
+	if !strings.Contains(str, "Lanhc Security Policies") {
+		t.Error("Output is missing Lanhc Security Policies link")
 	}
 	if !strings.Contains(str, "Status:") {
 		t.Error("Output is missing disabled status")

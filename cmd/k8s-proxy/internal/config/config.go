@@ -25,9 +25,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/watch"
 	clientcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
-	"tailscale.com/kube/k8s-proxy/conf"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/util/testenv"
+	"lanhc.com/kube/k8s-proxy/conf"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/util/testenv"
 )
 
 type configLoader struct {
@@ -104,7 +104,7 @@ func (ld *configLoader) watchConfigFileChanges(ctx context.Context, path string)
 
 	if w, err := fsnotify.NewWatcher(); err != nil {
 		// Creating a new fsnotify watcher would fail for example if inotify was not able to create a new file descriptor.
-		// See https://github.com/tailscale/tailscale/issues/15081
+		// See https://github.com/lanhc/lanhc/issues/15081
 		ld.logger.Infof("Failed to create fsnotify watcher on config file %q; watching for changes on 5s timer: %v", path, err)
 		ticker := time.NewTicker(5 * time.Second)
 		defer ticker.Stop()

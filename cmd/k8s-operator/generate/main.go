@@ -3,7 +3,7 @@
 
 //go:build !plan9
 
-// The generate command creates tailscale.com CRDs.
+// The generate command creates lanhc.com CRDs.
 package main
 
 import (
@@ -21,14 +21,14 @@ import (
 
 const (
 	operatorDeploymentFilesPath         = "cmd/k8s-operator/deploy"
-	connectorCRDPath                    = operatorDeploymentFilesPath + "/crds/tailscale.com_connectors.yaml"
-	proxyClassCRDPath                   = operatorDeploymentFilesPath + "/crds/tailscale.com_proxyclasses.yaml"
-	dnsConfigCRDPath                    = operatorDeploymentFilesPath + "/crds/tailscale.com_dnsconfigs.yaml"
-	recorderCRDPath                     = operatorDeploymentFilesPath + "/crds/tailscale.com_recorders.yaml"
-	proxyGroupCRDPath                   = operatorDeploymentFilesPath + "/crds/tailscale.com_proxygroups.yaml"
-	tailnetCRDPath                      = operatorDeploymentFilesPath + "/crds/tailscale.com_tailnets.yaml"
-	proxyGroupPolicyCRDPath             = operatorDeploymentFilesPath + "/crds/tailscale.com_proxygrouppolicies.yaml"
-	peerRelayCRDPath                    = operatorDeploymentFilesPath + "/crds/tailscale.com_peerrelays.yaml"
+	connectorCRDPath                    = operatorDeploymentFilesPath + "/crds/lanhc.com_connectors.yaml"
+	proxyClassCRDPath                   = operatorDeploymentFilesPath + "/crds/lanhc.com_proxyclasses.yaml"
+	dnsConfigCRDPath                    = operatorDeploymentFilesPath + "/crds/lanhc.com_dnsconfigs.yaml"
+	recorderCRDPath                     = operatorDeploymentFilesPath + "/crds/lanhc.com_recorders.yaml"
+	proxyGroupCRDPath                   = operatorDeploymentFilesPath + "/crds/lanhc.com_proxygroups.yaml"
+	tailnetCRDPath                      = operatorDeploymentFilesPath + "/crds/lanhc.com_tailnets.yaml"
+	proxyGroupPolicyCRDPath             = operatorDeploymentFilesPath + "/crds/lanhc.com_proxygrouppolicies.yaml"
+	peerRelayCRDPath                    = operatorDeploymentFilesPath + "/crds/lanhc.com_peerrelays.yaml"
 	helmTemplatesPath                   = operatorDeploymentFilesPath + "/chart/templates"
 	connectorCRDHelmTemplatePath        = helmTemplatesPath + "/connector.yaml"
 	proxyClassCRDHelmTemplatePath       = helmTemplatesPath + "/proxyclass.yaml"
@@ -75,7 +75,7 @@ func main() {
 	}()
 	log.Print("Templating Helm chart contents")
 	helmTmplCmd := exec.Command("./tool/helm", "template", "operator", "./cmd/k8s-operator/deploy/chart",
-		"--namespace=tailscale", "--set=oauth.clientSecret=''")
+		"--namespace=lanhc", "--set=oauth.clientSecret=''")
 	helmTmplCmd.Dir = repoRoot
 	var out bytes.Buffer
 	helmTmplCmd.Stdout = &out
@@ -126,7 +126,7 @@ func main() {
 	}
 }
 
-// generate places tailscale.com CRDs (currently Connector, ProxyClass, DNSConfig, Recorder) into
+// generate places lanhc.com CRDs (currently Connector, ProxyClass, DNSConfig, Recorder) into
 // the Helm chart templates behind .Values.installCRDs=true condition (true by
 // default).
 func generate(baseDir string) error {

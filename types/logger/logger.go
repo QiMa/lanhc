@@ -24,12 +24,12 @@ import (
 	jsonv2 "github.com/go-json-experiment/json"
 	jsonv1 "github.com/go-json-experiment/json/v1"
 	"go4.org/mem"
-	"tailscale.com/envknob"
-	"tailscale.com/util/ctxkey"
-	"tailscale.com/util/testenv"
+	"lanhc.com/envknob"
+	"lanhc.com/util/ctxkey"
+	"lanhc.com/util/testenv"
 )
 
-// Logf is the basic Tailscale logger type: a printf-like func.
+// Logf is the basic Lanhc logger type: a printf-like func.
 // Like log.Printf, the format need not end in a newline.
 // Logf functions must be safe for concurrent use.
 type Logf func(format string, args ...any)
@@ -147,7 +147,7 @@ var rateFree = []string{
 	"SetPrefs: %v",
 	"peer keys: %s",
 	"v%v peers: %v",
-	// debug messages printed by 'tailscale bugreport'
+	// debug messages printed by 'lanhc bugreport'
 	"diag: ",
 }
 

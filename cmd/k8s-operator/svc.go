@@ -24,14 +24,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	tsoperator "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/net/dns/resolvconffile"
-	"tailscale.com/tstime"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/set"
+	tsoperator "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/net/dns/resolvconffile"
+	"lanhc.com/tstime"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/set"
 )
 
 const (
@@ -46,7 +46,7 @@ const (
 
 type ServiceReconciler struct {
 	client.Client
-	ssr                   *tailscaleSTSReconciler
+	ssr                   *lanhcSTSReconciler
 	logger                *zap.SugaredLogger
 	isDefaultLoadBalancer bool
 
@@ -92,7 +92,7 @@ func childResourceLabels(name, ns, typ string) map[string]string {
 	}
 }
 
-func (a *ServiceReconciler) isTailscaleService(svc *corev1.Service) bool {
+func (a *ServiceReconciler) isLanhcService(svc *corev1.Service) bool {
 	targetIP := tailnetTargetAnnotation(svc)
 	targetFQDN := svc.Annotations[AnnotationTailnetTargetFQDN]
 	return shouldExpose(svc, a.isDefaultLoadBalancer) || targetIP != "" || targetFQDN != ""
@@ -117,8 +117,8 @@ func (a *ServiceReconciler) Reconcile(ctx context.Context, req reconcile.Request
 		return reconcile.Result{}, nil // this reconciler should not look at Services for ProxyGroup
 	}
 
-	if !svc.DeletionTimestamp.IsZero() || !a.isTailscaleService(svc) {
-		logger.Debugf("service is being deleted or is (no longer) referring to Tailscale ingress/egress, ensuring any created resources are cleaned up")
+	if !svc.DeletionTimestamp.IsZero() || !a.isLanhcService(svc) {
+		logger.Debugf("service is being deleted or is (no longer) referring to Lanhc ingress/egress, ensuring any created resources are cleaned up")
 		return reconcile.Result{}, a.maybeCleanup(ctx, logger, svc)
 	}
 
@@ -133,7 +133,7 @@ func (a *ServiceReconciler) Reconcile(ctx context.Context, req reconcile.Request
 	return reconcile.Result{}, nil
 }
 
-// maybeCleanup removes any existing resources related to serving svc over tailscale.
+// maybeCleanup removes any existing resources related to serving svc over lanhc.
 //
 // This function is responsible for removing the finalizer from the service,
 // once all associated resources are gone.
@@ -155,7 +155,7 @@ func (a *ServiceReconciler) maybeCleanup(ctx context.Context, logger *zap.Sugare
 		gaugeIngressProxies.Set(int64(a.managedIngressProxies.Len()))
 		gaugeEgressProxies.Set(int64(a.managedEgressProxies.Len()))
 
-		if !a.isTailscaleService(svc) {
+		if !a.isLanhcService(svc) {
 			tsoperator.RemoveServiceCondition(svc, tsapi.ProxyReady)
 		}
 		return nil
@@ -180,7 +180,7 @@ func (a *ServiceReconciler) maybeCleanup(ctx context.Context, logger *zap.Sugare
 
 	// Unlike most log entries in the reconcile loop, this will get printed
 	// exactly once at the very end of cleanup, because the final step of
-	// cleanup removes the tailscale finalizer, which will make all future
+	// cleanup removes the lanhc finalizer, which will make all future
 	// reconciles exit early.
 	logger.Infof("unexposed Service from tailnet")
 
@@ -191,13 +191,13 @@ func (a *ServiceReconciler) maybeCleanup(ctx context.Context, logger *zap.Sugare
 	gaugeIngressProxies.Set(int64(a.managedIngressProxies.Len()))
 	gaugeEgressProxies.Set(int64(a.managedEgressProxies.Len()))
 
-	if !a.isTailscaleService(svc) {
+	if !a.isLanhcService(svc) {
 		tsoperator.RemoveServiceCondition(svc, tsapi.ProxyReady)
 	}
 	return nil
 }
 
-// maybeProvision ensures that svc is exposed over tailscale, taking any actions
+// maybeProvision ensures that svc is exposed over lanhc, taking any actions
 // necessary to reach that state.
 //
 // This function adds a finalizer to svc, ensuring that we can handle orderly
@@ -248,7 +248,7 @@ func (a *ServiceReconciler) maybeProvision(ctx context.Context, logger *zap.Suga
 		// because once the finalizer is in place this block gets skipped. So,
 		// this is a nice place to tell the operator that the high level,
 		// multi-reconcile operation is underway.
-		logger.Infof("exposing service over tailscale")
+		logger.Infof("exposing service over lanhc")
 		svc.Finalizers = append(svc.Finalizers, FinalizerName)
 		if err := a.Update(ctx, svc); err != nil {
 			errMsg := fmt.Errorf("failed to add finalizer: %w", err)
@@ -262,7 +262,7 @@ func (a *ServiceReconciler) maybeProvision(ctx context.Context, logger *zap.Suga
 		tags = strings.Split(tstr, ",")
 	}
 
-	sts := &tailscaleSTSConfig{
+	sts := &lanhcSTSConfig{
 		Replicas:            1,
 		ParentResourceName:  svc.Name,
 		ParentResourceUID:   string(svc.UID),
@@ -325,7 +325,7 @@ func (a *ServiceReconciler) maybeProvision(ctx context.Context, logger *zap.Suga
 		return nil
 	}
 
-	if !isTailscaleLoadBalancerService(svc, a.isDefaultLoadBalancer) {
+	if !isLanhcLoadBalancerService(svc, a.isDefaultLoadBalancer) {
 		logger.Debugf("service is not a LoadBalancer, so not updating ingress")
 		tsoperator.SetServiceCondition(svc, tsapi.ProxyReady, metav1.ConditionTrue, reasonProxyCreated, reasonProxyCreated, a.clock, logger)
 		return nil
@@ -337,7 +337,7 @@ func (a *ServiceReconciler) maybeProvision(ctx context.Context, logger *zap.Suga
 	}
 
 	if len(devices) == 0 || devices[0].hostname == "" {
-		msg := "no Tailscale hostname known yet, waiting for proxy pod to finish auth"
+		msg := "no Lanhc hostname known yet, waiting for proxy pod to finish auth"
 		logger.Debug(msg)
 		// No hostname yet. Wait for the proxy pod to auth.
 		svc.Status.LoadBalancer.Ingress = nil
@@ -399,9 +399,9 @@ func validateService(svc *corev1.Service) []string {
 	svcName := nameForService(svc)
 	if err := dnsname.ValidLabel(svcName); err != nil {
 		if _, ok := svc.Annotations[AnnotationHostname]; ok {
-			violations = append(violations, fmt.Sprintf("invalid Tailscale hostname specified %q: %s", svcName, err))
+			violations = append(violations, fmt.Sprintf("invalid Lanhc hostname specified %q: %s", svcName, err))
 		} else {
-			violations = append(violations, fmt.Sprintf("invalid Tailscale hostname %q, use %q annotation to override: %s", svcName, AnnotationHostname, err))
+			violations = append(violations, fmt.Sprintf("invalid Lanhc hostname %q, use %q annotation to override: %s", svcName, AnnotationHostname, err))
 		}
 	}
 	violations = append(violations, tagViolations(svc)...)
@@ -420,24 +420,24 @@ func shouldExposeClusterIP(svc *corev1.Service, isDefaultLoadBalancer bool) bool
 	if svc.Spec.ClusterIP == "" {
 		return false
 	}
-	return isTailscaleLoadBalancerService(svc, isDefaultLoadBalancer) || hasExposeAnnotation(svc)
+	return isLanhcLoadBalancerService(svc, isDefaultLoadBalancer) || hasExposeAnnotation(svc)
 }
 
-func isTailscaleLoadBalancerService(svc *corev1.Service, isDefaultLoadBalancer bool) bool {
+func isLanhcLoadBalancerService(svc *corev1.Service, isDefaultLoadBalancer bool) bool {
 	return svc != nil &&
 		svc.Spec.Type == corev1.ServiceTypeLoadBalancer &&
-		(svc.Spec.LoadBalancerClass != nil && *svc.Spec.LoadBalancerClass == "tailscale" ||
+		(svc.Spec.LoadBalancerClass != nil && *svc.Spec.LoadBalancerClass == "lanhc" ||
 			svc.Spec.LoadBalancerClass == nil && isDefaultLoadBalancer)
 }
 
-// hasExposeAnnotation reports whether Service has the tailscale.com/expose
+// hasExposeAnnotation reports whether Service has the lanhc.com/expose
 // annotation set
 func hasExposeAnnotation(svc *corev1.Service) bool {
 	return svc != nil && svc.Annotations[AnnotationExpose] == "true"
 }
 
-// tailnetTargetAnnotation returns the value of tailscale.com/tailnet-ip
-// annotation or of the deprecated tailscale.com/ts-tailnet-target-ip
+// tailnetTargetAnnotation returns the value of lanhc.com/tailnet-ip
+// annotation or of the deprecated lanhc.com/ts-tailnet-target-ip
 // annotation. If neither is set, it returns an empty string. If both are set,
 // it returns the value of the new annotation.
 func tailnetTargetAnnotation(svc *corev1.Service) string {

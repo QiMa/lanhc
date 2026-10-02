@@ -29,49 +29,49 @@ import (
 	"github.com/tailscale/wireguard-go/device"
 	"go4.org/mem"
 	"golang.org/x/net/ipv6"
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/disco"
-	"tailscale.com/envknob"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/feature/condlite/expvar"
-	"tailscale.com/health"
-	"tailscale.com/hostinfo"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/net/batching"
-	"tailscale.com/net/netcheck"
-	"tailscale.com/net/neterror"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/netns"
-	"tailscale.com/net/packet"
-	"tailscale.com/net/ping"
-	"tailscale.com/net/portmapper/portmappertype"
-	"tailscale.com/net/sockopts"
-	"tailscale.com/net/sockstats"
-	"tailscale.com/net/stun"
-	"tailscale.com/net/tstun"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsconst"
-	"tailscale.com/tstime"
-	"tailscale.com/tstime/mono"
-	"tailscale.com/types/key"
-	"tailscale.com/types/lazy"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/netlogfunc"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/nettype"
-	"tailscale.com/types/views"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/cloudinfo"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/ringlog"
-	"tailscale.com/util/set"
-	"tailscale.com/util/testenv"
-	"tailscale.com/util/usermetric"
-	"tailscale.com/wgengine/filter"
-	"tailscale.com/wgengine/router"
-	"tailscale.com/wgengine/wgint"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/disco"
+	"lanhc.com/envknob"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/feature/condlite/expvar"
+	"lanhc.com/health"
+	"lanhc.com/hostinfo"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/net/batching"
+	"lanhc.com/net/netcheck"
+	"lanhc.com/net/neterror"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/netns"
+	"lanhc.com/net/packet"
+	"lanhc.com/net/ping"
+	"lanhc.com/net/portmapper/portmappertype"
+	"lanhc.com/net/sockopts"
+	"lanhc.com/net/sockstats"
+	"lanhc.com/net/stun"
+	"lanhc.com/net/tstun"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsconst"
+	"lanhc.com/tstime"
+	"lanhc.com/tstime/mono"
+	"lanhc.com/types/key"
+	"lanhc.com/types/lazy"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/netlogfunc"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/nettype"
+	"lanhc.com/types/views"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/cloudinfo"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/ringlog"
+	"lanhc.com/util/set"
+	"lanhc.com/util/testenv"
+	"lanhc.com/util/usermetric"
+	"lanhc.com/wgengine/filter"
+	"lanhc.com/wgengine/router"
+	"lanhc.com/wgengine/wgint"
 )
 
 const (
@@ -333,7 +333,7 @@ type Conn struct {
 	peerMap peerMap
 
 	// relayManager manages allocation and handshaking of
-	// [tailscale.com/net/udprelay.Server] endpoints.
+	// [lanhc.com/net/udprelay.Server] endpoints.
 	relayManager relayManager
 
 	// discoInfo is the state for an active peer DiscoKey.
@@ -514,7 +514,7 @@ type Options struct {
 	// private key. This should only be used for special cases and
 	// experiments, not for production. The recommended normal path is to
 	// leave it zero, in which case a new disco key is generated per
-	// Tailscale start and kept only in memory.
+	// Lanhc start and kept only in memory.
 	ForceDiscoKey key.DiscoPrivate
 
 	// OnDERPRecv, if non-nil, is called for every non-disco packet
@@ -704,7 +704,7 @@ func NewConn(opts Options) (*Conn, error) {
 		// isn't set either. This should only happen to js/wasm builds, where
 		// the portmapper is a no-op even if linked (but it's no longer linked,
 		// since the move to feature/portmapper), or if people are wiring up
-		// their own Tailscale build from pieces.
+		// their own Lanhc build from pieces.
 	}
 
 	c.netMon = opts.NetMon
@@ -728,7 +728,7 @@ func NewConn(opts Options) (*Conn, error) {
 
 	c.metrics = registerMetrics(opts.Metrics)
 	if opts.Metrics != nil {
-		c.homeDERPGauge = opts.Metrics.NewGauge("tailscaled_home_derp_region_id", "DERP region ID of this node's home relay server")
+		c.homeDERPGauge = opts.Metrics.NewGauge("lanhcd_home_derp_region_id", "DERP region ID of this node's home relay server")
 	}
 
 	if d4, err := c.listenRawDisco("ip4"); err == nil {
@@ -759,25 +759,25 @@ func registerMetrics(reg *usermetric.Registry) *metrics {
 	pathPeerRelayV6 := pathLabel{Path: PathPeerRelayIPv6}
 	inboundPacketsTotal := usermetric.NewMultiLabelMapWithRegistry[pathLabel](
 		reg,
-		"tailscaled_inbound_packets_total",
+		"lanhcd_inbound_packets_total",
 		"counter",
 		"Counts the number of packets received from other peers",
 	)
 	inboundBytesTotal := usermetric.NewMultiLabelMapWithRegistry[pathLabel](
 		reg,
-		"tailscaled_inbound_bytes_total",
+		"lanhcd_inbound_bytes_total",
 		"counter",
 		"Counts the number of bytes received from other peers",
 	)
 	outboundPacketsTotal := usermetric.NewMultiLabelMapWithRegistry[pathLabel](
 		reg,
-		"tailscaled_outbound_packets_total",
+		"lanhcd_outbound_packets_total",
 		"counter",
 		"Counts the number of packets sent to other peers",
 	)
 	outboundBytesTotal := usermetric.NewMultiLabelMapWithRegistry[pathLabel](
 		reg,
-		"tailscaled_outbound_bytes_total",
+		"lanhcd_outbound_bytes_total",
 		"counter",
 		"Counts the number of bytes sent to other peers",
 	)
@@ -1120,7 +1120,7 @@ func (c *Conn) callNetInfoCallbackLocked(ni *tailcfg.NetInfo) {
 // replaced, notably when [ipnlocal.LocalBackend] installs a new control client
 // after an interactive login or a profile switch.
 //
-// TODO(tailscale/tailscale#17887): remove once NetInfo updates move to the
+// TODO(lanhc/lanhc#17887): remove once NetInfo updates move to the
 // eventbus, where a newly-installed consumer can fetch current state on
 // subscribe instead of magicsock exposing this de-dup-cache reset hook.
 //
@@ -1184,12 +1184,12 @@ func (c *Conn) ProbeLocks() {
 	c.mu.Unlock()
 }
 
-// Ping handles a "tailscale ping" CLI query.
+// Ping handles a "lanhc ping" CLI query.
 func (c *Conn) Ping(peer tailcfg.NodeView, res *ipnstate.PingResult, size int, cb func(*ipnstate.PingResult)) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if c.privateKey.IsZero() {
-		res.Err = "local tailscaled stopped"
+		res.Err = "local lanhcd stopped"
 		cb(res)
 		return
 	}
@@ -1235,7 +1235,7 @@ func (c *Conn) GetEndpointChanges(peer tailcfg.NodeView) ([]EndpointChange, erro
 	c.mu.Lock()
 	if c.privateKey.IsZero() {
 		c.mu.Unlock()
-		return nil, fmt.Errorf("tailscaled stopped")
+		return nil, fmt.Errorf("lanhcd stopped")
 	}
 	ep, ok := c.peerMap.endpointForNodeKey(peer.Key())
 	c.mu.Unlock()
@@ -1352,7 +1352,7 @@ func (c *Conn) determineEndpoints(ctx context.Context) ([]tailcfg.Endpoint, erro
 		// If they're behind a hard NAT and are using a fixed
 		// port locally, assume they might've added a static
 		// port mapping on their router to the same explicit
-		// port that tailscaled is running with. Worst case
+		// port that lanhcd is running with. Worst case
 		// it's an invalid candidate mapping.
 		if port := c.port.Load(); nr.MappingVariesByDestIP.EqualBool(true) && port != 0 {
 			addAddr(netip.AddrPortFrom(v4Addrs[0].Addr(), uint16(port)), tailcfg.EndpointSTUN4LocalPort)
@@ -1362,7 +1362,7 @@ func (c *Conn) determineEndpoints(ctx context.Context) ([]tailcfg.Endpoint, erro
 	// Temporarily (2024-07-08) during investigations, allow setting
 	// pretend endpoint(s) for testing NAT traversal scenarios.
 	// TODO(bradfitz): probably promote this to the config file.
-	// https://github.com/tailscale/tailscale/issues/12578
+	// https://github.com/lanhc/lanhc/issues/12578
 	for _, ap := range pretendpoints() {
 		addAddr(ap, tailcfg.EndpointExplicitConf)
 	}
@@ -2186,7 +2186,7 @@ func packetLooksLike(msg []byte) (t packetLooksLikeType, isGeneveEncap bool) {
 //   - magic             [6]byte
 //   - senderDiscoPubKey [32]byte
 //   - nonce             [24]byte
-//   - naclbox of payload (see tailscale.com/disco package for inner payload format)
+//   - naclbox of payload (see lanhc.com/disco package for inner payload format)
 //
 // For messages received over DERP, the src.ap.Addr() will be derpMagicIP (with
 // src.ap.Port() being the region ID) and the derpNodeSrc will be the node key
@@ -2283,7 +2283,7 @@ func (c *Conn) handleDiscoMessage(msg []byte, src epAddr, shouldBeRelayHandshake
 	if err != nil {
 		// Couldn't parse it, but it was inside a correctly
 		// signed box, so just ignore it, assuming it's from a
-		// newer version of Tailscale that we don't
+		// newer version of Lanhc that we don't
 		// understand. Not even worth logging about, lest it
 		// be too spammy for old clients.
 		metricRecvDiscoBadParse.Add(1)
@@ -3218,8 +3218,8 @@ func (c *Conn) upsertPeerLocked(n tailcfg.NodeView, flags debugFlags, entriesPer
 			// Discokey transitioned from non-zero to zero? This should not
 			// happen in the wild, however it could mean:
 			// 1. A node was downgraded from post 0.100 to pre 0.100.
-			// 2. A Tailscale node key was extracted and used on a
-			//    non-Tailscale node (should not enter here due to the
+			// 2. A Lanhc node key was extracted and used on a
+			//    non-Lanhc node (should not enter here due to the
 			//    IsWireGuardOnly check)
 			// 3. The server is misbehaving.
 			c.peerMap.deleteEndpoint(ep)
@@ -3613,7 +3613,7 @@ func (c *Conn) goroutinesRunningLocked() bool {
 		return true
 	}
 	// The goroutine running dc.Connect in derpWriteChanOfAddr may linger
-	// and appear to leak, as observed in https://github.com/tailscale/tailscale/issues/554.
+	// and appear to leak, as observed in https://github.com/lanhc/lanhc/issues/554.
 	// This is despite the underlying context being cancelled by connCtxCancel above.
 	// To avoid this condition, we must wait on derpStarted here
 	// to ensure that this goroutine has exited by the time Close returns.
@@ -3671,7 +3671,7 @@ func (c *Conn) ReSTUN(why string) {
 	metricReSTUNCalls.Add(1)
 
 	// If the user stopped the app, stop doing work. (When the
-	// user stops Tailscale via the GUI apps, ipn/local.go
+	// user stops Lanhc via the GUI apps, ipn/local.go
 	// reconfigures the engine with a zero private key.)
 	//
 	// This used to just check c.privateKey.IsZero, but that broke
@@ -4386,7 +4386,7 @@ func (c *Conn) GetDERPRegionLatency() map[int]time.Duration {
 
 // lazyEndpoint is a wireguard [conn.Endpoint] for when magicsock received a
 // non-disco (presumably WireGuard) packet from a UDP address from which we
-// can't map to a Tailscale peer. But WireGuard most likely can, once it
+// can't map to a Lanhc peer. But WireGuard most likely can, once it
 // decrypts it. So we implement the [conn.InitiationAwareEndpoint] and
 // [conn.PeerAwareEndpoint] interfaces, to allow WireGuard to tell us who it is
 // later, just-in-time to configure the peer, and set the associated [epAddr]
@@ -4503,7 +4503,7 @@ func (c *Conn) PeerRelays() set.Set[netip.Addr] {
 
 // HandleDiscoKeyAdvertisement processes a TSMP disco key update.
 // The update may be solicited (in response to a request) or unsolicited.
-// node is the Tailscale tailcfg.NodeView of the peer that sent the update.
+// node is the Lanhc tailcfg.NodeView of the peer that sent the update.
 func (c *Conn) HandleDiscoKeyAdvertisement(node tailcfg.NodeView, update packet.TSMPDiscoKeyAdvertisement) {
 	discoKey := update.Key
 	if discoKey.IsZero() {
@@ -4554,7 +4554,7 @@ func (c *Conn) HandleDiscoKeyAdvertisement(node tailcfg.NodeView, update packet.
 // In the common case, a DiscoKey is not rotated within a process generation
 // (as of 2026-01-21), except with debug commands to simulate process restarts.
 //
-// The address is the first node address (tailscale address) of the node. It
+// The address is the first node address (lanhc address) of the node. It
 // does not matter if the address is v4/v6, the receiver should handle either.
 //
 // Since we have not yet communicated with the node at the time we are

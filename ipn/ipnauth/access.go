@@ -12,6 +12,6 @@ type ProfileAccess uint
 
 // Define access rights that might be granted or denied on a per-profile basis.
 const (
-	// Disconnect is required to disconnect (or switch from) a Tailscale profile.
+	// Disconnect is required to disconnect (or switch from) a Lanhc profile.
 	Disconnect = ProfileAccess(1 << iota)
 )

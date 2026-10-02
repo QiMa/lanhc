@@ -14,9 +14,9 @@ import (
 	"slices"
 
 	"go4.org/mem"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/tailcfg"
-	"tailscale.com/util/lineiter"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/tailcfg"
+	"lanhc.com/util/lineiter"
 )
 
 func handleC2NSSHUsernames(b *ipnlocal.LocalBackend, w http.ResponseWriter, r *http.Request) {
@@ -37,7 +37,7 @@ func handleC2NSSHUsernames(b *ipnlocal.LocalBackend, w http.ResponseWriter, r *h
 }
 
 // getSSHUsernames discovers and returns the list of usernames that are
-// potential Tailscale SSH user targets.
+// potential Lanhc SSH user targets.
 func getSSHUsernames(b *ipnlocal.LocalBackend, req *tailcfg.C2NSSHUsernamesRequest) (*tailcfg.C2NSSHUsernamesResponse, error) {
 	res := new(tailcfg.C2NSSHUsernamesResponse)
 	if b == nil || !b.ShouldRunSSH() {

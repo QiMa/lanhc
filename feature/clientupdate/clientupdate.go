@@ -20,19 +20,19 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/clientupdate"
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnext"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/ipn/localapi"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/httpm"
-	"tailscale.com/version"
-	"tailscale.com/version/distro"
+	"lanhc.com/clientupdate"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnext"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/ipn/localapi"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/httpm"
+	"lanhc.com/version"
+	"lanhc.com/version/distro"
 )
 
 func init() {
@@ -88,7 +88,7 @@ func (e *extension) Init(h ipnext.Host) error {
 	h.Hooks().BackendStateChange.Add(e.onBackendStateChange)
 
 	// TODO(nickkhyl): remove this after the profileManager refactoring.
-	// See tailscale/tailscale#15974.
+	// See lanhc/lanhc#15974.
 	// This same workaround appears in feature/portlist/portlist.go.
 	profile, prefs := h.Profiles().CurrentProfileState()
 	e.onChangeProfile(profile, prefs, false)
@@ -170,11 +170,11 @@ func (e *extension) DoSelfUpdate() {
 	if err != nil {
 		e.pushSelfUpdateProgress(ipnstate.NewUpdateProgress(ipnstate.UpdateFailed, err.Error()))
 	} else {
-		e.pushSelfUpdateProgress(ipnstate.NewUpdateProgress(ipnstate.UpdateFinished, "tailscaled did not restart; please restart Tailscale manually."))
+		e.pushSelfUpdateProgress(ipnstate.NewUpdateProgress(ipnstate.UpdateFinished, "lanhcd did not restart; please restart Lanhc manually."))
 	}
 }
 
-// serveUpdateInstall sends a request to the LocalBackend to start a Tailscale
+// serveUpdateInstall sends a request to the LocalBackend to start a Lanhc
 // self-update. A successful response does not indicate whether the update
 // succeeded, only that the request was accepted. Clients should use
 // serveUpdateProgress after pinging this endpoint to check how the update is
@@ -197,7 +197,7 @@ func serveUpdateInstall(h *localapi.Handler, w http.ResponseWriter, r *http.Requ
 	go ext.DoSelfUpdate()
 }
 
-// serveUpdateProgress returns the status of an in-progress Tailscale self-update.
+// serveUpdateProgress returns the status of an in-progress Lanhc self-update.
 // This is provided as a slice of ipnstate.UpdateProgress structs with various
 // log messages in order from oldest to newest. If an update is not in progress,
 // the returned slice will be empty.
@@ -321,11 +321,11 @@ func (e *extension) trySetC2NUpdateStarted() bool {
 	return true
 }
 
-// findCmdTailscale looks for the cmd/tailscale that corresponds to the
-// currently running cmd/tailscaled. It's up to the caller to verify that the
+// findCmdLanhc looks for the cmd/lanhc that corresponds to the
+// currently running cmd/lanhcd. It's up to the caller to verify that the
 // two match, but this function does its best to find the right one. Notably, it
 // doesn't use $PATH for security reasons.
-func findCmdTailscale() (string, error) {
+func findCmdLanhc() (string, error) {
 	self, err := os.Executable()
 	if err != nil {
 		return "", err
@@ -333,30 +333,30 @@ func findCmdTailscale() (string, error) {
 	var ts string
 	switch runtime.GOOS {
 	case "linux":
-		if self == "/usr/sbin/tailscaled" || self == "/usr/bin/tailscaled" {
-			ts = "/usr/bin/tailscale"
+		if self == "/usr/sbin/lanhcd" || self == "/usr/bin/lanhcd" {
+			ts = "/usr/bin/lanhc"
 		}
-		if self == "/usr/local/sbin/tailscaled" || self == "/usr/local/bin/tailscaled" {
-			ts = "/usr/local/bin/tailscale"
+		if self == "/usr/local/sbin/lanhcd" || self == "/usr/local/bin/lanhcd" {
+			ts = "/usr/local/bin/lanhc"
 		}
 		switch distro.Get() {
 		case distro.QNAP:
 			// The volume under /share/ where qpkg are installed is not
 			// predictable. But the rest of the path is.
-			ok, err := filepath.Match("/share/*/.qpkg/Tailscale/tailscaled", self)
+			ok, err := filepath.Match("/share/*/.qpkg/Lanhc/lanhcd", self)
 			if err == nil && ok {
-				ts = filepath.Join(filepath.Dir(self), "tailscale")
+				ts = filepath.Join(filepath.Dir(self), "lanhc")
 			}
 		case distro.Unraid:
-			if self == "/usr/local/emhttp/plugins/tailscale/bin/tailscaled" {
-				ts = "/usr/local/emhttp/plugins/tailscale/bin/tailscale"
+			if self == "/usr/local/emhttp/plugins/lanhc/bin/lanhcd" {
+				ts = "/usr/local/emhttp/plugins/lanhc/bin/lanhc"
 			}
 		}
 	case "windows":
-		ts = filepath.Join(filepath.Dir(self), "tailscale.exe")
+		ts = filepath.Join(filepath.Dir(self), "lanhc.exe")
 	case "freebsd", "openbsd":
-		if self == "/usr/local/bin/tailscaled" {
-			ts = "/usr/local/bin/tailscale"
+		if self == "/usr/local/bin/lanhcd" {
+			ts = "/usr/local/bin/lanhc"
 		}
 	default:
 		return "", fmt.Errorf("unsupported OS %v", runtime.GOOS)
@@ -364,10 +364,10 @@ func findCmdTailscale() (string, error) {
 	if ts != "" && regularFileExists(ts) {
 		return ts, nil
 	}
-	return "", errors.New("tailscale executable not found in expected place")
+	return "", errors.New("lanhc executable not found in expected place")
 }
 
-func tailscaleUpdateCmd(cmdTS string) *exec.Cmd {
+func lanhcUpdateCmd(cmdTS string) *exec.Cmd {
 	defaultCmd := exec.Command(cmdTS, "update", "--yes")
 	if runtime.GOOS != "linux" {
 		return defaultCmd
@@ -377,8 +377,8 @@ func tailscaleUpdateCmd(cmdTS string) *exec.Cmd {
 	}
 
 	// When systemd-run is available, use it to run the update command. This
-	// creates a new temporary unit separate from the tailscaled unit. When
-	// tailscaled is restarted during the update, systemd won't kill this
+	// creates a new temporary unit separate from the lanhcd unit. When
+	// lanhcd is restarted during the update, systemd won't kill this
 	// temporary update unit, which could cause unexpected breakage.
 	//
 	// We want to use a few optional flags:
@@ -435,31 +435,31 @@ func (e *extension) startAutoUpdate(logPrefix string) (retErr error) {
 		}
 	}()
 
-	cmdTS, err := findCmdTailscale()
+	cmdTS, err := findCmdLanhc()
 	if err != nil {
-		return fmt.Errorf("failed to find cmd/tailscale binary: %w", err)
+		return fmt.Errorf("failed to find cmd/lanhc binary: %w", err)
 	}
 	var ver struct {
 		Long string `json:"long"`
 	}
 	out, err := exec.Command(cmdTS, "version", "--json").Output()
 	if err != nil {
-		return fmt.Errorf("failed to find cmd/tailscale binary: %w", err)
+		return fmt.Errorf("failed to find cmd/lanhc binary: %w", err)
 	}
 	if err := json.Unmarshal(out, &ver); err != nil {
-		return fmt.Errorf("invalid JSON from cmd/tailscale version --json: %w", err)
+		return fmt.Errorf("invalid JSON from cmd/lanhc version --json: %w", err)
 	}
 	if ver.Long != version.Long() {
-		return fmt.Errorf("cmd/tailscale version %q does not match tailscaled version %q", ver.Long, version.Long())
+		return fmt.Errorf("cmd/lanhc version %q does not match lanhcd version %q", ver.Long, version.Long())
 	}
 
-	cmd := tailscaleUpdateCmd(cmdTS)
+	cmd := lanhcUpdateCmd(cmdTS)
 	buf := new(bytes.Buffer)
 	cmd.Stdout = buf
 	cmd.Stderr = buf
 	e.logf("%s: running %q", logPrefix, strings.Join(cmd.Args, " "))
 	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("failed to start cmd/tailscale update: %w", err)
+		return fmt.Errorf("failed to start cmd/lanhc update: %w", err)
 	}
 
 	go func() {

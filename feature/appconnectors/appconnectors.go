@@ -1,15 +1,15 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package appconnectors registers support for Tailscale App Connectors.
+// Package appconnectors registers support for Lanhc App Connectors.
 package appconnectors
 
 import (
 	"encoding/json"
 	"net/http"
 
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/tailcfg"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/tailcfg"
 )
 
 func init() {

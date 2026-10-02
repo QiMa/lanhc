@@ -19,22 +19,22 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/atomicfile"
-	"tailscale.com/drive"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/internal/lanhc"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/opt"
-	"tailscale.com/types/persist"
-	"tailscale.com/types/preftype"
-	"tailscale.com/types/views"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/util/syspolicy/policyclient"
-	"tailscale.com/version"
+	"lanhc.com/atomicfile"
+	"lanhc.com/drive"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/internal/lanhc"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/opt"
+	"lanhc.com/types/persist"
+	"lanhc.com/types/preftype"
+	"lanhc.com/types/views"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/util/syspolicy/policyclient"
+	"lanhc.com/version"
 )
 
 // DefaultControlURL is the URL base of the control plane
@@ -43,7 +43,7 @@ import (
 // This is a variable, not a constant, so that a downstream build can point
 // the stock client at its own control plane at link time:
 //
-//	go build -ldflags "-X tailscale.com/ipn.DefaultControlURL=https://example.com"
+//	go build -ldflags "-X lanhc.com/ipn.DefaultControlURL=https://example.com"
 //
 // The value can also be injected at link time (the lanhc build script does
 // this). In isolated downstream builds the official literal below is compiled
@@ -52,14 +52,14 @@ var DefaultControlURL = func() string {
 	if lanhc.Isolated {
 		return ""
 	}
-	return "https://controlplane.tailscale.com"
+	return "https://controlplane.lanhc.com"
 }()
 
 // DefaultAdminURL, when non-empty, overrides the admin web site that the
 // client points users at. It exists for downstream builds whose control plane
 // has a management console of its own, so the build can say so at link time:
 //
-//	go build -ldflags "-X tailscale.com/ipn.DefaultAdminURL=https://console.example.com"
+//	go build -ldflags "-X lanhc.com/ipn.DefaultAdminURL=https://console.example.com"
 //
 // Empty (the upstream default) keeps the historical behaviour of deriving the
 // admin URL from the control server.
@@ -72,11 +72,11 @@ var (
 )
 
 // IsLoginServerSynonym reports whether a URL is a drop-in replacement
-// for the primary Tailscale login server.
+// for the primary Lanhc login server.
 //
 // NOTE: the downstream control plane injected into DefaultControlURL must NOT
 // match here. A match makes callers such as validPopBrowserURLLocked restrict
-// the URLs the control server may send to *.tailscale.com, which would reject
+// the URLs the control server may send to *.lanhc.com, which would reject
 // the downstream login/console URL.
 func IsLoginServerSynonym(val any) bool {
 	if lanhc.Isolated {
@@ -84,10 +84,10 @@ func IsLoginServerSynonym(val any) bool {
 		// literals are compiled out.
 		return false
 	}
-	return val == "https://login.tailscale.com" || val == "https://controlplane.tailscale.com"
+	return val == "https://login.lanhc.com" || val == "https://controlplane.lanhc.com"
 }
 
-// Prefs are the user modifiable settings of the Tailscale node agent.
+// Prefs are the user modifiable settings of the Lanhc node agent.
 // When you add a Pref to this struct, remember to add a corresponding
 // field in MaskedPrefs, and check your field for equality in Prefs.Equals().
 type Prefs struct {
@@ -109,7 +109,7 @@ type Prefs struct {
 	ControlURL string
 
 	// RouteAll specifies whether to accept subnets advertised by
-	// other nodes on the Tailscale network. Note that this does not
+	// other nodes on the Lanhc network. Note that this does not
 	// include default routes (0.0.0.0/0 and ::/0), those are
 	// controlled by ExitNodeID/IP below.
 	RouteAll bool
@@ -120,7 +120,7 @@ type Prefs struct {
 	//
 	// The preferred way to express the chosen node is ExitNodeID, but
 	// in some cases it's not possible to use that ID (e.g. in the
-	// linux CLI, before tailscaled has a netmap). For those
+	// linux CLI, before lanhcd has a netmap). For those
 	// situations, we allow specifying the exit node by IP, and
 	// ipnlocal.LocalBackend will translate the IP into an ID when the
 	// node is found in the netmap.
@@ -133,15 +133,15 @@ type Prefs struct {
 	ExitNodeIP netip.Addr
 
 	// AutoExitNode is an optional expression that specifies whether and how
-	// tailscaled should pick an exit node automatically.
+	// lanhcd should pick an exit node automatically.
 	//
-	// If specified, tailscaled will use an exit node based on the expression,
+	// If specified, lanhcd will use an exit node based on the expression,
 	// and will re-evaluate the selection periodically as network conditions,
 	// available exit nodes, or policy settings change. A blackhole route will
 	// be installed to prevent traffic from escaping to the local network until
 	// an exit node is selected. It takes precedence over ExitNodeID and ExitNodeIP.
 	//
-	// If empty, tailscaled will not automatically select an exit node.
+	// If empty, lanhcd will not automatically select an exit node.
 	//
 	// If the specified expression is invalid or unsupported by the client,
 	// it falls back to the behavior of [AnyExitNode].
@@ -163,9 +163,9 @@ type Prefs struct {
 	// routed directly or via the exit node.
 	ExitNodeAllowLANAccess bool
 
-	// CorpDNS specifies whether to install the Tailscale network's
+	// CorpDNS specifies whether to install the Lanhc network's
 	// DNS configuration, if it exists. It is the internal name for
-	// the "tailscale set --accept-dns=" flag.
+	// the "lanhc set --accept-dns=" flag.
 	CorpDNS bool
 
 	// RunSSH bool is whether this node should run an SSH
@@ -174,7 +174,7 @@ type Prefs struct {
 	RunSSH bool
 
 	// RunWebClient bool is whether this node should expose
-	// its web client over Tailscale at port 5252,
+	// its web client over Lanhc at port 5252,
 	// permitting access to peers according to the
 	// policies as configured by the Tailnet's admin(s).
 	RunWebClient bool
@@ -221,7 +221,7 @@ type Prefs struct {
 	// GUI ends and/or the user logs out.
 	//
 	// The only current applicable platform is Windows. This
-	// forced Windows to go into "server mode" where Tailscale is
+	// forced Windows to go into "server mode" where Lanhc is
 	// running even with no users logged in. This might also be
 	// used for macOS in the future. This setting has no effect
 	// for Linux/etc, which always operate in daemon mode.
@@ -233,7 +233,7 @@ type Prefs struct {
 	// The following block of options only have an effect on Linux.
 
 	// AdvertiseRoutes specifies CIDR prefixes to advertise into the
-	// Tailscale network as reachable through the current
+	// Lanhc network as reachable through the current
 	// node.
 	AdvertiseRoutes []netip.Prefix
 
@@ -252,10 +252,10 @@ type Prefs struct {
 	// NoSNAT specifies whether to source NAT traffic going to
 	// destinations in AdvertiseRoutes. The default is to apply source
 	// NAT, which makes the traffic appear to come from the router
-	// machine rather than the peer's Tailscale IP.
+	// machine rather than the peer's Lanhc IP.
 	//
 	// Disabling SNAT requires additional manual configuration in your
-	// network to route Tailscale traffic back to the subnet relay
+	// network to route Lanhc traffic back to the subnet relay
 	// machine.
 	//
 	// Linux-only.
@@ -276,11 +276,11 @@ type Prefs struct {
 	NoStatefulFiltering opt.Bool `json:",omitempty"`
 
 	// NetfilterMode specifies how much to manage netfilter rules for
-	// Tailscale, if at all.
+	// Lanhc, if at all.
 	NetfilterMode preftype.NetfilterMode
 
 	// OperatorUser is the local machine user name who is allowed to
-	// operate tailscaled without being root or using sudo.
+	// operate lanhcd without being root or using sudo.
 	OperatorUser string `json:",omitempty"`
 
 	// ProfileName is the desired name of the profile. If empty, then the user's
@@ -318,7 +318,7 @@ type Prefs struct {
 	// prefs at any time, and invoke any LocalAPI endpoint on this node,
 	// without any further local consent (no CLI or GUI confirmation).
 	//
-	// This is an alternative to Tailscale's default per-feature double
+	// This is an alternative to Lanhc's default per-feature double
 	// opt-in model, in which both the tailnet admin and the local machine
 	// owner must agree to each individual setting change. RemoteConfig is
 	// a single client-side "I trust the tailnet admin" switch that hands
@@ -356,11 +356,11 @@ type Prefs struct {
 // AutoUpdatePrefs are the auto update settings for the node agent.
 type AutoUpdatePrefs struct {
 	// Check specifies whether background checks for updates are enabled. When
-	// enabled, tailscaled will periodically check for available updates and
+	// enabled, lanhcd will periodically check for available updates and
 	// notify the user about them.
 	Check bool
 	// Apply specifies whether background auto-updates are enabled. When
-	// enabled, tailscaled will apply available updates in the background.
+	// enabled, lanhcd will apply available updates in the background.
 	// Check must also be set when Apply is set.
 	Apply opt.Bool
 }
@@ -554,7 +554,7 @@ func (m *MaskedPrefs) Pretty() string {
 			// This would be much simpler with reflect.MethodByName("Pretty"),
 			// but using MethodByName disables some linker optimizations and
 			// makes our binaries much larger. See
-			// https://github.com/tailscale/tailscale/issues/10627#issuecomment-1861211945
+			// https://github.com/lanhc/lanhc/issues/10627#issuecomment-1861211945
 			//
 			// Instead, have this explicit switch by field name to do type
 			// assertions.
@@ -826,7 +826,7 @@ func (p *Prefs) DefaultRouteAll(goos string) bool {
 	case "windows", "android", "ios":
 		return true
 	case "darwin":
-		// Only true for macAppStore and macsys, false for darwin tailscaled.
+		// Only true for macAppStore and macsys, false for darwin lanhcd.
 		return version.IsSandboxedMacOS()
 	default:
 		return false
@@ -846,7 +846,7 @@ func (p *Prefs) AdminPageURL(polc policyclient.Client) string {
 	}
 	url := p.ControlURLOrDefault(polc)
 	if IsLoginServerSynonym(url) {
-		// TODO(crawshaw): In future release, make this https://console.tailscale.com
+		// TODO(crawshaw): In future release, make this https://console.lanhc.com
 		return lanhc.OfficialAdminPageURL()
 	}
 	return url + "/admin"
@@ -889,11 +889,11 @@ func (p *Prefs) SetAdvertiseExitNode(runExit bool) {
 		netip.PrefixFrom(netip.IPv6Unspecified(), 0))
 }
 
-// peerWithTailscaleIP returns the peer in st with the provided
-// Tailscale IP.
-func peerWithTailscaleIP(st *ipnstate.Status, ip netip.Addr) (ps *ipnstate.PeerStatus, ok bool) {
+// peerWithLanhcIP returns the peer in st with the provided
+// Lanhc IP.
+func peerWithLanhcIP(st *ipnstate.Status, ip netip.Addr) (ps *ipnstate.PeerStatus, ok bool) {
 	for _, ps := range st.Peer {
-		if slices.Contains(ps.TailscaleIPs, ip) {
+		if slices.Contains(ps.LanhcIPs, ip) {
 			return ps, true
 		}
 	}
@@ -901,7 +901,7 @@ func peerWithTailscaleIP(st *ipnstate.Status, ip netip.Addr) (ps *ipnstate.PeerS
 }
 
 func isRemoteIP(st *ipnstate.Status, ip netip.Addr) bool {
-	return !slices.Contains(st.TailscaleIPs, ip)
+	return !slices.Contains(st.LanhcIPs, ip)
 }
 
 // ClearExitNode sets the ExitNodeID and ExitNodeIP to their zero values.
@@ -937,7 +937,7 @@ func exitNodeIPOfArg(s string, st *ipnstate.Status) (ip netip.Addr, err error) {
 		// If we're online already and have a netmap, double check that the IP
 		// address specified is valid.
 		if st.BackendState == "Running" {
-			ps, ok := peerWithTailscaleIP(st, ip)
+			ps, ok := peerWithLanhcIP(st, ip)
 			if !ok {
 				return ip, fmt.Errorf("no node found in netmap with IP %v", ip)
 			}
@@ -951,8 +951,8 @@ func exitNodeIPOfArg(s string, st *ipnstate.Status) (ip netip.Addr, err error) {
 	// If the string is not a valid IP address, assume it's a hostname.
 	// Search the list of peers for a matching hostname.
 	if len(st.Peer) == 0 {
-		return ip, errors.New("cannot resolve exit node by hostname while Tailscale is starting up; " +
-			"please use its Tailscale IP address instead")
+		return ip, errors.New("cannot resolve exit node by hostname while Lanhc is starting up; " +
+			"please use its Lanhc IP address instead")
 	}
 	match := 0
 	for _, ps := range st.Peer {
@@ -960,7 +960,7 @@ func exitNodeIPOfArg(s string, st *ipnstate.Status) (ip netip.Addr, err error) {
 		//
 		//	- base name ("example")
 		//	- FQDN ("example.tail1234.ts.net.")
-		// 	- FQDN sans dot ("example.tail1234.ts.net", as returned by `tailscale exit-node list`
+		// 	- FQDN sans dot ("example.tail1234.ts.net", as returned by `lanhc exit-node list`
 		//	  and the admin console)
 		//
 		fqdn := ps.DNSName
@@ -970,13 +970,13 @@ func exitNodeIPOfArg(s string, st *ipnstate.Status) (ip netip.Addr, err error) {
 			continue
 		}
 		match++
-		if len(ps.TailscaleIPs) == 0 {
-			return ip, fmt.Errorf("node %q has no Tailscale IP?", s)
+		if len(ps.LanhcIPs) == 0 {
+			return ip, fmt.Errorf("node %q has no Lanhc IP?", s)
 		}
 		if !ps.ExitNodeOption {
 			return ip, fmt.Errorf("node %q is not advertising an exit node", s)
 		}
-		ip = ps.TailscaleIPs[0]
+		ip = ps.LanhcIPs[0]
 	}
 	switch match {
 	case 0:
@@ -993,7 +993,7 @@ func exitNodeIPOfArg(s string, st *ipnstate.Status) (ip netip.Addr, err error) {
 
 // SetExitNodeIP validates and sets the ExitNodeIP from a user-provided string
 // specifying either an IP address or a MagicDNS base name ("foo", as opposed to
-// "foo.bar.beta.tailscale.net"). This method does not mutate ExitNodeID and
+// "foo.bar.beta.lanhc.net"). This method does not mutate ExitNodeID and
 // will fail if ExitNodeID is already set.
 func (p *Prefs) SetExitNodeIP(s string, st *ipnstate.Status) error {
 	if !p.ExitNodeID.IsZero() {
@@ -1055,7 +1055,7 @@ func LoadPrefsWindows(filename string) (*Prefs, error) {
 		return nil, fmt.Errorf("LoadPrefs open: %w", err) // err includes path
 	}
 	if bytes.Contains(data, jsonEscapedZero) {
-		// Tailscale 1.2.0 - 1.2.8 on Windows had a memory corruption bug
+		// Lanhc 1.2.0 - 1.2.8 on Windows had a memory corruption bug
 		// in the backend process that ended up sending NULL bytes over JSON
 		// to the frontend which wrote them out to JSON files on disk.
 		// So if we see one, treat is as corrupt and the user will need

@@ -21,20 +21,20 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	"tailscale.com/client/tailscale/v2"
+	lanhcclient "tailscale.com/client/tailscale/v2"
 
-	"tailscale.com/ipn"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/k8s-operator/tsclient"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tstest"
-	"tailscale.com/util/mak"
+	"lanhc.com/ipn"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/k8s-operator/tsclient"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tstest"
+	"lanhc.com/util/mak"
 )
 
-func TestTailscaleIngress(t *testing.T) {
+func TestLanhcIngress(t *testing.T) {
 	fc := fake.NewFakeClient(ingressClass())
 	ft := &fakeTSClient{
-		vipServices: make(map[string]tailscale.VIPService),
+		vipServices: make(map[string]lanhcclient.VIPService),
 	}
 	fakeTsnetServer := &fakeTSNetServer{certDomains: []string{"foo.com"}}
 	zl, err := zap.NewDevelopment()
@@ -43,14 +43,14 @@ func TestTailscaleIngress(t *testing.T) {
 	}
 	ingR := &IngressReconciler{
 		Client:           fc,
-		ingressClassName: "tailscale",
-		ssr: &tailscaleSTSReconciler{
+		ingressClassName: "lanhc",
+		ssr: &lanhcSTSReconciler{
 			Client:            fc,
 			clients:           tsclient.NewProvider(ft),
 			tsnetServer:       fakeTsnetServer,
 			defaultTags:       []string{"tag:k8s"},
 			operatorNamespace: "operator-ns",
-			proxyImage:        "tailscale/tailscale",
+			proxyImage:        "lanhc/lanhc",
 		},
 		logger: zl.Sugar(),
 	}
@@ -94,7 +94,7 @@ func TestTailscaleIngress(t *testing.T) {
 
 	// Get the ingress and update it with expected changes
 	ing := ingress()
-	ing.Finalizers = append(ing.Finalizers, "tailscale.com/finalizer")
+	ing.Finalizers = append(ing.Finalizers, "lanhc.com/finalizer")
 	ing.Status.LoadBalancer = networkingv1.IngressLoadBalancerStatus{
 		Ingress: []networkingv1.IngressLoadBalancerIngress{
 			{Hostname: "foo.tailnetxyz.ts.net", Ports: []networkingv1.IngressPortStatus{{Port: 443, Protocol: "TCP"}}},
@@ -122,7 +122,7 @@ func TestTailscaleIngress(t *testing.T) {
 	expectMissing[corev1.Secret](t, fc, "operator-ns", fullName)
 }
 
-func TestTailscaleIngressHostname(t *testing.T) {
+func TestLanhcIngressHostname(t *testing.T) {
 	fc := fake.NewFakeClient(ingressClass())
 	ft := &fakeTSClient{}
 	fakeTsnetServer := &fakeTSNetServer{certDomains: []string{"foo.com"}}
@@ -132,14 +132,14 @@ func TestTailscaleIngressHostname(t *testing.T) {
 	}
 	ingR := &IngressReconciler{
 		Client:           fc,
-		ingressClassName: "tailscale",
-		ssr: &tailscaleSTSReconciler{
+		ingressClassName: "lanhc",
+		ssr: &lanhcSTSReconciler{
 			Client:            fc,
 			clients:           tsclient.NewProvider(ft),
 			tsnetServer:       fakeTsnetServer,
 			defaultTags:       []string{"tag:k8s"},
 			operatorNamespace: "operator-ns",
-			proxyImage:        "tailscale/tailscale",
+			proxyImage:        "lanhc/lanhc",
 		},
 		logger: zl.Sugar(),
 	}
@@ -182,7 +182,7 @@ func TestTailscaleIngressHostname(t *testing.T) {
 	// 2. Ingress proxy with capability version >= 110 does not have an HTTPS endpoint set
 	mustUpdate(t, fc, "operator-ns", opts.secretName, func(secret *corev1.Secret) {
 		mak.Set(&secret.Data, "device_id", []byte("1234"))
-		mak.Set(&secret.Data, "tailscale_capver", []byte("110"))
+		mak.Set(&secret.Data, "lanhc_capver", []byte("110"))
 		mak.Set(&secret.Data, "pod_uid", []byte("test-uid"))
 		mak.Set(&secret.Data, "device_fqdn", []byte("foo.tailnetxyz.ts.net"))
 	})
@@ -190,13 +190,13 @@ func TestTailscaleIngressHostname(t *testing.T) {
 
 	// Get the ingress and update it with expected changes
 	ing := ingress()
-	ing.Finalizers = append(ing.Finalizers, "tailscale.com/finalizer")
+	ing.Finalizers = append(ing.Finalizers, "lanhc.com/finalizer")
 	expectEqual(t, fc, ing)
 
 	// 3. Ingress proxy with capability version >= 110 advertises HTTPS endpoint
 	mustUpdate(t, fc, "operator-ns", opts.secretName, func(secret *corev1.Secret) {
 		mak.Set(&secret.Data, "device_id", []byte("1234"))
-		mak.Set(&secret.Data, "tailscale_capver", []byte("110"))
+		mak.Set(&secret.Data, "lanhc_capver", []byte("110"))
 		mak.Set(&secret.Data, "pod_uid", []byte("test-uid"))
 		mak.Set(&secret.Data, "device_fqdn", []byte("foo.tailnetxyz.ts.net"))
 		mak.Set(&secret.Data, "https_endpoint", []byte("foo.tailnetxyz.ts.net"))
@@ -212,7 +212,7 @@ func TestTailscaleIngressHostname(t *testing.T) {
 	// 4. Ingress proxy with capability version >= 110 does not have an HTTPS endpoint ready
 	mustUpdate(t, fc, "operator-ns", opts.secretName, func(secret *corev1.Secret) {
 		mak.Set(&secret.Data, "device_id", []byte("1234"))
-		mak.Set(&secret.Data, "tailscale_capver", []byte("110"))
+		mak.Set(&secret.Data, "lanhc_capver", []byte("110"))
 		mak.Set(&secret.Data, "pod_uid", []byte("test-uid"))
 		mak.Set(&secret.Data, "device_fqdn", []byte("foo.tailnetxyz.ts.net"))
 		mak.Set(&secret.Data, "https_endpoint", []byte("no-https"))
@@ -224,7 +224,7 @@ func TestTailscaleIngressHostname(t *testing.T) {
 	// 5. Ingress proxy's state has https_endpoints set, but its capver is not matching Pod UID (downgrade)
 	mustUpdate(t, fc, "operator-ns", opts.secretName, func(secret *corev1.Secret) {
 		mak.Set(&secret.Data, "device_id", []byte("1234"))
-		mak.Set(&secret.Data, "tailscale_capver", []byte("110"))
+		mak.Set(&secret.Data, "lanhc_capver", []byte("110"))
 		mak.Set(&secret.Data, "pod_uid", []byte("not-the-right-uid"))
 		mak.Set(&secret.Data, "device_fqdn", []byte("foo.tailnetxyz.ts.net"))
 		mak.Set(&secret.Data, "https_endpoint", []byte("bar.tailnetxyz.ts.net"))
@@ -238,7 +238,7 @@ func TestTailscaleIngressHostname(t *testing.T) {
 	expectEqual(t, fc, ing)
 }
 
-func TestTailscaleIngressWithProxyClass(t *testing.T) {
+func TestLanhcIngressWithProxyClass(t *testing.T) {
 	// Setup
 	pc := &tsapi.ProxyClass{
 		ObjectMeta: metav1.ObjectMeta{Name: "custom-metadata"},
@@ -247,7 +247,7 @@ func TestTailscaleIngressWithProxyClass(t *testing.T) {
 			Annotations: map[string]string{"bar.io/foo": "some-val"},
 			Pod: &tsapi.Pod{
 				Annotations: map[string]string{"foo.io/bar": "some-val"},
-				TailscaleContainer: &tsapi.Container{
+				LanhcContainer: &tsapi.Container{
 					Resources: corev1.ResourceRequirements{
 						Requests: corev1.ResourceList{
 							corev1.ResourceCPU:    resource.MustParse("500m"),
@@ -271,14 +271,14 @@ func TestTailscaleIngressWithProxyClass(t *testing.T) {
 	}
 	ingR := &IngressReconciler{
 		Client:           fc,
-		ingressClassName: "tailscale",
-		ssr: &tailscaleSTSReconciler{
+		ingressClassName: "lanhc",
+		ssr: &lanhcSTSReconciler{
 			Client:            fc,
 			clients:           tsclient.NewProvider(ft),
 			tsnetServer:       fakeTsnetServer,
 			defaultTags:       []string{"tag:k8s"},
 			operatorNamespace: "operator-ns",
-			proxyImage:        "tailscale/tailscale",
+			proxyImage:        "lanhc/lanhc",
 		},
 		logger: zl.Sugar(),
 	}
@@ -336,7 +336,7 @@ func TestTailscaleIngressWithProxyClass(t *testing.T) {
 	opts.proxyClass = pc.Name
 	expectEqual(t, fc, expectedSTSUserspace(t, fc, opts))
 
-	// 4. tailscale.com/proxy-class label is removed from the Ingress, the
+	// 4. lanhc.com/proxy-class label is removed from the Ingress, the
 	// Ingress gets reconciled and the custom ProxyClass configuration is
 	// removed from the proxy resources.
 	mustUpdate(t, fc, "default", "test", func(ing *networkingv1.Ingress) {
@@ -347,7 +347,7 @@ func TestTailscaleIngressWithProxyClass(t *testing.T) {
 	expectEqual(t, fc, expectedSTSUserspace(t, fc, opts), removeResourceReqs)
 }
 
-func TestTailscaleIngressWithServiceMonitor(t *testing.T) {
+func TestLanhcIngressWithServiceMonitor(t *testing.T) {
 	pc := &tsapi.ProxyClass{
 		ObjectMeta: metav1.ObjectMeta{Name: "metrics", Generation: 1},
 		Spec:       tsapi.ProxyClassSpec{},
@@ -380,14 +380,14 @@ func TestTailscaleIngressWithServiceMonitor(t *testing.T) {
 	}
 	ingR := &IngressReconciler{
 		Client:           fc,
-		ingressClassName: "tailscale",
-		ssr: &tailscaleSTSReconciler{
+		ingressClassName: "lanhc",
+		ssr: &lanhcSTSReconciler{
 			Client:            fc,
 			clients:           tsclient.NewProvider(ft),
 			tsnetServer:       fakeTsnetServer,
 			defaultTags:       []string{"tag:k8s"},
 			operatorNamespace: "operator-ns",
-			proxyImage:        "tailscale/tailscale",
+			proxyImage:        "lanhc/lanhc",
 		},
 		logger: zl.Sugar(),
 	}
@@ -397,7 +397,7 @@ func TestTailscaleIngressWithServiceMonitor(t *testing.T) {
 		stsName:            shortName,
 		secretName:         fullName,
 		namespace:          "default",
-		tailscaleNamespace: "operator-ns",
+		lanhcNamespace: "operator-ns",
 		parentType:         "ingress",
 		hostname:           "default-test",
 		app:                kubetypes.AppIngressResource,
@@ -532,14 +532,14 @@ func TestIngressProxyClassAnnotation(t *testing.T) {
 
 			ingR := &IngressReconciler{
 				Client:           fc,
-				ingressClassName: "tailscale",
-				ssr: &tailscaleSTSReconciler{
+				ingressClassName: "lanhc",
+				ssr: &lanhcSTSReconciler{
 					Client:            fc,
 					clients:           tsclient.NewProvider(&fakeTSClient{}),
 					tsnetServer:       &fakeTSNetServer{certDomains: []string{"test-host"}},
 					defaultTags:       []string{"tag:test"},
 					operatorNamespace: "operator-ns",
-					proxyImage:        "tailscale/tailscale:test",
+					proxyImage:        "lanhc/lanhc:test",
 				},
 				logger:            zl.Sugar(),
 				defaultProxyClass: tt.proxyClassDefault,
@@ -603,14 +603,14 @@ func TestIngressLetsEncryptStaging(t *testing.T) {
 
 			ingR := &IngressReconciler{
 				Client:           fc,
-				ingressClassName: "tailscale",
-				ssr: &tailscaleSTSReconciler{
+				ingressClassName: "lanhc",
+				ssr: &lanhcSTSReconciler{
 					Client:            fc,
 					clients:           tsclient.NewProvider(&fakeTSClient{}),
 					tsnetServer:       &fakeTSNetServer{certDomains: []string{"test-host"}},
 					defaultTags:       []string{"tag:test"},
 					operatorNamespace: "operator-ns",
-					proxyImage:        "tailscale/tailscale:test",
+					proxyImage:        "lanhc/lanhc:test",
 				},
 				logger:            zl.Sugar(),
 				defaultProxyClass: tt.defaultProxyClass,
@@ -712,14 +712,14 @@ func TestEmptyPath(t *testing.T) {
 			ingR := &IngressReconciler{
 				recorder:         fr,
 				Client:           fc,
-				ingressClassName: "tailscale",
-				ssr: &tailscaleSTSReconciler{
+				ingressClassName: "lanhc",
+				ssr: &lanhcSTSReconciler{
 					Client:            fc,
 					clients:           tsclient.NewProvider(ft),
 					tsnetServer:       fakeTsnetServer,
 					defaultTags:       []string{"tag:k8s"},
 					operatorNamespace: "operator-ns",
-					proxyImage:        "tailscale/tailscale",
+					proxyImage:        "lanhc/lanhc",
 				},
 				logger: zl.Sugar(),
 			}
@@ -766,8 +766,8 @@ func TestEmptyPath(t *testing.T) {
 
 func ingressClass() *networkingv1.IngressClass {
 	return &networkingv1.IngressClass{
-		ObjectMeta: metav1.ObjectMeta{Name: "tailscale"},
-		Spec:       networkingv1.IngressClassSpec{Controller: "tailscale.com/ts-ingress"},
+		ObjectMeta: metav1.ObjectMeta{Name: "lanhc"},
+		Spec:       networkingv1.IngressClassSpec{Controller: "lanhc.com/ts-ingress"},
 	}
 }
 
@@ -798,7 +798,7 @@ func ingress() *networkingv1.Ingress {
 			UID:       "1234-UID",
 		},
 		Spec: networkingv1.IngressSpec{
-			IngressClassName: new("tailscale"),
+			IngressClassName: new("lanhc"),
 			DefaultBackend:   backend(),
 			TLS: []networkingv1.IngressTLS{
 				{Hosts: []string{"default-test"}},
@@ -816,7 +816,7 @@ func ingressWithPaths(paths []networkingv1.HTTPIngressPath) *networkingv1.Ingres
 			UID:       types.UID("1234-UID"),
 		},
 		Spec: networkingv1.IngressSpec{
-			IngressClassName: new("tailscale"),
+			IngressClassName: new("lanhc"),
 			Rules: []networkingv1.IngressRule{
 				{
 					Host: "foo.tailnetxyz.ts.net",
@@ -845,7 +845,7 @@ func backend() *networkingv1.IngressBackend {
 	}
 }
 
-func TestTailscaleIngressWithHTTPRedirect(t *testing.T) {
+func TestLanhcIngressWithHTTPRedirect(t *testing.T) {
 	fc := fake.NewFakeClient(ingressClass())
 	ft := &fakeTSClient{}
 	fakeTsnetServer := &fakeTSNetServer{certDomains: []string{"foo.com"}}
@@ -855,14 +855,14 @@ func TestTailscaleIngressWithHTTPRedirect(t *testing.T) {
 	}
 	ingR := &IngressReconciler{
 		Client:           fc,
-		ingressClassName: "tailscale",
-		ssr: &tailscaleSTSReconciler{
+		ingressClassName: "lanhc",
+		ssr: &lanhcSTSReconciler{
 			Client:            fc,
 			clients:           tsclient.NewProvider(ft),
 			tsnetServer:       fakeTsnetServer,
 			defaultTags:       []string{"tag:k8s"},
 			operatorNamespace: "operator-ns",
-			proxyImage:        "tailscale/tailscale",
+			proxyImage:        "lanhc/lanhc",
 		},
 		logger: zl.Sugar(),
 	}
@@ -943,7 +943,7 @@ func TestTailscaleIngressWithHTTPRedirect(t *testing.T) {
 	}
 }
 
-func TestTailscaleIngressIPv6(t *testing.T) {
+func TestLanhcIngressIPv6(t *testing.T) {
 	fc := fake.NewFakeClient(ingressClass())
 	zl, err := zap.NewDevelopment()
 	if err != nil {
@@ -977,7 +977,7 @@ func TestTailscaleIngressIPv6(t *testing.T) {
 			UID:       "1234-UID-IPV6",
 		},
 		Spec: networkingv1.IngressSpec{
-			IngressClassName: new("tailscale"),
+			IngressClassName: new("lanhc"),
 			DefaultBackend: &networkingv1.IngressBackend{
 				Service: &networkingv1.IngressServiceBackend{
 					Name: "test-ipv6",
@@ -992,14 +992,14 @@ func TestTailscaleIngressIPv6(t *testing.T) {
 
 	ingR := &IngressReconciler{
 		Client:           fc,
-		ingressClassName: "tailscale",
-		ssr: &tailscaleSTSReconciler{
+		ingressClassName: "lanhc",
+		ssr: &lanhcSTSReconciler{
 			Client:            fc,
 			clients:           tsclient.NewProvider(&fakeTSClient{}),
 			tsnetServer:       &fakeTSNetServer{certDomains: []string{"test-host"}},
 			defaultTags:       []string{"tag:test"},
 			operatorNamespace: "operator-ns",
-			proxyImage:        "tailscale/tailscale",
+			proxyImage:        "lanhc/lanhc",
 		},
 		logger: zl.Sugar(),
 	}
@@ -1010,7 +1010,7 @@ func TestTailscaleIngressIPv6(t *testing.T) {
 	fullName, _ := findGenName(t, fc, "default", "test-ipv6", "ingress")
 	opts := configOpts{
 		replicas:   new(int32(1)),
-		stsName:    "tailscale-ipv6-ingress-test-ipv6",
+		stsName:    "lanhc-ipv6-ingress-test-ipv6",
 		secretName: fullName,
 		namespace:  "default",
 		parentType: "ingress",

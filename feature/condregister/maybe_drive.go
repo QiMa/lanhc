@@ -5,4 +5,4 @@
 
 package condregister
 
-import _ "tailscale.com/feature/drive"
+import _ "lanhc.com/feature/drive"

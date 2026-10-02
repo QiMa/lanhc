@@ -23,12 +23,12 @@ import (
 	"golang.org/x/net/ipv6"
 	"golang.org/x/sys/cpu"
 	"golang.org/x/sys/unix"
-	"tailscale.com/disco"
-	"tailscale.com/envknob"
-	"tailscale.com/net/netns"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
+	"lanhc.com/disco"
+	"lanhc.com/envknob"
+	"lanhc.com/net/netns"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
 )
 
 const (
@@ -167,7 +167,7 @@ var (
 // listenRawDisco starts listening for disco packets on the given
 // address family, which must be "ip4" or "ip6", using a raw socket
 // and BPF filter.
-// https://github.com/tailscale/tailscale/issues/3824
+// https://github.com/lanhc/lanhc/issues/3824
 func (c *Conn) listenRawDisco(family string) (io.Closer, error) {
 	if !envknobEnableRawDisco() {
 		// Return an 'errors.ErrUnsupported' to prevent the callee from
@@ -177,7 +177,7 @@ func (c *Conn) listenRawDisco(family string) (io.Closer, error) {
 		return nil, fmt.Errorf("raw disco not enabled: %w", errors.ErrUnsupported)
 	}
 
-	// https://github.com/tailscale/tailscale/issues/5607
+	// https://github.com/lanhc/lanhc/issues/5607
 	if !netns.UseSocketMark() {
 		return nil, errors.New("raw disco listening disabled, SO_MARK unavailable")
 	}
@@ -435,7 +435,7 @@ func (c *Conn) receiveDisco(pc *socket.Conn, isIPV6 bool) {
 		}
 
 		// If the packet isn't destined for our local port, then we
-		// should drop it since it might be for another Tailscale
+		// should drop it since it might be for another Lanhc
 		// process on the same machine, or NATed to a different machine
 		// if this is a router, etc.
 		//

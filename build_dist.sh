@@ -5,7 +5,7 @@
 # information into the binaries, so that we can track down user
 # issues.
 #
-# If you're packaging Tailscale for a distro, please consider using
+# If you're packaging Lanhc for a distro, please consider using
 # this script, or executing equivalent commands in your
 # distro-specific build system.
 
@@ -29,7 +29,7 @@ EOF
 fi
 
 tags="${TAGS:-}"
-ldflags="-X tailscale.com/version.longStamp=${VERSION_LONG} -X tailscale.com/version.shortStamp=${VERSION_SHORT}"
+ldflags="-X lanhc.com/version.longStamp=${VERSION_LONG} -X lanhc.com/version.shortStamp=${VERSION_SHORT}"
 
 # build_dist.sh arguments must precede go build arguments.
 while [ "$#" -gt 1 ]; do

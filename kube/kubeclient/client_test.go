@@ -13,8 +13,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"tailscale.com/kube/kubeapi"
-	"tailscale.com/tstest"
+	"lanhc.com/kube/kubeapi"
+	"lanhc.com/tstest"
 )
 
 func Test_client_Event(t *testing.T) {

@@ -9,11 +9,11 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"tailscale.com/ipn/ipnext"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/appctype"
-	"tailscale.com/types/dnstype"
-	"tailscale.com/types/opt"
+	"lanhc.com/ipn/ipnext"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/appctype"
+	"lanhc.com/types/dnstype"
+	"lanhc.com/types/opt"
 )
 
 func TestAppDNSRoutes(t *testing.T) {

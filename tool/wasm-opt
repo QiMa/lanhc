@@ -1,11 +1,11 @@
 #!/bin/sh
 #
 # This script acts like the "wasm-opt" command from the Binaryen toolchain, but
-# uses Tailscale's currently-desired version, downloading it first if necessary.
+# uses Lanhc's currently-desired version, downloading it first if necessary.
 
 set -eu
 
-BINARYEN_DIR="$HOME/.cache/tailscale-binaryen"
+BINARYEN_DIR="$HOME/.cache/lanhc-binaryen"
 read -r BINARYEN_REV < "$(dirname "$0")/binaryen.rev"
 # This works for Linux and Darwin, which is sufficient
 # (we do not build for other targets).

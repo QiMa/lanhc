@@ -11,24 +11,24 @@ import (
 	"strings"
 	"sync"
 
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/lazy"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/lazy"
 )
 
 // AppIdentifierFn, if non-nil, is a callback function that returns the
 // application identifier of the running process or an empty string if unknown.
 //
-// tailscale(d) implementations can set an explicit callback to return an identifier
+// lanhc(d) implementations can set an explicit callback to return an identifier
 // for the running process if such a concept exists.  The Apple bundle identifier, for example.
 var AppIdentifierFn func() string // or nil
 
 const (
-	macsysBundleID      = "io.tailscale.ipn.macsys"                     // The macsys gui app and CLI
-	appStoreBundleID    = "io.tailscale.ipn.macos"                      // The App Store gui app and CLI
-	macsysExtBundleId   = "io.tailscale.ipn.macsys.network-extension"   // The macsys system extension
-	appStoreExtBundleId = "io.tailscale.ipn.macos.network-extension"    // The App Store network extension
-	tvOSExtBundleId     = "io.tailscale.ipn.ios.network-extension-tvos" // The tvOS network extension
-	iOSExtBundleId      = "io.tailscale.ipn.ios.network-extension"      // The iOS network extension
+	macsysBundleID      = "io.lanhc.ipn.macsys"                     // The macsys gui app and CLI
+	appStoreBundleID    = "io.lanhc.ipn.macos"                      // The App Store gui app and CLI
+	macsysExtBundleId   = "io.lanhc.ipn.macsys.network-extension"   // The macsys system extension
+	appStoreExtBundleId = "io.lanhc.ipn.macos.network-extension"    // The App Store network extension
+	tvOSExtBundleId     = "io.lanhc.ipn.ios.network-extension-tvos" // The tvOS network extension
+	iOSExtBundleId      = "io.lanhc.ipn.ios.network-extension"      // The iOS network extension
 )
 
 // IsMobile reports whether this is a mobile client build.
@@ -58,7 +58,7 @@ func OS() string {
 }
 
 // IsMacGUIVariant reports whether runtime.GOOS=="darwin" and this one of the
-// two GUI variants (that is, not tailscaled-on-macOS).
+// two GUI variants (that is, not lanhcd-on-macOS).
 // This predicate should not be used to determine sandboxing properties. It's
 // meant for callers to determine whether the NetworkExtension-like auto-netns
 // is in effect.
@@ -69,13 +69,13 @@ func IsMacGUIVariant() bool {
 // IsSandboxedMacOS reports whether this process is a sandboxed macOS
 // process (either the app or the extension). It is true for the Mac App Store
 // and macsys (only its System Extension) variants on macOS, and false for
-// tailscaled and the macsys GUI process on macOS.
+// lanhcd and the macsys GUI process on macOS.
 func IsSandboxedMacOS() bool {
 	return IsMacAppStore() || IsMacSysExt()
 }
 
 // IsMacSys reports whether this process is part of the Standalone variant of
-// Tailscale for macOS, either the main GUI process (non-sandboxed) or the
+// Lanhc for macOS, either the main GUI process (non-sandboxed) or the
 // system extension (sandboxed).
 func IsMacSys() bool {
 	return IsMacSysExt() || IsMacSysGUI()
@@ -84,7 +84,7 @@ func IsMacSys() bool {
 var isMacSysApp lazy.SyncValue[bool]
 
 // IsMacSysGUI reports whether this process is the main, non-sandboxed GUI process
-// that ships with the Standalone variant of Tailscale for macOS.
+// that ships with the Standalone variant of Lanhc for macOS.
 func IsMacSysGUI() bool {
 	if runtime.GOOS != "darwin" {
 		return false
@@ -96,7 +96,7 @@ func IsMacSysGUI() bool {
 
 		// TODO (barnstar): This check should be redundant once all relevant callers
 		// use AppIdentifierFn.
-		return strings.Contains(os.Getenv("HOME"), "/Containers/io.tailscale.ipn.macsys/") ||
+		return strings.Contains(os.Getenv("HOME"), "/Containers/io.lanhc.ipn.macsys/") ||
 			strings.Contains(os.Getenv("XPC_SERVICE_NAME"), macsysBundleID)
 	})
 }
@@ -104,7 +104,7 @@ func IsMacSysGUI() bool {
 var isMacSysExt lazy.SyncValue[bool]
 
 // IsMacSysExt reports whether this binary is the system extension shipped as part of
-// the standalone "System Extension" (a.k.a. "macsys") version of Tailscale
+// the standalone "System Extension" (a.k.a. "macsys") version of Lanhc
 // for macOS.
 func IsMacSysExt() bool {
 	if runtime.GOOS != "darwin" {
@@ -127,7 +127,7 @@ func IsMacSysExt() bool {
 
 var isMacAppStore lazy.SyncValue[bool]
 
-// IsMacAppStore returns whether this binary is from the App Store version of Tailscale
+// IsMacAppStore returns whether this binary is from the App Store version of Lanhc
 // for macOS.  Returns true for both the network extension and the GUI app.
 func IsMacAppStore() bool {
 	if runtime.GOOS != "darwin" {
@@ -141,9 +141,9 @@ func IsMacAppStore() bool {
 		// TODO (barnstar): This check should be redundant once all relevant callers
 		// use AppIdentifierFn.
 		// Both macsys and app store versions can run CLI executable with
-		// suffix /Contents/MacOS/Tailscale. Check $HOME to filter out running
+		// suffix /Contents/MacOS/Lanhc. Check $HOME to filter out running
 		// as macsys.
-		return strings.Contains(os.Getenv("HOME"), "/Containers/io.tailscale.ipn.macos/") ||
+		return strings.Contains(os.Getenv("HOME"), "/Containers/io.lanhc.ipn.macos/") ||
 			strings.Contains(os.Getenv("XPC_SERVICE_NAME"), appStoreBundleID)
 	})
 }
@@ -151,7 +151,7 @@ func IsMacAppStore() bool {
 var isMacAppStoreGUI lazy.SyncValue[bool]
 
 // IsMacAppStoreGUI reports whether this binary is the GUI app from the App Store
-// version of Tailscale for macOS.
+// version of Lanhc for macOS.
 func IsMacAppStoreGUI() bool {
 	if runtime.GOOS != "darwin" {
 		return false
@@ -168,13 +168,13 @@ func IsMacAppStoreGUI() bool {
 		}
 		// Check that this is the GUI binary, and it is not sandboxed. The GUI binary
 		// shipped in the App Store will always have the App Sandbox enabled.
-		return strings.Contains(exe, "/Tailscale") && !IsMacSysGUI()
+		return strings.Contains(exe, "/Lanhc") && !IsMacSysGUI()
 	})
 }
 
 var isAppleTV lazy.SyncValue[bool]
 
-// IsAppleTV reports whether this binary is part of the Tailscale network extension for tvOS.
+// IsAppleTV reports whether this binary is part of the Lanhc network extension for tvOS.
 // Needed because runtime.GOOS returns "ios" otherwise.
 func IsAppleTV() bool {
 	if runtime.GOOS != "ios" {
@@ -232,7 +232,7 @@ func IsUnstableBuild() bool {
 }
 
 // osVariant returns the OS variant string for systems where we support
-// multiple ways of running tailscale(d), if any.
+// multiple ways of running lanhc(d), if any.
 //
 // For example: "appstore", "macsys", "darwin".
 func osVariant() string {
@@ -278,7 +278,7 @@ type Meta struct {
 	UnstableBranch bool `json:"unstableBranch,omitempty"`
 
 	// GitCommit, if non-empty, is the git commit of the
-	// github.com/tailscale/tailscale repository at which Tailscale was
+	// github.com/lanhc/lanhc repository at which Lanhc was
 	// built. Its format is the one returned by `git describe --always
 	// --exclude "*" --dirty --abbrev=200`.
 	GitCommit string `json:"gitCommit,omitempty"`
@@ -294,30 +294,30 @@ type Meta struct {
 	OSVariant string `json:"osVariant,omitempty"`
 
 	// ExtraGitCommit, if non-empty, is the git commit of a "supplemental"
-	// repository at which Tailscale was built. Its format is the same as
+	// repository at which Lanhc was built. Its format is the same as
 	// gitCommit.
 	//
 	// ExtraGitCommit is used to track the source revision when the main
-	// Tailscale repository is integrated into and built from another
-	// repository (for example, Tailscale's proprietary code, or the
+	// Lanhc repository is integrated into and built from another
+	// repository (for example, Lanhc's proprietary code, or the
 	// Android OSS repository). Together, GitCommit and ExtraGitCommit
 	// exactly describe what repositories and commits were used in a
 	// build.
 	ExtraGitCommit string `json:"extraGitCommit,omitempty"`
 
-	// DaemonLong is the version number from the tailscaled
+	// DaemonLong is the version number from the lanhcd
 	// daemon, if requested.
 	DaemonLong string `json:"daemonLong,omitempty"`
 
 	// GitCommitTime is the commit time of the git commit in GitCommit.
 	GitCommitTime string `json:"gitCommitTime,omitempty"`
 
-	// TailscaleGoGitHash is the git commit hash from
+	// LanhcGoGitHash is the git commit hash from
 	// https://github.com/tailscale/go used to build this binary, if built
-	// with the Tailscale Go toolchain. Otherwise it is empty.
-	TailscaleGoGitHash string `json:"tailscaleGoGitHash,omitempty"`
+	// with the Lanhc Go toolchain. Otherwise it is empty.
+	LanhcGoGitHash string `json:"lanhcGoGitHash,omitempty"`
 
-	// Cap is the current Tailscale capability version. It's a monotonically
+	// Cap is the current Lanhc capability version. It's a monotonically
 	// incrementing integer that's incremented whenever a new capability is
 	// added.
 	Cap int `json:"cap"`
@@ -339,7 +339,7 @@ func GetMeta() Meta {
 			ExtraGitCommit:     extraGitCommitStamp,
 			IsDev:              isDev(),
 			UnstableBranch:     IsUnstableBuild(),
-			TailscaleGoGitHash: tailscaleToolchainRev(),
+			LanhcGoGitHash: lanhcToolchainRev(),
 			Cap:                int(tailcfg.CurrentCapabilityVersion),
 		}
 	})

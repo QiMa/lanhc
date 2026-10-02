@@ -17,7 +17,7 @@ const (
 
 const (
 	// GeneveProtocolDisco is the IEEE 802 Ethertype number used to represent
-	// the Tailscale Disco protocol in a Geneve header.
+	// the Lanhc Disco protocol in a Geneve header.
 	GeneveProtocolDisco uint16 = 0x7A11
 	// GeneveProtocolWireGuard is the IEEE 802 Ethertype number used to represent the
 	// WireGuard protocol in a Geneve header.

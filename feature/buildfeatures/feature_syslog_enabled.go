@@ -7,7 +7,7 @@
 
 package buildfeatures
 
-// HasSyslog is whether the binary was built with support for modular feature "tailscaled --syslog flag support to send logs to the system syslog daemon".
+// HasSyslog is whether the binary was built with support for modular feature "lanhcd --syslog flag support to send logs to the system syslog daemon".
 // Specifically, it's whether the binary was NOT built with the "ts_omit_syslog" build tag.
 // It's a const so it can be used for dead code elimination.
 const HasSyslog = true

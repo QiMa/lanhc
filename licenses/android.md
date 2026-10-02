@@ -1,10 +1,10 @@
-# Tailscale for Android dependencies
+# Lanhc for Android dependencies
 
-The following open source dependencies are used to build the [Tailscale Android
-Client][].  See also the dependencies in the [Tailscale CLI][].
+The following open source dependencies are used to build the [Lanhc Android
+Client][].  See also the dependencies in the [Lanhc CLI][].
 
-[Tailscale Android Client]: https://github.com/tailscale/tailscale-android
-[Tailscale CLI]: ./tailscale.md
+[Lanhc Android Client]: https://github.com/lanhc/lanhc-android
+[Lanhc CLI]: ./lanhc.md
 
 ## Go Packages
 
@@ -31,7 +31,7 @@ Client][].  See also the dependencies in the [Tailscale CLI][].
  - [github.com/pierrec/lz4/v4](https://pkg.go.dev/github.com/pierrec/lz4/v4) ([BSD-3-Clause](https://github.com/pierrec/lz4/blob/v4.1.26/LICENSE))
  - [github.com/pires/go-proxyproto](https://pkg.go.dev/github.com/pires/go-proxyproto) ([Apache-2.0](https://github.com/pires/go-proxyproto/blob/v0.8.1/LICENSE))
  - [github.com/tailscale/peercred](https://pkg.go.dev/github.com/tailscale/peercred) ([BSD-3-Clause](https://github.com/tailscale/peercred/blob/35a0c7bd7edc/LICENSE))
- - [github.com/tailscale/tailscale-android/libtailscale](https://pkg.go.dev/github.com/tailscale/tailscale-android/libtailscale) ([BSD-3-Clause](https://github.com/tailscale/tailscale-android/blob/HEAD/LICENSE))
+ - [github.com/lanhc/lanhc-android/liblanhc](https://pkg.go.dev/github.com/lanhc/lanhc-android/liblanhc) ([BSD-3-Clause](https://github.com/lanhc/lanhc-android/blob/HEAD/LICENSE))
  - [github.com/tailscale/wireguard-go](https://pkg.go.dev/github.com/tailscale/wireguard-go) ([MIT](https://github.com/tailscale/wireguard-go/blob/ae172d45f0f7/LICENSE))
  - [github.com/tailscale/xnet/webdav](https://pkg.go.dev/github.com/tailscale/xnet/webdav) ([BSD-3-Clause](https://github.com/tailscale/xnet/blob/8497ac4dab2e/LICENSE))
  - [github.com/u-root/uio](https://pkg.go.dev/github.com/u-root/uio) ([BSD-3-Clause](https://github.com/u-root/uio/blob/d2acac8f3701/LICENSE))
@@ -50,4 +50,4 @@ Client][].  See also the dependencies in the [Tailscale CLI][].
  - [golang.org/x/time/rate](https://pkg.go.dev/golang.org/x/time/rate) ([BSD-3-Clause](https://cs.opensource.google/go/x/time/+/v0.15.0:LICENSE))
  - [golang.org/x/tools](https://pkg.go.dev/golang.org/x/tools) ([BSD-3-Clause](https://cs.opensource.google/go/x/tools/+/v0.44.0:LICENSE))
  - [gvisor.dev/gvisor/pkg](https://pkg.go.dev/gvisor.dev/gvisor/pkg) ([Apache-2.0](https://github.com/google/gvisor/blob/573d5e7127a8/LICENSE))
- - [tailscale.com](https://pkg.go.dev/tailscale.com) ([BSD-3-Clause](https://github.com/tailscale/tailscale/blob/HEAD/LICENSE))
+ - [lanhc.com](https://pkg.go.dev/lanhc.com) ([BSD-3-Clause](https://github.com/lanhc/lanhc/blob/HEAD/LICENSE))

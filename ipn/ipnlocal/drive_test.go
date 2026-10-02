@@ -18,29 +18,29 @@ import (
 	"time"
 
 	"github.com/studio-b12/gowebdav"
-	"tailscale.com/control/controlclient"
-	"tailscale.com/drive"
-	"tailscale.com/drive/driveimpl"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsd"
-	"tailscale.com/tstest"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/views"
-	"tailscale.com/util/eventbus/eventbustest"
-	"tailscale.com/util/set"
-	"tailscale.com/wgengine"
-	"tailscale.com/wgengine/filter/filtertype"
+	"lanhc.com/control/controlclient"
+	"lanhc.com/drive"
+	"lanhc.com/drive/driveimpl"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsd"
+	"lanhc.com/tstest"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/views"
+	"lanhc.com/util/eventbus/eventbustest"
+	"lanhc.com/util/set"
+	"lanhc.com/wgengine"
+	"lanhc.com/wgengine/filter/filtertype"
 )
 
 // TestDriveTransportRoundTrip_NetworkError tests that driveTransport.RoundTrip
 // doesn't panic when the underlying transport returns a nil response with an
 // error.
 //
-// See: https://github.com/tailscale/tailscale/issues/17306
+// See: https://github.com/lanhc/lanhc/issues/17306
 func TestDriveTransportRoundTrip_NetworkError(t *testing.T) {
 	b := newTestLocalBackend(t)
 

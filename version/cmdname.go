@@ -48,16 +48,16 @@ func cmdName(exe string) string {
 		return fallbackName
 	}
 	// v is like:
-	// "path\ttailscale.com/cmd/tailscale\nmod\ttailscale.com\t(devel)\t\ndep\tgithub.com/apenwarr/fixconsole\tv0.0.0-20191012055117-5a9f6489cc29\th1:muXWUcay7DDy1/hEQWrYlBy+g0EuwT70sBHg65SeUc4=\ndep\tgithub....
+	// "path\tlanhc.com/cmd/lanhc\nmod\tlanhc.com\t(devel)\t\ndep\tgithub.com/apenwarr/fixconsole\tv0.0.0-20191012055117-5a9f6489cc29\th1:muXWUcay7DDy1/hEQWrYlBy+g0EuwT70sBHg65SeUc4=\ndep\tgithub....
 	for line := range strings.SplitSeq(info, "\n") {
-		if goPkg, ok := strings.CutPrefix(line, "path\t"); ok { // like "tailscale.com/cmd/tailscale"
+		if goPkg, ok := strings.CutPrefix(line, "path\t"); ok { // like "lanhc.com/cmd/lanhc"
 			ret = path.Base(goPkg) // goPkg is always forward slashes; use path, not filepath
 			break
 		}
 	}
 	if runtime.GOOS == "windows" && strings.HasPrefix(ret, "gui") && checkPreppedExeNameForGUI(fallbackName) {
 		// The GUI binary for internal build system packaging reasons
-		// has a path of "tailscale.io/win/gui".
+		// has a path of "lanhc.io/win/gui".
 		// Ignore that name and use fallbackName instead.
 		return fallbackName
 	}
@@ -91,7 +91,7 @@ func findModuleInfo(file string) (s string, err error) {
 		return "", err
 	}
 	length := end - start
-	// As of Aug 2021, tailscaled's mod info was about 2k.
+	// As of Aug 2021, lanhcd's mod info was about 2k.
 	if length > int64(len(buf)) {
 		return "", errors.New("mod info too large")
 	}

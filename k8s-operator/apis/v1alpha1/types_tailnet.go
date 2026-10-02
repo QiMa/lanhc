@@ -30,7 +30,7 @@ type Tailnet struct {
 	Spec TailnetSpec `json:"spec"`
 
 	// Status describes the status of the Tailnet. This is set
-	// and managed by the Tailscale operator.
+	// and managed by the Lanhc operator.
 	// +optional
 	Status TailnetStatus `json:"status"`
 }
@@ -55,7 +55,7 @@ type TailnetSpec struct {
 type TailnetCredentials struct {
 	// The name of the secret containing the credentials used to authenticate with this Tailnet. The secret must always
 	// contain a "client_id" field. To authenticate with a static OAuth client, also set "client_secret". To authenticate
-	// via workload identity federation, set "audience" to the audience value expected by the Tailscale OAuth
+	// via workload identity federation, set "audience" to the audience value expected by the Lanhc OAuth
 	// client; the operator will mint a ServiceAccount token for itself with that audience and exchange it for an API
 	// token. "client_secret" and "audience" are mutually exclusive.
 	SecretName string `json:"secretName"`

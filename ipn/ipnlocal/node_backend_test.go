@@ -14,15 +14,15 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/net/routecheck/peernode"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/types/key"
-	"tailscale.com/types/netmap"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
+	"lanhc.com/net/routecheck/peernode"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/types/key"
+	"lanhc.com/types/netmap"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
 )
 
 func TestNodeBackendReadiness(t *testing.T) {
@@ -659,7 +659,7 @@ func testNodeBackendMagicDNSHosts(t *testing.T, magicDNSEnabled bool) {
 
 	// Renaming a peer arrives as an upsert of the full node with a
 	// new Name. The old name must stop resolving and the new one
-	// must start (tailscale/corp#45631).
+	// must start (lanhc/corp#45631).
 	p3renamed := p3.Clone()
 	p3renamed.Name = "p3-renamed.example.ts.net."
 	if _, handled := nb.UpdateNetmapDelta([]netmap.NodeMutation{netmap.NodeMutationUpsert{Node: p3renamed.View()}}); !handled {

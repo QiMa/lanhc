@@ -3,7 +3,7 @@
 
 // Package syspolicy contains the implementation of system policy management.
 // Calling code should use the client interface in
-// tailscale.com/util/syspolicy/policyclient.
+// lanhc.com/util/syspolicy/policyclient.
 package syspolicy
 
 import (
@@ -12,14 +12,14 @@ import (
 	"reflect"
 	"time"
 
-	"tailscale.com/internal/lanhc"
-	"tailscale.com/util/syspolicy/internal/loggerx"
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/util/syspolicy/policyclient"
-	"tailscale.com/util/syspolicy/ptype"
-	"tailscale.com/util/syspolicy/rsop"
-	"tailscale.com/util/syspolicy/setting"
-	"tailscale.com/util/syspolicy/source"
+	"lanhc.com/internal/lanhc"
+	"lanhc.com/util/syspolicy/internal/loggerx"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/util/syspolicy/policyclient"
+	"lanhc.com/util/syspolicy/ptype"
+	"lanhc.com/util/syspolicy/rsop"
+	"lanhc.com/util/syspolicy/setting"
+	"lanhc.com/util/syspolicy/source"
 )
 
 var (
@@ -181,15 +181,15 @@ func convertPolicySettingValueTo[T setting.ValueType](value any, def T) (T, erro
 // prefs.conf). If both are empty, it returns a default value. (It
 // always return a non-empty value)
 //
-// See https://github.com/tailscale/tailscale/issues/2798 for some background.
+// See https://github.com/lanhc/lanhc/issues/2798 for some background.
 func SelectControlURL(reg, disk string) string {
 	// Injected at link time by the downstream build (empty for the stock
 	// build, which uses this function's historical behavior below).
 	var def = ""
 	if !lanhc.Isolated {
-		def = "https://controlplane.tailscale.com"
+		def = "https://controlplane.lanhc.com"
 	}
-	oldRegDef := "https://login.tailscale.com"
+	oldRegDef := "https://login.lanhc.com"
 	if lanhc.Isolated {
 		oldRegDef = ""
 	}
@@ -209,7 +209,7 @@ func SelectControlURL(reg, disk string) string {
 		}
 		if disk != def && disk != oldRegDef {
 			// The value in the registry is the old
-			// default (login.tailscale.com) but the value
+			// default (login.lanhc.com) but the value
 			// on disk is neither our old nor new default
 			// value, so it must be some custom thing that
 			// the user cares about. Prefer the disk value.

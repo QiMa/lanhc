@@ -20,7 +20,7 @@ export enum UpdateState {
   Failed,
 }
 
-// useInstallUpdate initiates and tracks a Tailscale self-update via the LocalAPI,
+// useInstallUpdate initiates and tracks a Lanhc self-update via the LocalAPI,
 // and returns state messages showing the progress of the update.
 export function useInstallUpdate(currentVersion: string, cv?: VersionInfo) {
   const [updateState, setUpdateState] = useState<UpdateState>(
@@ -70,14 +70,14 @@ export function useInstallUpdate(currentVersion: string, cv?: VersionInfo) {
             }
 
             if (up.status === "UpdateFinished") {
-              // if update finished and tailscaled did not go away (ie. did not restart),
+              // if update finished and lanhcd did not go away (ie. did not restart),
               // then the version being the same might not be an error, it might just require
-              // the user to restart Tailscale manually (this is required in some cases in the
+              // the user to restart Lanhc manually (this is required in some cases in the
               // clientupdate package).
               if (up.version === currentVersion && tsAwayForPolls > 0) {
                 setUpdateState(UpdateState.Failed)
                 appendUpdateLog(
-                  "ERROR: Update failed, still running Tailscale " + up.version
+                  "ERROR: Update failed, still running Lanhc " + up.version
                 )
                 if (up.message) appendUpdateLog("ERROR: " + up.message)
               } else {
@@ -101,7 +101,7 @@ export function useInstallUpdate(currentVersion: string, cv?: VersionInfo) {
           if (tsAwayForPolls >= 5 * 60) {
             setUpdateState(UpdateState.Failed)
             appendUpdateLog(
-              "ERROR: tailscaled went away but did not come back!"
+              "ERROR: lanhcd went away but did not come back!"
             )
             appendUpdateLog("ERROR: last error received:")
             appendUpdateLog(err.toString())

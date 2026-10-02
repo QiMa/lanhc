@@ -13,13 +13,13 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/hostinfo"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
-	"tailscale.com/util/eventbus/eventbustest"
+	"lanhc.com/hostinfo"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
+	"lanhc.com/util/eventbus/eventbustest"
 )
 
 func TestSetDiscoPublicKey(t *testing.T) {

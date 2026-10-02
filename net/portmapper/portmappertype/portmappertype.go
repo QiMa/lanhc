@@ -11,10 +11,10 @@ import (
 	"net/netip"
 	"time"
 
-	"tailscale.com/feature"
-	"tailscale.com/net/netmon"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/eventbus"
+	"lanhc.com/feature"
+	"lanhc.com/net/netmon"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/eventbus"
 )
 
 // HookNewPortMapper is a hook to install the portmapper creation function.

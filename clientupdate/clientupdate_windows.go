@@ -20,26 +20,26 @@ import (
 
 	"github.com/google/uuid"
 	"golang.org/x/sys/windows"
-	"tailscale.com/util/winutil"
-	"tailscale.com/util/winutil/authenticode"
+	"lanhc.com/util/winutil"
+	"lanhc.com/util/winutil/authenticode"
 )
 
 const (
 	// winMSIEnv is the environment variable that, if set, is the MSI file for
 	// the update command to install. It's passed like this so we can stop the
-	// tailscale.exe process from running before the msiexec process runs and
+	// lanhc.exe process from running before the msiexec process runs and
 	// tries to overwrite ourselves.
 	winMSIEnv = "TS_UPDATE_WIN_MSI"
 	// winVersionEnv is the environment variable that is set along with
-	// winMSIEnv and carries the version of tailscale that is being installed.
+	// winMSIEnv and carries the version of lanhc that is being installed.
 	// It is used for logging purposes.
 	winVersionEnv = "TS_UPDATE_WIN_VERSION"
 	// updaterPrefix is the prefix for the temporary executable created by [makeSelfCopy].
-	updaterPrefix = "tailscale-updater"
+	updaterPrefix = "lanhc-updater"
 )
 
-func makeCmdTailscaleCopy() (origPathExe, tmpPathExe string, err error) {
-	srcExe, err := findCmdTailscale()
+func makeCmdLanhcCopy() (origPathExe, tmpPathExe string, err error) {
+	srcExe, err := findCmdLanhc()
 	if err != nil {
 		return "", "", err
 	}
@@ -62,20 +62,20 @@ func makeCmdTailscaleCopy() (origPathExe, tmpPathExe string, err error) {
 	return srcExe, f2.Name(), f2.Close()
 }
 
-// findCmdTailscale returns the path to the binary that should be copied for the update
+// findCmdLanhc returns the path to the binary that should be copied for the update
 // re-execution. The copy is re-executed with "update" as a subcommand, so it must be
-// a binary that handles "update" (ie tailscale.exe, not tailscaled.exe)
-func findCmdTailscale() (string, error) {
+// a binary that handles "update" (ie lanhc.exe, not lanhcd.exe)
+func findCmdLanhc() (string, error) {
 	selfExe, err := os.Executable()
 	if err != nil {
 		return "", err
 	}
-	if strings.EqualFold(filepath.Base(selfExe), "tailscale.exe") {
+	if strings.EqualFold(filepath.Base(selfExe), "lanhc.exe") {
 		return selfExe, nil
 	}
-	ts := filepath.Join(filepath.Dir(selfExe), "tailscale.exe")
+	ts := filepath.Join(filepath.Dir(selfExe), "lanhc.exe")
 	if _, err := os.Stat(ts); err != nil {
-		return "", fmt.Errorf("cannot find tailscale.exe alongside %s: %w", selfExe, err)
+		return "", fmt.Errorf("cannot find lanhc.exe alongside %s: %w", selfExe, err)
 	}
 	return ts, nil
 }
@@ -85,10 +85,10 @@ func markTempFileWindows(name string) error {
 	return windows.MoveFileEx(name16, nil, windows.MOVEFILE_DELAY_UNTIL_REBOOT)
 }
 
-const certSubjectTailscale = "Tailscale Inc."
+const certSubjectLanhc = "Lanhc Inc."
 
 func verifyAuthenticode(path string) error {
-	return authenticode.Verify(path, certSubjectTailscale)
+	return authenticode.Verify(path, certSubjectLanhc)
 }
 
 func isTSGUIPresent() bool {
@@ -105,7 +105,7 @@ func isTSGUIPresent() bool {
 func (up *Updater) updateWindows() error {
 	if msi := os.Getenv(winMSIEnv); msi != "" {
 		// stdout/stderr from this part of the install could be lost since the
-		// parent tailscaled is replaced. Create a temp log file to have some
+		// parent lanhcd is replaced. Create a temp log file to have some
 		// output to debug with in case update fails.
 		close, err := up.switchOutputToFile()
 		if err != nil {
@@ -132,7 +132,7 @@ you can run the command prompt as Administrator one of these ways:
 * press Windows+x, then press a
 * press Windows+r, type in "cmd", then press Ctrl+Shift+Enter`)
 	}
-	ver, err := requestedTailscaleVersion(up.Version, up.Track)
+	ver, err := requestedLanhcVersion(up.Version, up.Track)
 	if err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ you can run the command prompt as Administrator one of these ways:
 		return nil
 	}
 
-	tsDir := filepath.Join(os.Getenv("ProgramData"), "Tailscale")
+	tsDir := filepath.Join(os.Getenv("ProgramData"), "Lanhc")
 	msiDir := filepath.Join(tsDir, "MSICache")
 	if fi, err := os.Stat(tsDir); err != nil {
 		return fmt.Errorf("expected %s to exist, got stat error: %w", tsDir, err)
@@ -163,7 +163,7 @@ you can run the command prompt as Administrator one of these ways:
 		qualifiers = append(qualifiers, "winui")
 	}
 
-	pkgsPath := fmt.Sprintf("%s/tailscale-setup-%s.msi", up.Track, strings.Join(qualifiers, "-"))
+	pkgsPath := fmt.Sprintf("%s/lanhc-setup-%s.msi", up.Track, strings.Join(qualifiers, "-"))
 	msiTarget := filepath.Join(msiDir, path.Base(pkgsPath))
 	if err := up.downloadURLToFile(pkgsPath, msiTarget); err != nil {
 		return err
@@ -175,16 +175,16 @@ you can run the command prompt as Administrator one of these ways:
 	}
 	up.Logf("authenticode verification succeeded")
 
-	up.Logf("making tailscale.exe copy to switch to...")
+	up.Logf("making lanhc.exe copy to switch to...")
 	up.cleanupOldDownloads(filepath.Join(os.TempDir(), updaterPrefix+"-*.exe"))
-	_, cmdTailscaleCopy, err := makeCmdTailscaleCopy()
+	_, cmdLanhcCopy, err := makeCmdLanhcCopy()
 	if err != nil {
 		return err
 	}
-	defer os.Remove(cmdTailscaleCopy)
-	up.Logf("running tailscale.exe copy for final install...")
+	defer os.Remove(cmdLanhcCopy)
+	up.Logf("running lanhc.exe copy for final install...")
 
-	cmd := exec.Command(cmdTailscaleCopy, "update")
+	cmd := exec.Command(cmdLanhcCopy, "update")
 	cmd.Env = append(os.Environ(), winMSIEnv+"="+msiTarget, winVersionEnv+"="+ver)
 	cmd.Stdout = up.Stderr
 	cmd.Stderr = up.Stderr
@@ -202,7 +202,7 @@ func (up *Updater) installMSI(msi string) error {
 	var err error
 	for tries := 0; tries < 2; tries++ {
 		// msiexec.exe requires exclusive access to the log file, so create a dedicated one for each run.
-		installLogPath := up.startNewLogFile("tailscale-installer", os.Getenv(winVersionEnv))
+		installLogPath := up.startNewLogFile("lanhc-installer", os.Getenv(winVersionEnv))
 		up.Logf("Install log: %s", installLogPath)
 		cmd := exec.Command("msiexec.exe", "/i", filepath.Base(msi), "/quiet", "/norestart", "/qn", "/L*v", installLogPath)
 		cmd.Dir = filepath.Dir(msi)
@@ -219,7 +219,7 @@ func (up *Updater) installMSI(msi string) error {
 			// https://web.archive.org/web/20250409144914/https://learn.microsoft.com/en-us/windows/win32/msi/error-codes
 			switch windows.Errno(err.ExitCode()) {
 			case windows.ERROR_SUCCESS_REBOOT_REQUIRED:
-				// In most cases, updating Tailscale should not require a reboot.
+				// In most cases, updating Lanhc should not require a reboot.
 				// If it does, it might be because we failed to close the GUI
 				// and the installer couldn't replace its executable.
 				// The old GUI will continue to run until the next reboot.
@@ -234,9 +234,9 @@ func (up *Updater) installMSI(msi string) error {
 			case windows.ERROR_INSTALL_ALREADY_RUNNING:
 				// The Windows Installer service is currently busy.
 				// It could be our own install initiated by user/MDM/GP, another MSI install or perhaps a Windows Update install.
-				// Anyway, we can't do anything about it right now. The user (or tailscaled) can retry later.
+				// Anyway, we can't do anything about it right now. The user (or lanhcd) can retry later.
 				// Retrying now will likely fail, and is risky since we might uninstall the current version
-				// and then fail to install the new one, leaving the user with no Tailscale at all.
+				// and then fail to install the new one, leaving the user with no Lanhc at all.
 				//
 				// TODO(nickkhyl,awly): should we check if this is actually a downgrade before uninstalling the current version?
 				// Also, maybe keep retrying the install longer if we uninstalled the current version due to a failed install attempt?
@@ -252,7 +252,7 @@ func (up *Updater) installMSI(msi string) error {
 		if v := os.Getenv("TS_DEBUG_UNINSTALL_VERSION"); v != "" {
 			uninstallVersion = v
 		}
-		uninstallLogPath := up.startNewLogFile("tailscale-uninstaller", uninstallVersion)
+		uninstallLogPath := up.startNewLogFile("lanhc-uninstaller", uninstallVersion)
 		// Assume it's a downgrade, which msiexec won't permit. Uninstall our current version first.
 		up.Logf("Uninstalling current version %q for downgrade...", uninstallVersion)
 		up.Logf("Uninstall log: %s", uninstallLogPath)
@@ -275,7 +275,7 @@ func msiUUIDForVersion(ver string) string {
 	if err != nil {
 		track = UnstableTrack
 	}
-	msiURL := fmt.Sprintf("https://pkgs.tailscale.com/%s/tailscale-setup-%s-%s.msi", track, ver, arch)
+	msiURL := fmt.Sprintf("https://pkgs.lanhc.com/%s/lanhc-setup-%s-%s.msi", track, ver, arch)
 	return "{" + strings.ToUpper(uuid.NewSHA1(uuid.NameSpaceURL, []byte(msiURL)).String()) + "}"
 }
 
@@ -310,7 +310,7 @@ func (up *Updater) startNewLogFile(baseNamePrefix, baseNameSuffix string) string
 	baseName := fmt.Sprintf("%s-%s-%s.log", baseNamePrefix,
 		time.Now().Format("20060102T150405"), baseNameSuffix)
 
-	dir := filepath.Join(os.Getenv("ProgramData"), "Tailscale", "Logs")
+	dir := filepath.Join(os.Getenv("ProgramData"), "Lanhc", "Logs")
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		up.Logf("failed to create log directory: %v", err)
 		return filepath.Join(os.TempDir(), baseName)

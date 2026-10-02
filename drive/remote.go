@@ -3,7 +3,7 @@
 
 package drive
 
-//go:generate go run tailscale.com/cmd/viewer --type=Share --clonefunc
+//go:generate go run lanhc.com/cmd/viewer --type=Share --clonefunc
 
 import (
 	"bytes"
@@ -36,7 +36,7 @@ type Share struct {
 	// As is the UNIX or Windows username of the local account used for this
 	// share. File read/write permissions are enforced based on this username.
 	// Can be left blank to use the default value of "whoever is running the
-	// Tailscale GUI".
+	// Lanhc GUI".
 	As string `json:"who,omitempty"`
 
 	// BookmarkData contains security-scoped bookmark data for the Sandboxed

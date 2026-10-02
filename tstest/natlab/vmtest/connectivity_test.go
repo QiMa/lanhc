@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"testing"
 
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest/natlab/vmtest"
-	"tailscale.com/tstest/natlab/vnet"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest/natlab/vmtest"
+	"lanhc.com/tstest/natlab/vnet"
 )
 
 func v6cidr(n int) string {
@@ -47,7 +47,7 @@ func easyNoControlDiscoRotate(env *vmtest.Env) *vmtest.Node {
 		vnet.EasyNAT)
 	nw.SetPostConnectControlBlackhole(true)
 	return env.AddNode(fmt.Sprintf("node-%d", n),
-		vnet.TailscaledEnv{Key: "TS_USE_CACHED_NETMAP", Value: "true"},
+		vnet.LanhcdEnv{Key: "TS_USE_CACHED_NETMAP", Value: "true"},
 		vnet.RotateDisco, vnet.PreICMPPing,
 		nw,
 		vmtest.OS(vmtest.Gokrazy))
@@ -69,10 +69,10 @@ func easyPMPFWPlusBPF(env *vmtest.Env) *vmtest.Node {
 	n := env.NumNodes()
 	return env.AddNode(fmt.Sprintf("node-%d", n),
 		vnet.HostFirewall,
-		vnet.TailscaledEnv{Key: "TS_ENABLE_RAW_DISCO", Value: "true"},
-		vnet.TailscaledEnv{Key: "TS_DEBUG_RAW_DISCO", Value: "1"},
-		vnet.TailscaledEnv{Key: "TS_DEBUG_DISCO", Value: "1"},
-		vnet.TailscaledEnv{Key: "TS_LOG_VERBOSITY", Value: "2"},
+		vnet.LanhcdEnv{Key: "TS_ENABLE_RAW_DISCO", Value: "true"},
+		vnet.LanhcdEnv{Key: "TS_DEBUG_RAW_DISCO", Value: "1"},
+		vnet.LanhcdEnv{Key: "TS_DEBUG_DISCO", Value: "1"},
+		vnet.LanhcdEnv{Key: "TS_LOG_VERBOSITY", Value: "2"},
 		env.AddNetwork(
 			fmt.Sprintf("2.%d.%d.%d", n, n, n), // public IP
 			fmt.Sprintf("192.168.%d.1/24", n), vnet.EasyNAT, vnet.NATPMP),
@@ -84,7 +84,7 @@ func easyPMPFWNoBPF(env *vmtest.Env) *vmtest.Node {
 	n := env.NumNodes()
 	return env.AddNode(fmt.Sprintf("node-%d", n),
 		vnet.HostFirewall,
-		vnet.TailscaledEnv{Key: "TS_ENABLE_RAW_DISCO", Value: "false"},
+		vnet.LanhcdEnv{Key: "TS_ENABLE_RAW_DISCO", Value: "false"},
 		env.AddNetwork(
 			fmt.Sprintf("2.%d.%d.%d", n, n, n), // public IP
 			fmt.Sprintf("192.168.%d.1/24", n), vnet.EasyNAT, vnet.NATPMP),
@@ -106,8 +106,8 @@ func hardNoDERPOrEndpoints(env *vmtest.Env) *vmtest.Node {
 		env.AddNetwork(
 			fmt.Sprintf("2.%d.%d.%d", n, n, n), // public IP
 			fmt.Sprintf("10.0.%d.1/24", n), vnet.HardNAT),
-		vnet.TailscaledEnv{Key: "TS_DEBUG_STRIP_ENDPOINTS", Value: "1"},
-		vnet.TailscaledEnv{Key: "TS_DEBUG_STRIP_HOME_DERP", Value: "1"},
+		vnet.LanhcdEnv{Key: "TS_DEBUG_STRIP_ENDPOINTS", Value: "1"},
+		vnet.LanhcdEnv{Key: "TS_DEBUG_STRIP_HOME_DERP", Value: "1"},
 		vmtest.OS(vmtest.Gokrazy))
 }
 
@@ -171,7 +171,7 @@ func TestSameLAN(t *testing.T) {
 	env.RunConnectivityTest(t.Name(), vmtest.PingRouteLocal, makeEasy, sameLAN)
 }
 
-// TestBPFDisco tests https://github.com/tailscale/tailscale/issues/3824 ...
+// TestBPFDisco tests https://github.com/lanhc/lanhc/issues/3824 ...
 // * server behind a Hard NAT
 // * client behind a NAT with UPnP support
 // * client machine has a stateful host firewall (e.g. ufw)
@@ -195,7 +195,7 @@ func TestOneHostFW(t *testing.T) {
 	env.RunConnectivityTest(t.Name(), vmtest.PingRouteDirect, easy, easyFW)
 }
 
-// Issue tailscale/corp#26438: use learned DERP route as send path of last
+// Issue lanhc/corp#26438: use learned DERP route as send path of last
 // resort
 //
 // See (*magicsock.Conn).fallbackDERPRegionForPeer and its comment for
@@ -231,7 +231,7 @@ func TestSingleDualBrokenIPv4(t *testing.T) {
 	env.Start()
 }
 
-func TestNonTailscaleCGNATEndpoint(t *testing.T) {
+func TestNonLanhcCGNATEndpoint(t *testing.T) {
 	env := vmtest.New(t)
 
 	cgnatNW := env.AddNetwork("100.65.1.1/16", "2.1.1.1", vnet.EasyNAT)

@@ -30,12 +30,12 @@ var diffTest = false
 //	  	"ssh": [
 //	… 35 identical lines
 //	  		{
-//	- 			"src":    ["maisem@tailscale.com"],
+//	- 			"src":    ["maisem@lanhc.com"],
 //	- 			"dst":    ["tag:maisem-test"],
 //	- 			"users":  ["maisem", "root"],
 //	- 			"action": "check",
 //	- 			// "recorder": ["100.12.34.56:80"],
-//	+ 			"src":      ["maisem@tailscale.com"],
+//	+ 			"src":      ["maisem@lanhc.com"],
 //	+ 			"dst":      ["tag:maisem-test"],
 //	+ 			"users":    ["maisem", "root"],
 //	+ 			"action":   "check",

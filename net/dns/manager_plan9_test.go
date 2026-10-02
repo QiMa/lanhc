@@ -7,7 +7,7 @@ package dns
 
 import "testing"
 
-func TestNetNDBBytesWithoutTailscale(t *testing.T) {
+func TestNetNDBBytesWithoutLanhc(t *testing.T) {
 	tests := []struct {
 		name string
 		raw  string
@@ -19,13 +19,13 @@ func TestNetNDBBytesWithoutTailscale(t *testing.T) {
 			want: "",
 		},
 		{
-			name: "no-tailscale",
+			name: "no-lanhc",
 			raw:  "# This is a comment\nip=10.0.2.15 ipmask=255.255.255.0 ipgw=10.0.2.2\n\tsys=gnot\n",
 			want: "# This is a comment\nip=10.0.2.15 ipmask=255.255.255.0 ipgw=10.0.2.2\n\tsys=gnot\n",
 		},
 		{
 			name: "remove-by-comments",
-			raw:  "# This is a comment\n#tailscaled-added-line: dns=100.100.100.100\nip=10.0.2.15 ipmask=255.255.255.0 ipgw=10.0.2.2\n\tdns=100.100.100.100\n\tsys=gnot\n",
+			raw:  "# This is a comment\n#lanhcd-added-line: dns=100.100.100.100\nip=10.0.2.15 ipmask=255.255.255.0 ipgw=10.0.2.2\n\tdns=100.100.100.100\n\tsys=gnot\n",
 			want: "# This is a comment\nip=10.0.2.15 ipmask=255.255.255.0 ipgw=10.0.2.2\n\tsys=gnot\n",
 		},
 		{
@@ -36,7 +36,7 @@ func TestNetNDBBytesWithoutTailscale(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := netNDBBytesWithoutTailscale([]byte(tt.raw))
+			got, err := netNDBBytesWithoutLanhc([]byte(tt.raw))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -61,8 +61,8 @@ func TestSetNDBSuffix(t *testing.T) {
 		{
 			name: "set",
 			raw:  "ip=10.0.2.15 ipmask=255.255.255.0 ipgw=10.0.2.2\n\tsys=gnot\n\tdns=100.100.100.100\n\n# foo\n",
-			want: `#tailscaled-added-line: dns=100.100.100.100 suffix=foo.ts.net
-#tailscaled-added-line: dnsdomain=foo.ts.net
+			want: `#lanhcd-added-line: dns=100.100.100.100 suffix=foo.ts.net
+#lanhcd-added-line: dnsdomain=foo.ts.net
 
 ip=10.0.2.15 ipmask=255.255.255.0 ipgw=10.0.2.2
 	sys=gnot

@@ -22,19 +22,19 @@ import (
 
 	"golang.org/x/net/ipv4"
 	"golang.org/x/net/ipv6"
-	"tailscale.com/disco"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/net/packet"
-	"tailscale.com/net/stun"
-	"tailscale.com/net/tstun"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime/mono"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/ringlog"
-	"tailscale.com/util/slicesx"
+	"lanhc.com/disco"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/net/packet"
+	"lanhc.com/net/stun"
+	"lanhc.com/net/tstun"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime/mono"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/ringlog"
+	"lanhc.com/util/slicesx"
 )
 
 var mtuProbePingSizesV4 []int
@@ -53,12 +53,12 @@ func init() {
 }
 
 // endpoint is a wireguard/conn.Endpoint. In wireguard-go and kernel WireGuard
-// there is only one endpoint for a peer, but in Tailscale we distribute a
+// there is only one endpoint for a peer, but in Lanhc we distribute a
 // number of possible endpoints for a peer which would include the all the
 // likely addresses at which a peer may be reachable. This endpoint type holds
 // the information required that when wireguard-go wants to send to a
 // particular peer (essentially represented by this endpoint type), the send
-// function can use the currently best known Tailscale endpoint to send packets
+// function can use the currently best known Lanhc endpoint to send packets
 // to the peer.
 type endpoint struct {
 	// atomically accessed; declared first for alignment reasons
@@ -73,7 +73,7 @@ type endpoint struct {
 	publicKey    key.NodePublic // peer public key (for WireGuard + DERP)
 	publicKeyHex string         // cached output of publicKey.UntypedHexString
 	fakeWGAddr   netip.AddrPort // the UDP address we tell wireguard-go we're using
-	nodeAddr     netip.Addr     // the node's first tailscale address; used for logging & wireguard rate-limiting (Issue 6686)
+	nodeAddr     netip.Addr     // the node's first lanhc address; used for logging & wireguard rate-limiting (Issue 6686)
 
 	disco atomic.Pointer[endpointDisco] // if the peer supports disco, the key and short string
 
@@ -103,7 +103,7 @@ type endpoint struct {
 
 	expired         bool // whether the node has expired
 	isWireguardOnly bool // whether the endpoint is WireGuard only
-	relayCapable    bool // whether the node is capable of speaking via a [tailscale.com/net/udprelay.Server]
+	relayCapable    bool // whether the node is capable of speaking via a [lanhc.com/net/udprelay.Server]
 }
 
 // udpRelayEndpointReady determines whether the given relay [addrQuality] should
@@ -411,7 +411,7 @@ type endpointState struct {
 	// lastGotPingTxID contains the TxID for the last incoming ping. This is
 	// used to de-dup incoming pings that we may see on both the raw disco
 	// socket on Linux, and UDP socket. We cannot rely solely on the raw socket
-	// disco handling due to https://github.com/tailscale/tailscale/issues/7078.
+	// disco handling due to https://github.com/lanhc/lanhc/issues/7078.
 	lastGotPingTxID stun.TxID
 
 	// callMeMaybeTime, if non-zero, is the time this endpoint
@@ -568,7 +568,7 @@ func (de *endpoint) ClearSrc()           {}
 func (de *endpoint) SrcToString() string { panic("unused") } // unused by wireguard-go
 func (de *endpoint) SrcIP() netip.Addr   { panic("unused") } // unused by wireguard-go
 func (de *endpoint) DstToString() string { return de.publicKeyHex }
-func (de *endpoint) DstIP() netip.Addr   { return de.nodeAddr } // see tailscale/tailscale#6686
+func (de *endpoint) DstIP() netip.Addr   { return de.nodeAddr } // see lanhc/lanhc#6686
 func (de *endpoint) DstToBytes() []byte  { return packIPPort(de.fakeWGAddr) }
 
 // addrForSendLocked returns the address(es) that should be used for
@@ -983,7 +983,7 @@ func (p *pingResultAndCallback) reply() bool {
 	return p != nil && p.taken.CompareAndSwap(false, true)
 }
 
-// discoPing starts a disco-level ping for the "tailscale ping" command (or other
+// discoPing starts a disco-level ping for the "lanhc ping" command (or other
 // callers, such as c2n). res is value to call cb with, already partially
 // filled. cb must be called at most once. Once called, ownership of res passes to cb.
 func (de *endpoint) discoPing(res *ipnstate.PingResult, size int, cb func(*ipnstate.PingResult)) {
@@ -1016,7 +1016,7 @@ func (de *endpoint) discoPing(res *ipnstate.PingResult, size int, cb func(*ipnst
 		de.startDiscoPingLocked(udpAddr, now, pingCLI, size, resCB)
 		if !udpAddr.vni.IsSet() {
 			// If the path is direct we do not want to fallthrough to pinging
-			// all candidate direct paths, otherwise "tailscale ping" results to
+			// all candidate direct paths, otherwise "lanhc ping" results to
 			// a node on the local network can look like they're bouncing
 			// between, say 10.0.0.0/8 and the peer's IPv6 address, both 1ms
 			// away, and it's random who replies first. cb() is called with the
@@ -1272,7 +1272,7 @@ func (de *endpoint) sendDiscoPing(ep epAddr, discoKey key.DiscoPublic, txid stun
 // discoPingPurpose is the reason why a discovery ping message was sent.
 type discoPingPurpose int
 
-//go:generate go run tailscale.com/cmd/addlicense -file discopingpurpose_string.go go run golang.org/x/tools/cmd/stringer -type=discoPingPurpose -trimprefix=ping
+//go:generate go run lanhc.com/cmd/addlicense -file discopingpurpose_string.go go run golang.org/x/tools/cmd/stringer -type=discoPingPurpose -trimprefix=ping
 const (
 	// pingDiscovery means that purpose of a ping was to see if a
 	// path was valid.
@@ -1282,7 +1282,7 @@ const (
 	// peer was still there.
 	pingHeartbeat
 
-	// pingCLI means that the user is running "tailscale ping"
+	// pingCLI means that the user is running "lanhc ping"
 	// from the CLI. These types of pings can go over DERP.
 	pingCLI
 
@@ -1294,7 +1294,7 @@ const (
 
 // startDiscoPingLocked sends a disco ping to ep in a separate goroutine. resCB,
 // if non-nil, means that a caller external to the magicsock package internals
-// is interested in the result (such as a CLI "tailscale ping" or a c2n ping
+// is interested in the result (such as a CLI "lanhc ping" or a c2n ping
 // request, etc)
 func (de *endpoint) startDiscoPingLocked(ep epAddr, now mono.Time, purpose discoPingPurpose, size int, resCB *pingResultAndCallback) {
 	if runtime.GOOS == "js" {
@@ -2009,12 +2009,12 @@ func (de *endpoint) handleCallMeMaybe(m *disco.CallMeMaybe) {
 	de.sendDiscoPingsLocked(monoNow, false)
 
 	// This hook is required to trigger peer relay path discovery around
-	// disco "tailscale ping" initiated by de. We may be configured with peer
+	// disco "lanhc ping" initiated by de. We may be configured with peer
 	// relay servers that differ from de.
 	//
 	// The only other peer relay path discovery hook is in [endpoint.heartbeat],
 	// which is kicked off around outbound WireGuard packet flow, or if you are
-	// the "tailscale ping" initiator. Disco "tailscale ping" does not propagate
+	// the "lanhc ping" initiator. Disco "lanhc ping" does not propagate
 	// into wireguard-go.
 	//
 	// We choose not to hook this around disco ping reception since peer relay

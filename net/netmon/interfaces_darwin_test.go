@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	"go4.org/mem"
-	"tailscale.com/util/lineiter"
-	"tailscale.com/version"
+	"lanhc.com/util/lineiter"
+	"lanhc.com/version"
 )
 
 func TestLikelyHomeRouterIPSyscallExec(t *testing.T) {

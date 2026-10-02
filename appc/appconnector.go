@@ -18,15 +18,15 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/syncs"
-	"tailscale.com/types/appctype"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/views"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/execqueue"
-	"tailscale.com/util/slicesx"
+	"lanhc.com/syncs"
+	"lanhc.com/types/appctype"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/views"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/execqueue"
+	"lanhc.com/util/slicesx"
 )
 
 // rateLogger responds to calls to update by adding a count for the current period and
@@ -117,10 +117,10 @@ func metricStoreRoutes(rate, nRoutes int64) {
 }
 
 // AppConnector is an implementation of an AppConnector that performs
-// its function as a subsystem inside of a tailscale node. At the control plane
+// its function as a subsystem inside of a lanhc node. At the control plane
 // side App Connector routing is configured in terms of domains rather than IP
 // addresses.
-// The AppConnectors responsibility inside tailscaled is to apply the routing
+// The AppConnectors responsibility inside lanhcd is to apply the routing
 // and domain configuration as supplied in the map response.
 // DNS requests for configured domains are observed. If the domains resolve to
 // routes not yet served by the AppConnector the local node configuration is

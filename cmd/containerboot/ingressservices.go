@@ -17,10 +17,10 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
-	"tailscale.com/kube/ingressservices"
-	"tailscale.com/kube/kubeclient"
-	"tailscale.com/util/linuxfw"
-	"tailscale.com/util/mak"
+	"lanhc.com/kube/ingressservices"
+	"lanhc.com/kube/kubeclient"
+	"lanhc.com/util/linuxfw"
+	"lanhc.com/util/mak"
 )
 
 // ingressProxy corresponds to a Kubernetes Operator's network layer ingress
@@ -36,7 +36,7 @@ type ingressProxy struct {
 	nfr linuxfw.NetfilterRunner
 
 	kc          kubeclient.Client // never nil
-	stateSecret string            // Secret that holds Tailscale state
+	stateSecret string            // Secret that holds Lanhc state
 
 	// Pod's IP addresses are used as an identifier of this particular Pod.
 	podIPv4 string // empty if Pod does not have IPv4 address
@@ -206,7 +206,7 @@ func (p *ingressProxy) recordStatus(ctx context.Context, newCfg *ingressservices
 }
 
 // getRulesToAdd takes the desired firewall configuration and the recorded
-// firewall status and returns a map of missing Tailscale Services and rules.
+// firewall status and returns a map of missing Lanhc Services and rules.
 func (p *ingressProxy) getRulesToAdd(cfgs *ingressservices.Configs, status *ingressservices.Status) map[string]ingressservices.Config {
 	if cfgs == nil {
 		return nil
@@ -226,7 +226,7 @@ func (p *ingressProxy) getRulesToAdd(cfgs *ingressservices.Configs, status *ingr
 }
 
 // getRulesToDelete takes the desired firewall configuration and the recorded
-// status and returns a map of Tailscale Services and rules that need to be deleted.
+// status and returns a map of Lanhc Services and rules that need to be deleted.
 func (p *ingressProxy) getRulesToDelete(cfgs *ingressservices.Configs, status *ingressservices.Status) map[string]ingressservices.Config {
 	if status == nil || !p.isCurrentStatus(status) {
 		return nil
@@ -246,16 +246,16 @@ func (p *ingressProxy) getRulesToDelete(cfgs *ingressservices.Configs, status *i
 	return rulesToDelete
 }
 
-// ensureIngressRulesAdded takes a map of Tailscale Services and rules and ensures that the firewall rules are added.
+// ensureIngressRulesAdded takes a map of Lanhc Services and rules and ensures that the firewall rules are added.
 func ensureIngressRulesAdded(cfgs map[string]ingressservices.Config, nfr linuxfw.NetfilterRunner) error {
 	for serviceName, cfg := range cfgs {
 		if cfg.IPv4Mapping != nil {
-			if err := addDNATRuleForSvc(nfr, serviceName, cfg.IPv4Mapping.TailscaleServiceIP, cfg.IPv4Mapping.ClusterIP); err != nil {
+			if err := addDNATRuleForSvc(nfr, serviceName, cfg.IPv4Mapping.LanhcServiceIP, cfg.IPv4Mapping.ClusterIP); err != nil {
 				return fmt.Errorf("error adding ingress rule for %s: %w", serviceName, err)
 			}
 		}
 		if cfg.IPv6Mapping != nil {
-			if err := addDNATRuleForSvc(nfr, serviceName, cfg.IPv6Mapping.TailscaleServiceIP, cfg.IPv6Mapping.ClusterIP); err != nil {
+			if err := addDNATRuleForSvc(nfr, serviceName, cfg.IPv6Mapping.LanhcServiceIP, cfg.IPv6Mapping.ClusterIP); err != nil {
 				return fmt.Errorf("error adding ingress rule for %s: %w", serviceName, err)
 			}
 		}
@@ -264,26 +264,26 @@ func ensureIngressRulesAdded(cfgs map[string]ingressservices.Config, nfr linuxfw
 }
 
 func addDNATRuleForSvc(nfr linuxfw.NetfilterRunner, serviceName string, tsIP, clusterIP netip.Addr) error {
-	log.Printf("adding DNAT rule for Tailscale Service %s with IP %s to Kubernetes Service IP %s", serviceName, tsIP, clusterIP)
+	log.Printf("adding DNAT rule for Lanhc Service %s with IP %s to Kubernetes Service IP %s", serviceName, tsIP, clusterIP)
 	if err := nfr.EnsureDNATRuleForSvc(serviceName, tsIP, clusterIP); err != nil {
 		return err
 	}
-	if err := nfr.ClampMSSToPMTU(tailscaleTunInterface, clusterIP); err != nil {
+	if err := nfr.ClampMSSToPMTU(lanhcTunInterface, clusterIP); err != nil {
 		return fmt.Errorf("error clamping MSS to PMTU: %w", err)
 	}
 	return nil
 }
 
-// ensureIngressRulesDeleted takes a map of Tailscale Services and rules and ensures that the firewall rules are deleted.
+// ensureIngressRulesDeleted takes a map of Lanhc Services and rules and ensures that the firewall rules are deleted.
 func ensureIngressRulesDeleted(cfgs map[string]ingressservices.Config, nfr linuxfw.NetfilterRunner) error {
 	for serviceName, cfg := range cfgs {
 		if cfg.IPv4Mapping != nil {
-			if err := deleteDNATRuleForSvc(nfr, serviceName, cfg.IPv4Mapping.TailscaleServiceIP, cfg.IPv4Mapping.ClusterIP); err != nil {
+			if err := deleteDNATRuleForSvc(nfr, serviceName, cfg.IPv4Mapping.LanhcServiceIP, cfg.IPv4Mapping.ClusterIP); err != nil {
 				return fmt.Errorf("error deleting ingress rule for %s: %w", serviceName, err)
 			}
 		}
 		if cfg.IPv6Mapping != nil {
-			if err := deleteDNATRuleForSvc(nfr, serviceName, cfg.IPv6Mapping.TailscaleServiceIP, cfg.IPv6Mapping.ClusterIP); err != nil {
+			if err := deleteDNATRuleForSvc(nfr, serviceName, cfg.IPv6Mapping.LanhcServiceIP, cfg.IPv6Mapping.ClusterIP); err != nil {
 				return fmt.Errorf("error deleting ingress rule for %s: %w", serviceName, err)
 			}
 		}
@@ -292,7 +292,7 @@ func ensureIngressRulesDeleted(cfgs map[string]ingressservices.Config, nfr linux
 }
 
 func deleteDNATRuleForSvc(nfr linuxfw.NetfilterRunner, serviceName string, tsIP, clusterIP netip.Addr) error {
-	log.Printf("deleting DNAT rule for Tailscale Service %s with IP %s to Kubernetes Service IP %s", serviceName, tsIP, clusterIP)
+	log.Printf("deleting DNAT rule for Lanhc Service %s with IP %s to Kubernetes Service IP %s", serviceName, tsIP, clusterIP)
 	return nfr.DeleteDNATRuleForSvc(serviceName, tsIP, clusterIP)
 }
 

@@ -14,12 +14,12 @@ import (
 	"sort"
 	"time"
 
-	"tailscale.com/health"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/net/tstun"
-	"tailscale.com/wgengine/router"
-	"tailscale.com/wgengine/winnet"
+	"lanhc.com/health"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/net/tstun"
+	"lanhc.com/wgengine/router"
+	"lanhc.com/wgengine/winnet"
 
 	ole "github.com/go-ole/go-ole"
 	"github.com/tailscale/wireguard-go/tun"
@@ -29,7 +29,7 @@ import (
 )
 
 // monitorDefaultRoutes subscribes to route change events and updates
-// the Tailscale tunnel interface's MTU to match that of the
+// the Lanhc tunnel interface's MTU to match that of the
 // underlying default route.
 //
 // This is an attempt at making the MTU mostly correct, but in
@@ -39,7 +39,7 @@ import (
 //
 // TODO: this code is insufficient to control the MTU correctly. The
 // correct way to do it is per-peer PMTU discovery, and synthesizing
-// ICMP fragmentation-needed messages within tailscaled. This code may
+// ICMP fragmentation-needed messages within lanhcd. This code may
 // address a few rare corner cases, but is unlikely to significantly
 // help with MTU issues compared to a static 1280B implementation.
 func monitorDefaultRoutes(tun *tun.NativeTun) (*winipcfg.RouteChangeCallback, error) {
@@ -111,7 +111,7 @@ func monitorDefaultRoutes(tun *tun.NativeTun) (*winipcfg.RouteChangeCallback, er
 }
 
 func getDefaultRouteMTU() (uint32, error) {
-	mtus, err := netmon.NonTailscaleMTUs()
+	mtus, err := netmon.NonLanhcMTUs()
 	if err != nil {
 		return 0, err
 	}
@@ -241,7 +241,7 @@ var networkCategoryWarnable = health.Register(&health.Warnable{
 	Severity: health.SeverityMedium,
 	Title:    "Windows network configuration failed",
 	Text: func(args health.Args) string {
-		return fmt.Sprintf("Failed to set the network category to private on the Tailscale adapter. This may prevent Tailscale from working correctly. Error: %s", args[health.ArgError])
+		return fmt.Sprintf("Failed to set the network category to private on the Lanhc adapter. This may prevent Lanhc from working correctly. Error: %s", args[health.ArgError])
 	},
 	MapDebugFlag: "warn-network-category-unhealthy",
 })
@@ -251,8 +251,8 @@ func configureInterface(cfg *router.Config, tun *tun.NativeTun, ht *health.Track
 	luid := winipcfg.LUID(tun.LUID())
 	iface, err := interfaceFromLUID(luid,
 		// Issue 474: on early boot, when the network is still
-		// coming up, if the Tailscale service comes up first,
-		// the Tailscale adapter it finds might not have the
+		// coming up, if the Lanhc service comes up first,
+		// the Lanhc adapter it finds might not have the
 		// IPv4 service available yet? Try this flag:
 		winipcfg.GAAFlagIncludeAllInterfaces,
 	)
@@ -308,7 +308,7 @@ func configureInterface(cfg *router.Config, tun *tun.NativeTun, ht *health.Track
 		if !errors.Is(err, windows.ERROR_NOT_FOUND) {
 			return fmt.Errorf("getting AF_INET interface: %w", err)
 		}
-		log.Printf("AF_INET interface not found on Tailscale adapter, skipping IPv4 programming")
+		log.Printf("AF_INET interface not found on Lanhc adapter, skipping IPv4 programming")
 		ipif4 = nil
 	}
 	ipif6, err := iface.LUID.IPInterface(windows.AF_INET6)
@@ -316,7 +316,7 @@ func configureInterface(cfg *router.Config, tun *tun.NativeTun, ht *health.Track
 		if !errors.Is(err, windows.ERROR_NOT_FOUND) {
 			return fmt.Errorf("getting AF_INET6 interface: %w", err)
 		}
-		log.Printf("AF_INET6 interface not found on Tailscale adapter, skipping IPv6 programming")
+		log.Printf("AF_INET6 interface not found on Lanhc adapter, skipping IPv6 programming")
 		ipif6 = nil
 	}
 
@@ -327,14 +327,14 @@ func configureInterface(cfg *router.Config, tun *tun.NativeTun, ht *health.Track
 	// Notably, Windows treats on-link subnet routes differently, reserving the last
 	// IP in the range as the broadcast IP and therefore prohibiting TCP connections
 	// to it, resulting in WSA error 10049: "The requested address is not valid in its context."
-	// This does not happen with single-host routes, such as routes to Tailscale IP addresses,
+	// This does not happen with single-host routes, such as routes to Lanhc IP addresses,
 	// but becomes a problem with advertised subnets when all IPs in the range should be reachable.
 	// See https://github.com/tailscale/support-escalations/issues/57 for details.
 	//
 	// For routes such as ours where the nexthop is meaningless, we can use an
-	// arbitrary nexthop address, such as TailscaleServiceIP, to prevent the
+	// arbitrary nexthop address, such as LanhcServiceIP, to prevent the
 	// routes from being marked as on-link. We can still create on-link routes
-	// for single-host Tailscale routes, but we shouldn't attempt to create a
+	// for single-host Lanhc routes, but we shouldn't attempt to create a
 	// route for the interface's own IP.
 	var localAddr4, localAddr6 netip.Addr
 	var gatewayAddr4, gatewayAddr6 netip.Addr
@@ -347,10 +347,10 @@ func configureInterface(cfg *router.Config, tun *tun.NativeTun, ht *health.Track
 		addresses = append(addresses, addr)
 		if addr.Addr().Is4() && !gatewayAddr4.IsValid() {
 			localAddr4 = addr.Addr()
-			gatewayAddr4 = tsaddr.TailscaleServiceIP()
+			gatewayAddr4 = tsaddr.LanhcServiceIP()
 		} else if addr.Addr().Is6() && !gatewayAddr6.IsValid() {
 			localAddr6 = addr.Addr()
-			gatewayAddr6 = tsaddr.TailscaleServiceIPv6()
+			gatewayAddr6 = tsaddr.LanhcServiceIPv6()
 		}
 	}
 
@@ -370,7 +370,7 @@ func configureInterface(cfg *router.Config, tun *tun.NativeTun, ht *health.Track
 			// even if the v6 overlay network isn't configured. To do
 			// that, we add a dummy local IPv6 address to serve as a
 			// route source.
-			ip := tsaddr.Tailscale4To6Placeholder()
+			ip := tsaddr.Lanhc4To6Placeholder()
 			addresses = append(addresses, netip.PrefixFrom(ip, ip.BitLen()))
 			gatewayAddr6 = ip
 		} else if route.Addr().Is4() && !gatewayAddr4.IsValid() {
@@ -395,9 +395,9 @@ func configureInterface(cfg *router.Config, tun *tun.NativeTun, ht *health.Track
 			// add the route unless NextHop is set, but
 			// then the interface's IP won't be pingable.
 			continue
-		case route.IsSingleIP() && (destAddr == gateway || tsaddr.IsTailscaleIP(destAddr)):
+		case route.IsSingleIP() && (destAddr == gateway || tsaddr.IsLanhcIP(destAddr)):
 			// add an on-link route if the destination
-			// is the nexthop itself or a single Tailscale IP.
+			// is the nexthop itself or a single Lanhc IP.
 			gateway = localAddr
 		}
 
@@ -441,8 +441,8 @@ func configureInterface(cfg *router.Config, tun *tun.NativeTun, ht *health.Track
 	// Re-read interface after syncAddresses.
 	iface, err = interfaceFromLUID(luid,
 		// Issue 474: on early boot, when the network is still
-		// coming up, if the Tailscale service comes up first,
-		// the Tailscale adapter it finds might not have the
+		// coming up, if the Lanhc service comes up first,
+		// the Lanhc adapter it finds might not have the
 		// IPv4 service available yet? Try this flag:
 		winipcfg.GAAFlagIncludeAllInterfaces,
 	)

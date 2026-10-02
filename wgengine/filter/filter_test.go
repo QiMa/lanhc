@@ -18,20 +18,20 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"go4.org/netipx"
-	"tailscale.com/net/flowtrack"
-	"tailscale.com/net/ipset"
-	"tailscale.com/net/packet"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/tstime/rate"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/views"
-	"tailscale.com/util/must"
-	"tailscale.com/util/slicesx"
-	"tailscale.com/util/usermetric"
-	"tailscale.com/wgengine/filter/filtertype"
+	"lanhc.com/net/flowtrack"
+	"lanhc.com/net/ipset"
+	"lanhc.com/net/packet"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/tstime/rate"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/views"
+	"lanhc.com/util/must"
+	"lanhc.com/util/slicesx"
+	"lanhc.com/util/usermetric"
+	"lanhc.com/wgengine/filter/filtertype"
 )
 
 // testAllowedProto is an IP protocol number we treat as allowed for
@@ -488,7 +488,7 @@ func TestOmitDropLogging(t *testing.T) {
 			want: true,
 		},
 		{
-			name: "v4_igmp_out", // on Windows, from https://github.com/tailscale/tailscale/issues/618
+			name: "v4_igmp_out", // on Windows, from https://github.com/lanhc/lanhc/issues/618
 			pkt:  parseHexPkt(t, "46 00 00 30 37 3a 00 00 01 02 10 0e a9 fe 53 6b e0 00 00 16 94 04 00 00 22 00 14 05 00 00 00 02 04 00 00 00 e0 00 00 fb 04 00 00 00 e0 00 00 fc"),
 			dir:  out,
 			want: true,
@@ -545,14 +545,14 @@ func TestLoggingPrivacy(t *testing.T) {
 	f := newFilter(logf)
 	f.logIPs4 = ipset.NewContainsIPFunc(views.SliceOf([]netip.Prefix{
 		tsaddr.CGNATRange(),
-		tsaddr.TailscaleULARange(),
+		tsaddr.LanhcULARange(),
 	}))
 	f.logIPs6 = f.logIPs4
 
 	var (
 		ts4       = netip.AddrPortFrom(tsaddr.CGNATRange().Addr().Next(), 1234)
 		internet4 = netip.AddrPortFrom(netip.MustParseAddr("8.8.8.8"), 1234)
-		ts6       = netip.AddrPortFrom(tsaddr.TailscaleULARange().Addr().Next(), 1234)
+		ts6       = netip.AddrPortFrom(tsaddr.LanhcULARange().Addr().Next(), 1234)
 		internet6 = netip.AddrPortFrom(netip.MustParseAddr("2001::1"), 1234)
 	)
 
@@ -1332,7 +1332,7 @@ func benchmarkFile(b *testing.B, file string, opt benchOpt) {
 
 	var logIPs netipx.IPSetBuilder
 	logIPs.AddPrefix(tsaddr.CGNATRange())
-	logIPs.AddPrefix(tsaddr.TailscaleULARange())
+	logIPs.AddPrefix(tsaddr.LanhcULARange())
 
 	f := New(matches, nil, must.Get(localNets.IPSet()), must.Get(logIPs.IPSet()), nil, logger.Discard)
 	var srcIP, dstIP netip.Addr

@@ -18,24 +18,24 @@ import (
 	"go4.org/mem"
 	"go4.org/netipx"
 	"golang.org/x/net/dns/dnsmessage"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnext"
-	"tailscale.com/net/dns"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/packet"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/net/tstun"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsd"
-	"tailscale.com/tstest"
-	"tailscale.com/types/appctype"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/opt"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/eventbus/eventbustest"
-	"tailscale.com/util/must"
-	"tailscale.com/util/set"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnext"
+	"lanhc.com/net/dns"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/packet"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/net/tstun"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsd"
+	"lanhc.com/tstest"
+	"lanhc.com/types/appctype"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/opt"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/eventbus/eventbustest"
+	"lanhc.com/util/must"
+	"lanhc.com/util/set"
 )
 
 func mustIPSetFromPrefix(s string) *netipx.IPSet {
@@ -1693,12 +1693,12 @@ func TestMapDNSResponseRewritesResponses(t *testing.T) {
 		}
 	}
 
-	ipv6ResponseUnhandledDomain := makeV6DNSResponse(t, "tailscale.com.", []*dnsmessage.AAAAResource{
+	ipv6ResponseUnhandledDomain := makeV6DNSResponse(t, "lanhc.com.", []*dnsmessage.AAAAResource{
 		{AAAA: netip.MustParseAddr("2606:4700::6812:1a78").As16()},
 		{AAAA: netip.MustParseAddr("2606:4700::6812:1b78").As16()},
 	})
 
-	ipv4ResponseUnhandledDomain := makeDNSResponse(t, "tailscale.com.", []*dnsmessage.AResource{
+	ipv4ResponseUnhandledDomain := makeDNSResponse(t, "lanhc.com.", []*dnsmessage.AResource{
 		{A: netip.MustParseAddr("1.2.3.4").As4()},
 		{A: netip.MustParseAddr("5.6.7.8").As4()},
 	})
@@ -1772,7 +1772,7 @@ func TestMapDNSResponseRewritesResponses(t *testing.T) {
 		},
 		{
 			name: "unhandled-keeps-additional-section",
-			toMap: makeDNSResponse(t, "tailscale.com.", []*dnsmessage.AResource{
+			toMap: makeDNSResponse(t, "lanhc.com.", []*dnsmessage.AResource{
 				{A: netip.MustParseAddr("1.2.3.4").As4()},
 				{A: netip.MustParseAddr("5.6.7.8").As4()},
 			}),
@@ -1842,7 +1842,7 @@ func TestMapDNSResponseRewritesResponses(t *testing.T) {
 				[]dnsmessage.Resource{
 					{
 						Header: dnsmessage.ResourceHeader{
-							Name:  dnsmessage.MustNewName("tailscale.com."),
+							Name:  dnsmessage.MustNewName("lanhc.com."),
 							Type:  dnsmessage.TypeA,
 							Class: dnsmessage.ClassINET,
 						},

@@ -7,8 +7,8 @@ import (
 	"net/netip"
 	"testing"
 
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/types/views"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/types/views"
 )
 
 func TestPeerStatusIsRouter(t *testing.T) {
@@ -25,7 +25,7 @@ func TestPeerStatusIsRouter(t *testing.T) {
 		{
 			name: "invalid",
 			status: ipnstate.PeerStatus{
-				TailscaleIPs: []netip.Addr{
+				LanhcIPs: []netip.Addr{
 					netip.MustParseAddr("100.64.0.1"),
 				},
 				AllowedIPs: new(views.SliceOf([]netip.Prefix{})),
@@ -35,7 +35,7 @@ func TestPeerStatusIsRouter(t *testing.T) {
 		{
 			name: "plain-ipv4",
 			status: ipnstate.PeerStatus{
-				TailscaleIPs: []netip.Addr{
+				LanhcIPs: []netip.Addr{
 					netip.MustParseAddr("100.64.0.1"),
 				},
 				AllowedIPs: new(views.SliceOf([]netip.Prefix{
@@ -47,7 +47,7 @@ func TestPeerStatusIsRouter(t *testing.T) {
 		{
 			name: "plain-ipv6",
 			status: ipnstate.PeerStatus{
-				TailscaleIPs: []netip.Addr{
+				LanhcIPs: []netip.Addr{
 					netip.MustParseAddr("fd7a:115c:a1e0::1"),
 				},
 				AllowedIPs: new(views.SliceOf([]netip.Prefix{
@@ -59,7 +59,7 @@ func TestPeerStatusIsRouter(t *testing.T) {
 		{
 			name: "plain-ipv4-ipv6",
 			status: ipnstate.PeerStatus{
-				TailscaleIPs: []netip.Addr{
+				LanhcIPs: []netip.Addr{
 					netip.MustParseAddr("100.64.0.1"),
 					netip.MustParseAddr("fd7a:115c:a1e0::1"),
 				},
@@ -73,7 +73,7 @@ func TestPeerStatusIsRouter(t *testing.T) {
 		{
 			name: "exit-node-ipv4",
 			status: ipnstate.PeerStatus{
-				TailscaleIPs: []netip.Addr{
+				LanhcIPs: []netip.Addr{
 					netip.MustParseAddr("100.64.0.1"),
 				},
 				AllowedIPs: new(views.SliceOf([]netip.Prefix{
@@ -86,7 +86,7 @@ func TestPeerStatusIsRouter(t *testing.T) {
 		{
 			name: "exit-node-ipv6",
 			status: ipnstate.PeerStatus{
-				TailscaleIPs: []netip.Addr{
+				LanhcIPs: []netip.Addr{
 					netip.MustParseAddr("fd7a:115c:a1e0::1"),
 				},
 				AllowedIPs: new(views.SliceOf([]netip.Prefix{
@@ -99,7 +99,7 @@ func TestPeerStatusIsRouter(t *testing.T) {
 		{
 			name: "exit-node-ipv4-ipv6",
 			status: ipnstate.PeerStatus{
-				TailscaleIPs: []netip.Addr{
+				LanhcIPs: []netip.Addr{
 					netip.MustParseAddr("100.64.0.1"),
 					netip.MustParseAddr("fd7a:115c:a1e0::1"),
 				},
@@ -115,7 +115,7 @@ func TestPeerStatusIsRouter(t *testing.T) {
 		{
 			name: "subnet-router-ipv4",
 			status: ipnstate.PeerStatus{
-				TailscaleIPs: []netip.Addr{
+				LanhcIPs: []netip.Addr{
 					netip.MustParseAddr("100.64.0.1"),
 				},
 				AllowedIPs: new(views.SliceOf([]netip.Prefix{
@@ -128,7 +128,7 @@ func TestPeerStatusIsRouter(t *testing.T) {
 		{
 			name: "subnet-router-ipv6",
 			status: ipnstate.PeerStatus{
-				TailscaleIPs: []netip.Addr{
+				LanhcIPs: []netip.Addr{
 					netip.MustParseAddr("fd7a:115c:a1e0::1"),
 				},
 				AllowedIPs: new(views.SliceOf([]netip.Prefix{
@@ -141,7 +141,7 @@ func TestPeerStatusIsRouter(t *testing.T) {
 		{
 			name: "subnet-router-ipv4-ipv6",
 			status: ipnstate.PeerStatus{
-				TailscaleIPs: []netip.Addr{
+				LanhcIPs: []netip.Addr{
 					netip.MustParseAddr("100.64.0.1"),
 					netip.MustParseAddr("fd7a:115c:a1e0::1"),
 				},

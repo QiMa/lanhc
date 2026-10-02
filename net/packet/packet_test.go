@@ -12,9 +12,9 @@ import (
 	"testing"
 	"unicode"
 
-	"tailscale.com/tstest"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/util/must"
+	"lanhc.com/tstest"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/util/must"
 )
 
 const (

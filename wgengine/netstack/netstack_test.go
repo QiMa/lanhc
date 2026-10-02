@@ -22,28 +22,28 @@ import (
 	"gvisor.dev/gvisor/pkg/tcpip/stack"
 	"gvisor.dev/gvisor/pkg/tcpip/transport/udp"
 	"gvisor.dev/gvisor/pkg/waiter"
-	"tailscale.com/envknob"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/metrics"
-	"tailscale.com/net/netx"
-	"tailscale.com/net/packet"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/net/tstun"
-	"tailscale.com/tsd"
-	"tailscale.com/tstest"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/logid"
-	"tailscale.com/types/netmap"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/wgengine"
-	"tailscale.com/wgengine/filter"
+	"lanhc.com/envknob"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/metrics"
+	"lanhc.com/net/netx"
+	"lanhc.com/net/packet"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/net/tstun"
+	"lanhc.com/tsd"
+	"lanhc.com/tstest"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/logid"
+	"lanhc.com/types/netmap"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/wgengine"
+	"lanhc.com/wgengine/filter"
 )
 
 // TestInjectInboundLeak tests that injectInbound doesn't leak memory.
-// See https://github.com/tailscale/tailscale/issues/3762
+// See https://github.com/lanhc/lanhc/issues/3762
 func TestInjectInboundLeak(t *testing.T) {
 	tunDev := tstun.NewFake()
 	dialer := new(tsdial.Dialer)
@@ -212,7 +212,7 @@ func TestShouldHandlePing(t *testing.T) {
 		}
 	})
 
-	t.Run("ICMP6-tailscale-addr", func(t *testing.T) {
+	t.Run("ICMP6-lanhc-addr", func(t *testing.T) {
 		dst := netip.MustParseAddr("fd7a:115c:a1e0:ab12::1")
 		icmph := packet.ICMP6Header{
 			IP6Header: packet.IP6Header{
@@ -233,7 +233,7 @@ func TestShouldHandlePing(t *testing.T) {
 		})
 		_, ok := impl.shouldHandlePing(pkt)
 
-		// We don't handle this because it's a Tailscale IP and not 4via6
+		// We don't handle this because it's a Lanhc IP and not 4via6
 		if ok {
 			t.Errorf("expected shouldHandlePing==false")
 		}
@@ -276,11 +276,11 @@ func TestShouldHandlePing(t *testing.T) {
 	}
 }
 
-// looksLikeATailscaleSelfAddress reports whether addr looks like
-// a Tailscale self address, for tests.
-func looksLikeATailscaleSelfAddress(addr netip.Addr) bool {
-	return addr.Is4() && tsaddr.IsTailscaleIP(addr) ||
-		addr.Is6() && tsaddr.Tailscale4To6Range().Contains(addr)
+// looksLikeALanhcSelfAddress reports whether addr looks like
+// a Lanhc self address, for tests.
+func looksLikeALanhcSelfAddress(addr netip.Addr) bool {
+	return addr.Is4() && tsaddr.IsLanhcIP(addr) ||
+		addr.Is6() && tsaddr.Lanhc4To6Range().Contains(addr)
 }
 
 func TestShouldProcessInbound(t *testing.T) {
@@ -299,7 +299,7 @@ func TestShouldProcessInbound(t *testing.T) {
 				IPProto:   ipproto.TCP,
 				Src:       netip.MustParseAddrPort("100.101.102.103:1234"),
 
-				// $ tailscale debug via 7 10.1.1.9/24
+				// $ lanhc debug via 7 10.1.1.9/24
 				// fd7a:115c:a1e0:b1a:0:7:a01:109/120
 				Dst:      netip.MustParseAddrPort("[fd7a:115c:a1e0:b1a:0:7:a01:109]:5678"),
 				TCPFlags: packet.TCPSyn,
@@ -307,14 +307,14 @@ func TestShouldProcessInbound(t *testing.T) {
 			afterStart: func(i *Impl) {
 				prefs := ipn.NewPrefs()
 				prefs.AdvertiseRoutes = []netip.Prefix{
-					// $ tailscale debug via 7 10.1.1.0/24
+					// $ lanhc debug via 7 10.1.1.0/24
 					// fd7a:115c:a1e0:b1a:0:7:a01:100/120
 					netip.MustParsePrefix("fd7a:115c:a1e0:b1a:0:7:a01:100/120"),
 				}
 				i.lb.Start(ipn.Options{
 					UpdatePrefs: prefs,
 				})
-				i.atomicIsLocalIPFunc.Store(looksLikeATailscaleSelfAddress)
+				i.atomicIsLocalIPFunc.Store(looksLikeALanhcSelfAddress)
 			},
 			beforeStart: func(i *Impl) {
 				// This should be handled even if we're
@@ -332,7 +332,7 @@ func TestShouldProcessInbound(t *testing.T) {
 				IPProto:   ipproto.TCP,
 				Src:       netip.MustParseAddrPort("100.101.102.103:1234"),
 
-				// $ tailscale debug via 7 10.1.1.9/24
+				// $ lanhc debug via 7 10.1.1.9/24
 				// fd7a:115c:a1e0:b1a:0:7:a01:109/120
 				Dst:      netip.MustParseAddrPort("[fd7a:115c:a1e0:b1a:0:7:a01:109]:5678"),
 				TCPFlags: packet.TCPSyn,
@@ -340,7 +340,7 @@ func TestShouldProcessInbound(t *testing.T) {
 			afterStart: func(i *Impl) {
 				prefs := ipn.NewPrefs()
 				prefs.AdvertiseRoutes = []netip.Prefix{
-					// tailscale debug via 7 10.1.2.0/24
+					// lanhc debug via 7 10.1.2.0/24
 					// fd7a:115c:a1e0:b1a:0:7:a01:200/120
 					netip.MustParsePrefix("fd7a:115c:a1e0:b1a:0:7:a01:200/120"),
 				}
@@ -351,7 +351,7 @@ func TestShouldProcessInbound(t *testing.T) {
 			want: false,
 		},
 		{
-			name: "tailscale-ssh-enabled",
+			name: "lanhc-ssh-enabled",
 			pkt: &packet.Parsed{
 				IPVersion: 4,
 				IPProto:   ipproto.TCP,
@@ -373,7 +373,7 @@ func TestShouldProcessInbound(t *testing.T) {
 			runOnGOOS: "linux",
 		},
 		{
-			name: "tailscale-ssh-disabled",
+			name: "lanhc-ssh-disabled",
 			pkt: &packet.Parsed{
 				IPVersion: 4,
 				IPProto:   ipproto.TCP,
@@ -423,10 +423,10 @@ func TestShouldProcessInbound(t *testing.T) {
 				i.ProcessSubnets = true
 			},
 			afterStart: func(i *Impl) {
-				// For testing purposes, assume all Tailscale
+				// For testing purposes, assume all Lanhc
 				// IPs are local; the Dst above is something
 				// not in that range.
-				i.atomicIsLocalIPFunc.Store(looksLikeATailscaleSelfAddress)
+				i.atomicIsLocalIPFunc.Store(looksLikeALanhcSelfAddress)
 			},
 			want: true,
 		},
@@ -502,7 +502,7 @@ func TestShouldProcessInbound(t *testing.T) {
 				}
 				t.Cleanup(func() { pc.Close() })
 
-				i.atomicIsLocalIPFunc.Store(looksLikeATailscaleSelfAddress)
+				i.atomicIsLocalIPFunc.Store(looksLikeALanhcSelfAddress)
 			},
 			want: true,
 		},
@@ -528,7 +528,7 @@ func TestShouldProcessInbound(t *testing.T) {
 					return addr == serviceIP
 				})
 
-				i.atomicIsLocalIPFunc.Store(looksLikeATailscaleSelfAddress)
+				i.atomicIsLocalIPFunc.Store(looksLikeALanhcSelfAddress)
 			},
 			want: false,
 		},
@@ -572,7 +572,7 @@ func TestShouldProcessInbound(t *testing.T) {
 				}
 				t.Cleanup(func() { pc.Close() })
 
-				i.atomicIsLocalIPFunc.Store(looksLikeATailscaleSelfAddress)
+				i.atomicIsLocalIPFunc.Store(looksLikeALanhcSelfAddress)
 			},
 			want: true,
 		},
@@ -598,7 +598,7 @@ func TestShouldProcessInbound(t *testing.T) {
 					return addr == serviceIPv6
 				})
 
-				i.atomicIsLocalIPFunc.Store(looksLikeATailscaleSelfAddress)
+				i.atomicIsLocalIPFunc.Store(looksLikeALanhcSelfAddress)
 			},
 			want: false,
 		},
@@ -643,7 +643,7 @@ func TestShouldProcessInbound(t *testing.T) {
 				}
 				t.Cleanup(func() { pc.Close() })
 
-				i.atomicIsLocalIPFunc.Store(looksLikeATailscaleSelfAddress)
+				i.atomicIsLocalIPFunc.Store(looksLikeALanhcSelfAddress)
 			},
 			want: false,
 		},
@@ -804,7 +804,7 @@ func TestTCPForwardLimits(t *testing.T) {
 	impl.lb.Start(ipn.Options{
 		UpdatePrefs: prefs,
 	})
-	impl.atomicIsLocalIPFunc.Store(looksLikeATailscaleSelfAddress)
+	impl.atomicIsLocalIPFunc.Store(looksLikeALanhcSelfAddress)
 
 	// Inject an "outbound" packet that's going to an IP address that times
 	// out. We need to re-parse from a byte slice so that the internal
@@ -887,7 +887,7 @@ func TestTCPForwardLimits_PerClient(t *testing.T) {
 	impl.lb.Start(ipn.Options{
 		UpdatePrefs: prefs,
 	})
-	impl.atomicIsLocalIPFunc.Store(looksLikeATailscaleSelfAddress)
+	impl.atomicIsLocalIPFunc.Store(looksLikeALanhcSelfAddress)
 
 	// Inject an "outbound" packet that's going to an IP address that times
 	// out. We need to re-parse from a byte slice so that the internal
@@ -982,7 +982,7 @@ func TestHandleLocalPackets(t *testing.T) {
 
 	prefs := ipn.NewPrefs()
 	prefs.AdvertiseRoutes = []netip.Prefix{
-		// $ tailscale debug via 7 10.1.1.0/24
+		// $ lanhc debug via 7 10.1.1.0/24
 		// fd7a:115c:a1e0:b1a:0:7:a01:100/120
 		netip.MustParsePrefix("fd7a:115c:a1e0:b1a:0:7:a01:100/120"),
 	}
@@ -1109,7 +1109,7 @@ func TestHandleLocalPackets(t *testing.T) {
 			Src:       netip.MustParseAddrPort("[::1]:1234"),
 
 			// This is an IP in the above 4via6 subnet that this node handles.
-			//    $ tailscale debug via 7 10.1.1.9/24
+			//    $ lanhc debug via 7 10.1.1.9/24
 			//    fd7a:115c:a1e0:b1a:0:7:a01:109/120
 			Dst:      netip.MustParseAddrPort("[fd7a:115c:a1e0:b1a:0:7:a01:109]:5678"),
 			TCPFlags: packet.TCPSyn,
@@ -1124,7 +1124,7 @@ func TestHandleLocalPackets(t *testing.T) {
 			t.Errorf("got filter outcome %v, want filter.DropSilently", resp)
 		}
 	})
-	t.Run("ShouldHandleLocalTailscaleServices", func(t *testing.T) {
+	t.Run("ShouldHandleLocalLanhcServices", func(t *testing.T) {
 		t.Parallel()
 		pkt := &packet.Parsed{
 			IPVersion: 4,
@@ -1139,7 +1139,7 @@ func TestHandleLocalPackets(t *testing.T) {
 		}
 	})
 	t.Run("ShouldNotHandleInactiveVIPService", func(t *testing.T) {
-		// Tests that packets to Tailscale Services we don't host are accepted.
+		// Tests that packets to Lanhc Services we don't host are accepted.
 		inactiveVIP := netip.MustParseAddr("100.99.55.222")
 		impl.lb.ForTest().SetIPServiceMappings(netmap.IPServiceMappings{
 			netip.MustParseAddr("100.99.55.111"):        "svc:test-service", // active (shared fixture)
@@ -1170,7 +1170,7 @@ func TestHandleLocalPackets(t *testing.T) {
 			Src:       netip.MustParseAddrPort("[::1]:1234"),
 
 			// This IP is *not* in the above 4via6 route
-			//    $ tailscale debug via 99 10.1.1.9/24
+			//    $ lanhc debug via 99 10.1.1.9/24
 			//    fd7a:115c:a1e0:b1a:0:63:a01:109/120
 			Dst:      netip.MustParseAddrPort("[fd7a:115c:a1e0:b1a:0:63:a01:109]:5678"),
 			TCPFlags: packet.TCPSyn,
@@ -1186,14 +1186,14 @@ func TestHandleLocalPackets(t *testing.T) {
 	})
 }
 
-// TestAcceptTCPRoutingTailscaleIPRange tests how acceptTCP behaves for TCP SYN
-// packets destined to IPs in the Tailscale range (100.64.0.0/10).
+// TestAcceptTCPRoutingLanhcIPRange tests how acceptTCP behaves for TCP SYN
+// packets destined to IPs in the Lanhc range (100.64.0.0/10).
 //
-//   - Packets to the Tailscale IP should be forwarded to loopback if there is
+//   - Packets to the Lanhc IP should be forwarded to loopback if there is
 //     no configured handler for the port.
 //   - Packets to the service IP (100.100.100.100) on non-served ports should
 //     never make it to the local host.
-//   - Packets to a Tailscale Service VIP on non-served ports should never make
+//   - Packets to a Lanhc Service VIP on non-served ports should never make
 //     it to the local host.
 func TestAcceptTCPLoopbackForwardVsRST(t *testing.T) {
 	serviceVIP := netip.MustParseAddr("100.90.1.2")
@@ -1222,7 +1222,7 @@ func TestAcceptTCPLoopbackForwardVsRST(t *testing.T) {
 			configure: func(impl *Impl) {
 				impl.ProcessSubnets = false
 				impl.ProcessLocalIPs = false
-				impl.atomicIsLocalIPFunc.Store(looksLikeATailscaleSelfAddress)
+				impl.atomicIsLocalIPFunc.Store(looksLikeALanhcSelfAddress)
 			},
 			// 853 is DoT, the specific case called out in the original bug
 			// report ("conntrack error no peer found for 100.100.100.100:853").
@@ -1233,8 +1233,8 @@ func TestAcceptTCPLoopbackForwardVsRST(t *testing.T) {
 			// peers (which produced noisy "open-conn-track: timeout opening ...;
 			// no associated peer node" log lines), leaving acceptTCP to reject
 			// the unserved port with a RST rather than falling through to the
-			// isTailscaleIP loopback rewrite.
-			dst:         netip.AddrPortFrom(tsaddr.TailscaleServiceIP(), 853),
+			// isLanhcIP loopback rewrite.
+			dst:         netip.AddrPortFrom(tsaddr.LanhcServiceIP(), 853),
 			wantForward: false,
 		},
 		{
@@ -1242,7 +1242,7 @@ func TestAcceptTCPLoopbackForwardVsRST(t *testing.T) {
 			configure: func(impl *Impl) {
 				impl.ProcessSubnets = false
 				impl.ProcessLocalIPs = false
-				impl.atomicIsLocalIPFunc.Store(looksLikeATailscaleSelfAddress)
+				impl.atomicIsLocalIPFunc.Store(looksLikeALanhcSelfAddress)
 				impl.atomicIsVIPServiceIPFunc.Store(func(addr netip.Addr) bool {
 					return addr == serviceVIP
 				})
@@ -1268,10 +1268,10 @@ func TestAcceptTCPLoopbackForwardVsRST(t *testing.T) {
 			wantForward: false,
 		},
 		{
-			name: "LocalTailscaleIPUnhandledPortForwardsToLoopback",
+			name: "LocalLanhcIPUnhandledPortForwardsToLoopback",
 			configure: func(impl *Impl) {
 				impl.ProcessSubnets = false
-				// ProcessLocalIPs=true so an inbound packet to a local Tailscale
+				// ProcessLocalIPs=true so an inbound packet to a local Lanhc
 				// IP is absorbed into netstack and dispatched to acceptTCP.
 				impl.ProcessLocalIPs = true
 				impl.atomicIsLocalIPFunc.Store(func(addr netip.Addr) bool {
@@ -1280,7 +1280,7 @@ func TestAcceptTCPLoopbackForwardVsRST(t *testing.T) {
 			},
 			// 9999 has no SSH/webclient/peerapi/serve handler, so
 			// TCPHandlerForDst returns nil and acceptTCP falls to the
-			// isTailscaleIP case, which rewrites the dial to 127.0.0.1:9999 and
+			// isLanhcIP case, which rewrites the dial to 127.0.0.1:9999 and
 			// calls forwardTCP. This is how local handlers reach the host, and
 			// the RST guards above must not swallow it.
 			dst:         netip.AddrPortFrom(selfIP, 9999),
@@ -1399,7 +1399,7 @@ func TestShouldHandlePingViaHostScoped(t *testing.T) {
 		{"SiteHost", "10.1.1.9", true},
 		{"Metadata", "169.254.169.254", false},
 		{"Loopback", "127.0.0.1", false},
-		{"TailscaleCGNAT", "100.64.1.2", false},
+		{"LanhcCGNAT", "100.64.1.2", false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -1434,7 +1434,7 @@ func TestAcceptTCPViaHostScoped(t *testing.T) {
 	}{
 		{"MetadataBlocked", netip.AddrPortFrom(mustVia99(t, "169.254.169.254"), 80), false},
 		{"LoopbackBlocked", netip.AddrPortFrom(mustVia99(t, "127.0.0.1"), 22), false},
-		{"TailscaleCGNATBlocked", netip.AddrPortFrom(mustVia99(t, "100.64.3.4"), 80), false},
+		{"LanhcCGNATBlocked", netip.AddrPortFrom(mustVia99(t, "100.64.3.4"), 80), false},
 		{"SiteHostAllowed", netip.AddrPortFrom(mustVia99(t, "10.0.0.1"), 80), true},
 		{"SiteNetworkAllowed", netip.AddrPortFrom(mustVia99(t, "10.0.0.0"), 80), true},
 		{"SiteBroadcastAllowed", netip.AddrPortFrom(mustVia99(t, "10.0.0.255"), 80), true},
@@ -1450,12 +1450,12 @@ func TestAcceptTCPViaHostScoped(t *testing.T) {
 			prefs := ipn.NewPrefs()
 			prefs.AdvertiseRoutes = []netip.Prefix{viaPrefix}
 			impl.lb.Start(ipn.Options{UpdatePrefs: prefs})
-			impl.atomicIsLocalIPFunc.Store(looksLikeATailscaleSelfAddress)
+			impl.atomicIsLocalIPFunc.Store(looksLikeALanhcSelfAddress)
 
 			dialFn, gotConn := makeHangDialer(t)
 			impl.forwardDialFunc = dialFn
 
-			client := tsaddr.Tailscale4To6(netip.MustParseAddr("100.101.102.103"))
+			client := tsaddr.Lanhc4To6(netip.MustParseAddr("100.101.102.103"))
 			pkt := tcp6syn(t, client, tc.dst.Addr(), 1234, tc.dst.Port())
 			var parsed packet.Parsed
 			parsed.Decode(pkt)
@@ -1508,10 +1508,10 @@ func TestForwardUDPViaHostScoped(t *testing.T) {
 	clientmetric.ResetForTest(t)
 
 	impl := makeNetstack(t, func(impl *Impl) {
-		impl.atomicIsLocalIPFunc.Store(looksLikeATailscaleSelfAddress)
+		impl.atomicIsLocalIPFunc.Store(looksLikeALanhcSelfAddress)
 	})
 
-	client := tsaddr.Tailscale4To6(netip.MustParseAddr("100.101.102.103"))
+	client := tsaddr.Lanhc4To6(netip.MustParseAddr("100.101.102.103"))
 	blocked := []string{
 		"127.0.0.1",
 		"169.254.169.254", // port 80 below: metadata
@@ -1551,8 +1551,8 @@ func TestShouldSendToHost(t *testing.T) {
 	var (
 		selfIP4             = netip.MustParseAddr("100.64.1.2")
 		selfIP6             = netip.MustParseAddr("fd7a:115c:a1e0::123")
-		tailscaleServiceIP4 = netip.MustParseAddr("100.99.55.111")
-		tailscaleServiceIP6 = netip.MustParseAddr("fd7a:115c:a1e0::abcd")
+		lanhcServiceIP4 = netip.MustParseAddr("100.99.55.111")
+		lanhcServiceIP6 = netip.MustParseAddr("fd7a:115c:a1e0::abcd")
 	)
 
 	makeTestNetstack := func(tb testing.TB) *Impl {
@@ -1563,13 +1563,13 @@ func TestShouldSendToHost(t *testing.T) {
 				return addr == selfIP4 || addr == selfIP6
 			})
 			impl.atomicIsVIPServiceIPFunc.Store(func(addr netip.Addr) bool {
-				return addr == tailscaleServiceIP4 || addr == tailscaleServiceIP6
+				return addr == lanhcServiceIP4 || addr == lanhcServiceIP6
 			})
 		})
 
 		prefs := ipn.NewPrefs()
 		prefs.AdvertiseRoutes = []netip.Prefix{
-			// $ tailscale debug via 7 10.1.1.0/24
+			// $ lanhc debug via 7 10.1.1.0/24
 			// fd7a:115c:a1e0:b1a:0:7:a01:100/120
 			netip.MustParsePrefix("fd7a:115c:a1e0:b1a:0:7:a01:100/120"),
 		}
@@ -1618,30 +1618,30 @@ func TestShouldSendToHost(t *testing.T) {
 		},
 		// A reply from a 4via6 address to a remote host isn't sent to
 		// the local host, but rather over WireGuard. See:
-		//     https://github.com/tailscale/tailscale/issues/12448
+		//     https://github.com/lanhc/lanhc/issues/12448
 		{
 			name: "4via6_to_remote",
 
-			// $ tailscale debug via 7 10.1.1.99/24
+			// $ lanhc debug via 7 10.1.1.99/24
 			// fd7a:115c:a1e0:b1a:0:7:a01:163/120
 			src:  netip.MustParseAddrPort("[fd7a:115c:a1e0:b1a:0:7:a01:163]:12345"),
 			dst:  netip.MustParseAddrPort("[fd7a:115:a1e0::99]:7777"),
 			want: false,
 		},
-		// However, a reply from a 4via6 address to the local Tailscale
+		// However, a reply from a 4via6 address to the local Lanhc
 		// IP for this host *is* sent to the local host. See:
-		//     https://github.com/tailscale/tailscale/issues/11304
+		//     https://github.com/lanhc/lanhc/issues/11304
 		{
 			name: "4via6_to_local",
 
-			// $ tailscale debug via 7 10.1.1.99/24
+			// $ lanhc debug via 7 10.1.1.99/24
 			// fd7a:115c:a1e0:b1a:0:7:a01:163/120
 			src:  netip.MustParseAddrPort("[fd7a:115c:a1e0:b1a:0:7:a01:163]:12345"),
 			dst:  netip.AddrPortFrom(selfIP6, 7777),
 			want: true,
 		},
 		// Traffic from a 4via6 address that we're not handling to
-		// either the local Tailscale IP or a remote host is sent
+		// either the local Lanhc IP or a remote host is sent
 		// outbound.
 		//
 		// In most cases, we won't see this type of traffic in the
@@ -1649,7 +1649,7 @@ func TestShouldSendToHost(t *testing.T) {
 		{
 			name: "other_4via6_to_local",
 
-			// $ tailscale debug via 4444 10.1.1.88/24
+			// $ lanhc debug via 4444 10.1.1.88/24
 			// fd7a:115c:a1e0:b1a:0:7:a01:163/120
 			src:  netip.MustParseAddrPort("[fd7a:115c:a1e0:b1a:0:115c:a01:158]:12345"),
 			dst:  netip.AddrPortFrom(selfIP6, 7777),
@@ -1658,36 +1658,36 @@ func TestShouldSendToHost(t *testing.T) {
 		{
 			name: "other_4via6_to_remote",
 
-			// $ tailscale debug via 4444 10.1.1.88/24
+			// $ lanhc debug via 4444 10.1.1.88/24
 			// fd7a:115c:a1e0:b1a:0:7:a01:163/120
 			src:  netip.MustParseAddrPort("[fd7a:115c:a1e0:b1a:0:115c:a01:158]:12345"),
 			dst:  netip.MustParseAddrPort("[fd7a:115:a1e0::99]:7777"),
 			want: false,
 		},
-		// After accessing the Tailscale service from host, replies from Tailscale Service IPs
-		// to the local Tailscale IPs should be sent to the host.
+		// After accessing the Lanhc service from host, replies from Lanhc Service IPs
+		// to the local Lanhc IPs should be sent to the host.
 		{
 			name: "from_service_ip_to_local_ip",
-			src:  netip.AddrPortFrom(tailscaleServiceIP4, 80),
+			src:  netip.AddrPortFrom(lanhcServiceIP4, 80),
 			dst:  netip.AddrPortFrom(selfIP4, 12345),
 			want: true,
 		},
 		{
 			name: "from_service_ip_to_local_ip_v6",
-			src:  netip.AddrPortFrom(tailscaleServiceIP6, 80),
+			src:  netip.AddrPortFrom(lanhcServiceIP6, 80),
 			dst:  netip.AddrPortFrom(selfIP6, 12345),
 			want: true,
 		},
-		// Traffic from remote IPs to Tailscale Service IPs should be sent over WireGuard.
+		// Traffic from remote IPs to Lanhc Service IPs should be sent over WireGuard.
 		{
 			name: "from_service_ip_to_remote",
-			src:  netip.AddrPortFrom(tailscaleServiceIP4, 80),
+			src:  netip.AddrPortFrom(lanhcServiceIP4, 80),
 			dst:  netip.MustParseAddrPort("173.201.32.56:54321"),
 			want: false,
 		},
 		{
 			name: "from_service_ip_to_remote_v6",
-			src:  netip.AddrPortFrom(tailscaleServiceIP6, 80),
+			src:  netip.AddrPortFrom(lanhcServiceIP6, 80),
 			dst:  netip.MustParseAddrPort("[2001:4860:4860::8888]:54321"),
 			want: false,
 		},
@@ -1793,7 +1793,7 @@ func makeUDP6PacketBuffer(src, dst netip.AddrPort) *stack.PacketBuffer {
 }
 
 // TestIsSelfDst verifies that isSelfDst correctly identifies packets whose
-// destination IP is a local Tailscale IP assigned to this node.
+// destination IP is a local Lanhc IP assigned to this node.
 func TestIsSelfDst(t *testing.T) {
 	var (
 		selfIP4   = netip.MustParseAddr("100.64.1.2")
@@ -2054,9 +2054,9 @@ func fragmentIPv4ForTest(t testing.TB, pkt []byte, firstPayloadLen uint16) (firs
 	return first, second
 }
 
-// TestLinkEndpointInjectInboundIPv4Fragments verifies that Tailscale's inbound
+// TestLinkEndpointInjectInboundIPv4Fragments verifies that Lanhc's inbound
 // link endpoint path lets IPv4 fragments reach gVisor for reassembly.
-// Previously (see https://github.com/tailscale/tailscale/issues/20320),
+// Previously (see https://github.com/lanhc/lanhc/issues/20320),
 // gro.RXChecksumOffload validated L4 checksums before reassembly, so the first
 // fragment was dropped and the UDP datagram never reached the socket.
 func TestLinkEndpointInjectInboundIPv4Fragments(t *testing.T) {

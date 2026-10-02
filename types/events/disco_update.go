@@ -1,13 +1,13 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package events contains type used as eventbus topics in tailscaled.
+// Package events contains type used as eventbus topics in lanhcd.
 package events
 
 import (
 	"net/netip"
 
-	"tailscale.com/types/key"
+	"lanhc.com/types/key"
 )
 
 // DiscoKeyAdvertisement is an event sent on the [eventbus.Bus] when a disco

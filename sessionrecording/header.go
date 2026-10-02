@@ -3,7 +3,7 @@
 
 package sessionrecording
 
-import "tailscale.com/tailcfg"
+import "lanhc.com/tailcfg"
 
 // CastHeader is the header of an asciinema file.
 type CastHeader struct {
@@ -34,7 +34,7 @@ type CastHeader struct {
 	// SrcNodeID is the node ID of the node originating the connection.
 	SrcNodeID tailcfg.StableNodeID `json:"srcNodeID"`
 
-	// Tailscale-specific fields:
+	// Lanhc-specific fields:
 	// SrcNodeTags is the list of tags on the node originating the connection (if any).
 	SrcNodeTags []string `json:"srcNodeTags,omitempty"`
 
@@ -44,7 +44,7 @@ type CastHeader struct {
 	// SrcNodeUser is the LoginName of the node originating the connection (if not tagged).
 	SrcNodeUser string `json:"srcNodeUser,omitempty"`
 
-	// Fields that are only set for Tailscale SSH session recordings:
+	// Fields that are only set for Lanhc SSH session recordings:
 
 	// Env is the environment variables of the session.
 	// Only "TERM" is set (2023-03-22).

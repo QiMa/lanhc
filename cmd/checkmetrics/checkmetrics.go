@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// checkmetrics validates that all metrics in the tailscale client-metrics
+// checkmetrics validates that all metrics in the lanhc client-metrics
 // are documented in a given path or URL.
 package main
 
@@ -17,10 +17,10 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/tsnet"
-	"tailscale.com/tstest/integration/testcontrol"
-	"tailscale.com/util/httpm"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/tsnet"
+	"lanhc.com/tstest/integration/testcontrol"
+	"lanhc.com/util/httpm"
 )
 
 var (
@@ -44,8 +44,8 @@ func main() {
 	}
 	defer os.RemoveAll(td)
 
-	// tsnet is used not used as a Tailscale client, but as a way to
-	// boot up Tailscale, have all the metrics registered, and then
+	// tsnet is used not used as a Lanhc client, but as a way to
+	// boot up Lanhc, have all the metrics registered, and then
 	// verifiy that all the metrics are documented.
 	tsn := &tsnet.Server{
 		Dir:        td,

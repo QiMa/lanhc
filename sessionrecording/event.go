@@ -6,7 +6,7 @@ package sessionrecording
 import (
 	"net/url"
 
-	"tailscale.com/tailcfg"
+	"lanhc.com/tailcfg"
 )
 
 const (
@@ -87,7 +87,7 @@ type Source struct {
 	// NodeID is the node ID of the node originating the connection.
 	NodeID tailcfg.StableNodeID `json:"nodeID"`
 
-	// Tailscale-specific fields:
+	// Lanhc-specific fields:
 	// NodeTags is the list of tags on the node originating the connection (if any).
 	NodeTags []string `json:"nodeTags,omitempty"`
 

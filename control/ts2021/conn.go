@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package ts2021 handles the details of the Tailscale 2021 control protocol
+// Package ts2021 handles the details of the Lanhc 2021 control protocol
 // that are after (above) the Noise layer. In particular, the
 // "tailcfg.EarlyNoise" message and the subsequent HTTP/2 connection.
 package ts2021
@@ -15,8 +15,8 @@ import (
 	"io"
 	"sync"
 
-	"tailscale.com/control/controlbase"
-	"tailscale.com/tailcfg"
+	"lanhc.com/control/controlbase"
+	"lanhc.com/tailcfg"
 )
 
 // Conn is a wrapper around controlbase.Conn.

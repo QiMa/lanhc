@@ -16,16 +16,16 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	"tailscale.com/client/tailscale/v2"
+	lanhcclient "tailscale.com/client/tailscale/v2"
 
-	tsoperator "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/k8s-operator/tsclient"
-	"tailscale.com/kube/k8s-proxy/conf"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/types/opt"
+	tsoperator "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/k8s-operator/tsclient"
+	"lanhc.com/kube/k8s-proxy/conf"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/types/opt"
 )
 
 func TestAPIServerProxyReconciler(t *testing.T) {
@@ -95,9 +95,9 @@ func TestAPIServerProxyReconciler(t *testing.T) {
 	}
 
 	ft := &fakeTSClient{
-		vipServices: make(map[string]tailscale.VIPService),
+		vipServices: make(map[string]lanhcclient.VIPService),
 	}
-	ingressTSSvc := tailscale.VIPService{
+	ingressTSSvc := lanhcclient.VIPService{
 		Name:    "svc:some-ingress-hostname",
 		Comment: managedTSServiceComment,
 		Annotations: map[string]string{
@@ -121,11 +121,11 @@ func TestAPIServerProxyReconciler(t *testing.T) {
 		operatorID:  "self-id",
 	}
 
-	// Create a Tailscale Service that will conflict with the initial config.
-	if err := ft.VIPServices().CreateOrUpdate(t.Context(), tailscale.VIPService{
+	// Create a Lanhc Service that will conflict with the initial config.
+	if err := ft.VIPServices().CreateOrUpdate(t.Context(), lanhcclient.VIPService{
 		Name: "svc:" + pgName,
 	}); err != nil {
-		t.Fatalf("creating initial Tailscale Service: %v", err)
+		t.Fatalf("creating initial Lanhc Service: %v", err)
 	}
 	expectReconciled(t, r, "", pgName)
 	pg.ObjectMeta.Finalizers = []string{proxyPGFinalizerName}
@@ -137,9 +137,9 @@ func TestAPIServerProxyReconciler(t *testing.T) {
 	expectMissing[rbacv1.RoleBinding](t, fc, ns, defaultDomain)
 	expectEqual(t, fc, pgCfgSecret) // Unchanged.
 
-	// Delete Tailscale Service; should see Service created and valid condition updated to true.
+	// Delete Lanhc Service; should see Service created and valid condition updated to true.
 	if err := ft.VIPServices().Delete(t.Context(), "svc:"+pgName); err != nil {
-		t.Fatalf("deleting initial Tailscale Service: %v", err)
+		t.Fatalf("deleting initial Lanhc Service: %v", err)
 	}
 
 	// Create the state secret for the ProxyGroup without services being advertised.
@@ -159,12 +159,12 @@ func TestAPIServerProxyReconciler(t *testing.T) {
 
 	tsSvc, err := ft.VIPServices().Get(t.Context(), "svc:"+pgName)
 	if err != nil {
-		t.Fatalf("getting Tailscale Service: %v", err)
+		t.Fatalf("getting Lanhc Service: %v", err)
 	}
 	if tsSvc == nil {
-		t.Fatalf("expected Tailscale Service to be created, but got nil")
+		t.Fatalf("expected Lanhc Service to be created, but got nil")
 	}
-	expectedTSSvc := &tailscale.VIPService{
+	expectedTSSvc := &lanhcclient.VIPService{
 		Name:    "svc:" + pgName,
 		Comment: managedTSServiceComment,
 		Annotations: map[string]string{
@@ -175,7 +175,7 @@ func TestAPIServerProxyReconciler(t *testing.T) {
 		Addrs: []string{"5.6.7.8"},
 	}
 	if !reflect.DeepEqual(tsSvc, expectedTSSvc) {
-		t.Fatalf("expected Tailscale Service to be %+v, got %+v", expectedTSSvc, tsSvc)
+		t.Fatalf("expected Lanhc Service to be %+v, got %+v", expectedTSSvc, tsSvc)
 	}
 	tsoperator.SetProxyGroupCondition(pg, tsapi.KubeAPIServerProxyValid, metav1.ConditionTrue, reasonKubeAPIServerProxyValid, "", 1, r.clock, r.logger)
 	tsoperator.SetProxyGroupCondition(pg, tsapi.KubeAPIServerProxyConfigured, metav1.ConditionFalse, reasonKubeAPIServerProxyNoBackends, "", 1, r.clock, r.logger)
@@ -216,7 +216,7 @@ func TestAPIServerProxyReconciler(t *testing.T) {
 	pg.Status.URL = "https://" + defaultDomain
 	expectEqual(t, fc, pg, omitPGStatusConditionMessages)
 
-	// Rename the Tailscale Service - old one + cert resources should be cleaned up.
+	// Rename the Lanhc Service - old one + cert resources should be cleaned up.
 	updatedServiceName := tailcfg.ServiceName("svc:test-pg-renamed")
 	updatedDomain := "test-pg-renamed.ts.net"
 	pg.Spec.KubeAPIServer = &tsapi.KubeAPIServerConfig{
@@ -227,7 +227,7 @@ func TestAPIServerProxyReconciler(t *testing.T) {
 	})
 	expectReconciled(t, r, "", pgName)
 	_, err = ft.VIPServices().Get(t.Context(), "svc:"+pgName)
-	if !tailscale.IsNotFound(err) {
+	if !lanhcclient.IsNotFound(err) {
 		t.Fatalf("Expected 404, got: %v", err)
 	}
 	tsSvc, err = ft.VIPServices().Get(t.Context(), updatedServiceName.String())
@@ -236,7 +236,7 @@ func TestAPIServerProxyReconciler(t *testing.T) {
 	}
 	expectedTSSvc.Name = updatedServiceName.String()
 	if !reflect.DeepEqual(tsSvc, expectedTSSvc) {
-		t.Fatalf("expected Tailscale Service to be %+v, got %+v", expectedTSSvc, tsSvc)
+		t.Fatalf("expected Lanhc Service to be %+v, got %+v", expectedTSSvc, tsSvc)
 	}
 	// Check cfg and status reset until TLS certs are available again.
 	expectedCfg.APIServerProxy.ServiceName = new(updatedServiceName)
@@ -264,7 +264,7 @@ func TestAPIServerProxyReconciler(t *testing.T) {
 	tsoperator.SetProxyGroupCondition(pg, tsapi.KubeAPIServerProxyConfigured, metav1.ConditionTrue, reasonKubeAPIServerProxyConfigured, "", 1, r.clock, r.logger)
 	pg.Status.URL = "https://" + updatedDomain
 
-	// Delete the ProxyGroup and verify Tailscale Service and cert resources are cleaned up.
+	// Delete the ProxyGroup and verify Lanhc Service and cert resources are cleaned up.
 	if err := fc.Delete(t.Context(), pg); err != nil {
 		t.Fatalf("deleting ProxyGroup: %v", err)
 	}
@@ -273,17 +273,17 @@ func TestAPIServerProxyReconciler(t *testing.T) {
 	expectMissing[rbacv1.Role](t, fc, ns, updatedDomain)
 	expectMissing[rbacv1.RoleBinding](t, fc, ns, updatedDomain)
 	_, err = ft.VIPServices().Get(t.Context(), updatedServiceName.String())
-	if !tailscale.IsNotFound(err) {
+	if !lanhcclient.IsNotFound(err) {
 		t.Fatalf("Expected 404, got: %v", err)
 	}
 
-	// Ingress Tailscale Service should not be affected.
+	// Ingress Lanhc Service should not be affected.
 	svc, err := ft.VIPServices().Get(t.Context(), ingressTSSvc.Name)
 	if err != nil {
-		t.Fatalf("getting ingress Tailscale Service: %v", err)
+		t.Fatalf("getting ingress Lanhc Service: %v", err)
 	}
 	if !reflect.DeepEqual(svc, &ingressTSSvc) {
-		t.Fatalf("expected ingress Tailscale Service to be unmodified %+v, got %+v", ingressTSSvc, svc)
+		t.Fatalf("expected ingress Lanhc Service to be unmodified %+v, got %+v", ingressTSSvc, svc)
 	}
 }
 
@@ -299,32 +299,32 @@ func TestExclusiveOwnerAnnotations(t *testing.T) {
 	)
 
 	for name, tc := range map[string]struct {
-		svc     *tailscale.VIPService
+		svc     *lanhcclient.VIPService
 		wantErr string
 	}{
 		"no_svc": {
 			svc: nil,
 		},
 		"empty_svc": {
-			svc:     &tailscale.VIPService{},
-			wantErr: "likely a resource created by something other than the Tailscale Kubernetes operator",
+			svc:     &lanhcclient.VIPService{},
+			wantErr: "likely a resource created by something other than the Lanhc Kubernetes operator",
 		},
 		"already_owner": {
-			svc: &tailscale.VIPService{
+			svc: &lanhcclient.VIPService{
 				Annotations: map[string]string{
 					ownerAnnotation: pg1Owner,
 				},
 			},
 		},
 		"already_owner_name_updated": {
-			svc: &tailscale.VIPService{
+			svc: &lanhcclient.VIPService{
 				Annotations: map[string]string{
 					ownerAnnotation: `{"ownerRefs":[{"operatorID":"self-id","resource":{"kind":"ProxyGroup","name":"old-pg1-name","uid":"pg1-uid"}}]}`,
 				},
 			},
 		},
 		"preserves_existing_annotations": {
-			svc: &tailscale.VIPService{
+			svc: &lanhcclient.VIPService{
 				Annotations: map[string]string{
 					"existing":      "annotation",
 					ownerAnnotation: pg1Owner,
@@ -332,7 +332,7 @@ func TestExclusiveOwnerAnnotations(t *testing.T) {
 			},
 		},
 		"owned_by_another_operator": {
-			svc: &tailscale.VIPService{
+			svc: &lanhcclient.VIPService{
 				Annotations: map[string]string{
 					ownerAnnotation: `{"ownerRefs":[{"operatorID":"operator-2"}]}`,
 				},
@@ -340,7 +340,7 @@ func TestExclusiveOwnerAnnotations(t *testing.T) {
 			wantErr: "already owned by other operator(s)",
 		},
 		"owned_by_an_ingress": {
-			svc: &tailscale.VIPService{
+			svc: &lanhcclient.VIPService{
 				Annotations: map[string]string{
 					ownerAnnotation: `{"ownerRefs":[{"operatorID":"self-id"}]}`, // Ingress doesn't set Resource field (yet).
 				},
@@ -348,7 +348,7 @@ func TestExclusiveOwnerAnnotations(t *testing.T) {
 			wantErr: "does not reference an owning resource",
 		},
 		"owned_by_another_pg": {
-			svc: &tailscale.VIPService{
+			svc: &lanhcclient.VIPService{
 				Annotations: map[string]string{
 					ownerAnnotation: `{"ownerRefs":[{"operatorID":"self-id","resource":{"kind":"ProxyGroup","name":"pg2","uid":"pg2-uid"}}]}`,
 				},

@@ -10,10 +10,10 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"tailscale.com/types/appctype"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/must"
+	"lanhc.com/types/appctype"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/must"
 )
 
 func TestGetActiveState(t *testing.T) {

@@ -6,14 +6,14 @@ package ipnlocal
 import (
 	"time"
 
-	"tailscale.com/control/controlclient"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/netmap"
-	"tailscale.com/util/eventbus"
+	"lanhc.com/control/controlclient"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/netmap"
+	"lanhc.com/util/eventbus"
 )
 
 // For extra defense-in-depth, when we're testing expired nodes we check

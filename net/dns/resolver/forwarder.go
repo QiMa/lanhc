@@ -26,28 +26,28 @@ import (
 	"time"
 
 	dns "golang.org/x/net/dns/dnsmessage"
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/health"
-	"tailscale.com/net/dns/publicdns"
-	"tailscale.com/net/dnscache"
-	"tailscale.com/net/neterror"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/netx"
-	"tailscale.com/net/sockstats"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/syncs"
-	"tailscale.com/types/dnstype"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/nettype"
-	"tailscale.com/types/views"
-	"tailscale.com/util/cloudenv"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/race"
-	"tailscale.com/version"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/health"
+	"lanhc.com/net/dns/publicdns"
+	"lanhc.com/net/dnscache"
+	"lanhc.com/net/neterror"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/netx"
+	"lanhc.com/net/sockstats"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/syncs"
+	"lanhc.com/types/dnstype"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/nettype"
+	"lanhc.com/types/views"
+	"lanhc.com/util/cloudenv"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/race"
+	"lanhc.com/version"
 )
 
 // headerBytes is the number of bytes in a DNS message header.
@@ -272,7 +272,7 @@ var dnsForwarderFailing = health.Register(&health.Warnable{
 	Title:               "DNS unavailable",
 	Severity:            health.SeverityMedium,
 	DependsOn:           []*health.Warnable{health.NetworkStatusWarnable},
-	Text:                health.StaticMessage("Tailscale can't reach the configured DNS servers. Internet connectivity may be affected."),
+	Text:                health.StaticMessage("Lanhc can't reach the configured DNS servers. Internet connectivity may be affected."),
 	ImpactsConnectivity: true,
 	TimeToVisible:       15 * time.Second,
 })
@@ -544,7 +544,7 @@ func (f *forwarder) getKnownDoHClientForProvider(urlBase string) (c *http.Client
 	})
 	tlsConfig := &tls.Config{
 		// Enforce TLS 1.3, as all of our supported DNS-over-HTTPS servers are compatible with it
-		// (see tailscale.com/net/dns/publicdns/publicdns.go).
+		// (see lanhc.com/net/dns/publicdns/publicdns.go).
 		MinVersion: tls.VersionTLS13,
 	}
 	c = &http.Client{
@@ -582,7 +582,7 @@ func (f *forwarder) sendDoH(ctx context.Context, urlBase string, c *http.Client,
 	}
 	req.Header.Set("Content-Type", dohType)
 	req.Header.Set("Accept", dohType)
-	req.Header.Set("User-Agent", "tailscaled/"+version.Long())
+	req.Header.Set("User-Agent", "lanhcd/"+version.Long())
 
 	hres, err := c.Do(req)
 	if err != nil {
@@ -701,7 +701,7 @@ func (f *forwarder) send(ctx context.Context, fq *forwardQuery, rr resolverAndDe
 
 		// If this is a UDP query, return it regardless of whether the
 		// response is truncated or not; the client can retry
-		// communicating with tailscaled over TCP. There's no point
+		// communicating with lanhcd over TCP. There's no point
 		// falling back to TCP for a truncated query if we can't return
 		// the results to the client.
 		if isUDPQuery {
@@ -900,7 +900,7 @@ var optDNSForwardUseRoutes = envknob.RegisterOptBool("TS_DEBUG_DNS_FORWARD_USE_R
 // to avoid having two bart tables in memory, especially on iOS. Once that's done,
 // we can get rid of the nodeAttr/control knob and always use UserDial for DNS.
 //
-// See tailscale/tailscale#12027.
+// See lanhc/lanhc#12027.
 func ShouldUseRoutes(knobs *controlknobs.Knobs) bool {
 	if !buildfeatures.HasDNS {
 		return false
@@ -1202,7 +1202,7 @@ func (f *forwarder) forwardWithDestChan(ctx context.Context, query packet, respo
 			// No upstream resolver for this name isn't a forwarder failure:
 			// it's split DNS / a name we weren't asked to handle. Count it
 			// rather than raising dnsForwarderFailing, which is reserved for
-			// resolvers we found but couldn't reach. See tailscale/tailscale#19931.
+			// resolvers we found but couldn't reach. See lanhc/lanhc#19931.
 			metricDNSFwdErrorNoUpstream.Add(1)
 			f.logf("no upstream resolvers set, returning SERVFAIL")
 

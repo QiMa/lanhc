@@ -22,7 +22,7 @@ import (
 // filesystems like ext4, opening the NFD name of an NFC file fails. When an
 // exact lookup fails, normalizingFS rescans the parent directory for an entry
 // whose name is canonically equivalent to the requested one and uses that
-// instead. See https://github.com/tailscale/tailscale/issues/15020.
+// instead. See https://github.com/lanhc/lanhc/issues/15020.
 type normalizingFS struct {
 	webdav.FileSystem
 }

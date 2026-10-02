@@ -3,7 +3,7 @@
 
 //go:build for_go_mod_tidy_only
 
-// Package tooldeps contains dependencies for tools used in the Tailscale repository,
+// Package tooldeps contains dependencies for tools used in the Lanhc repository,
 // so they're not removed by "go mod tidy".
 package tooldeps
 

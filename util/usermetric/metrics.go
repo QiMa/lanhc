@@ -10,7 +10,7 @@ package usermetric
 import (
 	"sync"
 
-	"tailscale.com/feature/buildfeatures"
+	"lanhc.com/feature/buildfeatures"
 )
 
 // Metrics contains user-facing metrics that are used by multiple packages.
@@ -61,13 +61,13 @@ func (r *Registry) initOnce() {
 	r.m.initOnce.Do(func() {
 		r.m.droppedPacketsInbound = NewMultiLabelMapWithRegistry[DropLabels](
 			r,
-			"tailscaled_inbound_dropped_packets_total",
+			"lanhcd_inbound_dropped_packets_total",
 			"counter",
 			"Counts the number of dropped packets received by the node from other peers",
 		)
 		r.m.droppedPacketsOutbound = NewMultiLabelMapWithRegistry[DropLabels](
 			r,
-			"tailscaled_outbound_dropped_packets_total",
+			"lanhcd_outbound_dropped_packets_total",
 			"counter",
 			"Counts the number of packets dropped while being sent to other peers",
 		)

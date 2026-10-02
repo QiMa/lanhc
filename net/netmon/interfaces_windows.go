@@ -13,8 +13,8 @@ import (
 
 	"golang.org/x/sys/windows"
 	"golang.zx2c4.com/wireguard/windows/tunnel/winipcfg"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/tsconst"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/tsconst"
 )
 
 const (
@@ -101,18 +101,18 @@ func likelyHomeRouterIPWindows() (ret netip.Addr, _ netip.Addr, ok bool) {
 	return ret, netip.Addr{}, ret.IsValid()
 }
 
-// NonTailscaleMTUs returns a map of interface LUID to interface MTU,
-// for all interfaces except Tailscale tunnels.
-func NonTailscaleMTUs() (map[winipcfg.LUID]uint32, error) {
+// NonLanhcMTUs returns a map of interface LUID to interface MTU,
+// for all interfaces except Lanhc tunnels.
+func NonLanhcMTUs() (map[winipcfg.LUID]uint32, error) {
 	mtus := map[winipcfg.LUID]uint32{}
-	ifs, err := NonTailscaleInterfaces()
+	ifs, err := NonLanhcInterfaces()
 	for luid, iface := range ifs {
 		mtus[luid] = iface.MTU
 	}
 	return mtus, err
 }
 
-func notTailscaleInterface(iface *winipcfg.IPAdapterAddresses) bool {
+func notLanhcInterface(iface *winipcfg.IPAdapterAddresses) bool {
 	// TODO(bradfitz): do this without the Description method's
 	// utf16-to-string allocation. But at least we only do it for
 	// the virtual interfaces, for which there won't be many.
@@ -124,10 +124,10 @@ func notTailscaleInterface(iface *winipcfg.IPAdapterAddresses) bool {
 		strings.Contains(desc, tsconst.WintunInterfaceDesc0_14))
 }
 
-// NonTailscaleInterfaces returns a map of interface LUID to interface
-// for all interfaces except Tailscale tunnels.
-func NonTailscaleInterfaces() (map[winipcfg.LUID]*winipcfg.IPAdapterAddresses, error) {
-	return getInterfaces(windows.AF_UNSPEC, winipcfg.GAAFlagIncludeAllInterfaces, notTailscaleInterface)
+// NonLanhcInterfaces returns a map of interface LUID to interface
+// for all interfaces except Lanhc tunnels.
+func NonLanhcInterfaces() (map[winipcfg.LUID]*winipcfg.IPAdapterAddresses, error) {
+	return getInterfaces(windows.AF_UNSPEC, winipcfg.GAAFlagIncludeAllInterfaces, notLanhcInterface)
 }
 
 // getInterfaces returns a map of interfaces keyed by their LUID for
@@ -149,7 +149,7 @@ func getInterfaces(family winipcfg.AddressFamily, flags winipcfg.GAAFlags, match
 	return ret, nil
 }
 
-// GetWindowsDefault returns the interface that has the non-Tailscale
+// GetWindowsDefault returns the interface that has the non-Lanhc
 // default route for the given address family.
 //
 // It returns (nil, nil) if no interface is found.
@@ -171,7 +171,7 @@ func GetWindowsDefault(family winipcfg.AddressFamily) (*winipcfg.IPAdapterAddres
 				return false
 			}
 		}
-		return iface.OperStatus == winipcfg.IfOperStatusUp && notTailscaleInterface(iface)
+		return iface.OperStatus == winipcfg.IfOperStatusUp && notLanhcInterface(iface)
 	})
 	if err != nil {
 		return nil, err

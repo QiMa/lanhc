@@ -20,15 +20,15 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"tailscale.com/client/local"
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/net/memnet"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/views"
-	"tailscale.com/util/httpm"
-	"tailscale.com/util/syspolicy/policyclient"
+	"lanhc.com/client/local"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/net/memnet"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/views"
+	"lanhc.com/util/httpm"
+	"lanhc.com/util/syspolicy/policyclient"
 )
 
 func TestQnapAuthnURL(t *testing.T) {
@@ -98,7 +98,7 @@ func TestServeAPI(t *testing.T) {
 	remoteIPWithAllCapabilities := "100.100.100.101"
 	remoteIPWithNoCapabilities := "100.100.100.102"
 
-	lal := memnet.Listen("local-tailscaled.sock:80")
+	lal := memnet.Listen("local-lanhcd.sock:80")
 	defer lal.Close()
 	localapi := mockLocalAPI(t,
 		map[string]*apitype.WhoIsResponse{
@@ -257,7 +257,7 @@ func TestServeAPI(t *testing.T) {
 	}
 }
 
-func TestGetTailscaleBrowserSession(t *testing.T) {
+func TestGetLanhcBrowserSession(t *testing.T) {
 	userA := &tailcfg.UserProfile{ID: tailcfg.UserID(1)}
 	userB := &tailcfg.UserProfile{ID: tailcfg.UserID(2)}
 
@@ -281,7 +281,7 @@ func TestGetTailscaleBrowserSession(t *testing.T) {
 		},
 	}
 
-	lal := memnet.Listen("local-tailscaled.sock:80")
+	lal := memnet.Listen("local-lanhcd.sock:80")
 	defer lal.Close()
 	localapi := mockLocalAPI(t, tailnetNodes, func() *ipnstate.PeerStatus { return selfNode }, nil, nil)
 	defer localapi.Close()
@@ -329,11 +329,11 @@ func TestGetTailscaleBrowserSession(t *testing.T) {
 		wantIsAuthorized bool // response from session.isAuthorized
 	}{
 		{
-			name:        "not-connected-over-tailscale",
+			name:        "not-connected-over-lanhc",
 			selfNode:    &ipnstate.PeerStatus{ID: "self", UserID: userA.ID},
 			remoteAddr:  "77.77.77.77",
 			wantSession: nil,
-			wantError:   errNotUsingTailscale,
+			wantError:   errNotUsingLanhc,
 		},
 		{
 			name:        "no-session-user-self-node",
@@ -435,17 +435,17 @@ func TestGetTailscaleBrowserSession(t *testing.T) {
 }
 
 // TestAuthorizeRequest tests the s.authorizeRequest function.
-// 2023-10-18: These tests currently cover tailscale auth mode (not platform auth).
+// 2023-10-18: These tests currently cover lanhc auth mode (not platform auth).
 func TestAuthorizeRequest(t *testing.T) {
 	// Create self and remoteNode owned by same user.
-	// See TestGetTailscaleBrowserSession for tests of
+	// See TestGetLanhcBrowserSession for tests of
 	// browser sessions w/ different users.
 	user := &tailcfg.UserProfile{ID: tailcfg.UserID(1)}
 	self := &ipnstate.PeerStatus{ID: "self", UserID: user.ID}
 	remoteNode := &apitype.WhoIsResponse{Node: &tailcfg.Node{StableID: "node"}, UserProfile: user}
 	remoteIP := "100.100.100.101"
 
-	lal := memnet.Listen("local-tailscaled.sock:80")
+	lal := memnet.Listen("local-lanhcd.sock:80")
 	defer lal.Close()
 	localapi := mockLocalAPI(t,
 		map[string]*apitype.WhoIsResponse{remoteIP: remoteNode},
@@ -474,30 +474,30 @@ func TestAuthorizeRequest(t *testing.T) {
 		reqPath   string
 		reqMethod string
 
-		wantOkNotOverTailscale bool // simulates req over public internet
+		wantOkNotOverLanhc bool // simulates req over public internet
 		wantOkWithoutSession   bool // simulates req over TS without valid browser session
 		wantOkWithSession      bool // simulates req over TS with valid browser session
 	}{{
 		reqPath:                "/api/data",
 		reqMethod:              httpm.GET,
-		wantOkNotOverTailscale: false,
+		wantOkNotOverLanhc: false,
 		wantOkWithoutSession:   true,
 		wantOkWithSession:      true,
 	}, {
 		reqPath:                "/api/data",
 		reqMethod:              httpm.POST,
-		wantOkNotOverTailscale: false,
+		wantOkNotOverLanhc: false,
 		wantOkWithoutSession:   false,
 		wantOkWithSession:      true,
 	}, {
 		reqPath:                "/api/somethingelse",
 		reqMethod:              httpm.GET,
-		wantOkNotOverTailscale: false,
+		wantOkNotOverLanhc: false,
 		wantOkWithoutSession:   false,
 		wantOkWithSession:      true,
 	}, {
 		reqPath:                "/assets/styles.css",
-		wantOkNotOverTailscale: false,
+		wantOkNotOverLanhc: false,
 		wantOkWithoutSession:   true,
 		wantOkWithSession:      true,
 	}}
@@ -512,15 +512,15 @@ func TestAuthorizeRequest(t *testing.T) {
 				w := httptest.NewRecorder()
 				return s.authorizeRequest(w, r)
 			}
-			// Do request from non-Tailscale IP.
-			if gotOk := doAuthorize("123.456.789.999", ""); gotOk != tt.wantOkNotOverTailscale {
-				t.Errorf("wantOkNotOverTailscale; want=%v, got=%v", tt.wantOkNotOverTailscale, gotOk)
+			// Do request from non-Lanhc IP.
+			if gotOk := doAuthorize("123.456.789.999", ""); gotOk != tt.wantOkNotOverLanhc {
+				t.Errorf("wantOkNotOverLanhc; want=%v, got=%v", tt.wantOkNotOverLanhc, gotOk)
 			}
-			// Do request from Tailscale IP w/o associated session.
+			// Do request from Lanhc IP w/o associated session.
 			if gotOk := doAuthorize(remoteIP, ""); gotOk != tt.wantOkWithoutSession {
 				t.Errorf("wantOkWithoutSession; want=%v, got=%v", tt.wantOkWithoutSession, gotOk)
 			}
-			// Do request from Tailscale IP w/ associated session.
+			// Do request from Lanhc IP w/ associated session.
 			if gotOk := doAuthorize(remoteIP, validCookie); gotOk != tt.wantOkWithSession {
 				t.Errorf("wantOkWithSession; want=%v, got=%v", tt.wantOkWithSession, gotOk)
 			}
@@ -533,7 +533,7 @@ func TestServeAuth(t *testing.T) {
 	self := &ipnstate.PeerStatus{
 		ID:           "self",
 		UserID:       user.ID,
-		TailscaleIPs: []netip.Addr{netip.MustParseAddr("100.1.2.3")},
+		LanhcIPs: []netip.Addr{netip.MustParseAddr("100.1.2.3")},
 	}
 	remoteIP := "100.100.100.101"
 	remoteNode := &apitype.WhoIsResponse{
@@ -554,7 +554,7 @@ func TestServeAuth(t *testing.T) {
 
 	testControlURL := &defaultControlURL
 
-	lal := memnet.Listen("local-tailscaled.sock:80")
+	lal := memnet.Listen("local-lanhcd.sock:80")
 	defer lal.Close()
 	localapi := mockLocalAPI(t,
 		map[string]*apitype.WhoIsResponse{remoteIP: remoteNode},
@@ -855,7 +855,7 @@ func TestServeAPIAuthMetricLogging(t *testing.T) {
 	self := &ipnstate.PeerStatus{
 		ID:           "self",
 		UserID:       user.ID,
-		TailscaleIPs: []netip.Addr{netip.MustParseAddr("100.1.2.3")},
+		LanhcIPs: []netip.Addr{netip.MustParseAddr("100.1.2.3")},
 	}
 	remoteIP := "100.100.100.101"
 	remoteNode := &apitype.WhoIsResponse{
@@ -906,12 +906,12 @@ func TestServeAPIAuthMetricLogging(t *testing.T) {
 		},
 		UserProfile: otherUser,
 	}
-	nonTailscaleIP := "10.100.2.3"
+	nonLanhcIP := "10.100.2.3"
 
 	testControlURL := &defaultControlURL
 	var loggedMetrics []string
 
-	lal := memnet.Listen("local-tailscaled.sock:80")
+	lal := memnet.Listen("local-lanhcd.sock:80")
 	defer lal.Close()
 	localapi := mockLocalAPI(t,
 		map[string]*apitype.WhoIsResponse{remoteIP: remoteNode, localIP: localNode, otherIP: otherNode, localTaggedIP: localTaggedNode, remoteTaggedIP: remoteTaggedNode},
@@ -1016,9 +1016,9 @@ func TestServeAPIAuthMetricLogging(t *testing.T) {
 			wantLoggedMetric: "web_client_viewing_remote_tag",
 		},
 		{
-			name:             "viewing-local-non-tailscale",
+			name:             "viewing-local-non-lanhc",
 			cookie:           authenticatedLocalNodeCookie,
-			remoteAddr:       nonTailscaleIP,
+			remoteAddr:       nonLanhcIP,
 			wantLoggedMetric: "web_client_viewing_local",
 		},
 		{
@@ -1127,15 +1127,15 @@ func TestPathPrefix(t *testing.T) {
 	}
 }
 
-func TestRequireTailscaleIP(t *testing.T) {
+func TestRequireLanhcIP(t *testing.T) {
 	self := &ipnstate.PeerStatus{
-		TailscaleIPs: []netip.Addr{
+		LanhcIPs: []netip.Addr{
 			netip.MustParseAddr("100.1.2.3"),
 			netip.MustParseAddr("fd7a:115c::1234"),
 		},
 	}
 
-	lal := memnet.Listen("local-tailscaled.sock:80")
+	lal := memnet.Listen("local-lanhcd.sock:80")
 	defer lal.Close()
 	localapi := mockLocalAPI(t, nil, func() *ipnstate.PeerStatus { return self }, nil, nil)
 	defer localapi.Close()
@@ -1209,7 +1209,7 @@ func TestRequireTailscaleIP(t *testing.T) {
 			s.logf = t.Logf
 			r := httptest.NewRequest(httpm.GET, tt.target, nil)
 			w := httptest.NewRecorder()
-			handled := s.requireTailscaleIP(w, r)
+			handled := s.requireLanhcIP(w, r)
 
 			if handled != tt.wantHandled {
 				t.Errorf("request(%q) was handled; want=%v, got=%v", tt.target, tt.wantHandled, handled)
@@ -1435,7 +1435,7 @@ func TestPeerCapabilities(t *testing.T) {
 }
 
 var (
-	defaultControlURL   = "https://controlplane.tailscale.com"
+	defaultControlURL   = "https://controlplane.lanhc.com"
 	testAuthPath        = "/a/12345"
 	testAuthPathSuccess = "/a/will-succeed"
 	testAuthPathError   = "/a/will-error"
@@ -1689,7 +1689,7 @@ func TestServePostRoutes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var gotPrefs *ipn.MaskedPrefs
 
-			lal := memnet.Listen("local-tailscaled.sock:80")
+			lal := memnet.Listen("local-lanhcd.sock:80")
 			defer lal.Close()
 
 			localapi := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

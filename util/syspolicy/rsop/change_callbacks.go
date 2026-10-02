@@ -9,13 +9,13 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/syncs"
-	"tailscale.com/util/set"
-	"tailscale.com/util/syspolicy/internal/loggerx"
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/util/syspolicy/policyclient"
-	"tailscale.com/util/syspolicy/ptype"
-	"tailscale.com/util/syspolicy/setting"
+	"lanhc.com/syncs"
+	"lanhc.com/util/set"
+	"lanhc.com/util/syspolicy/internal/loggerx"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/util/syspolicy/policyclient"
+	"lanhc.com/util/syspolicy/ptype"
+	"lanhc.com/util/syspolicy/setting"
 )
 
 // Change represents a change from the Old to the New value of type T.

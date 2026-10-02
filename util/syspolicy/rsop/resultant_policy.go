@@ -10,12 +10,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	"tailscale.com/syncs"
-	"tailscale.com/util/syspolicy/internal/loggerx"
-	"tailscale.com/util/syspolicy/setting"
-	"tailscale.com/util/testenv"
+	"lanhc.com/syncs"
+	"lanhc.com/util/syspolicy/internal/loggerx"
+	"lanhc.com/util/syspolicy/setting"
+	"lanhc.com/util/testenv"
 
-	"tailscale.com/util/syspolicy/source"
+	"lanhc.com/util/syspolicy/source"
 )
 
 // ErrPolicyClosed is returned by [Policy.Reload], [Policy.addSource],

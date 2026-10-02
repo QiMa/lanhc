@@ -7,15 +7,15 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/ipn"
-	"tailscale.com/tsd"
-	"tailscale.com/tstest"
-	"tailscale.com/tstime"
-	"tailscale.com/types/logger"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/ipn"
+	"lanhc.com/tsd"
+	"lanhc.com/tstest"
+	"lanhc.com/tstime"
+	"lanhc.com/types/logger"
 )
 
-// fakeBackend is a minimal [ipnext.SafeBackend] for tests. Only Clock and TailscaleVarRoot are
+// fakeBackend is a minimal [ipnext.SafeBackend] for tests. Only Clock and LanhcVarRoot are
 // used by the extension; Sys is never called.
 type fakeBackend struct {
 	clock   tstime.Clock
@@ -24,7 +24,7 @@ type fakeBackend struct {
 
 func (f *fakeBackend) Sys() *tsd.System         { return nil }
 func (f *fakeBackend) Clock() tstime.Clock      { return f.clock }
-func (f *fakeBackend) TailscaleVarRoot() string { return f.varRoot }
+func (f *fakeBackend) LanhcVarRoot() string { return f.varRoot }
 
 // newTestExtension returns an extension backed by a temp var root and a fixed test clock, with its
 // current profile set to pid.

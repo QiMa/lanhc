@@ -10,14 +10,14 @@ import (
 	"testing/synctest"
 	"time"
 
-	"tailscale.com/disco"
-	"tailscale.com/envknob"
-	"tailscale.com/net/packet"
-	"tailscale.com/net/stun"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime/mono"
-	"tailscale.com/types/key"
-	"tailscale.com/util/ringlog"
+	"lanhc.com/disco"
+	"lanhc.com/envknob"
+	"lanhc.com/net/packet"
+	"lanhc.com/net/stun"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime/mono"
+	"lanhc.com/types/key"
+	"lanhc.com/util/ringlog"
 )
 
 func TestProbeUDPLifetimeConfig_Equals(t *testing.T) {

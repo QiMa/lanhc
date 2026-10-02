@@ -16,10 +16,10 @@ import (
 
 	"go4.org/mem"
 	"golang.org/x/time/rate"
-	"tailscale.com/syncs"
-	"tailscale.com/tstime"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
+	"lanhc.com/syncs"
+	"lanhc.com/tstime"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
 )
 
 // Client is a DERP client.
@@ -228,7 +228,7 @@ func (c *Client) sendClientKey() error {
 // ServerPublicKey returns the server's public key.
 func (c *Client) ServerPublicKey() key.NodePublic { return c.serverKey }
 
-// Send sends a packet to the Tailscale node identified by dstKey.
+// Send sends a packet to the Lanhc node identified by dstKey.
 //
 // It is an error if the packet is larger than 64KB.
 func (c *Client) Send(dstKey key.NodePublic, pkt []byte) error { return c.send(dstKey, pkt) }
@@ -387,7 +387,7 @@ func (ReceivedPacket) msg() {}
 //
 // It has only historically been sent by the server when the client
 // connection count decremented from 1 to 0 and not from e.g. 2 to 1.
-// See https://github.com/tailscale/tailscale/issues/13566 for details.
+// See https://github.com/lanhc/lanhc/issues/13566 for details.
 type PeerGoneMessage struct {
 	Peer   key.NodePublic
 	Reason PeerGoneReasonType
@@ -400,7 +400,7 @@ func (PeerGoneMessage) msg() {}
 //
 // It will be sent to client watchers for every new connection from a client,
 // even if the client's already connected with that public key.
-// See https://github.com/tailscale/tailscale/issues/13566 for PeerPresentMessage
+// See https://github.com/lanhc/lanhc/issues/13566 for PeerPresentMessage
 // and PeerGoneMessage not being 1:1.
 type PeerPresentMessage struct {
 	// Key is the public key of the client.

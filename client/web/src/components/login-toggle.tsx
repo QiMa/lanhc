@@ -174,7 +174,7 @@ function ReadonlyModeContent({ auth }: { auth: AuthResponse }) {
       <p className="text-gray-500 text-xs">
         This web interface is running in read-only mode.{" "}
         <a
-          href="https://tailscale.com/s/web-client-read-only"
+          href="https://lanhc.com/s/web-client-read-only"
           className="text-blue-700"
           target="_blank"
           rel="noreferrer"
@@ -211,7 +211,7 @@ function LoginModeContent({
 
   const hasEditCaps = useMemo(() => {
     if (!auth.viewerIdentity) {
-      // If not connected to login client over tailscale, we won't know the viewer's
+      // If not connected to login client over lanhc, we won't know the viewer's
       // identity. So we must assume they may be able to edit something and have the
       // management client handle permissions once the user gets there.
       return true
@@ -220,8 +220,8 @@ function LoginModeContent({
   }, [auth])
 
   const handleLogin = useCallback(() => {
-    // Must be connected over Tailscale to log in.
-    // Send user to Tailscale IP and start check mode
+    // Must be connected over Lanhc to log in.
+    // Send user to Lanhc IP and start check mode
     const manageURL = `http://${node.IPv4}:5252/?check=now`
     if (window.self !== window.top) {
       // If we're inside an iframe, open management client in new window.
@@ -244,7 +244,7 @@ function LoginModeContent({
             {!hasEditCaps ? (
               // ACLs allow access, but user isn't allowed to edit any features,
               // restricted to readonly. No point in sending them over to the
-              // tailscaleIP:5252 address.
+              // lanhcIP:5252 address.
               <>
                 You don’t have permission to make changes to this device, but
                 you can view most of its details.
@@ -258,13 +258,13 @@ function LoginModeContent({
             ) : (
               // ACLs don't allow access to this user specifically.
               <>
-                Cannot access this device’s Tailscale IP. Make sure you are
+                Cannot access this device’s Lanhc IP. Make sure you are
                 connected to your tailnet, and that your policy file allows
                 access.
               </>
             )}{" "}
             <a
-              href="https://tailscale.com/s/web-client-access"
+              href="https://lanhc.com/s/web-client-access"
               className="text-blue-700"
               target="_blank"
               rel="noreferrer"
@@ -326,7 +326,7 @@ function ManageModeContent({
       <PopoverContentHeader auth={auth} />
       {!auth.authorized &&
         (hasAnyPermissions ? (
-          // User is connected over Tailscale, but needs to complete check mode.
+          // User is connected over Lanhc, but needs to complete check mode.
           <>
             <p className="text-gray-500 text-xs">
               To make changes, sign in to confirm your identity. This extra step
@@ -335,12 +335,12 @@ function ManageModeContent({
             <SignInButton auth={auth} onClick={handleLogin} />
           </>
         ) : (
-          // User is connected over tailscale, but doesn't have permission to manage.
+          // User is connected over lanhc, but doesn't have permission to manage.
           <p className="text-gray-500 text-xs">
             You don’t have permission to make changes to this device, but you
             can view most of its details.{" "}
             <a
-              href="https://tailscale.com/s/web-client-access"
+              href="https://lanhc.com/s/web-client-access"
               className="text-blue-700"
               target="_blank"
               rel="noreferrer"

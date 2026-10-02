@@ -1,8 +1,8 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package tailscaleroot embeds VERSION.txt into the binary.
-package tailscaleroot
+// Package lanhcroot embeds VERSION.txt into the binary.
+package lanhcroot
 
 import (
 	_ "embed"
@@ -33,13 +33,13 @@ var GoToolchainRev string
 var GoToolchainNextRev string
 
 //lint:ignore U1000 used by tests + assert_ts_toolchain_match.go w/ right build tags
-func tailscaleToolchainRev() (gitHash string, ok bool) {
+func lanhcToolchainRev() (gitHash string, ok bool) {
 	bi, ok := debug.ReadBuildInfo()
 	if !ok {
 		return "", false
 	}
 	for _, s := range bi.Settings {
-		if s.Key == "tailscale.toolchain.rev" {
+		if s.Key == "lanhc.toolchain.rev" {
 			return s.Value, true
 		}
 	}

@@ -15,29 +15,29 @@ import (
 	"sync/atomic"
 
 	"go4.org/netipx"
-	"tailscale.com/appc"
-	"tailscale.com/envknob"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/ipn"
-	"tailscale.com/net/dns"
-	"tailscale.com/net/routecheck/peernode"
-	"tailscale.com/net/routemanager"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/dnstype"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/mapx"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/views"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
-	"tailscale.com/util/slicesx"
-	"tailscale.com/util/testenv"
-	"tailscale.com/wgengine/filter"
+	"lanhc.com/appc"
+	"lanhc.com/envknob"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/ipn"
+	"lanhc.com/net/dns"
+	"lanhc.com/net/routecheck/peernode"
+	"lanhc.com/net/routemanager"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/dnstype"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/mapx"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/views"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
+	"lanhc.com/util/slicesx"
+	"lanhc.com/util/testenv"
+	"lanhc.com/wgengine/filter"
 )
 
 // nodeBackend is node-specific [LocalBackend] state. It is usually the current node.
@@ -51,7 +51,7 @@ import (
 //
 // Two pointers to different [nodeBackend] instances represent different local nodes.
 // However, there's currently a bug where a new [nodeBackend] might not be created
-// during an implicit node switch (see tailscale/corp#28014).
+// during an implicit node switch (see lanhc/corp#28014).
 //
 // In the future, we might want to include at least the following in this struct (in addition to the current fields).
 // However, not everything should be exported or otherwise made available to the outside world (e.g. [ipnext] extensions,
@@ -436,7 +436,7 @@ func (nb *nodeBackend) srcIsUnsignedPeerLocked(src netip.Addr) bool {
 // (UnsignedPeerAPIOnly) peer may hold. Unsigned peers aren't covered by
 // tailnet lock, so a possibly malicious control server must not be able to
 // grant them capabilities. The sole exception is PeerCapabilityIngress:
-// Tailscale Funnel ingress nodes are unsigned by design, and the capability
+// Lanhc Funnel ingress nodes are unsigned by design, and the capability
 // only permits ingress requests over the PeerAPI, which unsigned peers can
 // already reach.
 func capsAllowedForUnsignedPeer(caps tailcfg.PeerCapMap) tailcfg.PeerCapMap {
@@ -588,7 +588,7 @@ func (nb *nodeBackend) PeerIsReachable(rp RouteCheckReport, p tailcfg.NodeView) 
 		// Legacy behavior is to always trust the control plane, which
 		// isn’t always correct because the peer could be slow to check
 		// in so that control marks it as offline.
-		// See tailscale/corp#32686.
+		// See lanhc/corp#32686.
 		return p.Online().Get()
 	}
 
@@ -605,7 +605,7 @@ func (nb *nodeBackend) PeerIsReachable(rp RouteCheckReport, p tailcfg.NodeView) 
 		//
 		// Instead, it makes the client ignore p.Online completely.
 		//
-		// See tailscale/corp#32686.
+		// See lanhc/corp#32686.
 		return true
 	}
 
@@ -783,7 +783,7 @@ func (nb *nodeBackend) updateNodeByStableIDLocked() {
 // node to nb.nodeByName. nb.mu must be held.
 func (nb *nodeBackend) addNodeNameLocked(name string, nid tailcfg.NodeID) {
 	if name == "" {
-		// We might support name-less nodes in the future; tailscale/corp#43949
+		// We might support name-less nodes in the future; lanhc/corp#43949
 		return
 	}
 	canon := strings.ToLower(strings.TrimSuffix(name, "."))
@@ -798,7 +798,7 @@ func (nb *nodeBackend) addNodeNameLocked(name string, nid tailcfg.NodeID) {
 // them (see [deleteIfOwned]). nb.mu must be held.
 func (nb *nodeBackend) removeNodeNameLocked(name string, nid tailcfg.NodeID) {
 	if name == "" {
-		// We might support name-less nodes in the future; tailscale/corp#43949
+		// We might support name-less nodes in the future; lanhc/corp#43949
 		return
 	}
 	canon := strings.ToLower(strings.TrimSuffix(name, "."))
@@ -1071,7 +1071,7 @@ func (nb *nodeBackend) mergeUserProfiles(profiles map[tailcfg.UserID]tailcfg.Use
 //
 // It exists because a node index entry derived from a node's last-known
 // value may have since been claimed by another node. For example, control
-// can reassign a churning ephemeral peer's Tailscale IP to a newer peer
+// can reassign a churning ephemeral peer's Lanhc IP to a newer peer
 // and deliver the new peer's upsert before the old peer's removal, either
 // in an earlier MapResponse or reordered within one batch by the NodeID
 // sort in [netmap.MutationsFromMapResponse]. Deleting unconditionally
@@ -1144,7 +1144,7 @@ func (nb *nodeBackend) UpdateNetmapDelta(muts []netmap.NodeMutation) (res netmap
 				// entry behind. Notably, a node rename in the admin
 				// console arrives as an upsert with a new Name, and a
 				// stale nodeByName entry would keep serving MagicDNS
-				// answers for the old name (tailscale/corp#45631).
+				// answers for the old name (lanhc/corp#45631).
 				// Evictions are conditional (see [deleteIfOwned]) so
 				// entries already claimed by another node are kept.
 				for _, ipp := range old.Addresses().All() {
@@ -1362,7 +1362,7 @@ func magicDNSAddrs(addrs views.Slice[netip.Prefix], flags magicDNSAddrsFlags) (i
 		// IPv6 addresses for now, as we don't guarantee that
 		// the peer node actually can speak IPv6 correctly.
 		//
-		// https://github.com/tailscale/tailscale/issues/1152
+		// https://github.com/lanhc/lanhc/issues/1152
 		// tracks adding the right capability reporting to
 		// enable AAAA in MagicDNS.
 		if addr.Addr().Is6() && have4 && !wantAAAA {
@@ -1488,7 +1488,7 @@ func dnsConfigForNetmap(nm *netmap.NetworkMap, peers map[tailcfg.NodeID]tailcfg.
 	// If the current node's key is expired, then we don't program any DNS
 	// configuration into the operating system. This ensures that if the
 	// DNS configuration specifies a DNS server that is only reachable over
-	// Tailscale, we don't break connectivity for the user.
+	// Lanhc, we don't break connectivity for the user.
 	//
 	// TODO(andrew-d): this also stops returning anything from quad-100; we
 	// could do the same thing as having "CorpDNS: false" and keep that but
@@ -1518,7 +1518,7 @@ func dnsConfigForNetmap(nm *netmap.NetworkMap, peers map[tailcfg.NodeID]tailcfg.
 	// per-node records on demand from the live node indexes (see
 	// [nodeBackend.magicDNSHostAddrs]), so quad-100 can always respond
 	// to MagicDNS queries without dcfg.Hosts; details in
-	// https://github.com/tailscale/tailscale/issues/1886. dcfg.Hosts
+	// https://github.com/lanhc/lanhc/issues/1886. dcfg.Hosts
 	// carries only what must be enumerable in full: control's
 	// DNS.ExtraRecords below, plus every node's records on Windows,
 	// whose hosts-file fallback path (see compileHostEntries in
@@ -1646,7 +1646,7 @@ func dnsConfigForNetmap(nm *netmap.NetworkMap, peers map[tailcfg.NodeID]tailcfg.
 
 	// Set FallbackResolvers as the default resolvers in the
 	// scenarios that can't handle a purely split-DNS config. See
-	// https://github.com/tailscale/tailscale/issues/1743 for
+	// https://github.com/lanhc/lanhc/issues/1743 for
 	// details.
 	switch {
 	case len(dcfg.DefaultResolvers) != 0:
@@ -1664,7 +1664,7 @@ func dnsConfigForNetmap(nm *netmap.NetworkMap, peers map[tailcfg.NodeID]tailcfg.
 		// it "primary", and we MUST provide VPN-sourced DNS
 		// settings or we break all DNS resolution.
 		//
-		// https://github.com/tailscale/tailscale/issues/1713
+		// https://github.com/lanhc/lanhc/issues/1713
 		addDefault(nm.DNS.FallbackResolvers)
 	case len(dcfg.Routes) == 0:
 		// No settings requiring split DNS, no problem.

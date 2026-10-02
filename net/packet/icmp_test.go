@@ -8,7 +8,7 @@ import (
 	"net/netip"
 	"testing"
 
-	"tailscale.com/types/ipproto"
+	"lanhc.com/types/ipproto"
 )
 
 func TestGenerateICMPHostUnreachable(t *testing.T) {

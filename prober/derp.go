@@ -32,17 +32,17 @@ import (
 	"github.com/tailscale/wireguard-go/device"
 	"github.com/tailscale/wireguard-go/tun"
 	"go4.org/netipx"
-	"tailscale.com/client/local"
-	"tailscale.com/derp"
-	"tailscale.com/derp/derphttp"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/netutil"
-	"tailscale.com/net/stun"
-	"tailscale.com/net/tstun"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
+	"lanhc.com/client/local"
+	"lanhc.com/derp"
+	"lanhc.com/derp/derphttp"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/netutil"
+	"lanhc.com/net/stun"
+	"lanhc.com/net/tstun"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
 )
 
 // derpProber dynamically manages several probes for each DERP server
@@ -90,7 +90,7 @@ type DERPOpt func(*derpProber)
 // `size` bytes will be regularly transferred through each DERP server, and each
 // pair of DERP servers in every region. If tunAddress is specified, probes will
 // use a TCP connection over a TUN device at this address in order to exercise
-// TCP-in-TCP in similar fashion to TCP over Tailscale via DERP.
+// TCP-in-TCP in similar fashion to TCP over Lanhc via DERP.
 func WithBandwidthProbing(interval time.Duration, size int64, tunAddress string) DERPOpt {
 	return func(d *derpProber) {
 		d.bwInterval = interval
@@ -156,7 +156,7 @@ func WithMeshKey(meshKey key.DERPMesh) DERPOpt {
 // DERP creates a new derpProber.
 //
 // If derpMapURL is "local", the DERPMap is fetched via
-// the local machine's tailscaled.
+// the local machine's lanhcd.
 func DERP(p *Prober, derpMapURL string, opts ...DERPOpt) (*derpProber, error) {
 	d := &derpProber{
 		p:          p,
@@ -450,7 +450,7 @@ func runDerpProbeQueuingDelayContinously(ctx context.Context, from, to *tailcfg.
 	sendErrC := make(chan error, 1)
 	// TODO: construct a disco CallMeMaybe in the same fashion as magicsock, e.g. magic bytes, src pub, seal payload.
 	// DERP server handling of disco may vary from non-disco, and we may want to measure queue delay of both.
-	pkt := make([]byte, 260) // the same size as a CallMeMaybe packet observed on a Tailscale client.
+	pkt := make([]byte, 260) // the same size as a CallMeMaybe packet observed on a Lanhc client.
 	crand.Read(pkt)
 
 	wg.Go(func() {
@@ -699,7 +699,7 @@ func derpProbeUDP(ctx context.Context, ipStr string, port int) error {
 // derpProbeBandwidth sends a payload of a given size between two local
 // DERP clients connected to two DERP servers.If tunIPv4Address is specified,
 // probes will use a TCP connection over a TUN device at this address in order
-// to exercise TCP-in-TCP in similar fashion to TCP over Tailscale via DERP.
+// to exercise TCP-in-TCP in similar fashion to TCP over Lanhc via DERP.
 func derpProbeBandwidth(ctx context.Context, dm *tailcfg.DERPMap, from, to *tailcfg.DERPNode, size int64, transferTimeSeconds, totalBytesTransferred *expvar.Float, tunIPv4Prefix *netip.Prefix, meshKey key.DERPMesh) (err error) {
 	// This probe uses clients with isProber=false to avoid spamming the derper logs with every packet
 	// sent by the bandwidth probe.
@@ -918,7 +918,7 @@ func derpProbeBandwidthTUN(ctx context.Context, transferTimeSeconds, totalBytesT
 
 	// Temporarily set up a TUN device with which to simulate a real client TCP connection
 	// tunneling over DERP. Use `tstun.DefaultTUNMTU()` (e.g., 1280) as our MTU as this is
-	// the minimum safe MTU used by Tailscale.
+	// the minimum safe MTU used by Lanhc.
 	dev, err := tun.CreateTUN(tunName, int(tstun.DefaultTUNMTU()))
 	if err != nil {
 		return fmt.Errorf("failed to create TUN device: %w", err)

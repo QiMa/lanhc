@@ -18,8 +18,8 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"tailscale.com/net/portmapper/portmappertype"
-	"tailscale.com/tstest"
+	"lanhc.com/net/portmapper/portmappertype"
+	"lanhc.com/tstest"
 )
 
 // Google Wifi
@@ -35,13 +35,13 @@ const (
 	pfSenseRootDescXML = `<?xml version="1.0"?>
 <root xmlns="urn:schemas-upnp-org:device-1-0" configId="1337"><specVersion><major>1</major><minor>1</minor></specVersion><device><deviceType>urn:schemas-upnp-org:device:InternetGatewayDevice:1</deviceType><friendlyName>FreeBSD router</friendlyName><manufacturer>FreeBSD</manufacturer><manufacturerURL>http://www.freebsd.org/</manufacturerURL><modelDescription>FreeBSD router</modelDescription><modelName>FreeBSD router</modelName><modelNumber>2.5.0-RELEASE</modelNumber><modelURL>http://www.freebsd.org/</modelURL><serialNumber>BEE7052B</serialNumber><UDN>uuid:bee7052b-49e8-3597-b545-55a1e38ac11</UDN><serviceList><service><serviceType>urn:schemas-upnp-org:service:Layer3Forwarding:1</serviceType><serviceId>urn:upnp-org:serviceId:L3Forwarding1</serviceId><SCPDURL>/L3F.xml</SCPDURL><controlURL>/ctl/L3F</controlURL><eventSubURL>/evt/L3F</eventSubURL></service></serviceList><deviceList><device><deviceType>urn:schemas-upnp-org:device:WANDevice:1</deviceType><friendlyName>WANDevice</friendlyName><manufacturer>MiniUPnP</manufacturer><manufacturerURL>http://miniupnp.free.fr/</manufacturerURL><modelDescription>WAN Device</modelDescription><modelName>WAN Device</modelName><modelNumber>20210205</modelNumber><modelURL>http://miniupnp.free.fr/</modelURL><serialNumber>BEE7052B</serialNumber><UDN>uuid:bee7052b-49e8-3597-b545-55a1e38ac12</UDN><UPC>000000000000</UPC><serviceList><service><serviceType>urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1</serviceType><serviceId>urn:upnp-org:serviceId:WANCommonIFC1</serviceId><SCPDURL>/WANCfg.xml</SCPDURL><controlURL>/ctl/CmnIfCfg</controlURL><eventSubURL>/evt/CmnIfCfg</eventSubURL></service></serviceList><deviceList><device><deviceType>urn:schemas-upnp-org:device:WANConnectionDevice:1</deviceType><friendlyName>WANConnectionDevice</friendlyName><manufacturer>MiniUPnP</manufacturer><manufacturerURL>http://miniupnp.free.fr/</manufacturerURL><modelDescription>MiniUPnP daemon</modelDescription><modelName>MiniUPnPd</modelName><modelNumber>20210205</modelNumber><modelURL>http://miniupnp.free.fr/</modelURL><serialNumber>BEE7052B</serialNumber><UDN>uuid:bee7052b-49e8-3597-b545-55a1e38ac13</UDN><UPC>000000000000</UPC><serviceList><service><serviceType>urn:schemas-upnp-org:service:WANIPConnection:1</serviceType><serviceId>urn:upnp-org:serviceId:WANIPConn1</serviceId><SCPDURL>/WANIPCn.xml</SCPDURL><controlURL>/ctl/IPConn</controlURL><eventSubURL>/evt/IPConn</eventSubURL></service></serviceList></device></deviceList></device></deviceList><presentationURL>https://192.168.1.1/</presentationURL></device></root>`
 
-	// Sagemcom FAST3890V3, https://github.com/tailscale/tailscale/issues/3557
+	// Sagemcom FAST3890V3, https://github.com/lanhc/lanhc/issues/3557
 	sagemcomUPnPDisco = "HTTP/1.1 200 OK\r\nCACHE-CONTROL: max-age=1800\r\nDATE: Tue, 14 Dec 2021 07:51:29 GMT\r\nEXT:\r\nLOCATION: http://192.168.0.1:49153/69692b70/gatedesc0b.xml\r\nOPT: \"http://schemas.upnp.org/upnp/1/0/\"; ns=01\r\n01-NLS: cabd6488-1dd1-11b2-9e52-a7461e1f098e\r\nSERVER: \r\nUser-Agent: redsonic\r\nST: urn:schemas-upnp-org:device:InternetGatewayDevice:1\r\nUSN: uuid:75802409-bccb-40e7-8e6c-fa095ecce13e::urn:schemas-upnp-org:device:InternetGatewayDevice:1\r\n\r\n"
 
-	// Huawei, https://github.com/tailscale/tailscale/issues/6320
+	// Huawei, https://github.com/lanhc/lanhc/issues/6320
 	huaweiUPnPDisco = "HTTP/1.1 200 OK\r\nCACHE-CONTROL: max-age=1800\r\nDATE: Fri, 25 Nov 2022 07:04:37 GMT\r\nEXT:\r\nLOCATION: http://192.168.1.1:49652/49652gatedesc.xml\r\nOPT: \"http://schemas.upnp.org/upnp/1/0/\"; ns=01\r\n01-NLS: ce8dd8b0-732d-11be-a4a1-a2b26c8915fb\r\nSERVER: Linux/4.4.240, UPnP/1.0, Portable SDK for UPnP devices/1.12.1\r\nX-User-Agent: UPnP/1.0 DLNADOC/1.50\r\nST: urn:schemas-upnp-org:device:InternetGatewayDevice:1\r\nUSN: uuid:00e0fc37-2525-2828-2500-0C31DCD93368::urn:schemas-upnp-org:device:InternetGatewayDevice:1\r\n\r\n"
 
-	// Mikrotik CHR v7.10, https://github.com/tailscale/tailscale/issues/8364
+	// Mikrotik CHR v7.10, https://github.com/lanhc/lanhc/issues/8364
 	mikrotikRootDescXML = `<?xml version="1.0"?>
 <root xmlns="urn:schemas-upnp-org:device-1-0">
   <specVersion>
@@ -168,7 +168,7 @@ const (
 </root>
 `
 
-	// Huawei, https://github.com/tailscale/tailscale/issues/10911
+	// Huawei, https://github.com/lanhc/lanhc/issues/10911
 	huaweiRootDescXML = `<?xml version="1.0"?>
 <root xmlns="urn:schemas-upnp-org:device-1-0">
   <specVersion>
@@ -343,12 +343,12 @@ const (
   <device>
     <deviceType>urn:dslforum-org:device:InternetGatewayDevice:1</deviceType>
     <friendlyName>Fake Router</friendlyName>
-    <manufacturer>Tailscale, Inc</manufacturer>
-    <manufacturerURL>http://www.tailscale.com</manufacturerURL>
+    <manufacturer>Lanhc, Inc</manufacturer>
+    <manufacturerURL>http://www.lanhc.com</manufacturerURL>
     <modelDescription>Fake Router</modelDescription>
     <modelName>Test Model</modelName>
     <modelNumber>v1</modelNumber>
-    <modelURL>http://www.tailscale.com</modelURL>
+    <modelURL>http://www.lanhc.com</modelURL>
     <serialNumber>123456789</serialNumber>
     <UDN>uuid:11111111-2222-3333-4444-555555555555</UDN>
     <UPC>000000000001</UPC>
@@ -365,12 +365,12 @@ const (
       <device>
 	<deviceType>urn:schemas-upnp-org:device:WANDevice:1</deviceType>
         <friendlyName>WANDevice</friendlyName>
-        <manufacturer>Tailscale, Inc</manufacturer>
-	<manufacturerURL>http://www.tailscale.com</manufacturerURL>
-	<modelDescription>Tailscale Test Router</modelDescription>
+        <manufacturer>Lanhc, Inc</manufacturer>
+	<manufacturerURL>http://www.lanhc.com</manufacturerURL>
+	<modelDescription>Lanhc Test Router</modelDescription>
 	<modelName>Test Model</modelName>
 	<modelNumber>v1</modelNumber>
-	<modelURL>http://www.tailscale.com</modelURL>
+	<modelURL>http://www.lanhc.com</modelURL>
 	<serialNumber>123456789</serialNumber>
 	<UDN>uuid:11111111-2222-3333-4444-555555555555</UDN>
         <UPC>000000000001</UPC>
@@ -387,19 +387,19 @@ const (
           <device>
 	    <deviceType>urn:schemas-upnp-org:device:WANConnectionDevice:1</deviceType>
             <friendlyName>WANConnectionDevice</friendlyName>
-	    <manufacturer>Tailscale, Inc</manufacturer>
-	    <manufacturerURL>http://www.tailscale.com</manufacturerURL>
-	    <modelDescription>Tailscale Test Router</modelDescription>
+	    <manufacturer>Lanhc, Inc</manufacturer>
+	    <manufacturerURL>http://www.lanhc.com</manufacturerURL>
+	    <modelDescription>Lanhc Test Router</modelDescription>
 	    <modelName>Test Model</modelName>
 	    <modelNumber>v1</modelNumber>
-	    <modelURL>http://www.tailscale.com</modelURL>
+	    <modelURL>http://www.lanhc.com</modelURL>
 	    <serialNumber>123456789</serialNumber>
 	    <UDN>uuid:11111111-2222-3333-4444-555555555555</UDN>
             <UPC>000000000001</UPC>
             <serviceList>
               <service>
-		<serviceType>urn:tailscale:service:SomethingElse:1</serviceType>
-		<serviceId>urn:upnp-org:serviceId:TailscaleSomethingElse</serviceId>
+		<serviceType>urn:lanhc:service:SomethingElse:1</serviceType>
+		<serviceId>urn:upnp-org:serviceId:LanhcSomethingElse</serviceId>
                 <SCPDURL>/desc/SomethingElse.xml</SCPDURL>
                 <controlURL>/ctrlt/SomethingElse_1</controlURL>
                 <eventSubURL>/evt/SomethingElse_1</eventSubURL>
@@ -721,7 +721,7 @@ func TestGetUPnPPortMapping_LeaseDuration(t *testing.T) {
 // crash when a valid UPnP response with no supported services is discovered
 // and parsed.
 //
-// See https://github.com/tailscale/tailscale/issues/10911
+// See https://github.com/lanhc/lanhc/issues/10911
 func TestGetUPnPPortMapping_NoValidServices(t *testing.T) {
 	igd, err := NewTestIGD(t, TestIGDOptions{UPnP: true})
 	if err != nil {
@@ -816,7 +816,7 @@ func TestGetUPnPPortMappingNoResponses(t *testing.T) {
 		c.mu.Lock()
 		c.uPnPMetas = []uPnPDiscoResponse{{
 			Location: "http://127.0.0.1:1/does-not-exist.xml",
-			Server:   "Tailscale-Test/1.0 UPnP/1.1 MiniUPnPd/2.2.1",
+			Server:   "Lanhc-Test/1.0 UPnP/1.1 MiniUPnPd/2.2.1",
 			USN:      "uuid:bee7052b-49e8-3597-b545-55a1e38ac11::urn:schemas-upnp-org:device:InternetGatewayDevice:2",
 		}}
 		c.mu.Unlock()
@@ -838,12 +838,12 @@ func TestProcessUPnPResponses(t *testing.T) {
 			name: "single",
 			responses: []uPnPDiscoResponse{{
 				Location: "http://192.168.1.1:2828/control.xml",
-				Server:   "Tailscale-Test/1.0 UPnP/1.1 MiniUPnPd/2.2.1",
+				Server:   "Lanhc-Test/1.0 UPnP/1.1 MiniUPnPd/2.2.1",
 				USN:      "uuid:bee7052b-49e8-3597-b545-55a1e38ac11::urn:schemas-upnp-org:device:InternetGatewayDevice:1",
 			}},
 			want: []uPnPDiscoResponse{{
 				Location: "http://192.168.1.1:2828/control.xml",
-				Server:   "Tailscale-Test/1.0 UPnP/1.1 MiniUPnPd/2.2.1",
+				Server:   "Lanhc-Test/1.0 UPnP/1.1 MiniUPnPd/2.2.1",
 				USN:      "uuid:bee7052b-49e8-3597-b545-55a1e38ac11::urn:schemas-upnp-org:device:InternetGatewayDevice:1",
 			}},
 		},
@@ -852,18 +852,18 @@ func TestProcessUPnPResponses(t *testing.T) {
 			responses: []uPnPDiscoResponse{
 				{
 					Location: "http://192.168.1.1:2828/control.xml",
-					Server:   "Tailscale-Test/1.0 UPnP/1.1 MiniUPnPd/2.2.1",
+					Server:   "Lanhc-Test/1.0 UPnP/1.1 MiniUPnPd/2.2.1",
 					USN:      "uuid:bee7052b-49e8-3597-b545-55a1e38ac11::urn:schemas-upnp-org:device:InternetGatewayDevice:1",
 				},
 				{
 					Location: "http://192.168.1.1:2828/control.xml",
-					Server:   "Tailscale-Test/1.0 UPnP/1.1 MiniUPnPd/2.2.1",
+					Server:   "Lanhc-Test/1.0 UPnP/1.1 MiniUPnPd/2.2.1",
 					USN:      "uuid:bee7052b-49e8-3597-b545-55a1e38ac11::urn:schemas-upnp-org:device:InternetGatewayDevice:2",
 				},
 			},
 			want: []uPnPDiscoResponse{{
 				Location: "http://192.168.1.1:2828/control.xml",
-				Server:   "Tailscale-Test/1.0 UPnP/1.1 MiniUPnPd/2.2.1",
+				Server:   "Lanhc-Test/1.0 UPnP/1.1 MiniUPnPd/2.2.1",
 				USN:      "uuid:bee7052b-49e8-3597-b545-55a1e38ac11::urn:schemas-upnp-org:device:InternetGatewayDevice:2",
 			}},
 		},
@@ -872,12 +872,12 @@ func TestProcessUPnPResponses(t *testing.T) {
 			responses: []uPnPDiscoResponse{
 				{
 					Location: "http://192.168.1.1:2828/control.xml",
-					Server:   "Tailscale-Test/1.0 UPnP/1.1 MiniUPnPd/2.2.1",
+					Server:   "Lanhc-Test/1.0 UPnP/1.1 MiniUPnPd/2.2.1",
 					USN:      "uuid:bee7052b-49e8-3597-b545-55a1e38ac11::urn:schemas-upnp-org:device:InternetGatewayDevice:1",
 				},
 				{
 					Location: "http://192.168.100.1:2828/control.xml",
-					Server:   "Tailscale-Test/1.0 UPnP/1.1 MiniUPnPd/2.2.1",
+					Server:   "Lanhc-Test/1.0 UPnP/1.1 MiniUPnPd/2.2.1",
 					USN:      "uuid:bee7052b-49e8-3597-b545-55a1e38ac11::urn:schemas-upnp-org:device:InternetGatewayDevice:2",
 				},
 			},
@@ -885,12 +885,12 @@ func TestProcessUPnPResponses(t *testing.T) {
 				// note: this sorts first because we prefer "InternetGatewayDevice:2"
 				{
 					Location: "http://192.168.100.1:2828/control.xml",
-					Server:   "Tailscale-Test/1.0 UPnP/1.1 MiniUPnPd/2.2.1",
+					Server:   "Lanhc-Test/1.0 UPnP/1.1 MiniUPnPd/2.2.1",
 					USN:      "uuid:bee7052b-49e8-3597-b545-55a1e38ac11::urn:schemas-upnp-org:device:InternetGatewayDevice:2",
 				},
 				{
 					Location: "http://192.168.1.1:2828/control.xml",
-					Server:   "Tailscale-Test/1.0 UPnP/1.1 MiniUPnPd/2.2.1",
+					Server:   "Lanhc-Test/1.0 UPnP/1.1 MiniUPnPd/2.2.1",
 					USN:      "uuid:bee7052b-49e8-3597-b545-55a1e38ac11::urn:schemas-upnp-org:device:InternetGatewayDevice:1",
 				},
 			},
@@ -1060,13 +1060,13 @@ const testRootDesc = `<?xml version="1.0"?>
   </specVersion>
   <device>
     <deviceType>urn:schemas-upnp-org:device:InternetGatewayDevice:1</deviceType>
-    <friendlyName>Tailscale Test Router</friendlyName>
-    <manufacturer>Tailscale</manufacturer>
-    <manufacturerURL>https://tailscale.com</manufacturerURL>
-    <modelDescription>Tailscale Test Router</modelDescription>
-    <modelName>Tailscale Test Router</modelName>
+    <friendlyName>Lanhc Test Router</friendlyName>
+    <manufacturer>Lanhc</manufacturer>
+    <manufacturerURL>https://lanhc.com</manufacturerURL>
+    <modelDescription>Lanhc Test Router</modelDescription>
+    <modelName>Lanhc Test Router</modelName>
     <modelNumber>2.5.0-RELEASE</modelNumber>
-    <modelURL>https://tailscale.com</modelURL>
+    <modelURL>https://lanhc.com</modelURL>
     <serialNumber>1234</serialNumber>
     <UDN>uuid:1974e83b-6dc7-4635-92b3-6a85a4037294</UDN>
     <deviceList>

@@ -17,11 +17,11 @@ import (
 
 	"golang.org/x/net/route"
 	"golang.org/x/sys/unix"
-	"tailscale.com/envknob"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/types/logger"
-	"tailscale.com/version"
+	"lanhc.com/envknob"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/types/logger"
+	"lanhc.com/version"
 )
 
 func control(logf logger.Logf, netMon *netmon.Monitor) func(network, address string, c syscall.RawConn) error {
@@ -98,8 +98,8 @@ func getInterfaceIndex(logf logger.Logf, netMon *netmon.Monitor, address string)
 			logf("netns: [unexpected] os default if %q (%d) != netmon cached if %q (%d)", osIf.InterfaceName, osIf.InterfaceIndex, cachedIdx.Name, cachedIdx.Index)
 		}
 
-		// Sanity check to make sure we didn't pick the tailscale interface
-		if tsif, err2 := tailscaleInterface(); tsif != nil && err2 == nil && errOut == nil {
+		// Sanity check to make sure we didn't pick the lanhc interface
+		if tsif, err2 := lanhcInterface(); tsif != nil && err2 == nil && errOut == nil {
 			if tsif.Index == idx {
 				idx = -1
 				errOut = errInterfaceStateInvalid
@@ -129,9 +129,9 @@ func getInterfaceIndex(logf logger.Logf, netMon *netmon.Monitor, address string)
 		return defaultIdx()
 	}
 
-	// Verify that we didn't just choose the Tailscale interface;
+	// Verify that we didn't just choose the Lanhc interface;
 	// if so, we fall back to binding from the default.
-	tsif, err2 := tailscaleInterface()
+	tsif, err2 := lanhcInterface()
 	if err2 == nil && tsif != nil && tsif.Index == idx {
 		// note: with an exit node enabled, this is almost always true.  defaultIdx() is the
 		// right thing to do here.
@@ -143,10 +143,10 @@ func getInterfaceIndex(logf logger.Logf, netMon *netmon.Monitor, address string)
 	return idx, err
 }
 
-// tailscaleInterface returns the current machine's Tailscale interface, if any.
+// lanhcInterface returns the current machine's Lanhc interface, if any.
 // If none is found, (nil, nil) is returned.
 // A non-nil error is only returned on a problem listing the system interfaces.
-func tailscaleInterface() (*net.Interface, error) {
+func lanhcInterface() (*net.Interface, error) {
 	ifs, err := net.Interfaces()
 	if err != nil {
 		return nil, err
@@ -162,7 +162,7 @@ func tailscaleInterface() (*net.Interface, error) {
 		for _, a := range addrs {
 			if ipnet, ok := a.(*net.IPNet); ok {
 				nip, ok := netip.AddrFromSlice(ipnet.IP)
-				if ok && tsaddr.IsTailscaleIP(nip.Unmap()) {
+				if ok && tsaddr.IsLanhcIP(nip.Unmap()) {
 					return &iface, nil
 				}
 			}

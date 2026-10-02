@@ -24,8 +24,8 @@ var Analyzer = &analysis.Analyzer{
 // Each message names the specific symbol that triggered it, so the
 // reader does not have to guess which of "l" or "I" they typed.
 var messages = map[string]string{
-	"l": `do not use "l" (lowercase ell) as a variable name; it is hard to distinguish from "1" and "I" in too many fonts; see https://github.com/tailscale/tailscale/issues/19631`,
-	"I": `do not use "I" (uppercase i) as a variable name; it is hard to distinguish from "1" and "l" in too many fonts; see https://github.com/tailscale/tailscale/issues/19631`,
+	"l": `do not use "l" (lowercase ell) as a variable name; it is hard to distinguish from "1" and "I" in too many fonts; see https://github.com/lanhc/lanhc/issues/19631`,
+	"I": `do not use "I" (uppercase i) as a variable name; it is hard to distinguish from "1" and "l" in too many fonts; see https://github.com/lanhc/lanhc/issues/19631`,
 }
 
 // reported tracks identifier positions already reported, to avoid duplicate

@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	ignore3p          = flag.Bool("ignore-3p", false, "ignore third-party packages forked/vendored into Tailscale")
+	ignore3p          = flag.Bool("ignore-3p", false, "ignore third-party packages forked/vendored into Lanhc")
 	goos              = flag.String("goos", "", "GOOS to use for loading packages (default: current OS)")
 	goarch            = flag.String("goarch", "", "GOARCH to use for loading packages (default: current architecture)")
 	withTagsAllStr    = flag.String("with-tags-all", "", "if non-empty, a comma-separated list of builds tags to require (a package will only be listed if it contains all of these build tags)")
@@ -203,7 +203,7 @@ func computeAffected(pkgs []*packages.Package, tag string) map[string]bool {
 }
 
 func isThirdParty(pkg string) bool {
-	return strings.HasPrefix(pkg, "tailscale.com/tempfork/")
+	return strings.HasPrefix(pkg, "lanhc.com/tempfork/")
 }
 
 // hasBuildTag reports whether any source file in pkg mentions `tag`

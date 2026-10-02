@@ -11,7 +11,7 @@ import (
 	"net/netip"
 	"time"
 
-	"tailscale.com/net/ping"
+	"lanhc.com/net/ping"
 )
 
 // sendOutboundUserPing sends a non-privileged ICMP (or ICMPv6) ping to dstIP with the given timeout.
@@ -25,7 +25,7 @@ func (ns *Impl) sendOutboundUserPing(dstIP netip.Addr, timeout time.Duration) er
 
 	dst := &net.IPAddr{IP: dstIP.AsSlice(), Zone: dstIP.Zone()}
 	ns.logf("sendOutboundUserPing: forwarding ping to %s", dstIP)
-	d, err := p.Send(ctx, dst, []byte("tailscale-userping"))
+	d, err := p.Send(ctx, dst, []byte("lanhc-userping"))
 	if err != nil {
 		ns.logf("sendOutboundUserPing: ping to %s failed: %v", dstIP, err)
 		return err

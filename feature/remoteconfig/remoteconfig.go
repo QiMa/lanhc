@@ -6,7 +6,7 @@
 //
 // # Trust model
 //
-// Tailscale's default posture is per-feature double opt-in: the tailnet
+// Lanhc's default posture is per-feature double opt-in: the tailnet
 // admin can request something server-side, but the local machine owner
 // still has to consent (via CLI, GUI, or LocalAPI) for each individual
 // setting. RemoteConfig is a different, more permissive posture: a
@@ -26,10 +26,10 @@ import (
 	"net/http"
 	"strings"
 
-	"tailscale.com/feature"
-	"tailscale.com/ipn/ipnauth"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/localapi"
+	"lanhc.com/feature"
+	"lanhc.com/ipn/ipnauth"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/localapi"
 )
 
 // c2nPrefix is the c2n URL path prefix under which requests are

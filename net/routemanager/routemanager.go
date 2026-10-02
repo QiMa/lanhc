@@ -23,13 +23,13 @@ import (
 	"sync/atomic"
 
 	"github.com/gaissmai/bart"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/views"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/views"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
 )
 
 // peerView is the subset of a peer's netmap state that affects
@@ -60,8 +60,8 @@ type peerView struct {
 	MasqAddr4, MasqAddr6 netip.Addr
 
 	// SelfAddrs are the peer's own addresses (its CGNAT IPv4 /32,
-	// if any, and its Tailscale ULA IPv6 /128) plus any other
-	// single Tailscale IPs it routes for, such as VIP service
+	// if any, and its Lanhc ULA IPv6 /128) plus any other
+	// single Lanhc IPs it routes for, such as VIP service
 	// addresses. They are routable regardless of Prefs.RouteAll.
 	SelfAddrs []netip.Prefix
 
@@ -117,7 +117,7 @@ type Prefs struct {
 	// in the OS route set: with a resolved exit node they carry its
 	// traffic, and without one they blackhole internet traffic
 	// rather than let it escape to the local network, per the
-	// [tailscale.com/ipn.Prefs.ExitNodeID] docs. MDM's "auto:any"
+	// [lanhc.com/ipn.Prefs.ExitNodeID] docs. MDM's "auto:any"
 	// placeholder relies on the blackhole while an exit node is
 	// still being chosen.
 	ExitNodeSelected bool
@@ -205,7 +205,7 @@ type RouteManager struct {
 
 	// cgnatPfxs and ulaPfxs are the prefixes currently eligible
 	// for the OS route set that are single CGNAT IPv4 addresses or
-	// single Tailscale ULA IPv6 addresses, respectively. They feed
+	// single Lanhc ULA IPv6 addresses, respectively. They feed
 	// the coarse-route decisions.
 	cgnatPfxs set.Set[netip.Prefix]
 	ulaPfxs   set.Set[netip.Prefix]
@@ -385,7 +385,7 @@ func (m *Mutation) checkOpen() {
 }
 
 // UpsertPeer stages an add or update of a peer. The peer's prefixes
-// come solely from n.AllowedIPs: entries that are single Tailscale
+// come solely from n.AllowedIPs: entries that are single Lanhc
 // IPs (the peer's own addresses, or VIP service addresses it hosts)
 // or that appear in n.Addresses count as self addresses and are
 // always routable; the rest are treated as its advertised routes
@@ -402,7 +402,7 @@ func (m *Mutation) UpsertPeer(n tailcfg.NodeView) {
 // so that a later update can make them routable again. AllowedIPs is
 // the sole source of prefixes; an address absent from AllowedIPs is
 // not routable. For the self-vs-route split,
-// single Tailscale IPs are never subnets, so a VIP service address
+// single Lanhc IPs are never subnets, so a VIP service address
 // hosted by the peer lands in SelfAddrs and stays routable without
 // Prefs.RouteAll.
 func peerViewOf(n tailcfg.NodeView) peerView {
@@ -420,7 +420,7 @@ func peerViewOf(n tailcfg.NodeView) peerView {
 		return pv
 	}
 	for _, aip := range n.AllowedIPs().All() {
-		isSelf := aip.IsSingleIP() && tsaddr.IsTailscaleIP(aip.Addr()) ||
+		isSelf := aip.IsSingleIP() && tsaddr.IsLanhcIP(aip.Addr()) ||
 			views.SliceContains(n.Addresses(), aip)
 		if isSelf {
 			pv.SelfAddrs = append(pv.SelfAddrs, aip)
@@ -479,7 +479,7 @@ func (m *Mutation) SetScore(id tailcfg.NodeID, pfx netip.Prefix, score int) {
 // may originate traffic from and that outbound traffic to should be
 // sent to that peer. Extra prefixes appear in the outbound table and
 // in [RouteManager.PeerAllowedIPs], but never in the OS route set.
-// (In Tailscale they carry the conn25 extension's Transit IPs, which
+// (In Lanhc they carry the conn25 extension's Transit IPs, which
 // must reach WireGuard but not the OS routing table.)
 //
 // An entry for an unknown node ID is retained and takes effect if a
@@ -868,7 +868,7 @@ type osClass uint8
 const (
 	osPlain osClass = iota // installed as-is when eligible
 	osCGNAT                // single CGNAT IPv4 addr; subject to /10 coarsening
-	osULA                  // single Tailscale ULA IPv6 addr; always coarsened
+	osULA                  // single Lanhc ULA IPv6 addr; always coarsened
 )
 
 func classify(pfx netip.Prefix) osClass {
@@ -878,7 +878,7 @@ func classify(pfx netip.Prefix) osClass {
 	if pfx.Addr().Is4() && tsaddr.CGNATRange().Contains(pfx.Addr()) {
 		return osCGNAT
 	}
-	if pfx.Addr().Is6() && tsaddr.TailscaleULARange().Contains(pfx.Addr()) {
+	if pfx.Addr().Is6() && tsaddr.LanhcULARange().Contains(pfx.Addr()) {
 		return osULA
 	}
 	return osPlain
@@ -953,7 +953,7 @@ func (rm *RouteManager) applyDirty(dirty set.Set[netip.Prefix], res *Result) {
 	}
 
 	var ch bool
-	osr, ch = tableSet(osr, tsaddr.TailscaleULARange(), len(rm.ulaPfxs) > 0)
+	osr, ch = tableSet(osr, tsaddr.LanhcULARange(), len(rm.ulaPfxs) > 0)
 	osChanged = osChanged || ch
 
 	wantCoarse := len(rm.cgnatPfxs) > rm.cgnatThreshold()
@@ -1014,7 +1014,7 @@ func (rm *RouteManager) rebuildAll(res *Result) {
 		}
 	}
 	if len(rm.ulaPfxs) > 0 {
-		osr.Insert(tsaddr.TailscaleULARange())
+		osr.Insert(tsaddr.LanhcULARange())
 	}
 	rm.coarseCGNAT = len(rm.cgnatPfxs) > rm.cgnatThreshold()
 	if rm.coarseCGNAT {

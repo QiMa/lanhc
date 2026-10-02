@@ -10,9 +10,9 @@ import (
 
 	"go4.org/mem"
 	"golang.org/x/sys/unix"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/syncs"
-	"tailscale.com/util/lineiter"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/syncs"
+	"lanhc.com/util/lineiter"
 )
 
 var (
@@ -116,7 +116,7 @@ func likelyHomeRouterIPAndroid() (ret netip.Addr, myIP netip.Addr, ok bool) {
 			// If we went over our line limit without finding an answer, assume
 			// we're a big fancy Linux router (or at least not a home system)
 			// and set the error bit so we stop trying this in the future (and wasting CPU).
-			// See https://github.com/tailscale/tailscale/issues/7621.
+			// See https://github.com/lanhc/lanhc/issues/7621.
 			//
 			// Remember that "likelyHomeRouterIP" exists purely to find the port
 			// mapping service (UPnP, PMP, PCP) often present on a home router. If we hit
@@ -128,7 +128,7 @@ func likelyHomeRouterIPAndroid() (ret netip.Addr, myIP netip.Addr, ok bool) {
 	return netip.Addr{}, netip.Addr{}, false
 }
 
-// UpdateLastKnownDefaultGateway is called by libtailscale in the Android app when
+// UpdateLastKnownDefaultGateway is called by liblanhc in the Android app when
 // the connectivity manager provides an updated default gateway IP from LinkProperties.
 func UpdateLastKnownDefaultGateway(ipStr string) {
 	if old := lastKnownDefaultGateway.Swap(ipStr); old != ipStr {
@@ -136,7 +136,7 @@ func UpdateLastKnownDefaultGateway(ipStr string) {
 	}
 }
 
-// UpdateLastKnownDefaultRouteInterface is called by libtailscale in the Android app when
+// UpdateLastKnownDefaultRouteInterface is called by liblanhc in the Android app when
 // the connectivity manager detects a network path transition. If ifName is "", network has been lost.
 // After updating the interface, Android calls Monitor.InjectEvent(), triggering a link change.
 func UpdateLastKnownDefaultRouteInterface(ifName string) {

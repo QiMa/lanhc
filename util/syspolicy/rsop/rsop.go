@@ -11,11 +11,11 @@ import (
 	"fmt"
 	"slices"
 
-	"tailscale.com/syncs"
-	"tailscale.com/util/slicesx"
-	"tailscale.com/util/syspolicy/internal"
-	"tailscale.com/util/syspolicy/setting"
-	"tailscale.com/util/syspolicy/source"
+	"lanhc.com/syncs"
+	"lanhc.com/util/slicesx"
+	"lanhc.com/util/syspolicy/internal"
+	"lanhc.com/util/syspolicy/setting"
+	"lanhc.com/util/syspolicy/source"
 )
 
 var (

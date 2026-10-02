@@ -41,7 +41,7 @@ var testData = map[string]any{
 }
 
 const (
-	keyNameTest    = `SOFTWARE\Tailscale Test`
+	keyNameTest    = `SOFTWARE\Lanhc Test`
 	subKeyNameTest = "SubKey"
 )
 

@@ -33,7 +33,7 @@ if [ "${TS_GO_NEXT:-}" != "1" ]; then
         if [ "$next_rev" != "$new_rev" ]; then
             # Fetch only commit objects (no trees/blobs) with limited depth
             # to keep this fast — we just need the commit graph for ancestry check.
-            tmpdir="/tmp/tailscale-pull-toolchain-$$"
+            tmpdir="/tmp/lanhc-pull-toolchain-$$"
             if git clone --bare --filter=tree:0 --depth=20000 --single-branch --branch "$go_branch" \
                 https://github.com/tailscale/go "$tmpdir" 2>/dev/null; then
                 if git -C "$tmpdir" merge-base --is-ancestor "$next_rev" "$new_rev" 2>/dev/null; then

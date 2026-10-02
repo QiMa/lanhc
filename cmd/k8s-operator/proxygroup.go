@@ -32,21 +32,21 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"tailscale.com/client/tailscale/v2"
+	lanhcclient "tailscale.com/client/tailscale/v2"
 
-	"tailscale.com/ipn"
-	tsoperator "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/k8s-operator/tsclient"
-	"tailscale.com/kube/egressservices"
-	"tailscale.com/kube/k8s-proxy/conf"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
-	"tailscale.com/types/opt"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
+	"lanhc.com/ipn"
+	tsoperator "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/k8s-operator/tsclient"
+	"lanhc.com/kube/egressservices"
+	"lanhc.com/kube/k8s-proxy/conf"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
+	"lanhc.com/types/opt"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
 )
 
 const (
@@ -66,7 +66,7 @@ const (
 	// If the controller needs to depend on newer client behaviour, it should
 	// maintain backwards compatible logic for older capability versions for 3
 	// stable releases, as per documentation on supported version drift:
-	// https://tailscale.com/kb/1236/kubernetes-operator#supported-versions
+	// https://lanhc.com/kb/1236/kubernetes-operator#supported-versions
 	//
 	// tailcfg.CurrentCapabilityVersion was 106 when the ProxyGroup controller was
 	// first introduced.
@@ -119,7 +119,7 @@ func (r *ProxyGroupReconciler) Reconcile(ctx context.Context, req reconcile.Requ
 		logger.Debugf("ProxyGroup not found, assuming it was deleted")
 		return reconcile.Result{}, nil
 	} else if err != nil {
-		return reconcile.Result{}, fmt.Errorf("failed to get tailscale.com ProxyGroup: %w", err)
+		return reconcile.Result{}, fmt.Errorf("failed to get lanhc.com ProxyGroup: %w", err)
 	}
 
 	tsClient, err := r.clients.For(pg.Spec.Tailnet)
@@ -127,7 +127,7 @@ func (r *ProxyGroupReconciler) Reconcile(ctx context.Context, req reconcile.Requ
 		oldPGStatus := pg.Status.DeepCopy()
 		nrr := &notReadyReason{
 			reason:  reasonProxyGroupTailnetUnavailable,
-			message: fmt.Errorf("failed to get tailscale client and loginUrl: %w", err).Error(),
+			message: fmt.Errorf("failed to get lanhc client and loginUrl: %w", err).Error(),
 		}
 
 		return reconcile.Result{}, errors.Join(err, r.maybeUpdateStatus(ctx, logger, pg, oldPGStatus, nrr, make(map[string][]netip.AddrPort)))
@@ -228,7 +228,7 @@ func (r *ProxyGroupReconciler) validate(ctx context.Context, pg *tsapi.ProxyGrou
 	// directly with for operator proxies (and we should aim for unified lifecycle logic in the operator, users
 	// shouldn't need to set their own).
 	//
-	// TODO(irbekrm): maybe disallow configuring this env var in future (in Tailscale 1.84 or later).
+	// TODO(irbekrm): maybe disallow configuring this env var in future (in Lanhc 1.84 or later).
 	if pg.Spec.Type == tsapi.ProxyGroupTypeEgress && hasLocalAddrPortSet(pc) {
 		msg := fmt.Sprintf("ProxyClass %s applied to an egress ProxyGroup has TS_LOCAL_ADDR_PORT env var set to a custom value."+
 			"This will disable the ProxyGroup graceful failover mechanism, so you might experience downtime when ProxyGroup pods are restarted."+
@@ -237,20 +237,20 @@ func (r *ProxyGroupReconciler) validate(ctx context.Context, pg *tsapi.ProxyGrou
 		logger.Warn(msg)
 	}
 
-	// image is the value of pc.Spec.StatefulSet.Pod.TailscaleContainer.Image or ""
+	// image is the value of pc.Spec.StatefulSet.Pod.LanhcContainer.Image or ""
 	// imagePath is a slash-delimited path ending with the image name, e.g.
-	// "tailscale/tailscale" or maybe "k8s-proxy" if hosted at example.com/k8s-proxy.
+	// "lanhc/lanhc" or maybe "k8s-proxy" if hosted at example.com/k8s-proxy.
 	var image, imagePath string
 	if pc != nil &&
 		pc.Spec.StatefulSet != nil &&
 		pc.Spec.StatefulSet.Pod != nil &&
-		pc.Spec.StatefulSet.Pod.TailscaleContainer != nil &&
-		pc.Spec.StatefulSet.Pod.TailscaleContainer.Image != "" {
-		image, err := dockerref.ParseNormalizedNamed(pc.Spec.StatefulSet.Pod.TailscaleContainer.Image)
+		pc.Spec.StatefulSet.Pod.LanhcContainer != nil &&
+		pc.Spec.StatefulSet.Pod.LanhcContainer.Image != "" {
+		image, err := dockerref.ParseNormalizedNamed(pc.Spec.StatefulSet.Pod.LanhcContainer.Image)
 		if err != nil {
 			// Shouldn't be possible as the ProxyClass won't be marked ready
 			// without successfully parsing the image.
-			return fmt.Errorf("error parsing %q as a container image reference: %w", pc.Spec.StatefulSet.Pod.TailscaleContainer.Image, err)
+			return fmt.Errorf("error parsing %q as a container image reference: %w", pc.Spec.StatefulSet.Pod.LanhcContainer.Image, err)
 		}
 		imagePath = dockerref.Path(image)
 	}
@@ -279,16 +279,16 @@ func (r *ProxyGroupReconciler) validate(ctx context.Context, pg *tsapi.ProxyGrou
 	}
 
 	if pg.Spec.Type == tsapi.ProxyGroupTypeKubernetesAPIServer {
-		if strings.HasSuffix(imagePath, "tailscale") {
+		if strings.HasSuffix(imagePath, "lanhc") {
 			errs = append(errs, fmt.Errorf("the configured ProxyClass %q specifies to use image %q but expected a %q image for ProxyGroup of type %q", pc.Name, image, "k8s-proxy", pg.Spec.Type))
 		}
 
-		if pc != nil && pc.Spec.StatefulSet != nil && pc.Spec.StatefulSet.Pod != nil && pc.Spec.StatefulSet.Pod.TailscaleInitContainer != nil {
-			errs = append(errs, fmt.Errorf("the configured ProxyClass %q specifies Tailscale init container config, but ProxyGroups of type %q do not use init containers", pc.Name, pg.Spec.Type))
+		if pc != nil && pc.Spec.StatefulSet != nil && pc.Spec.StatefulSet.Pod != nil && pc.Spec.StatefulSet.Pod.LanhcInitContainer != nil {
+			errs = append(errs, fmt.Errorf("the configured ProxyClass %q specifies Lanhc init container config, but ProxyGroups of type %q do not use init containers", pc.Name, pg.Spec.Type))
 		}
 	} else {
 		if strings.HasSuffix(imagePath, "k8s-proxy") {
-			errs = append(errs, fmt.Errorf("the configured ProxyClass %q specifies to use image %q but expected a %q image for ProxyGroup of type %q", pc.Name, image, "tailscale", pg.Spec.Type))
+			errs = append(errs, fmt.Errorf("the configured ProxyClass %q specifies to use image %q but expected a %q image for ProxyGroup of type %q", pc.Name, image, "lanhc", pg.Spec.Type))
 		}
 	}
 
@@ -302,10 +302,10 @@ func (r *ProxyGroupReconciler) maybeProvision(ctx context.Context, tsClient tscl
 	r.mu.Unlock()
 
 	svcToNodePorts := make(map[string]uint16)
-	var tailscaledPort *uint16
+	var lanhcdPort *uint16
 	if proxyClass != nil && proxyClass.Spec.StaticEndpoints != nil {
 		var err error
-		svcToNodePorts, tailscaledPort, err = r.ensureNodePortServiceCreated(ctx, pg, proxyClass)
+		svcToNodePorts, lanhcdPort, err = r.ensureNodePortServiceCreated(ctx, pg, proxyClass)
 		if err != nil {
 			if _, ok := errors.AsType[*allocatePortsErr](err); ok {
 				reason := reasonProxyGroupCreationFailed
@@ -400,11 +400,11 @@ func (r *ProxyGroupReconciler) maybeProvision(ctx context.Context, tsClient tscl
 	if pg.Spec.Type == tsapi.ProxyGroupTypeKubernetesAPIServer {
 		defaultImage = r.k8sProxyImage
 	}
-	ss, err := pgStatefulSet(pg, r.tsNamespace, defaultImage, r.tsFirewallMode, tailscaledPort, proxyClass)
+	ss, err := pgStatefulSet(pg, r.tsNamespace, defaultImage, r.tsFirewallMode, lanhcdPort, proxyClass)
 	if err != nil {
 		return r.notReadyErrf(pg, logger, "error generating StatefulSet spec: %w", err)
 	}
-	cfg := &tailscaleSTSConfig{
+	cfg := &lanhcSTSConfig{
 		proxyType: string(pg.Spec.Type),
 	}
 	ss = applyProxyClassToStatefulSet(proxyClass, ss, cfg, logger)
@@ -573,7 +573,7 @@ func (r *ProxyGroupReconciler) allocatePorts(ctx context.Context, pg *tsapi.Prox
 
 func (r *ProxyGroupReconciler) ensureNodePortServiceCreated(ctx context.Context, pg *tsapi.ProxyGroup, pc *tsapi.ProxyClass) (map[string]uint16, *uint16, error) {
 	// NOTE: (ChaosInTheCRD) we want the same TargetPort for every static endpoint NodePort Service for the ProxyGroup
-	tailscaledPort := getRandomPort()
+	lanhcdPort := getRandomPort()
 	svcs := []*corev1.Service{}
 	for i := range pgReplicas(pg) {
 		nodePortSvcName := pgNodePortServiceName(pg.Name, i)
@@ -586,11 +586,11 @@ func (r *ProxyGroupReconciler) ensureNodePortServiceCreated(ctx context.Context,
 		if apierrors.IsNotFound(err) {
 			svcs = append(svcs, pgNodePortService(pg, nodePortSvcName, r.tsNamespace))
 		} else {
-			// NOTE: if we can we want to recover the random port used for tailscaled,
+			// NOTE: if we can we want to recover the random port used for lanhcd,
 			// as well as the NodePort previously used for that Service
 			if len(svc.Spec.Ports) == 1 {
 				if svc.Spec.Ports[0].Port != 0 {
-					tailscaledPort = uint16(svc.Spec.Ports[0].Port)
+					lanhcdPort = uint16(svc.Spec.Ports[0].Port)
 				}
 			}
 			svcs = append(svcs, svc)
@@ -604,8 +604,8 @@ func (r *ProxyGroupReconciler) ensureNodePortServiceCreated(ctx context.Context,
 
 	for _, svc := range svcs {
 		// NOTE: we know that every service is going to have 1 port here
-		svc.Spec.Ports[0].Port = int32(tailscaledPort)
-		svc.Spec.Ports[0].TargetPort = intstr.FromInt(int(tailscaledPort))
+		svc.Spec.Ports[0].Port = int32(lanhcdPort)
+		svc.Spec.Ports[0].TargetPort = intstr.FromInt(int(lanhcdPort))
 		svc.Spec.Ports[0].NodePort = int32(svcToNodePorts[svc.Name])
 
 		_, err = createOrUpdate(ctx, r.Client, r.tsNamespace, svc, func(s *corev1.Service) {
@@ -620,7 +620,7 @@ func (r *ProxyGroupReconciler) ensureNodePortServiceCreated(ctx context.Context,
 		}
 	}
 
-	return svcToNodePorts, new(tailscaledPort), nil
+	return svcToNodePorts, new(lanhcdPort), nil
 }
 
 // cleanupDanglingResources ensures we don't leak config secrets, state secrets, and
@@ -716,7 +716,7 @@ func (r *ProxyGroupReconciler) ensureDeviceDeleted(ctx context.Context, tsClient
 	logger.Debugf("deleting device %s from control", string(id))
 	err := tsClient.Devices().Delete(ctx, string(id))
 	switch {
-	case tailscale.IsNotFound(err):
+	case lanhcclient.IsNotFound(err):
 		logger.Debugf("device %s not found, likely because it has already been deleted from control", string(id))
 	case err != nil:
 		return fmt.Errorf("error deleting device: %w", err)
@@ -840,8 +840,8 @@ func (r *ProxyGroupReconciler) ensureConfigSecretsCreated(
 				cfg.ServerURL = new(tsClient.LoginURL())
 			}
 
-			if proxyClass != nil && proxyClass.Spec.TailscaleConfig != nil {
-				cfg.AcceptRoutes = opt.NewBool(proxyClass.Spec.TailscaleConfig.AcceptRoutes)
+			if proxyClass != nil && proxyClass.Spec.LanhcConfig != nil {
+				cfg.AcceptRoutes = opt.NewBool(proxyClass.Spec.LanhcConfig.AcceptRoutes)
 			}
 
 			if proxyClass != nil && proxyClass.Spec.Metrics != nil {
@@ -865,17 +865,17 @@ func (r *ProxyGroupReconciler) ensureConfigSecretsCreated(
 				return nil, err
 			}
 
-			configs, err := pgTailscaledConfig(pg, tsClient.LoginURL(), proxyClass, i, authKey, endpoints[nodePortSvcName], existingAdvertiseServices)
+			configs, err := pgLanhcdConfig(pg, tsClient.LoginURL(), proxyClass, i, authKey, endpoints[nodePortSvcName], existingAdvertiseServices)
 			if err != nil {
-				return nil, fmt.Errorf("error creating tailscaled config: %w", err)
+				return nil, fmt.Errorf("error creating lanhcd config: %w", err)
 			}
 
 			for cap, cfg := range configs {
 				cfgJSON, err := json.Marshal(cfg)
 				if err != nil {
-					return nil, fmt.Errorf("error marshalling tailscaled config: %w", err)
+					return nil, fmt.Errorf("error marshalling lanhcd config: %w", err)
 				}
-				mak.Set(&cfgSecret.Data, tsoperator.TailscaledConfigFileName(cap), cfgJSON)
+				mak.Set(&cfgSecret.Data, tsoperator.LanhcdConfigFileName(cap), cfgJSON)
 			}
 		}
 
@@ -1036,16 +1036,16 @@ func (e *FindStaticEndpointErr) Error() string {
 func (r *ProxyGroupReconciler) findStaticEndpoints(ctx context.Context, existingCfgSecret *corev1.Secret, proxyClass *tsapi.ProxyClass, port uint16, logger *zap.SugaredLogger) ([]netip.AddrPort, error) {
 	var currAddrs []netip.AddrPort
 	if existingCfgSecret != nil {
-		oldConfB := existingCfgSecret.Data[tsoperator.TailscaledConfigFileName(106)]
+		oldConfB := existingCfgSecret.Data[tsoperator.LanhcdConfigFileName(106)]
 		if len(oldConfB) > 0 {
 			var oldConf ipn.ConfigVAlpha
 			if err := json.Unmarshal(oldConfB, &oldConf); err == nil {
 				currAddrs = oldConf.StaticEndpoints
 			} else {
-				logger.Debugf("failed to unmarshal tailscaled config from secret %q: %v", existingCfgSecret.Name, err)
+				logger.Debugf("failed to unmarshal lanhcd config from secret %q: %v", existingCfgSecret.Name, err)
 			}
 		} else {
-			logger.Debugf("failed to get tailscaled config from secret %q: empty data", existingCfgSecret.Name)
+			logger.Debugf("failed to get lanhcd config from secret %q: empty data", existingCfgSecret.Name)
 		}
 	}
 
@@ -1191,7 +1191,7 @@ func (r *ProxyGroupReconciler) ensureStateRemovedForProxyGroup(pg *tsapi.ProxyGr
 	}
 }
 
-func pgTailscaledConfig(pg *tsapi.ProxyGroup, loginServer string, pc *tsapi.ProxyClass, idx int32, authKey *string, staticEndpoints []netip.AddrPort, oldAdvertiseServices []string) (tailscaledConfigs, error) {
+func pgLanhcdConfig(pg *tsapi.ProxyGroup, loginServer string, pc *tsapi.ProxyClass, idx int32, authKey *string, staticEndpoints []netip.AddrPort, oldAdvertiseServices []string) (lanhcdConfigs, error) {
 	conf := &ipn.ConfigVAlpha{
 		Version:           "alpha0",
 		AcceptDNS:         "false",

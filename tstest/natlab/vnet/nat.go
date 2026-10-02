@@ -10,7 +10,7 @@ import (
 	"net/netip"
 	"time"
 
-	"tailscale.com/util/mak"
+	"lanhc.com/util/mak"
 )
 
 const (
@@ -63,7 +63,7 @@ func registerNATType(name NAT, f newTableFunc) {
 
 // NATTable is what a NAT implementation is expected to do.
 //
-// This project tests Tailscale as it faces various combinations various NAT
+// This project tests Lanhc as it faces various combinations various NAT
 // implementations (e.g. Linux easy style NAT vs FreeBSD hard/endpoint dependent
 // NAT vs Cloud 1:1 NAT, etc)
 //
@@ -147,7 +147,7 @@ type lanAddrAndTime struct {
 
 // hardNAT is an "Endpoint Dependent" NAT, like FreeBSD/pfSense/OPNsense.
 // This is shown as "MappingVariesByDestIP: true" by netcheck, and what
-// Tailscale calls "Hard NAT".
+// Lanhc calls "Hard NAT".
 type hardNAT struct {
 	pool  IPPool
 	wanIP netip.Addr
@@ -222,7 +222,7 @@ func (n *hardNAT) PickIncomingDst(src, dst netip.AddrPort, at time.Time) (lanDst
 // (many of which are Linux).
 //
 // This is shown as "MappingVariesByDestIP: false" by netcheck, and what
-// Tailscale calls "Easy NAT".
+// Lanhc calls "Easy NAT".
 //
 // Unlike Linux, this implementation is capped at 32k entries and doesn't resort
 // to other allocation strategies when all 32k WAN ports are taken.

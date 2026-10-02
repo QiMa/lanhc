@@ -18,8 +18,8 @@ import (
 	"slices"
 	"sync"
 
-	"tailscale.com/metrics"
-	"tailscale.com/util/must"
+	"lanhc.com/metrics"
+	"lanhc.com/util/must"
 )
 
 var stderrFD = 2 // a variable for testing

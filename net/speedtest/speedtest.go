@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // Package speedtest contains both server and client code for
-// running speedtests between tailscale nodes.
+// running speedtests between lanhc nodes.
 package speedtest
 
 import (
@@ -24,7 +24,7 @@ const (
 // conduct the test.
 type config struct {
 	Version      int           `json:"version"`
-	TestDuration time.Duration `json:"time"` // int64 nanoseconds; no jsonv2 format tag (tailscale/tailscale#20528)
+	TestDuration time.Duration `json:"time"` // int64 nanoseconds; no jsonv2 format tag (lanhc/lanhc#20528)
 	Direction    Direction     `json:"direction"`
 }
 

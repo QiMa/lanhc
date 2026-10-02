@@ -17,7 +17,7 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/util/lineiter"
+	"lanhc.com/util/lineiter"
 )
 
 // These vars are overridden for tests.

@@ -21,13 +21,13 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/ipn"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/httpm"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/ipn"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/httpm"
 )
 
 func init() {
@@ -240,7 +240,7 @@ func (h *Handler) serveDebug(w http.ResponseWriter, r *http.Request) {
 	case "rotate-disco-key":
 		err = h.b.DebugRotateDiscoKey()
 	case "statedir":
-		root := h.b.TailscaleVarRoot()
+		root := h.b.LanhcVarRoot()
 		w.Header().Set("Content-Type", "application/json")
 		err = json.NewEncoder(w).Encode(root)
 		if err == nil {
@@ -333,7 +333,7 @@ type debugEventError struct {
 	Error string
 }
 
-// serveDebugBusEvents taps into the tailscaled/utils/eventbus and streams
+// serveDebugBusEvents taps into the lanhcd/utils/eventbus and streams
 // events to the client.
 func (h *Handler) serveDebugBusEvents(w http.ResponseWriter, r *http.Request) {
 	// Require write access (~root) as the logs could contain something

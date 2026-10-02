@@ -9,9 +9,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/feature/serviceclientprefs/serviceclient"
-	"tailscale.com/ipn"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/feature/serviceclientprefs/serviceclient"
+	"lanhc.com/ipn"
 )
 
 func TestServiceClientPrefsSetAndGet(t *testing.T) {

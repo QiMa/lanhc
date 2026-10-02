@@ -14,9 +14,9 @@ import (
 	"sort"
 
 	"github.com/fxamacker/cbor/v2"
-	"tailscale.com/types/key"
-	"tailscale.com/types/tkatype"
-	"tailscale.com/util/set"
+	"lanhc.com/types/key"
+	"lanhc.com/types/tkatype"
+	"lanhc.com/util/set"
 )
 
 // Strict settings for the CBOR decoder.
@@ -32,7 +32,7 @@ var cborDecOpts = cbor.DecOptions{
 }
 
 // Authority is a Tailnet Key Authority. This type is the main coupling
-// point to the rest of the tailscale client.
+// point to the rest of the lanhc client.
 //
 // Authority objects can either be created from an existing, non-empty
 // tailchonk (via tka.Open()), or created from scratch using tka.Bootstrap()

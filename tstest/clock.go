@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/tstime"
-	"tailscale.com/util/mak"
+	"lanhc.com/tstime"
+	"lanhc.com/util/mak"
 )
 
 // ClockOpts is used to configure the initial settings for a Clock. Once the

@@ -22,47 +22,47 @@ import (
 	"github.com/tailscale/wireguard-go/device"
 	"github.com/tailscale/wireguard-go/tun"
 	"go4.org/mem"
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/drive"
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/health"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/net/dns"
-	"tailscale.com/net/dns/resolver"
-	"tailscale.com/net/ipset"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/packet"
-	"tailscale.com/net/routemanager"
-	"tailscale.com/net/sockstats"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/net/tstun"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime/mono"
-	"tailscale.com/types/dnstype"
-	"tailscale.com/types/events"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/views"
-	"tailscale.com/util/checkchange"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/execqueue"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/singleflight"
-	"tailscale.com/util/testenv"
-	"tailscale.com/util/usermetric"
-	"tailscale.com/version"
-	"tailscale.com/wgengine/filter"
-	"tailscale.com/wgengine/magicsock"
-	"tailscale.com/wgengine/netstack/gro"
-	"tailscale.com/wgengine/router"
-	"tailscale.com/wgengine/wgcfg"
-	"tailscale.com/wgengine/wgint"
-	"tailscale.com/wgengine/wglog"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/drive"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/health"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/net/dns"
+	"lanhc.com/net/dns/resolver"
+	"lanhc.com/net/ipset"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/packet"
+	"lanhc.com/net/routemanager"
+	"lanhc.com/net/sockstats"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/net/tstun"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime/mono"
+	"lanhc.com/types/dnstype"
+	"lanhc.com/types/events"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/views"
+	"lanhc.com/util/checkchange"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/execqueue"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/singleflight"
+	"lanhc.com/util/testenv"
+	"lanhc.com/util/usermetric"
+	"lanhc.com/version"
+	"lanhc.com/wgengine/filter"
+	"lanhc.com/wgengine/magicsock"
+	"lanhc.com/wgengine/netstack/gro"
+	"lanhc.com/wgengine/router"
+	"lanhc.com/wgengine/wgcfg"
+	"lanhc.com/wgengine/wgint"
+	"lanhc.com/wgengine/wglog"
 )
 
 type userspaceEngine struct {
@@ -99,9 +99,9 @@ type userspaceEngine struct {
 	// incorrectly sent to us.
 	isLocalAddr syncs.AtomicValue[func(netip.Addr) bool]
 
-	// isDNSIPOverTailscale reports the whether a DNS resolver's IP
-	// is being routed over Tailscale.
-	isDNSIPOverTailscale syncs.AtomicValue[func(netip.Addr) bool]
+	// isDNSIPOverLanhc reports the whether a DNS resolver's IP
+	// is being routed over Lanhc.
+	isDNSIPOverLanhc syncs.AtomicValue[func(netip.Addr) bool]
 
 	wgLock sync.Mutex // serializes all wgdev operations; see lock order comment below
 
@@ -252,7 +252,7 @@ type Config struct {
 	// private key. This should only be used for special cases and
 	// experiments, not for production. The recommended normal path is to
 	// leave it zero, in which case a new disco key is generated per
-	// Tailscale start and kept only in memory.
+	// Lanhc start and kept only in memory.
 	ForceDiscoKey key.DiscoPrivate
 
 	// OnDERPRecv, if non-nil, is called for every non-disco packet
@@ -300,7 +300,7 @@ func NewFakeUserspaceEngine(logf logger.Logf, opts ...any) (Engine, error) {
 }
 
 // NewUserspaceEngine creates the named tun device and returns a
-// Tailscale Engine running on it.
+// Lanhc Engine running on it.
 func NewUserspaceEngine(logf logger.Logf, conf Config) (_ Engine, reterr error) {
 	var closePool closeOnErrorPool
 	defer closePool.closeAllIfError(&reterr)
@@ -388,7 +388,7 @@ func NewUserspaceEngine(logf logger.Logf, conf Config) (_ Engine, reterr error) 
 		e.bird = bird
 	}
 	e.isLocalAddr.Store(ipset.FalseContainsIPFunc())
-	e.isDNSIPOverTailscale.Store(ipset.FalseContainsIPFunc())
+	e.isDNSIPOverLanhc.Store(ipset.FalseContainsIPFunc())
 
 	if conf.NetMon != nil {
 		e.netMon = conf.NetMon
@@ -649,7 +649,7 @@ func echoRespondToAll(p *packet.Parsed, t *tstun.Wrapper, gro *gro.GRO) (filter.
 
 // handleLocalPackets inspects packets coming from the local network
 // stack, and intercepts any packets that should be handled by
-// tailscaled directly. Other packets are allowed to proceed into the
+// lanhcd directly. Other packets are allowed to proceed into the
 // main ACL filter.
 func (e *userspaceEngine) handleLocalPackets(p *packet.Parsed, t *tstun.Wrapper) filter.Response {
 	if runtime.GOOS == "darwin" || runtime.GOOS == "ios" {
@@ -856,13 +856,13 @@ func (e *userspaceEngine) Reconfig(cfg *wgcfg.Config, routerCfg *router.Config, 
 		return ErrNoChanges
 	}
 
-	// TODO(bradfitz,danderson): maybe delete this isDNSIPOverTailscale
+	// TODO(bradfitz,danderson): maybe delete this isDNSIPOverLanhc
 	// field and delete the resolver.ForwardLinkSelector hook and
 	// instead have ipnlocal populate a map of DNS IP => linkName and
 	// put that in the *dns.Config instead, and plumb it down to the
 	// dns.Manager. Maybe also with isLocalAddr above.
 	if buildfeatures.HasDNS {
-		e.isDNSIPOverTailscale.Store(ipset.NewContainsIPFunc(views.SliceOf(dnsIPsOverTailscale(dnsCfg, routerCfg))))
+		e.isDNSIPOverLanhc.Store(ipset.NewContainsIPFunc(views.SliceOf(dnsIPsOverLanhc(dnsCfg, routerCfg))))
 	}
 
 	if !e.lastCfg.PrivateKey.Equal(cfg.PrivateKey) {
@@ -903,8 +903,8 @@ func (e *userspaceEngine) Reconfig(cfg *wgcfg.Config, routerCfg *router.Config, 
 	}
 
 	// We've historically re-set DNS even after just a router change. While
-	// refactoring in tailscale/tailscale#17448 and
-	// tailscale/tailscale#17499, I'm erring on the side of keeping that
+	// refactoring in lanhc/lanhc#17448 and
+	// lanhc/lanhc#17499, I'm erring on the side of keeping that
 	// historical quirk for now (2025-10-08), lest it's load bearing in
 	// unexpected ways
 	//
@@ -1100,7 +1100,7 @@ func (e *userspaceEngine) Close() {
 	// producer for linkChangeQueue, to return, so no new work can be
 	// queued. Discard queued linkChanges and wait for an in-flight one
 	// to finish before closing the subsystems it uses.
-	// See tailscale/tailscale#17641.
+	// See lanhc/lanhc#17641.
 	drainCtx, drainCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer drainCancel()
 	e.linkChangeQueue.ShutdownAndWait(drainCtx)
@@ -1168,7 +1168,7 @@ func (e *userspaceEngine) linkChange(delta *netmon.ChangeDelta) {
 	// via [dns.Manager.RecompileDNSConfig] when it detects any change in the
 	// nameservers.
 	//
-	// TODO: On Android, Darwin-tailscaled, and openbsd, why do we need this?
+	// TODO: On Android, Darwin-lanhcd, and openbsd, why do we need this?
 	if delta.RebindLikelyRequired && up {
 		switch runtime.GOOS {
 		case "linux", "android", "ios", "darwin", "openbsd":
@@ -1261,7 +1261,7 @@ func (e *userspaceEngine) Ping(ip netip.Addr, pingType tailcfg.PingType, size in
 		return
 	}
 	if pip.IsSelf {
-		res.Err = fmt.Sprintf("%v is local Tailscale IP", ip)
+		res.Err = fmt.Sprintf("%v is local Lanhc IP", ip)
 		res.IsLocalIP = true
 		cb(res)
 		return
@@ -1495,10 +1495,10 @@ func ipInPrefixes(ip netip.Addr, pp []netip.Prefix) bool {
 	return false
 }
 
-// dnsIPsOverTailscale returns the IPPrefixes of DNS resolver IPs that are
-// routed over Tailscale. The returned value does not contain duplicates is
+// dnsIPsOverLanhc returns the IPPrefixes of DNS resolver IPs that are
+// routed over Lanhc. The returned value does not contain duplicates is
 // not necessarily sorted.
-func dnsIPsOverTailscale(dnsCfg *dns.Config, routerCfg *router.Config) (ret []netip.Prefix) {
+func dnsIPsOverLanhc(dnsCfg *dns.Config, routerCfg *router.Config) (ret []netip.Prefix) {
 	m := map[netip.Addr]bool{}
 
 	add := func(resolvers []*dnstype.Resolver) {
@@ -1543,7 +1543,7 @@ func (ls fwdDNSLinkSelector) PickLink(ip netip.Addr) (linkName string) {
 		return "lo0"
 	}
 
-	if ls.ue.isDNSIPOverTailscale.Load()(ip) {
+	if ls.ue.isDNSIPOverLanhc.Load()(ip) {
 		return ls.tunName
 	}
 	return ""

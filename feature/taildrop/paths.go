@@ -8,12 +8,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"tailscale.com/version/distro"
+	"lanhc.com/version/distro"
 )
 
 // SetDirectFileRoot sets the directory where received files are written.
 //
-// This must be called before Tailscale is started.
+// This must be called before Lanhc is started.
 func (e *Extension) SetDirectFileRoot(root string) {
 	e.directFileRoot = root
 }
@@ -30,7 +30,7 @@ func (e *Extension) setPlatformDefaultDirectFileRoot() {
 	switch dg {
 	case distro.Synology, distro.TrueNAS, distro.QNAP, distro.Unraid:
 		// See if they have a "Taildrop" share.
-		// See https://github.com/tailscale/tailscale/issues/2179#issuecomment-982821319
+		// See https://github.com/lanhc/lanhc/issues/2179#issuecomment-982821319
 		path, err := findTaildropDir(dg)
 		if err != nil {
 			e.logf("%s Taildrop support: %v", dg, err)
@@ -115,10 +115,10 @@ func findQnapTaildropDir(name string) (string, error) {
 }
 
 // findUnraidTaildropDir looks for a directory linked at
-// /var/lib/tailscale/Taildrop. This is a symlink to the
+// /var/lib/lanhc/Taildrop. This is a symlink to the
 // path specified by the user in the Unraid Web UI
 func findUnraidTaildropDir(name string) (string, error) {
-	dir := fmt.Sprintf("/var/lib/tailscale/%s", name)
+	dir := fmt.Sprintf("/var/lib/lanhc/%s", name)
 	_, err := os.Stat(dir)
 	if err != nil {
 		return "", fmt.Errorf("symlink %q not found", name)

@@ -4,13 +4,13 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: tailscale
+  name: lanhc
 ---
 apiVersion: v1
 kind: Secret
 metadata:
   name: operator-oauth
-  namespace: tailscale
+  namespace: lanhc
 stringData:
   client_id: # SET CLIENT ID HERE
   client_secret: # SET CLIENT SECRET HERE
@@ -19,22 +19,22 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
     name: operator
-    namespace: tailscale
+    namespace: lanhc
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
     name: proxies
-    namespace: tailscale
+    namespace: lanhc
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
     annotations:
         controller-gen.kubebuilder.io/version: v0.17.0
-    name: connectors.tailscale.com
+    name: connectors.lanhc.com
 spec:
-    group: tailscale.com
+    group: lanhc.com
     names:
         kind: Connector
         listKind: ConnectorList
@@ -68,12 +68,12 @@ spec:
           schema:
             openAPIV3Schema:
                 description: |-
-                    Connector defines a Tailscale node that will be deployed in the cluster. The
-                    node can be configured to act as a Tailscale subnet router and/or a Tailscale
+                    Connector defines a Lanhc node that will be deployed in the cluster. The
+                    node can be configured to act as a Lanhc subnet router and/or a Lanhc
                     exit node.
                     Connector is a cluster-scoped resource.
                     More info:
-                    https://tailscale.com/kb/1441/kubernetes-operator-connector
+                    https://lanhc.com/kb/1441/kubernetes-operator-connector
                 properties:
                     apiVersion:
                         description: |-
@@ -94,13 +94,13 @@ spec:
                         type: object
                     spec:
                         description: |-
-                            ConnectorSpec describes the desired Tailscale component.
+                            ConnectorSpec describes the desired Lanhc component.
                             More info:
                             https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
                         properties:
                             appConnector:
                                 description: |-
-                                    AppConnector defines whether the Connector device should act as a Tailscale app connector. A Connector that is
+                                    AppConnector defines whether the Connector device should act as a Lanhc app connector. A Connector that is
                                     configured as an app connector cannot be a subnet router or an exit node. If this field is unset, the
                                     Connector does not act as an app connector.
                                     Note that you will need to manually configure the permissions and the domains for the app connector via the
@@ -113,7 +113,7 @@ spec:
                                     can be whitelisted, it is also your responsibility to ensure that cluster traffic from the connector flows
                                     via that predictable IP, for example by enforcing that cluster egress traffic is routed via an egress NAT
                                     device with a static IP address.
-                                    https://tailscale.com/kb/1281/app-connectors
+                                    https://lanhc.com/kb/1281/app-connectors
                                 properties:
                                     routes:
                                         description: |-
@@ -121,7 +121,7 @@ spec:
                                             If not set, routes for the domains will be discovered dynamically.
                                             If set, the app connector will immediately be able to route traffic using the preconfigured routes, but may
                                             also dynamically discover other routes.
-                                            https://tailscale.com/kb/1332/apps-best-practices#preconfiguration
+                                            https://lanhc.com/kb/1332/apps-best-practices#preconfiguration
                                         items:
                                             format: cidr
                                             type: string
@@ -130,9 +130,9 @@ spec:
                                 type: object
                             exitNode:
                                 description: |-
-                                    ExitNode defines whether the Connector device should act as a Tailscale exit node. Defaults to false.
+                                    ExitNode defines whether the Connector device should act as a Lanhc exit node. Defaults to false.
                                     This field is mutually exclusive with the appConnector field.
-                                    https://tailscale.com/kb/1103/exit-nodes
+                                    https://lanhc.com/kb/1103/exit-nodes
                                 type: boolean
                             hostname:
                                 description: |-
@@ -164,24 +164,24 @@ spec:
                                 description: |-
                                     Replicas specifies how many devices to create. Set this to enable
                                     high availability for app connectors, subnet routers, or exit nodes.
-                                    https://tailscale.com/kb/1115/high-availability. Defaults to 1.
+                                    https://lanhc.com/kb/1115/high-availability. Defaults to 1.
                                 format: int32
                                 minimum: 0
                                 type: integer
                             subnetRouter:
                                 description: |-
                                     SubnetRouter defines subnet routes that the Connector device should
-                                    expose to tailnet as a Tailscale subnet router.
-                                    https://tailscale.com/kb/1019/subnets/
-                                    If this field is unset, the device does not get configured as a Tailscale subnet router.
+                                    expose to tailnet as a Lanhc subnet router.
+                                    https://lanhc.com/kb/1019/subnets/
+                                    If this field is unset, the device does not get configured as a Lanhc subnet router.
                                     This field is mutually exclusive with the appConnector field.
                                 properties:
                                     advertiseRoutes:
                                         description: |-
                                             AdvertiseRoutes refer to CIDRs that the subnet router should make
                                             available. Route values must be strings that represent a valid IPv4
-                                            or IPv6 CIDR range. Values can be Tailscale 4via6 subnet routes.
-                                            https://tailscale.com/kb/1201/4via6-subnets/
+                                            or IPv6 CIDR range. Values can be Lanhc 4via6 subnet routes.
+                                            https://lanhc.com/kb/1201/4via6-subnets/
                                         items:
                                             format: cidr
                                             type: string
@@ -192,14 +192,14 @@ spec:
                                 type: object
                             tags:
                                 description: |-
-                                    Tags that the Tailscale node will be tagged with.
+                                    Tags that the Lanhc node will be tagged with.
                                     Defaults to [tag:k8s].
                                     To autoapprove the subnet routes or exit node defined by a Connector,
-                                    you can configure Tailscale ACLs to give these tags the necessary
+                                    you can configure Lanhc ACLs to give these tags the necessary
                                     permissions.
-                                    See https://tailscale.com/kb/1337/acl-syntax#autoapprovers.
+                                    See https://lanhc.com/kb/1337/acl-syntax#autoapprovers.
                                     If you specify custom tags here, you must also make the operator an owner of these tags.
-                                    See  https://tailscale.com/kb/1236/kubernetes-operator/#setting-up-the-kubernetes-operator.
+                                    See  https://lanhc.com/kb/1236/kubernetes-operator/#setting-up-the-kubernetes-operator.
                                     Tags cannot be changed once a Connector node has been created.
                                     Tag values must be in form ^tag:[a-zA-Z][a-zA-Z0-9-]*$.
                                 items:
@@ -227,7 +227,7 @@ spec:
                     status:
                         description: |-
                             ConnectorStatus describes the status of the Connector. This is set
-                            and managed by the Tailscale operator.
+                            and managed by the Lanhc operator.
                         properties:
                             conditions:
                                 description: |-
@@ -349,9 +349,9 @@ kind: CustomResourceDefinition
 metadata:
     annotations:
         controller-gen.kubebuilder.io/version: v0.17.0
-    name: dnsconfigs.tailscale.com
+    name: dnsconfigs.lanhc.com
 spec:
-    group: tailscale.com
+    group: lanhc.com
     names:
         kind: DNSConfig
         listKind: DNSConfigList
@@ -373,30 +373,30 @@ spec:
           schema:
             openAPIV3Schema:
                 description: |-
-                    DNSConfig can be deployed to cluster to make a subset of Tailscale MagicDNS
+                    DNSConfig can be deployed to cluster to make a subset of Lanhc MagicDNS
                     names resolvable by cluster workloads. Use this if: A) you need to refer to
-                    tailnet services, exposed to cluster via Tailscale Kubernetes operator egress
+                    tailnet services, exposed to cluster via Lanhc Kubernetes operator egress
                     proxies by the MagicDNS names of those tailnet services (usually because the
                     services run over HTTPS)
-                    B) you have exposed a cluster workload to the tailnet using Tailscale Ingress
+                    B) you have exposed a cluster workload to the tailnet using Lanhc Ingress
                     and you also want to refer to the workload from within the cluster over the
                     Ingress's MagicDNS name (usually because you have some callback component
                     that needs to use the same URL as that used by a non-cluster client on
                     tailnet).
-                    When a DNSConfig is applied to a cluster, Tailscale Kubernetes operator will
+                    When a DNSConfig is applied to a cluster, Lanhc Kubernetes operator will
                     deploy a nameserver for ts.net DNS names and automatically populate it with records
-                    for any Tailscale egress or Ingress proxies deployed to that cluster.
+                    for any Lanhc egress or Ingress proxies deployed to that cluster.
                     Currently you must manually update your cluster DNS configuration to add the
                     IP address of the deployed nameserver as a ts.net stub nameserver.
                     Instructions for how to do it:
                     https://kubernetes.io/docs/tasks/administer-cluster/dns-custom-nameservers/#configuration-of-stub-domain-and-upstream-nameserver-using-coredns (for CoreDNS),
                     https://cloud.google.com/kubernetes-engine/docs/how-to/kube-dns (for kube-dns).
-                    Tailscale Kubernetes operator will write the address of a Service fronting
+                    Lanhc Kubernetes operator will write the address of a Service fronting
                     the nameserver to dsnconfig.status.nameserver.ip.
                     DNSConfig is a singleton - you must not create more than one.
-                    NB: if you want cluster workloads to be able to refer to Tailscale Ingress
+                    NB: if you want cluster workloads to be able to refer to Lanhc Ingress
                     using its MagicDNS name, you must also annotate the Ingress resource with
-                    tailscale.com/experimental-forward-cluster-traffic-via-ingress annotation to
+                    lanhc.com/experimental-forward-cluster-traffic-via-ingress annotation to
                     ensure that the proxy created for the Ingress listens on its Pod IP address.
                 properties:
                     apiVersion:
@@ -425,15 +425,15 @@ spec:
                             nameserver:
                                 description: |-
                                     Configuration for a nameserver that can resolve ts.net DNS names
-                                    associated with in-cluster proxies for Tailscale egress Services and
-                                    Tailscale Ingresses. The operator will always deploy this nameserver
+                                    associated with in-cluster proxies for Lanhc egress Services and
+                                    Lanhc Ingresses. The operator will always deploy this nameserver
                                     when a DNSConfig is applied.
                                 properties:
                                     image:
-                                        description: Nameserver image. Defaults to tailscale/k8s-nameserver:unstable.
+                                        description: Nameserver image. Defaults to lanhc/k8s-nameserver:unstable.
                                         properties:
                                             repo:
-                                                description: Repo defaults to tailscale/k8s-nameserver.
+                                                description: Repo defaults to lanhc/k8s-nameserver.
                                                 type: string
                                             tag:
                                                 description: Tag defaults to unstable.
@@ -1379,7 +1379,7 @@ spec:
                     status:
                         description: |-
                             Status describes the status of the DNSConfig. This is set
-                            and managed by the Tailscale operator.
+                            and managed by the Lanhc operator.
                         properties:
                             conditions:
                                 items:
@@ -1466,9 +1466,9 @@ kind: CustomResourceDefinition
 metadata:
     annotations:
         controller-gen.kubebuilder.io/version: v0.17.0
-    name: peerrelays.tailscale.com
+    name: peerrelays.lanhc.com
 spec:
-    group: tailscale.com
+    group: lanhc.com
     names:
         kind: PeerRelay
         listKind: PeerRelayList
@@ -1605,7 +1605,7 @@ spec:
                                 description: |-
                                     Replicas specifies how many devices to create. Set this to enable
                                     high availability for peer relays.
-                                    https://tailscale.com/kb/1115/high-availability. Defaults to 1.
+                                    https://lanhc.com/kb/1115/high-availability. Defaults to 1.
                                 format: int32
                                 minimum: 0
                                 type: integer
@@ -1622,14 +1622,14 @@ spec:
                                 type: object
                             tags:
                                 description: |-
-                                    Tags that the Tailscale node will be tagged with.
+                                    Tags that the Lanhc node will be tagged with.
                                     Defaults to [tag:k8s].
                                     To autoapprove the device defined by a PeerRelay,
-                                    you can configure Tailscale ACLs to give these tags the necessary
+                                    you can configure Lanhc ACLs to give these tags the necessary
                                     permissions.
-                                    See https://tailscale.com/kb/1337/acl-syntax#autoapprovers.
+                                    See https://lanhc.com/kb/1337/acl-syntax#autoapprovers.
                                     If you specify custom tags here, you must also make the operator an owner of these tags.
-                                    See  https://tailscale.com/kb/1236/kubernetes-operator/#setting-up-the-kubernetes-operator.
+                                    See  https://lanhc.com/kb/1236/kubernetes-operator/#setting-up-the-kubernetes-operator.
                                     Tags cannot be changed once a PeerRelay node has been created.
                                     Tag values must be in form ^tag:[a-zA-Z][a-zA-Z0-9-]*$.
                                 items:
@@ -1651,7 +1651,7 @@ spec:
                     status:
                         description: |-
                             Status describes the status of the PeerRelay. This is set
-                            and managed by the Tailscale operator.
+                            and managed by the Lanhc operator.
                         properties:
                             conditions:
                                 items:
@@ -1757,9 +1757,9 @@ kind: CustomResourceDefinition
 metadata:
     annotations:
         controller-gen.kubebuilder.io/version: v0.17.0
-    name: proxyclasses.tailscale.com
+    name: proxyclasses.lanhc.com
 spec:
-    group: tailscale.com
+    group: lanhc.com
     names:
         kind: ProxyClass
         listKind: ProxyClassList
@@ -1780,14 +1780,14 @@ spec:
             openAPIV3Schema:
                 description: |-
                     ProxyClass describes a set of configuration parameters that can be applied to
-                    proxy resources created by the Tailscale Kubernetes operator.
-                    To apply a given ProxyClass to resources created for a tailscale Ingress or
-                    Service, use tailscale.com/proxy-class=<proxyclass-name> label. To apply a
+                    proxy resources created by the Lanhc Kubernetes operator.
+                    To apply a given ProxyClass to resources created for a lanhc Ingress or
+                    Service, use lanhc.com/proxy-class=<proxyclass-name> label. To apply a
                     given ProxyClass to resources created for a Connector, use
                     connector.spec.proxyClass field.
                     ProxyClass is a cluster scoped resource.
                     More info:
-                    https://tailscale.com/kb/1445/kubernetes-operator-customization#cluster-resource-customization-using-proxyclass-custom-resource
+                    https://lanhc.com/kb/1445/kubernetes-operator-customization#cluster-resource-customization-using-proxyclass-custom-resource
                 properties:
                     apiVersion:
                         description: |-
@@ -1815,31 +1815,31 @@ spec:
                                 description: |-
                                     Configuration for proxy metrics. Metrics are currently not supported
                                     for egress proxies and for Ingress proxies that have been configured
-                                    with tailscale.com/experimental-forward-cluster-traffic-via-ingress
+                                    with lanhc.com/experimental-forward-cluster-traffic-via-ingress
                                     annotation. Note that the metrics are currently considered unstable
                                     and will likely change in breaking ways in the future - we only
                                     recommend that you use those for debugging purposes.
                                 properties:
                                     enable:
                                         description: |-
-                                            Setting enable to true will make the proxy serve Tailscale metrics
+                                            Setting enable to true will make the proxy serve Lanhc metrics
                                             at <pod-ip>:9002/metrics.
                                             A metrics Service named <proxy-statefulset>-metrics will also be created in the operator's namespace and will
                                             serve the metrics at <service-ip>:9002/metrics.
 
                                             In 1.78.x and 1.80.x, this field also serves as the default value for
-                                            .spec.statefulSet.pod.tailscaleContainer.debug.enable. From 1.82.0, both
+                                            .spec.statefulSet.pod.lanhcContainer.debug.enable. From 1.82.0, both
                                             fields will independently default to false.
 
                                             Defaults to false.
                                         type: boolean
                                     serviceMonitor:
                                         description: |-
-                                            Enable to create a Prometheus ServiceMonitor for scraping the proxy's Tailscale metrics.
+                                            Enable to create a Prometheus ServiceMonitor for scraping the proxy's Lanhc metrics.
                                             The ServiceMonitor will select the metrics Service that gets created when metrics are enabled.
                                             The ingested metrics for each Service monitor will have labels to identify the proxy:
                                             ts_proxy_type: ingress_service|ingress_resource|connector|proxygroup
-                                            ts_proxy_parent_name: name of the parent resource (i.e name of the Connector, Tailscale Ingress, Tailscale Service or ProxyGroup)
+                                            ts_proxy_parent_name: name of the parent resource (i.e name of the Connector, Lanhc Ingress, Lanhc Service or ProxyGroup)
                                             ts_proxy_parent_namespace: namespace of the parent resource (if the parent resource is not cluster scoped)
                                             job: ts_<proxy type>_[<parent namespace>]_<parent_name>
                                         properties:
@@ -1867,9 +1867,9 @@ spec:
                                       rule: '!(has(self.serviceMonitor) && self.serviceMonitor.enable  && !self.enable)'
                             statefulSet:
                                 description: |-
-                                    Configuration parameters for the proxy's StatefulSet. Tailscale
+                                    Configuration parameters for the proxy's StatefulSet. Lanhc
                                     Kubernetes operator deploys a StatefulSet for each of the user
-                                    configured proxies (Tailscale Ingress, Tailscale Service, Connector).
+                                    configured proxies (Lanhc Ingress, Lanhc Service, Connector).
                                 properties:
                                     annotations:
                                         additionalProperties:
@@ -1877,7 +1877,7 @@ spec:
                                         description: |-
                                             Annotations that will be added to the StatefulSet created for the proxy.
                                             Any Annotations specified here will be merged with the default annotations
-                                            applied to the StatefulSet by the Tailscale Kubernetes operator as
+                                            applied to the StatefulSet by the Lanhc Kubernetes operator as
                                             well as any other annotations that might have been applied by other
                                             actors.
                                             Annotations must be valid Kubernetes annotations.
@@ -1891,7 +1891,7 @@ spec:
                                         description: |-
                                             Labels that will be added to the StatefulSet created for the proxy.
                                             Any labels specified here will be merged with the default labels
-                                            applied to the StatefulSet by the Tailscale Kubernetes operator as
+                                            applied to the StatefulSet by the Lanhc Kubernetes operator as
                                             well as any other labels that might have been applied by other
                                             actors.
                                             Label keys and values must be valid Kubernetes label keys and values.
@@ -1903,7 +1903,7 @@ spec:
                                             affinity:
                                                 description: |-
                                                     Proxy Pod's affinity rules.
-                                                    By default, the Tailscale Kubernetes operator does not apply any affinity rules.
+                                                    By default, the Lanhc Kubernetes operator does not apply any affinity rules.
                                                     https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#affinity
                                                 properties:
                                                     nodeAffinity:
@@ -2782,7 +2782,7 @@ spec:
                                                 description: |-
                                                     Annotations that will be added to the proxy Pod.
                                                     Any annotations specified here will be merged with the default
-                                                    annotations applied to the Pod by the Tailscale Kubernetes operator.
+                                                    annotations applied to the Pod by the Lanhc Kubernetes operator.
                                                     Annotations must be valid Kubernetes annotations.
                                                     https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
                                                 type: object
@@ -2834,7 +2834,7 @@ spec:
                                             dnsPolicy:
                                                 description: |-
                                                     DNSPolicy defines how DNS will be configured for the proxy Pod.
-                                                    By default the Tailscale Kubernetes Operator does not set a DNS policy (uses cluster default).
+                                                    By default the Lanhc Kubernetes Operator does not set a DNS policy (uses cluster default).
                                                     https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy
                                                 enum:
                                                     - ClusterFirstWithHostNet
@@ -2871,7 +2871,7 @@ spec:
                                                 description: |-
                                                     Labels that will be added to the proxy Pod.
                                                     Any labels specified here will be merged with the default labels
-                                                    applied to the Pod by the Tailscale Kubernetes operator.
+                                                    applied to the Pod by the Lanhc Kubernetes operator.
                                                     Label keys and values must be valid Kubernetes label keys and values.
                                                     https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set
                                                 type: object
@@ -2885,20 +2885,20 @@ spec:
                                                     type: string
                                                 description: |-
                                                     Proxy Pod's node selector.
-                                                    By default Tailscale Kubernetes operator does not apply any node
+                                                    By default Lanhc Kubernetes operator does not apply any node
                                                     selector.
                                                     https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#scheduling
                                                 type: object
                                             priorityClassName:
                                                 description: |-
                                                     PriorityClassName for the proxy Pod.
-                                                    By default Tailscale Kubernetes operator does not apply any priority class.
+                                                    By default Lanhc Kubernetes operator does not apply any priority class.
                                                     https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#scheduling
                                                 type: string
                                             securityContext:
                                                 description: |-
                                                     Proxy Pod's security context.
-                                                    By default Tailscale Kubernetes operator does not apply any Pod
+                                                    By default Lanhc Kubernetes operator does not apply any Pod
                                                     security context.
                                                     https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#security-context-2
                                                 properties:
@@ -3126,8 +3126,8 @@ spec:
                                                                 type: string
                                                         type: object
                                                 type: object
-                                            tailscaleContainer:
-                                                description: Configuration for the proxy container running tailscale.
+                                            lanhcContainer:
+                                                description: Configuration for the proxy container running lanhc.
                                                 properties:
                                                     debug:
                                                         description: |-
@@ -3136,7 +3136,7 @@ spec:
                                                         properties:
                                                             enable:
                                                                 description: |-
-                                                                    Enable tailscaled's HTTP pprof endpoints at <pod-ip>:9001/debug/pprof/
+                                                                    Enable lanhcd's HTTP pprof endpoints at <pod-ip>:9001/debug/pprof/
                                                                     and internal debug metrics endpoint at <pod-ip>:9001/debug/metrics, where
                                                                     9001 is a container port named "debug". The endpoints and their responses
                                                                     may change in backwards incompatible ways in the future, and should not
@@ -3153,8 +3153,8 @@ spec:
                                                             List of environment variables to set in the container.
                                                             https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#environment-variables
                                                             Note that environment variables provided here will take precedence
-                                                            over Tailscale-specific environment variables set by the operator,
-                                                            however running proxies with custom values for Tailscale environment
+                                                            over Lanhc-specific environment variables set by the operator,
+                                                            however running proxies with custom values for Lanhc environment
                                                             variables (i.e TS_USERSPACE) is not recommended and might break in
                                                             the future.
                                                         items:
@@ -3180,18 +3180,18 @@ spec:
                                                         type: array
                                                     image:
                                                         description: |-
-                                                            Container image name. By default images are pulled from docker.io/tailscale,
-                                                            but the official images are also available at ghcr.io/tailscale.
+                                                            Container image name. By default images are pulled from docker.io/lanhc,
+                                                            but the official images are also available at ghcr.io/lanhc.
 
                                                             For all uses except on ProxyGroups of type "kube-apiserver", this image must
-                                                            be either tailscale/tailscale, or an equivalent mirror of that image.
+                                                            be either lanhc/lanhc, or an equivalent mirror of that image.
                                                             To apply to ProxyGroups of type "kube-apiserver", this image must be
-                                                            tailscale/k8s-proxy or a mirror of that image.
+                                                            lanhc/k8s-proxy or a mirror of that image.
 
-                                                            For "tailscale/tailscale"-based proxies, specifying image name here will
+                                                            For "lanhc/lanhc"-based proxies, specifying image name here will
                                                             override any proxy image values specified via the Kubernetes operator's
                                                             Helm chart values or PROXY_IMAGE env var in the operator Deployment.
-                                                            For "tailscale/k8s-proxy"-based proxies, there is currently no way to
+                                                            For "lanhc/k8s-proxy"-based proxies, there is currently no way to
                                                             configure your own default, and this field is the only way to use a
                                                             custom image.
 
@@ -3209,7 +3209,7 @@ spec:
                                                     resources:
                                                         description: |-
                                                             Container resource requirements.
-                                                            By default Tailscale Kubernetes operator does not apply any resource
+                                                            By default Lanhc Kubernetes operator does not apply any resource
                                                             requirements. The amount of resources required wil depend on the
                                                             amount of resources the operator needs to parse, usage patterns and
                                                             cluster size.
@@ -3275,11 +3275,11 @@ spec:
                                                         description: |-
                                                             Container security context.
                                                             Security context specified here will override the security context set by the operator.
-                                                            By default the operator sets the Tailscale container and the Tailscale init container to privileged
-                                                            for proxies created for Tailscale ingress and egress Service, Connector and ProxyGroup.
-                                                            You can reduce the permissions of the Tailscale container to cap NET_ADMIN by
+                                                            By default the operator sets the Lanhc container and the Lanhc init container to privileged
+                                                            for proxies created for Lanhc ingress and egress Service, Connector and ProxyGroup.
+                                                            You can reduce the permissions of the Lanhc container to cap NET_ADMIN by
                                                             installing device plugin in your cluster and configuring the proxies tun device to be created
-                                                            by the device plugin, see  https://github.com/tailscale/tailscale/issues/10814#issuecomment-2479977752
+                                                            by the device plugin, see  https://github.com/lanhc/lanhc/issues/10814#issuecomment-2479977752
                                                             https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#security-context
                                                         properties:
                                                             allowPrivilegeEscalation:
@@ -3465,7 +3465,7 @@ spec:
                                                                 type: object
                                                         type: object
                                                 type: object
-                                            tailscaleInitContainer:
+                                            lanhcInitContainer:
                                                 description: |-
                                                     Configuration for the proxy init container that enables forwarding.
                                                     Not valid to apply to ProxyGroups of type "kube-apiserver".
@@ -3477,7 +3477,7 @@ spec:
                                                         properties:
                                                             enable:
                                                                 description: |-
-                                                                    Enable tailscaled's HTTP pprof endpoints at <pod-ip>:9001/debug/pprof/
+                                                                    Enable lanhcd's HTTP pprof endpoints at <pod-ip>:9001/debug/pprof/
                                                                     and internal debug metrics endpoint at <pod-ip>:9001/debug/metrics, where
                                                                     9001 is a container port named "debug". The endpoints and their responses
                                                                     may change in backwards incompatible ways in the future, and should not
@@ -3494,8 +3494,8 @@ spec:
                                                             List of environment variables to set in the container.
                                                             https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#environment-variables
                                                             Note that environment variables provided here will take precedence
-                                                            over Tailscale-specific environment variables set by the operator,
-                                                            however running proxies with custom values for Tailscale environment
+                                                            over Lanhc-specific environment variables set by the operator,
+                                                            however running proxies with custom values for Lanhc environment
                                                             variables (i.e TS_USERSPACE) is not recommended and might break in
                                                             the future.
                                                         items:
@@ -3521,18 +3521,18 @@ spec:
                                                         type: array
                                                     image:
                                                         description: |-
-                                                            Container image name. By default images are pulled from docker.io/tailscale,
-                                                            but the official images are also available at ghcr.io/tailscale.
+                                                            Container image name. By default images are pulled from docker.io/lanhc,
+                                                            but the official images are also available at ghcr.io/lanhc.
 
                                                             For all uses except on ProxyGroups of type "kube-apiserver", this image must
-                                                            be either tailscale/tailscale, or an equivalent mirror of that image.
+                                                            be either lanhc/lanhc, or an equivalent mirror of that image.
                                                             To apply to ProxyGroups of type "kube-apiserver", this image must be
-                                                            tailscale/k8s-proxy or a mirror of that image.
+                                                            lanhc/k8s-proxy or a mirror of that image.
 
-                                                            For "tailscale/tailscale"-based proxies, specifying image name here will
+                                                            For "lanhc/lanhc"-based proxies, specifying image name here will
                                                             override any proxy image values specified via the Kubernetes operator's
                                                             Helm chart values or PROXY_IMAGE env var in the operator Deployment.
-                                                            For "tailscale/k8s-proxy"-based proxies, there is currently no way to
+                                                            For "lanhc/k8s-proxy"-based proxies, there is currently no way to
                                                             configure your own default, and this field is the only way to use a
                                                             custom image.
 
@@ -3550,7 +3550,7 @@ spec:
                                                     resources:
                                                         description: |-
                                                             Container resource requirements.
-                                                            By default Tailscale Kubernetes operator does not apply any resource
+                                                            By default Lanhc Kubernetes operator does not apply any resource
                                                             requirements. The amount of resources required wil depend on the
                                                             amount of resources the operator needs to parse, usage patterns and
                                                             cluster size.
@@ -3616,11 +3616,11 @@ spec:
                                                         description: |-
                                                             Container security context.
                                                             Security context specified here will override the security context set by the operator.
-                                                            By default the operator sets the Tailscale container and the Tailscale init container to privileged
-                                                            for proxies created for Tailscale ingress and egress Service, Connector and ProxyGroup.
-                                                            You can reduce the permissions of the Tailscale container to cap NET_ADMIN by
+                                                            By default the operator sets the Lanhc container and the Lanhc init container to privileged
+                                                            for proxies created for Lanhc ingress and egress Service, Connector and ProxyGroup.
+                                                            You can reduce the permissions of the Lanhc container to cap NET_ADMIN by
                                                             installing device plugin in your cluster and configuring the proxies tun device to be created
-                                                            by the device plugin, see  https://github.com/tailscale/tailscale/issues/10814#issuecomment-2479977752
+                                                            by the device plugin, see  https://github.com/lanhc/lanhc/issues/10814#issuecomment-2479977752
                                                             https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#security-context
                                                         properties:
                                                             allowPrivilegeEscalation:
@@ -3809,7 +3809,7 @@ spec:
                                             tolerations:
                                                 description: |-
                                                     Proxy Pod's tolerations.
-                                                    By default Tailscale Kubernetes operator does not apply any
+                                                    By default Lanhc Kubernetes operator does not apply any
                                                     tolerations.
                                                     https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#scheduling
                                                 items:
@@ -3852,7 +3852,7 @@ spec:
                                             topologySpreadConstraints:
                                                 description: |-
                                                     Proxy Pod's topology spread constraints.
-                                                    By default Tailscale Kubernetes operator does not apply any topology spread constraints.
+                                                    By default Lanhc Kubernetes operator does not apply any topology spread constraints.
                                                     https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
                                                 items:
                                                     description: TopologySpreadConstraint specifies how to spread matching pods among the given topology.
@@ -4029,7 +4029,7 @@ spec:
                                 description: |-
                                     Configuration for 'static endpoints' on proxies in order to facilitate
                                     direct connections from other devices on the tailnet.
-                                    See https://tailscale.com/kb/1445/kubernetes-operator-customization#static-endpoints.
+                                    See https://lanhc.com/kb/1445/kubernetes-operator-customization#static-endpoints.
                                 properties:
                                     nodePort:
                                         description: The configuration for static endpoints using NodePort Services.
@@ -4070,9 +4070,9 @@ spec:
                                 required:
                                     - nodePort
                                 type: object
-                            tailscale:
+                            lanhc:
                                 description: |-
-                                    TailscaleConfig contains options to configure the tailscale-specific
+                                    LanhcConfig contains options to configure the lanhc-specific
                                     parameters of proxies.
                                 properties:
                                     acceptRoutes:
@@ -4080,8 +4080,8 @@ spec:
                                             AcceptRoutes can be set to true to make the proxy instance accept
                                             routes advertized by other nodes on the tailnet, such as subnet
                                             routes.
-                                            This is equivalent of passing --accept-routes flag to a tailscale Linux client.
-                                            https://tailscale.com/kb/1019/subnets#use-your-subnet-routes-from-other-devices
+                                            This is equivalent of passing --accept-routes flag to a lanhc Linux client.
+                                            https://lanhc.com/kb/1019/subnets#use-your-subnet-routes-from-other-devices
                                             Defaults to false.
                                         type: boolean
                                 type: object
@@ -4091,7 +4091,7 @@ spec:
                                     certificates for any HTTPS endpoints exposed to the tailnet from
                                     LetsEncrypt's staging environment.
                                     https://letsencrypt.org/docs/staging-environment/
-                                    This setting only affects Tailscale Ingress resources.
+                                    This setting only affects Lanhc Ingress resources.
                                     By default Ingress TLS certificates are issued from LetsEncrypt's
                                     production environment.
                                     Changing this setting true -> false, will result in any
@@ -4182,9 +4182,9 @@ kind: CustomResourceDefinition
 metadata:
     annotations:
         controller-gen.kubebuilder.io/version: v0.17.0
-    name: proxygroups.tailscale.com
+    name: proxygroups.lanhc.com
 spec:
-    group: tailscale.com
+    group: lanhc.com
     names:
         kind: ProxyGroup
         listKind: ProxyGroupList
@@ -4214,19 +4214,19 @@ spec:
           schema:
             openAPIV3Schema:
                 description: |-
-                    ProxyGroup defines a set of Tailscale devices that will act as proxies.
+                    ProxyGroup defines a set of Lanhc devices that will act as proxies.
                     Depending on spec.Type, it can be a group of egress, ingress, or kube-apiserver
                     proxies. In addition to running a highly available set of proxies, ingress
                     and egress ProxyGroups also allow for serving many annotated Services from a
                     single set of proxies to minimise resource consumption.
 
-                    For ingress and egress, use the tailscale.com/proxy-group annotation on a
+                    For ingress and egress, use the lanhc.com/proxy-group annotation on a
                     Service to specify that the proxy should be implemented by a ProxyGroup
                     instead of a single dedicated proxy.
 
                     More info:
-                    * https://tailscale.com/kb/1438/kubernetes-operator-cluster-egress
-                    * https://tailscale.com/kb/1439/kubernetes-operator-cluster-ingress
+                    * https://lanhc.com/kb/1438/kubernetes-operator-cluster-egress
+                    * https://lanhc.com/kb/1439/kubernetes-operator-cluster-ingress
 
                     For kube-apiserver, the ProxyGroup is a standalone resource. Use the
                     spec.kubeAPIServer field to configure options specific to the kube-apiserver
@@ -4302,10 +4302,10 @@ spec:
                                 type: integer
                             tags:
                                 description: |-
-                                    Tags that the Tailscale devices will be tagged with. Defaults to [tag:k8s].
+                                    Tags that the Lanhc devices will be tagged with. Defaults to [tag:k8s].
                                     If you specify custom tags here, make sure you also make the operator
                                     an owner of these tags.
-                                    See  https://tailscale.com/kb/1236/kubernetes-operator/#setting-up-the-kubernetes-operator.
+                                    See  https://lanhc.com/kb/1236/kubernetes-operator/#setting-up-the-kubernetes-operator.
                                     Tags cannot be changed once a ProxyGroup device has been created.
                                     Tag values must be in form ^tag:[a-zA-Z][a-zA-Z0-9-]*$.
                                 items:
@@ -4338,7 +4338,7 @@ spec:
                     status:
                         description: |-
                             ProxyGroupStatus describes the status of the ProxyGroup resources. This is
-                            set and managed by the Tailscale operator.
+                            set and managed by the Lanhc operator.
                         properties:
                             conditions:
                                 description: |-
@@ -4462,9 +4462,9 @@ kind: CustomResourceDefinition
 metadata:
     annotations:
         controller-gen.kubebuilder.io/version: v0.17.0
-    name: proxygrouppolicies.tailscale.com
+    name: proxygrouppolicies.lanhc.com
 spec:
-    group: tailscale.com
+    group: lanhc.com
     names:
         kind: ProxyGroupPolicy
         listKind: ProxyGroupPolicyList
@@ -4523,7 +4523,7 @@ spec:
                     status:
                         description: |-
                             Status describes the status of the ProxyGroupPolicy. This is set
-                            and managed by the Tailscale operator.
+                            and managed by the Lanhc operator.
                         properties:
                             conditions:
                                 items:
@@ -4598,9 +4598,9 @@ kind: CustomResourceDefinition
 metadata:
     annotations:
         controller-gen.kubebuilder.io/version: v0.17.0
-    name: recorders.tailscale.com
+    name: recorders.lanhc.com
 spec:
-    group: tailscale.com
+    group: lanhc.com
     names:
         kind: Recorder
         listKind: RecorderList
@@ -4630,7 +4630,7 @@ spec:
                     it will store recordings in a local ephemeral volume. If you want to persist
                     recordings, you can configure an S3-compatible API for storage.
 
-                    More info: https://tailscale.com/kb/1484/kubernetes-operator-deploying-tsrecorder
+                    More info: https://lanhc.com/kb/1484/kubernetes-operator-deploying-tsrecorder
                 properties:
                     apiVersion:
                         description: |-
@@ -4656,7 +4656,7 @@ spec:
                                 description: |-
                                     Set to true to enable the Recorder UI. The UI lists and plays recorded sessions.
                                     The UI will be served at <MagicDNS name of the recorder>:443. Defaults to false.
-                                    Corresponds to --ui tsrecorder flag https://tailscale.com/kb/1246/tailscale-ssh-session-recording#deploy-a-recorder-node.
+                                    Corresponds to --ui tsrecorder flag https://lanhc.com/kb/1246/lanhc-ssh-session-recording#deploy-a-recorder-node.
                                     Required if S3 storage is not set up, to ensure that recordings are accessible.
                                 type: boolean
                             replicas:
@@ -5577,15 +5577,15 @@ spec:
                                                     https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
                                                 type: object
                                             container:
-                                                description: Configuration for the Recorder container running tailscale.
+                                                description: Configuration for the Recorder container running lanhc.
                                                 properties:
                                                     env:
                                                         description: |-
                                                             List of environment variables to set in the container.
                                                             https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#environment-variables
                                                             Note that environment variables provided here will take precedence
-                                                            over Tailscale-specific environment variables set by the operator,
-                                                            however running proxies with custom values for Tailscale environment
+                                                            over Lanhc-specific environment variables set by the operator,
+                                                            however running proxies with custom values for Lanhc environment
                                                             variables (i.e TS_USERSPACE) is not recommended and might break in
                                                             the future.
                                                         items:
@@ -5611,9 +5611,9 @@ spec:
                                                         type: array
                                                     image:
                                                         description: |-
-                                                            Container image name including tag. Defaults to docker.io/tailscale/tsrecorder
+                                                            Container image name including tag. Defaults to docker.io/lanhc/tsrecorder
                                                             with the same tag as the operator, but the official images are also
-                                                            available at ghcr.io/tailscale/tsrecorder.
+                                                            available at ghcr.io/lanhc/tsrecorder.
                                                             https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#image
                                                         type: string
                                                     imagePullPolicy:
@@ -6262,10 +6262,10 @@ spec:
                                 type: object
                             tags:
                                 description: |-
-                                    Tags that the Tailscale device will be tagged with. Defaults to [tag:k8s].
+                                    Tags that the Lanhc device will be tagged with. Defaults to [tag:k8s].
                                     If you specify custom tags here, make sure you also make the operator
                                     an owner of these tags.
-                                    See  https://tailscale.com/kb/1236/kubernetes-operator/#setting-up-the-kubernetes-operator.
+                                    See  https://lanhc.com/kb/1236/kubernetes-operator/#setting-up-the-kubernetes-operator.
                                     Tags cannot be changed once a Recorder node has been created.
                                     Tag values must be in form ^tag:[a-zA-Z][a-zA-Z0-9-]*$.
                                 items:
@@ -6287,7 +6287,7 @@ spec:
                     status:
                         description: |-
                             RecorderStatus describes the status of the recorder. This is set
-                            and managed by the Tailscale operator.
+                            and managed by the Lanhc operator.
                         properties:
                             conditions:
                                 description: |-
@@ -6394,9 +6394,9 @@ kind: CustomResourceDefinition
 metadata:
     annotations:
         controller-gen.kubebuilder.io/version: v0.17.0
-    name: tailnets.tailscale.com
+    name: tailnets.lanhc.com
 spec:
-    group: tailscale.com
+    group: lanhc.com
     names:
         kind: Tailnet
         listKind: TailnetList
@@ -6448,7 +6448,7 @@ spec:
                                         description: |-
                                             The name of the secret containing the credentials used to authenticate with this Tailnet. The secret must always
                                             contain a "client_id" field. To authenticate with a static OAuth client, also set "client_secret". To authenticate
-                                            via workload identity federation, set "audience" to the audience value expected by the Tailscale OAuth
+                                            via workload identity federation, set "audience" to the audience value expected by the Lanhc OAuth
                                             client; the operator will mint a ServiceAccount token for itself with that audience and exchange it for an API
                                             token. "client_secret" and "audience" are mutually exclusive.
                                         type: string
@@ -6464,7 +6464,7 @@ spec:
                     status:
                         description: |-
                             Status describes the status of the Tailnet. This is set
-                            and managed by the Tailscale operator.
+                            and managed by the Lanhc operator.
                         properties:
                             conditions:
                                 items:
@@ -6537,7 +6537,7 @@ spec:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-    name: tailscale-operator
+    name: lanhc-operator
 rules:
     - apiGroups:
         - ""
@@ -6593,7 +6593,7 @@ rules:
         - list
         - watch
     - apiGroups:
-        - tailscale.com
+        - lanhc.com
       resources:
         - connectors
         - connectors/status
@@ -6607,7 +6607,7 @@ rules:
         - watch
         - update
     - apiGroups:
-        - tailscale.com
+        - lanhc.com
       resources:
         - dnsconfigs
         - dnsconfigs/status
@@ -6617,7 +6617,7 @@ rules:
         - watch
         - update
     - apiGroups:
-        - tailscale.com
+        - lanhc.com
       resources:
         - tailnets
         - tailnets/status
@@ -6627,7 +6627,7 @@ rules:
         - watch
         - update
     - apiGroups:
-        - tailscale.com
+        - lanhc.com
       resources:
         - peerrelays
         - peerrelays/status
@@ -6637,7 +6637,7 @@ rules:
         - watch
         - update
     - apiGroups:
-        - tailscale.com
+        - lanhc.com
       resources:
         - proxygrouppolicies
         - proxygrouppolicies/status
@@ -6647,7 +6647,7 @@ rules:
         - watch
         - update
     - apiGroups:
-        - tailscale.com
+        - lanhc.com
       resources:
         - recorders
         - recorders/status
@@ -6682,21 +6682,21 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-    name: tailscale-operator
+    name: lanhc-operator
 roleRef:
     apiGroup: rbac.authorization.k8s.io
     kind: ClusterRole
-    name: tailscale-operator
+    name: lanhc-operator
 subjects:
     - kind: ServiceAccount
       name: operator
-      namespace: tailscale
+      namespace: lanhc
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
     name: operator
-    namespace: tailscale
+    namespace: lanhc
 rules:
     - apiGroups:
         - ""
@@ -6789,7 +6789,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
     name: proxies
-    namespace: tailscale
+    namespace: lanhc
 rules:
     - apiGroups:
         - ""
@@ -6817,7 +6817,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
     name: operator
-    namespace: tailscale
+    namespace: lanhc
 roleRef:
     apiGroup: rbac.authorization.k8s.io
     kind: Role
@@ -6825,13 +6825,13 @@ roleRef:
 subjects:
     - kind: ServiceAccount
       name: operator
-      namespace: tailscale
+      namespace: lanhc
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
     name: proxies
-    namespace: tailscale
+    namespace: lanhc
 roleRef:
     apiGroup: rbac.authorization.k8s.io
     kind: Role
@@ -6839,13 +6839,13 @@ roleRef:
 subjects:
     - kind: ServiceAccount
       name: proxies
-      namespace: tailscale
+      namespace: lanhc
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
     name: operator
-    namespace: tailscale
+    namespace: lanhc
 spec:
     replicas: 1
     selector:
@@ -6863,7 +6863,7 @@ spec:
                     - name: OPERATOR_INITIAL_TAGS
                       value: tag:k8s-operator
                     - name: OPERATOR_HOSTNAME
-                      value: tailscale-operator
+                      value: lanhc-operator
                     - name: OPERATOR_SECRET
                       value: operator
                     - name: OPERATOR_LOGGING
@@ -6879,13 +6879,13 @@ spec:
                     - name: OPERATOR_LOGIN_SERVER
                       value: null
                     - name: OPERATOR_INGRESS_CLASS_NAME
-                      value: tailscale
+                      value: lanhc
                     - name: CLIENT_ID_FILE
                       value: /oauth/client_id
                     - name: CLIENT_SECRET_FILE
                       value: /oauth/client_secret
                     - name: PROXY_IMAGE
-                      value: tailscale/tailscale:stable
+                      value: lanhc/lanhc:stable
                     - name: PROXY_TAGS
                       value: tag:k8s
                     - name: APISERVER_PROXY
@@ -6900,7 +6900,7 @@ spec:
                       valueFrom:
                         fieldRef:
                             fieldPath: metadata.uid
-                  image: tailscale/k8s-operator:stable
+                  image: lanhc/k8s-operator:stable
                   imagePullPolicy: Always
                   name: operator
                   volumeMounts:
@@ -6919,6 +6919,6 @@ apiVersion: networking.k8s.io/v1
 kind: IngressClass
 metadata:
     annotations: {}
-    name: tailscale
+    name: lanhc
 spec:
-    controller: tailscale.com/ts-ingress
+    controller: lanhc.com/ts-ingress

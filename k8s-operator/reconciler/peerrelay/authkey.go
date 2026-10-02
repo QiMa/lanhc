@@ -6,7 +6,7 @@
 package peerrelay
 
 import (
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
 )
 
 func (r *Reconciler) peerRelayTags(pr *tsapi.PeerRelay) []string {

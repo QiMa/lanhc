@@ -37,7 +37,7 @@ func TestUserDialPlan(t *testing.T) {
 			wantAddr: netip.MustParseAddrPort("[::1]:8080"),
 		},
 		{
-			name: "tailscale_ip_in_routes",
+			name: "lanhc_ip_in_routes",
 			addr: "100.64.1.1:22",
 			routes: map[netip.Prefix]bool{
 				netip.MustParsePrefix("100.64.0.0/10"): true,
@@ -46,7 +46,7 @@ func TestUserDialPlan(t *testing.T) {
 			wantAddr: netip.MustParseAddrPort("100.64.1.1:22"),
 		},
 		{
-			name: "non_tailscale_ip_in_local_routes",
+			name: "non_lanhc_ip_in_local_routes",
 			addr: "10.0.0.5:80",
 			routes: map[netip.Prefix]bool{
 				netip.MustParsePrefix("100.64.0.0/10"): true,
@@ -86,12 +86,12 @@ func TestUserDialPlan(t *testing.T) {
 			}
 			d.UseNetstackForIP = tt.useNetstackFor
 
-			ipp, viaTailscale, err := d.UserDialPlan(context.Background(), "tcp", tt.addr)
+			ipp, viaLanhc, err := d.UserDialPlan(context.Background(), "tcp", tt.addr)
 			if err != nil {
 				t.Fatalf("UserDialPlan: %v", err)
 			}
-			if viaTailscale != tt.wantVia {
-				t.Errorf("viaTailscale = %v, want %v", viaTailscale, tt.wantVia)
+			if viaLanhc != tt.wantVia {
+				t.Errorf("viaLanhc = %v, want %v", viaLanhc, tt.wantVia)
 			}
 			if ipp != tt.wantAddr {
 				t.Errorf("addr = %v, want %v", ipp, tt.wantAddr)

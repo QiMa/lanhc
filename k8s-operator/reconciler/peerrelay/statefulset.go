@@ -14,11 +14,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"tailscale.com/ipn"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/k8s-operator/reconciler"
-	"tailscale.com/k8s-operator/reconciler/tailscaled"
-	"tailscale.com/kube/kubetypes"
+	"lanhc.com/ipn"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/k8s-operator/reconciler"
+	"lanhc.com/k8s-operator/reconciler/lanhcd"
+	"lanhc.com/kube/kubetypes"
 )
 
 func configSecretName(prName string, idx int32) string {
@@ -33,7 +33,7 @@ func peerRelayHostname(pr *tsapi.PeerRelay, idx int32) string {
 	return fmt.Sprintf("%s-%d", prefix, idx)
 }
 
-func peerRelayTailscaledConfig(pr *tsapi.PeerRelay, idx int32, endpoints []tsapi.PeerRelayEndpoint, authKey *string) ipn.ConfigVAlpha {
+func peerRelayLanhcdConfig(pr *tsapi.PeerRelay, idx int32, endpoints []tsapi.PeerRelayEndpoint, authKey *string) ipn.ConfigVAlpha {
 	conf := ipn.ConfigVAlpha{
 		Version:         "alpha0",
 		AcceptDNS:       "false",
@@ -61,19 +61,19 @@ func peerRelayTailscaledConfig(pr *tsapi.PeerRelay, idx int32, endpoints []tsapi
 
 func (r *Reconciler) peerRelayConfigSecret(pr *tsapi.PeerRelay, idx int32, endpoints []tsapi.PeerRelayEndpoint, authKey *string) (*corev1.Secret, error) {
 	labels := peerRelayServiceLabels(pr.Name, idx)
-	return tailscaled.NewConfigSecret(tailscaled.ConfigSecretOptions{
+	return lanhcd.NewConfigSecret(lanhcd.ConfigSecretOptions{
 		Name:      configSecretName(pr.Name, idx),
-		Namespace: r.tailscaleNamespace,
+		Namespace: r.lanhcNamespace,
 		Labels:    labels,
-		Config:    peerRelayTailscaledConfig(pr, idx, endpoints, authKey),
+		Config:    peerRelayLanhcdConfig(pr, idx, endpoints, authKey),
 	})
 }
 
 func (r *Reconciler) peerRelayStatefulSet(pr *tsapi.PeerRelay, replicas int32, pc *tsapi.ProxyClass) *appsv1.StatefulSet {
 	labels := peerRelayLabels(pr.Name)
-	ss := tailscaled.NewStatefulSet(tailscaled.StatefulSetOptions{
+	ss := lanhcd.NewStatefulSet(lanhcd.StatefulSetOptions{
 		Name:               resourceName(pr.Name),
-		Namespace:          r.tailscaleNamespace,
+		Namespace:          r.lanhcNamespace,
 		Labels:             labels,
 		Image:              r.proxyImage,
 		Replicas:           replicas,
@@ -83,7 +83,7 @@ func (r *Reconciler) peerRelayStatefulSet(pr *tsapi.PeerRelay, replicas int32, p
 		},
 	})
 
-	return tailscaled.ApplyProxyClass(ss, pc, managedLabelKeys, nil)
+	return lanhcd.ApplyProxyClass(ss, pc, managedLabelKeys, nil)
 }
 
 var managedLabelKeys = []string{

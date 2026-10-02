@@ -8,22 +8,22 @@ import (
 	"fmt"
 	"net/netip"
 
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/opt"
-	"tailscale.com/types/preftype"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/opt"
+	"lanhc.com/types/preftype"
 )
 
 // ConfigVAlpha is the config file format for the "alpha0" version.
 type ConfigVAlpha struct {
 	Version string   // "alpha0" for now
-	Locked  opt.Bool `json:",omitempty"` // whether the config is locked from being changed by 'tailscale set'; it defaults to true
+	Locked  opt.Bool `json:",omitempty"` // whether the config is locked from being changed by 'lanhc set'; it defaults to true
 
-	ServerURL *string  `json:",omitempty"` // defaults to https://controlplane.tailscale.com
+	ServerURL *string  `json:",omitempty"` // defaults to https://controlplane.lanhc.com
 	AuthKey   *string  `json:",omitempty"` // as needed if NeedsLogin. either key or path to a file (if prefixed with "file:")
 	Enabled   opt.Bool `json:",omitempty"` // wantRunning; empty string defaults to true
 
-	OperatorUser *string `json:",omitempty"` // local user name who is allowed to operate tailscaled without being root or using sudo
+	OperatorUser *string `json:",omitempty"` // local user name who is allowed to operate lanhcd without being root or using sudo
 	Hostname     *string `json:",omitempty"`
 
 	AcceptDNS    opt.Bool `json:"acceptDNS,omitempty"`    // --accept-dns
@@ -44,7 +44,7 @@ type ConfigVAlpha struct {
 	NoStatefulFiltering opt.Bool `json:",omitempty"`
 
 	PostureChecking opt.Bool         `json:",omitempty"`
-	RunSSHServer    opt.Bool         `json:",omitempty"` // Tailscale SSH
+	RunSSHServer    opt.Bool         `json:",omitempty"` // Lanhc SSH
 	RunWebClient    opt.Bool         `json:",omitempty"`
 	ShieldsUp       opt.Bool         `json:",omitempty"`
 	RemoteConfig    opt.Bool         `json:",omitzero"` // delegate full remote control to the tailnet admin; see Prefs.RemoteConfig

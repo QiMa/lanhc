@@ -70,7 +70,7 @@ func retryAfterFromHeader(h http.Header) time.Duration {
 // providing them) and only request new ones as needed; the control plane
 // rate limits SetDNS requests.
 //
-// This is a low-level interface; it's expected that most Tailscale
+// This is a low-level interface; it's expected that most Lanhc
 // users use a higher level interface to getting/using TLS
 // certificates.
 func (lc *Client) SetDNS(ctx context.Context, name, value string) error {

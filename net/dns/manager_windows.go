@@ -23,19 +23,19 @@ import (
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
 	"golang.zx2c4.com/wireguard/windows/tunnel/winipcfg"
-	"tailscale.com/atomicfile"
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/envknob"
-	"tailscale.com/health"
-	"tailscale.com/syncs"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/util/syspolicy/policyclient"
-	"tailscale.com/util/syspolicy/ptype"
-	"tailscale.com/util/winutil"
-	"tailscale.com/util/winutil/winenv"
+	"lanhc.com/atomicfile"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/envknob"
+	"lanhc.com/health"
+	"lanhc.com/syncs"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/util/syspolicy/policyclient"
+	"lanhc.com/util/syspolicy/ptype"
+	"lanhc.com/util/winutil"
+	"lanhc.com/util/winutil/winenv"
 )
 
 const (
@@ -164,7 +164,7 @@ func delValue(key registry.Key, name string) error {
 // to resolve queries for domains using resolvers, rather than the
 // system's "primary" resolver.
 //
-// If no resolvers are provided, the Tailscale NRPT rules are deleted.
+// If no resolvers are provided, the Lanhc NRPT rules are deleted.
 func (m *windowsManager) setSplitDNS(resolvers []netip.Addr, domains []dnsname.FQDN) error {
 	if m.nrptDB == nil {
 		if resolvers == nil {
@@ -187,14 +187,14 @@ func (m *windowsManager) setSplitDNS(resolvers []netip.Addr, domains []dnsname.F
 	return m.nrptDB.WriteSplitDNSConfig(servers, domains)
 }
 
-func setTailscaleHosts(logf logger.Logf, prevHostsFile []byte, hosts []*HostEntry) ([]byte, error) {
+func setLanhcHosts(logf logger.Logf, prevHostsFile []byte, hosts []*HostEntry) ([]byte, error) {
 	sc := bufio.NewScanner(bytes.NewReader(prevHostsFile))
 	const (
-		header = "# TailscaleHostsSectionStart"
-		footer = "# TailscaleHostsSectionEnd"
+		header = "# LanhcHostsSectionStart"
+		footer = "# LanhcHostsSectionEnd"
 	)
 	comments := []string{
-		"# This section contains MagicDNS entries for Tailscale.",
+		"# This section contains MagicDNS entries for Lanhc.",
 		"# Do not edit this section manually.",
 	}
 
@@ -283,7 +283,7 @@ func (m *windowsManager) setHosts(hosts []*HostEntry) error {
 	default:
 		return err
 	}
-	outB, err := setTailscaleHosts(m.logf, b, hosts)
+	outB, err := setLanhcHosts(m.logf, b, hosts)
 	if err != nil {
 		return err
 	}
@@ -305,7 +305,7 @@ func (m *windowsManager) setHosts(hosts []*HostEntry) error {
 	return err
 }
 
-// setPrimaryDNS sets the given resolvers and domains as the Tailscale
+// setPrimaryDNS sets the given resolvers and domains as the Lanhc
 // interface's DNS configuration.
 // If resolvers is non-empty, those resolvers become the system's
 // "primary" resolvers.
@@ -351,7 +351,7 @@ func (m *windowsManager) setPrimaryDNS(resolvers []netip.Addr, domains []dnsname
 			return err
 		}
 
-		// Disable LLMNR on the Tailscale interface. We don't do multicast, and we
+		// Disable LLMNR on the Lanhc interface. We don't do multicast, and we
 		// certainly don't do LLMNR, so it's pointless to make Windows try it. It is
 		// being deprecated.
 		if err := key4.SetDWordValue("EnableMulticast", 0); err != nil {
@@ -382,7 +382,7 @@ func (m *windowsManager) setPrimaryDNS(resolvers []netip.Addr, domains []dnsname
 			return err
 		}
 
-		// Disable LLMNR on the Tailscale interface. We don't do multicast, and we
+		// Disable LLMNR on the Lanhc interface. We don't do multicast, and we
 		// certainly don't do LLMNR, so it's pointless to make Windows try it. It is
 		// being deprecated.
 		if err := key6.SetDWordValue("EnableMulticast", 0); err != nil {
@@ -467,7 +467,7 @@ func (m *windowsManager) SetDNS(cfg OSConfig) error {
 		// Unset the resolver on the interface to ensure that we do not become
 		// the primary resolver. Although this is what we want, at the moment
 		// (2022-08-13) it causes single label resolutions from the OS resolver
-		// to wait for a MDNS response from the Tailscale interface.
+		// to wait for a MDNS response from the Lanhc interface.
 		// See #1659 and #5366 for more details.
 		//
 		// Still set search domains on the interface, since NRPT only handles
@@ -605,7 +605,7 @@ func (m *windowsManager) reconfigureDNSRegistration() {
 }
 
 // configureDNSRegistration sets the appropriate registry values to allow or prevent
-// the Windows DHCP client from registering Tailscale IP addresses with DNS
+// the Windows DHCP client from registering Lanhc IP addresses with DNS
 // and sending dynamic updates for our interface to AD domain controllers.
 func (m *windowsManager) configureDNSRegistration(enabled bool) error {
 	prefixen := make([]winutil.RegistryPathPrefix, 0, 2)
@@ -684,11 +684,11 @@ func (m *windowsManager) GetBaseConfig() (OSConfig, error) {
 		// Don't return any search domains here, because even Windows
 		// 7 correctly handles blending search domains from multiple
 		// sources, and any search domains we add here will get tacked
-		// onto the Tailscale config unnecessarily.
+		// onto the Lanhc config unnecessarily.
 	}, nil
 }
 
-// getBasePrimaryResolver returns a guess of the non-Tailscale primary
+// getBasePrimaryResolver returns a guess of the non-Lanhc primary
 // resolver on the system.
 // It's used on Windows 7 to emulate split DNS by trying to figure out
 // what the "previous" primary resolver was. It might be wrong, or
@@ -726,7 +726,7 @@ func (m *windowsManager) getBasePrimaryResolver() (resolvers []netip.Addr, err e
 		candidates = append(candidates, candidate{row.InterfaceLUID, row.Metric})
 	}
 	if len(candidates) == 0 {
-		// No resolvers set outside of Tailscale.
+		// No resolvers set outside of Lanhc.
 		return nil, nil
 	}
 

@@ -20,10 +20,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/yaml"
 
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/kube/egressservices"
-	"tailscale.com/kube/ingressservices"
-	"tailscale.com/kube/kubetypes"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/kube/egressservices"
+	"lanhc.com/kube/ingressservices"
+	"lanhc.com/kube/kubetypes"
 )
 
 const (
@@ -111,7 +111,7 @@ func pgStatefulSet(pg *tsapi.ProxyGroup, namespace, image, tsFirewallMode string
 		var volumes []corev1.Volume
 		for i := range pgReplicas(pg) {
 			volumes = append(volumes, corev1.Volume{
-				Name: fmt.Sprintf("tailscaledconfig-%d", i),
+				Name: fmt.Sprintf("lanhcdconfig-%d", i),
 				VolumeSource: corev1.VolumeSource{
 					Secret: &corev1.SecretVolumeSource{
 						SecretName: pgConfigSecretName(pg.Name, i),
@@ -145,7 +145,7 @@ func pgStatefulSet(pg *tsapi.ProxyGroup, namespace, image, tsFirewallMode string
 		// for pods that haven't meaningfully changed.
 		for i := range pgReplicas(pg) {
 			mounts = append(mounts, corev1.VolumeMount{
-				Name:      fmt.Sprintf("tailscaledconfig-%d", i),
+				Name:      fmt.Sprintf("lanhcdconfig-%d", i),
 				ReadOnly:  true,
 				MountPath: fmt.Sprintf("/etc/tsconfig/%s-%d", pg.Name, i),
 			})
@@ -191,7 +191,7 @@ func pgStatefulSet(pg *tsapi.ProxyGroup, namespace, image, tsFirewallMode string
 				// This ensures that cert renewals can succeed if ACME account
 				// keys have changed since issuance. We cannot guarantee or
 				// validate that the account key has not changed, see
-				// https://github.com/tailscale/tailscale/issues/18251
+				// https://github.com/lanhc/lanhc/issues/18251
 				Name:  "TS_DEBUG_ACME_FORCE_RENEWAL",
 				Value: "true",
 			},
@@ -364,7 +364,7 @@ func kubeAPIServerStatefulSet(pg *tsapi.ProxyGroup, namespace, image string, por
 										// This ensures that cert renewals can succeed if ACME account
 										// keys have changed since issuance. We cannot guarantee or
 										// validate that the account key has not changed, see
-										// https://github.com/tailscale/tailscale/issues/18251
+										// https://github.com/lanhc/lanhc/issues/18251
 										Name:  "TS_DEBUG_ACME_FORCE_RENEWAL",
 										Value: "true",
 									},
@@ -594,10 +594,10 @@ func pgEgressCMName(pg string) string {
 // hasLocalAddrPortSet returns true if the proxyclass has the TS_LOCAL_ADDR_PORT env var set. For egress ProxyGroups,
 // currently (2025-01-26) this means that the ProxyGroup does not support graceful failover.
 func hasLocalAddrPortSet(proxyClass *tsapi.ProxyClass) bool {
-	if proxyClass == nil || proxyClass.Spec.StatefulSet == nil || proxyClass.Spec.StatefulSet.Pod == nil || proxyClass.Spec.StatefulSet.Pod.TailscaleContainer == nil {
+	if proxyClass == nil || proxyClass.Spec.StatefulSet == nil || proxyClass.Spec.StatefulSet.Pod == nil || proxyClass.Spec.StatefulSet.Pod.LanhcContainer == nil {
 		return false
 	}
-	return slices.ContainsFunc(proxyClass.Spec.StatefulSet.Pod.TailscaleContainer.Env, func(env tsapi.Env) bool {
+	return slices.ContainsFunc(proxyClass.Spec.StatefulSet.Pod.LanhcContainer.Env, func(env tsapi.Env) bool {
 		return env.Name == envVarTSLocalAddrPort
 	})
 }

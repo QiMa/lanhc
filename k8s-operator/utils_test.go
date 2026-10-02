@@ -30,7 +30,7 @@ func TestTruncateLabelValue(t *testing.T) {
 		},
 		{
 			name:  "very-long-value-gets-truncated",
-			input: "tailscale-nginx-clickhouse-o11y-server-https-with-extra-long-suffix-that-exceeds-limit",
+			input: "lanhc-nginx-clickhouse-o11y-server-https-with-extra-long-suffix-that-exceeds-limit",
 		},
 		{
 			name:  "253-chars-max-k8s-resource-name",

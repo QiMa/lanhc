@@ -3,7 +3,7 @@
 
 //go:build !js
 
-// Package controlhttp implements the Tailscale 2021 control protocol
+// Package controlhttp implements the Lanhc 2021 control protocol
 // base transport over HTTP.
 //
 // This tunnels the protocol in control/controlbase over HTTP with a
@@ -36,27 +36,27 @@ import (
 	"sync/atomic"
 	"time"
 
-	"tailscale.com/control/controlbase"
-	"tailscale.com/control/controlhttp/controlhttpcommon"
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/health"
-	"tailscale.com/net/dnscache"
-	"tailscale.com/net/dnsfallback"
-	"tailscale.com/net/netutil"
-	"tailscale.com/net/netx"
-	"tailscale.com/net/sockstats"
-	"tailscale.com/net/tlsdial"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
+	"lanhc.com/control/controlbase"
+	"lanhc.com/control/controlhttp/controlhttpcommon"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/health"
+	"lanhc.com/net/dnscache"
+	"lanhc.com/net/dnsfallback"
+	"lanhc.com/net/netutil"
+	"lanhc.com/net/netx"
+	"lanhc.com/net/sockstats"
+	"lanhc.com/net/tlsdial"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
 )
 
 var stdDialer net.Dialer
 
 // Dial connects to the HTTP server at this Dialer's Host:HTTPPort, requests to
-// switch to the Tailscale control protocol, and returns an established control
+// switch to the Lanhc control protocol, and returns an established control
 // protocol connection.
 //
 // If Dial fails to connect using HTTP, it also tries to tunnel over TLS to the
@@ -203,7 +203,7 @@ func (d *Dialer) forceNoise443() bool {
 		//
 		// This heuristic works around networks where port 80 is MITMed and
 		// appears to work for a bit post-Upgrade but then gets closed,
-		// such as seen in https://github.com/tailscale/tailscale/issues/13597.
+		// such as seen in https://github.com/lanhc/lanhc/issues/13597.
 		if d.logPort80Failure.CompareAndSwap(true, false) {
 			d.logf("controlhttp: forcing port 443 dial due to recent noise dial")
 		}
@@ -387,9 +387,9 @@ func isLoopback(a net.Addr) bool {
 var macOSScreenTime = health.Register(&health.Warnable{
 	Code:     "macos-screen-time",
 	Severity: health.SeverityHigh,
-	Title:    "Tailscale blocked by Screen Time",
+	Title:    "Lanhc blocked by Screen Time",
 	Text: func(args health.Args) string {
-		return "macOS Screen Time seems to be blocking Tailscale. Try disabling Screen Time in System Settings > Screen Time > Content & Privacy > Access to Web Content."
+		return "macOS Screen Time seems to be blocking Lanhc. Try disabling Screen Time in System Settings > Screen Time > Content & Privacy > Access to Web Content."
 	},
 	ImpactsConnectivity: true,
 })
@@ -464,7 +464,7 @@ func (a *Dialer) tryURLUpgrade(ctx context.Context, u *url.URL, optAddr netip.Ad
 	if optACEHost != "" {
 		// If using ACE, we don't want to use any HTTP proxy.
 		// ACE is already a tunnel+proxy.
-		// TODO(tailscale/corp#32483): use system proxy too?
+		// TODO(lanhc/corp#32483): use system proxy too?
 		tr.Proxy = nil
 		tr.DialContext = dialer
 	} else {

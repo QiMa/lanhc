@@ -22,9 +22,9 @@ import (
 	"github.com/mdlayher/netlink"
 	"go4.org/mem"
 	"golang.org/x/sys/unix"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/util/lineiter"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/util/lineiter"
 )
 
 func init() {
@@ -115,7 +115,7 @@ func likelyHomeRouterIPLinux() (ret netip.Addr, myIP netip.Addr, ok bool) {
 		// If we went over our line limit without finding an answer, assume
 		// we're a big fancy Linux router (or at least not a home system)
 		// and set the error bit so we stop trying this in the future (and wasting CPU).
-		// See https://github.com/tailscale/tailscale/issues/7621.
+		// See https://github.com/lanhc/lanhc/issues/7621.
 		//
 		// Remember that "likelyHomeRouterIP" exists purely to find the port
 		// mapping service (UPnP, PMP, PCP) often present on a home router. If we hit
@@ -225,7 +225,7 @@ func defaultRouteInterfaceProcNetInternal(bufsize int) (string, error) {
 		ip := fields[1]
 		netmask := fields[7]
 
-		if strings.HasPrefix(ifc, "tailscale") ||
+		if strings.HasPrefix(ifc, "lanhc") ||
 			strings.HasPrefix(ifc, "wg") {
 			continue
 		}

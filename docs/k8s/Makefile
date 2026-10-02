@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 TS_ROUTES ?= ""
-SA_NAME ?= tailscale
-TS_KUBE_SECRET ?= tailscale
+SA_NAME ?= lanhc
+TS_KUBE_SECRET ?= lanhc
 
 rbac:
 	@sed -e "s;{{TS_KUBE_SECRET}};$(TS_KUBE_SECRET);g" role.yaml

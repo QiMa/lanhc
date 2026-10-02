@@ -15,7 +15,7 @@ import (
 	"testing"
 	"text/template"
 
-	"tailscale.com/types/logger"
+	"lanhc.com/types/logger"
 )
 
 var (
@@ -32,7 +32,7 @@ var (
 
    1. make the binaries as normal
    2. template in their paths as raw strings to the nixos system module
-   3. run `nixos-generators -f qcow -o $CACHE_DIR/tailscale/nixos/version -c generated-config.nix`
+   3. run `nixos-generators -f qcow -o $CACHE_DIR/lanhc/nixos/version -c generated-config.nix`
    4. pass that to the steps that make the virtual machine
 
    It doesn't really make sense for us to use a premade virtual machine image
@@ -62,12 +62,12 @@ const nixosConfigTemplate = `
 # Nix's syntax was inspired by Haskell and other functional languages, so the
 # let .. in pattern is used to create scoped variables:
 let
-  # Define the package (derivation) for Tailscale based on the binaries we
+  # Define the package (derivation) for Lanhc based on the binaries we
   # just built for this test:
-  testTailscale = pkgs.stdenv.mkDerivation {
+  testLanhc = pkgs.stdenv.mkDerivation {
     # The name of the package. This usually includes a version however it
     # doesn't matter here.
-    name = "tailscale-test";
+    name = "lanhc-test";
 
     # The path on disk to the "source code" of the package, in this case it is
     # the path to the binaries that are built. This needs to be the raw
@@ -79,7 +79,7 @@ let
     # built the binaries.
     phases = "installPhase";
 
-    # We need to wrap tailscaled such that it has iptables in its $PATH.
+    # We need to wrap lanhcd such that it has iptables in its $PATH.
     nativeBuildInputs = [ pkgs.makeWrapper ];
 
     # The install instructions for this package ('' ''defines a multi-line string).
@@ -91,19 +91,19 @@ let
       # Make the output folders for the package (systemd unit and binary folders).
       mkdir -p $out/bin
 
-      # Install tailscale{,d}
-      cp $src/tailscale $out/bin/tailscale
-      cp $src/tailscaled $out/bin/tailscaled
+      # Install lanhc{,d}
+      cp $src/lanhc $out/bin/lanhc
+      cp $src/lanhcd $out/bin/lanhcd
 
-      # Wrap tailscaled with the ip and iptables commands.
-      wrapProgram $out/bin/tailscaled --prefix PATH : ${
+      # Wrap lanhcd with the ip and iptables commands.
+      wrapProgram $out/bin/lanhcd --prefix PATH : ${
         lib.makeBinPath [ iproute2 iptables ]
       }
 
       # Install systemd unit.
-      cp $src/systemd/tailscaled.service .
-      sed -i -e "s#/usr/sbin#$out/bin#" -e "/^EnvironmentFile/d" ./tailscaled.service
-      install -D -m0444 -t $out/lib/systemd/system ./tailscaled.service
+      cp $src/systemd/lanhcd.service .
+      sed -i -e "s#/usr/sbin#$out/bin#" -e "/^EnvironmentFile/d" ./lanhcd.service
+      install -D -m0444 -t $out/lib/systemd/system ./lanhcd.service
     '';
   };
 in {
@@ -140,28 +140,28 @@ in {
   # We want sshd running.
   services.openssh.enable = true;
 
-  # Tailscale settings:
-  services.tailscale = {
-    # We want Tailscale to start at boot.
+  # Lanhc settings:
+  services.lanhc = {
+    # We want Lanhc to start at boot.
     enable = true;
 
-    # Use the Tailscale package we just assembled.
-    package = testTailscale;
+    # Use the Lanhc package we just assembled.
+    package = testLanhc;
   };
 
   # Override TS_LOG_TARGET to our private logcatcher.
-  systemd.services.tailscaled.environment."TS_LOG_TARGET" = "{{.LogTarget}}";
+  systemd.services.lanhcd.environment."TS_LOG_TARGET" = "{{.LogTarget}}";
 }`
 
 func (h *Harness) copyUnit(t *testing.T) {
 	t.Helper()
 
-	data, err := os.ReadFile("../../../cmd/tailscaled/tailscaled.service")
+	data, err := os.ReadFile("../../../cmd/lanhcd/lanhcd.service")
 	if err != nil {
 		t.Fatal(err)
 	}
 	os.MkdirAll(filepath.Join(h.binaryDir, "systemd"), 0755)
-	err = os.WriteFile(filepath.Join(h.binaryDir, "systemd", "tailscaled.service"), data, 0666)
+	err = os.WriteFile(filepath.Join(h.binaryDir, "systemd", "lanhcd.service"), data, 0666)
 	if err != nil {
 		t.Fatal(err)
 	}

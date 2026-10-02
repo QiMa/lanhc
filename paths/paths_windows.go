@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"golang.org/x/sys/windows"
-	"tailscale.com/util/winutil"
+	"lanhc.com/util/winutil"
 )
 
 func init() {
@@ -38,7 +38,7 @@ func ensureStateDirPermsWindows(dirPath string) error {
 	if !fi.IsDir() {
 		return os.ErrInvalid
 	}
-	if strings.ToLower(filepath.Base(dirPath)) != "tailscale" {
+	if strings.ToLower(filepath.Base(dirPath)) != "lanhc" {
 		return nil
 	}
 

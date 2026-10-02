@@ -14,7 +14,7 @@
 // This comparison scheme is a simplified version of Debian's version
 // number comparisons. Debian differs in a few details of
 // lexicographical field comparison, where certain characters have
-// special meaning and ordering. We don't need that, because Tailscale
+// special meaning and ordering. We don't need that, because Lanhc
 // version numbers don't need it.
 package cmpver
 

@@ -3,7 +3,7 @@
 
 package routemanager
 
-import "tailscale.com/util/testenv"
+import "lanhc.com/util/testenv"
 
 // forTest is an unexported type to hide the test-only methods on
 // [RouteManager] from godoc.

@@ -16,8 +16,8 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/tstime"
-	"tailscale.com/types/logger"
+	"lanhc.com/tstime"
+	"lanhc.com/types/logger"
 )
 
 const (
@@ -35,7 +35,7 @@ func New(fileBasePrefix, logID string, logf logger.Logf) logger.Logf {
 	if logf == nil {
 		panic("nil logf")
 	}
-	dir := filepath.Join(os.Getenv("ProgramData"), "Tailscale", "Logs")
+	dir := filepath.Join(os.Getenv("ProgramData"), "Lanhc", "Logs")
 
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		log.Printf("failed to create local log directory; not writing logs to disk: %v", err)
@@ -53,9 +53,9 @@ func New(fileBasePrefix, logID string, logf logger.Logf) logger.Logf {
 
 // logFileWriter is the state for the log writer & rotator.
 type logFileWriter struct {
-	dir            string      // e.g. `C:\Users\FooBarUser\AppData\Local\Tailscale\Logs`
+	dir            string      // e.g. `C:\Users\FooBarUser\AppData\Local\Lanhc\Logs`
 	logID          string      // hex logID
-	fileBasePrefix string      // e.g. "tailscale-service" or "tailscale-gui"
+	fileBasePrefix string      // e.g. "lanhc-service" or "lanhc-gui"
 	wrappedLogf    logger.Logf // underlying logger to send to
 
 	mu   sync.Mutex   // guards following

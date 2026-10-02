@@ -1,4 +1,4 @@
-module tailscale.com
+module lanhc.com
 
 go 1.26.6
 
@@ -530,3 +530,5 @@ require (
 )
 
 tool github.com/stacklok/frizbee
+
+replace github.com/tailscale/setec => ./third_party/setec

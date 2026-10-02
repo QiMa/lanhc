@@ -84,7 +84,7 @@ export default function HomeView({
           <SettingsCard
             link="/subnets"
             title="Subnet router"
-            body="Add devices to your tailnet without installing Tailscale on them."
+            body="Add devices to your tailnet without installing Lanhc on them."
             badge={
               allSubnetRoutes
                 ? {
@@ -110,8 +110,8 @@ export default function HomeView({
         {node.Features["ssh"] && (
           <SettingsCard
             link="/ssh"
-            title="Tailscale SSH server"
-            body="Run a Tailscale SSH server on this device and allow other devices in your tailnet to SSH into it."
+            title="Lanhc SSH server"
+            body="Run a Lanhc SSH server on this device and allow other devices in your tailnet to SSH into it."
             badge={
               node.RunningSSHServer
                 ? {
@@ -126,7 +126,7 @@ export default function HomeView({
         {/* <SettingsCard
         link="/serve"
         title="Share local content"
-        body="Share local ports, services, and content to your Tailscale network or to the broader internet."
+        body="Share local ports, services, and content to your Lanhc network or to the broader internet."
       /> */}
       </div>
     </div>

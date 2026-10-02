@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"tailscale.com/net/netutil"
+	"lanhc.com/net/netutil"
 )
 
 const maxHTTPBody = 4 << 20 // MiB

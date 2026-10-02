@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"tailscale.com/logtail"
+	"lanhc.com/logtail"
 )
 
 func resetLogTarget() {
@@ -109,7 +109,7 @@ func TestInvalidLogTarget(t *testing.T) {
 			os.Setenv("TS_LOG_TARGET", tt.logTarget)
 
 			opts := Options{
-				Collection: "test.log.tailscale.io",
+				Collection: "test.log.lanhc.io",
 				Logf:       t.Logf,
 			}
 

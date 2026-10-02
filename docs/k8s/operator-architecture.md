@@ -1,13 +1,13 @@
 # Operator architecture diagrams
 
-The Tailscale [Kubernetes operator][kb-operator] has a collection of use-cases
+The Lanhc [Kubernetes operator][kb-operator] has a collection of use-cases
 that can be mixed and matched as required. The following diagrams illustrate
 how the operator implements each use-case.
 
-In each diagram, the "tailscale" namespace is entirely managed by the operator
+In each diagram, the "lanhc" namespace is entirely managed by the operator
 once the operator itself has been deployed.
 
-Tailscale devices are highlighted as black nodes. The salient devices for each
+Lanhc devices are highlighted as black nodes. The salient devices for each
 use-case are marked as "src" or "dst" to denote which node is a source or a
 destination in the context of ACL rules that will apply to network traffic.
 
@@ -39,14 +39,14 @@ flowchart LR
     classDef pod fill:#fff;
 
     subgraph Key
-        ts[Tailscale device]:::tsnode
+        ts[Lanhc device]:::tsnode
         pod((Pod)):::pod
         blank[" "]-->|WireGuard traffic| blank2[" "]
         blank3[" "]-->|Other network traffic| blank4[" "]
     end
 
     subgraph k8s[Kubernetes cluster]
-        subgraph tailscale-ns[namespace=tailscale]
+        subgraph lanhc-ns[namespace=lanhc]
             operator(("operator (dst)")):::tsnode
         end
 
@@ -72,8 +72,8 @@ flowchart LR
 
 The user deploys an app to the default namespace, and creates a normal Service
 that selects the app's Pods. Either add the annotation
-`tailscale.com/expose: "true"` or specify `.spec.type` as `Loadbalancer` and
-`.spec.loadBalancerClass` as `tailscale`. The operator will create an ingress
+`lanhc.com/expose: "true"` or specify `.spec.type` as `Loadbalancer` and
+`.spec.loadBalancerClass` as `lanhc`. The operator will create an ingress
 proxy that allows devices anywhere on the tailnet to access the Service.
 
 The proxy Pod uses `iptables` or `nftables` rules to DNAT traffic bound for the
@@ -86,14 +86,14 @@ flowchart TD
     classDef pod fill:#fff;
 
     subgraph Key
-        ts[Tailscale device]:::tsnode
+        ts[Lanhc device]:::tsnode
         pod((Pod)):::pod
         blank[" "]-->|WireGuard traffic| blank2[" "]
         blank3[" "]-->|Other network traffic| blank4[" "]
     end
 
     subgraph k8s[Kubernetes cluster]
-        subgraph tailscale-ns[namespace=tailscale]
+        subgraph lanhc-ns[namespace=lanhc]
             operator((operator)):::tsnode
             ingress-sts["StatefulSet"]
             ingress(("ingress proxy (dst)")):::tsnode
@@ -133,9 +133,9 @@ flowchart TD
 
 The L7 ingress architecture diagram is relatively similar to L3 ingress. It is
 configured via an `Ingress` object instead of a `Service`, and uses
-`tailscale serve` to accept traffic instead of configuring `iptables` or
-`nftables` rules. Note that we use tailscaled's local API (`SetServeConfig`) to
-set serve config, not the `tailscale serve` command.
+`lanhc serve` to accept traffic instead of configuring `iptables` or
+`nftables` rules. Note that we use lanhcd's local API (`SetServeConfig`) to
+set serve config, not the `lanhc serve` command.
 
 ```mermaid
 %%{ init: { 'theme':'neutral' } }%%
@@ -144,14 +144,14 @@ flowchart TD
     classDef pod fill:#fff;
 
     subgraph Key
-        ts[Tailscale device]:::tsnode
+        ts[Lanhc device]:::tsnode
         pod((Pod)):::pod
         blank[" "]-->|WireGuard traffic| blank2[" "]
         blank3[" "]-->|Other network traffic| blank4[" "]
     end
 
     subgraph k8s[Kubernetes cluster]
-        subgraph tailscale-ns[namespace=tailscale]
+        subgraph lanhc-ns[namespace=lanhc]
             operator((operator)):::tsnode
             ingress-sts["StatefulSet"]
             ingress-pod(("ingress proxy (dst)")):::tsnode
@@ -160,11 +160,11 @@ flowchart TD
         end
 
         subgraph cluster-scope[Cluster scoped resources]
-            ingress-class[Tailscale IngressClass]
+            ingress-class[Lanhc IngressClass]
         end
 
         subgraph defaultns[namespace=default]
-            ingress[tailscale Ingress]
+            ingress[lanhc Ingress]
             svc["Service"]
             svc --> pod1((pod1))
             svc --> pod2((pod2))
@@ -196,12 +196,12 @@ flowchart TD
 [Documentation][kb-operator-l3-egress]
 
 1. The user deploys a Service with `type: ExternalName` and an annotation 
-  `tailscale.com/tailnet-fqdn: db.tails-scales.ts.net`.
+  `lanhc.com/tailnet-fqdn: db.tails-scales.ts.net`.
 1. The operator creates a proxy Pod managed by a single replica StatefulSet, and a headless Service pointing at the proxy Pod.
 1. The operator updates the `ExternalName` Service's `spec.externalName` field to point
   at the headless Service it created in the previous step.
 
-(Optional) If the user also adds the `tailscale.com/proxy-group: egress-proxies`
+(Optional) If the user also adds the `lanhc.com/proxy-group: egress-proxies`
 annotation to their `ExternalName` Service, the operator will skip creating a
 proxy Pod and instead point the headless Service at the existing ProxyGroup's
 pods. In this case, ports are also required in the `ExternalName` Service spec.
@@ -215,14 +215,14 @@ flowchart TD
     classDef pod fill:#fff;
 
     subgraph Key
-        ts[Tailscale device]:::tsnode
+        ts[Lanhc device]:::tsnode
         pod((Pod)):::pod
         blank[" "]-->|WireGuard traffic| blank2[" "]
         blank3[" "]-->|Other network traffic| blank4[" "]
     end
 
     subgraph k8s[Kubernetes cluster]
-        subgraph tailscale-ns[namespace=tailscale]
+        subgraph lanhc-ns[namespace=lanhc]
             operator((operator)):::tsnode
             egress(("egress proxy (src)")):::tsnode
             egress-sts["StatefulSet"]
@@ -272,7 +272,7 @@ The `ProxyGroup` custom resource manages a collection of proxy Pods that
 can be configured to egress traffic out of the cluster via ExternalName
 Services. A `ProxyGroup` is both a high availability (HA) version of L3
 egress, and a mechanism to serve multiple ExternalName Services on a single
-set of Tailscale devices (coalescing).
+set of Lanhc devices (coalescing).
 
 In this diagram, the `ProxyGroup` is named `pg`. The Secrets associated with
 the `ProxyGroup` Pods are omitted for simplicity. They are similar to the L3
@@ -292,14 +292,14 @@ flowchart LR
     classDef pod fill:#fff;
 
     subgraph Key
-        ts[Tailscale device]:::tsnode
+        ts[Lanhc device]:::tsnode
         pod((Pod)):::pod
         blank[" "]-->|WireGuard traffic| blank2[" "]
         blank3[" "]-->|Other network traffic| blank4[" "]
     end
 
     subgraph k8s[Kubernetes cluster]
-        subgraph tailscale-ns[namespace=tailscale]
+        subgraph lanhc-ns[namespace=lanhc]
             operator((operator)):::tsnode
             pg-sts[StatefulSet]
             pg-0(("pg-0 (src)")):::tsnode
@@ -386,14 +386,14 @@ flowchart LR
     classDef pod fill:#fff;
 
     subgraph Key
-        ts[Tailscale device]:::tsnode
+        ts[Lanhc device]:::tsnode
         pod((Pod)):::pod
         blank[" "]-->|WireGuard traffic| blank2[" "]
         blank3[" "]-->|Other network traffic| blank4[" "]
     end
 
     subgraph k8s[Kubernetes cluster]
-        subgraph tailscale-ns[namespace=tailscale]
+        subgraph lanhc-ns[namespace=lanhc]
             operator((operator)):::tsnode
             ingress-sts["StatefulSet"]
             serve-cm[serve config ConfigMap]
@@ -410,20 +410,20 @@ flowchart LR
         end
 
         subgraph cluster[Cluster scoped resources]
-            ingress-class[Tailscale IngressClass]
+            ingress-class[Lanhc IngressClass]
             pg[ProxyGroup 'pg']
         end
     end
 
-    control["Tailscale control plane"]
-    ts-svc["myapp Tailscale Service"]
+    control["Lanhc control plane"]
+    ts-svc["myapp Lanhc Service"]
 
     client["client (src)"]:::tsnode -->|dials https\://myapp.tails.ts.net/api| ingress-1
     ingress-0 -->|forwards traffic| svc
     ingress-1 -->|forwards traffic| svc
     control -.->|creates| ts-svc
-    operator -.->|creates myapp Tailscale Service| control
-    control -.->|netmap points myapp Tailscale Service to pg-1| client
+    operator -.->|creates myapp Lanhc Service| control
+    control -.->|netmap points myapp Lanhc Service to pg-1| client
     operator -.->|creates| ingress-sts
     ingress-sts -.->|manages| ingress-0
     ingress-sts -.->|manages| ingress-1
@@ -467,7 +467,7 @@ flowchart TD
     classDef hidden display:none;
 
     subgraph Key
-        ts[Tailscale device]:::tsnode
+        ts[Lanhc device]:::tsnode
         pod((Pod)):::pod
         blank[" "]-->|WireGuard traffic| blank2[" "]
         blank3[" "]-->|Other network traffic| blank4[" "]
@@ -475,10 +475,10 @@ flowchart TD
 
     subgraph grouping[" "]
         subgraph k8s[Kubernetes cluster]
-            subgraph tailscale-ns[namespace=tailscale]
+            subgraph lanhc-ns[namespace=lanhc]
                 operator((operator)):::tsnode
                 cn-sts[StatefulSet]
-                cn-pod(("tailscale (dst)")):::tsnode
+                cn-pod(("lanhc (dst)")):::tsnode
                 cfg-secret["config Secret"]
                 state-secret["state Secret"]
             end
@@ -533,7 +533,7 @@ flowchart TD
     classDef hidden display:none;
 
     subgraph Key
-        ts[Tailscale device]:::tsnode
+        ts[Lanhc device]:::tsnode
         pod((Pod)):::pod
         blank[" "]-->|WireGuard traffic| blank2[" "]
         blank3[" "]-->|Other network traffic| blank4[" "]
@@ -543,7 +543,7 @@ flowchart TD
         subgraph k8s[Kubernetes cluster]
             api["kube-apiserver"]
 
-            subgraph tailscale-ns[namespace=tailscale]
+            subgraph lanhc-ns[namespace=lanhc]
                 operator(("operator (dst)")):::tsnode
                 rec-sts[StatefulSet]
                 rec-0(("tsrecorder")):::tsnode
@@ -589,14 +589,14 @@ flowchart TD
 
 ```
 
-[kb-operator]: https://tailscale.com/kb/1236/kubernetes-operator
-[kb-operator-proxy]: https://tailscale.com/kb/1437/kubernetes-operator-api-server-proxy
-[kb-operator-l3-ingress]: https://tailscale.com/kb/1439/kubernetes-operator-cluster-ingress#exposing-a-cluster-workload-using-a-kubernetes-service
-[kb-operator-l7-ingress]: https://tailscale.com/kb/1439/kubernetes-operator-cluster-ingress#exposing-cluster-workloads-using-a-kubernetes-ingress
-[kb-operator-l3-egress]: https://tailscale.com/kb/1438/kubernetes-operator-cluster-egress
-[kb-operator-l3-egress-proxygroup]: https://tailscale.com/kb/1438/kubernetes-operator-cluster-egress#configure-an-egress-service-using-proxygroup
-[kb-operator-connector]: https://tailscale.com/kb/1441/kubernetes-operator-connector
-[kb-operator-app-connector]: https://tailscale.com/kb/1517/kubernetes-operator-app-connector
-[kb-operator-recorder]: https://tailscale.com/kb/1484/kubernetes-operator-deploying-tsrecorder
-[kb-ha]: https://tailscale.com/kb/1115/high-availability
+[kb-operator]: https://lanhc.com/kb/1236/kubernetes-operator
+[kb-operator-proxy]: https://lanhc.com/kb/1437/kubernetes-operator-api-server-proxy
+[kb-operator-l3-ingress]: https://lanhc.com/kb/1439/kubernetes-operator-cluster-ingress#exposing-a-cluster-workload-using-a-kubernetes-service
+[kb-operator-l7-ingress]: https://lanhc.com/kb/1439/kubernetes-operator-cluster-ingress#exposing-cluster-workloads-using-a-kubernetes-ingress
+[kb-operator-l3-egress]: https://lanhc.com/kb/1438/kubernetes-operator-cluster-egress
+[kb-operator-l3-egress-proxygroup]: https://lanhc.com/kb/1438/kubernetes-operator-cluster-egress#configure-an-egress-service-using-proxygroup
+[kb-operator-connector]: https://lanhc.com/kb/1441/kubernetes-operator-connector
+[kb-operator-app-connector]: https://lanhc.com/kb/1517/kubernetes-operator-app-connector
+[kb-operator-recorder]: https://lanhc.com/kb/1484/kubernetes-operator-deploying-tsrecorder
+[kb-ha]: https://lanhc.com/kb/1115/high-availability
 [k8s-impersonation]: https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation

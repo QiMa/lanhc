@@ -2,4 +2,4 @@
 
 # web-client
 
-The web-client command demonstrates serving the Tailscale web client over tsnet.
+The web-client command demonstrates serving the Lanhc web client over tsnet.

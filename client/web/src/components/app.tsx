@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 import React from "react"
-import TailscaleIcon from "src/assets/icons/tailscale-icon.svg?react"
+import LanhcIcon from "src/assets/icons/lanhc-icon.svg?react"
 import LoginToggle from "src/components/login-toggle"
 import DeviceDetailsView from "src/components/views/device-details-view"
 import DisconnectedView from "src/components/views/disconnected-view"
@@ -145,7 +145,7 @@ function Header({
     <>
       <div className="flex flex-wrap gap-4 justify-between items-center mb-9 md:mb-12">
         <Link to="/" className="flex gap-3 overflow-hidden">
-          <TailscaleIcon />
+          <LanhcIcon />
           <div className="inline text-gray-800 text-lg font-medium leading-snug truncate">
             {node.DomainName}
           </div>

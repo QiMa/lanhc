@@ -18,12 +18,12 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
-	"tailscale.com/client/local"
-	"tailscale.com/ipn"
-	"tailscale.com/kube/certs"
-	"tailscale.com/kube/kubetypes"
-	klc "tailscale.com/kube/localclient"
-	"tailscale.com/kube/services"
+	"lanhc.com/client/local"
+	"lanhc.com/ipn"
+	"lanhc.com/kube/certs"
+	"lanhc.com/kube/kubetypes"
+	klc "lanhc.com/kube/localclient"
+	"lanhc.com/kube/services"
 )
 
 // watchServeConfigChanges watches path for changes, and when it sees one, reads
@@ -41,7 +41,7 @@ func watchServeConfigChanges(ctx context.Context, cdChanged <-chan bool, certDom
 	var eventChan <-chan fsnotify.Event
 	if w, err := fsnotify.NewWatcher(); err != nil {
 		// Creating a new fsnotify watcher would fail for example if inotify was not able to create a new file descriptor.
-		// See https://github.com/tailscale/tailscale/issues/15081
+		// See https://github.com/lanhc/lanhc/issues/15081
 		log.Printf("serve proxy: failed to create fsnotify watcher, timer-only mode: %v", err)
 		ticker := time.NewTicker(5 * time.Second)
 		defer ticker.Stop()
@@ -154,7 +154,7 @@ func isValidHTTPSConfig(certDomain string, sc *ipn.ServeConfig) bool {
 		log.Printf(
 			`serve proxy: this node is configured as a proxy that exposes an HTTPS endpoint to tailnet,
 		(perhaps a Kubernetes operator Ingress proxy) but it is not able to issue TLS certs, so this will likely not work.
-		To make it work, ensure that HTTPS is enabled for your tailnet, see https://tailscale.com/kb/1153/enabling-https for more details.`)
+		To make it work, ensure that HTTPS is enabled for your tailnet, see https://lanhc.com/kb/1153/enabling-https for more details.`)
 		return false
 	}
 	return true

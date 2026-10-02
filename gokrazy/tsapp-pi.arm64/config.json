@@ -12,9 +12,9 @@
     "Packages": [
         "github.com/gokrazy/serial-busybox",
         "github.com/gokrazy/breakglass",
-        "tailscale.com/cmd/fbstatus",
-        "tailscale.com/cmd/tailscale",
-        "tailscale.com/cmd/tailscaled"
+        "lanhc.com/cmd/fbstatus",
+        "lanhc.com/cmd/lanhc",
+        "lanhc.com/cmd/lanhcd"
     ],
     "PackageConfig": {
         "github.com/gokrazy/breakglass": {
@@ -22,7 +22,7 @@
                 "-authorized_keys=/perm/breakglass.authorized_keys"
             ]
         },
-        "tailscale.com/cmd/tailscale": {
+        "lanhc.com/cmd/lanhc": {
             "ExtraFilePaths": {
                 "/usr": "usr-dir"
             },
@@ -30,7 +30,7 @@
                 "ts_appliance"
             ]
         },
-        "tailscale.com/cmd/tailscaled": {
+        "lanhc.com/cmd/lanhcd": {
             "GoBuildTags": [
                 "ts_appliance"
             ]

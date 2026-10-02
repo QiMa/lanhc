@@ -8,7 +8,7 @@ package gro
 import (
 	"runtime"
 
-	"tailscale.com/net/packet"
+	"lanhc.com/net/packet"
 )
 
 type GRO struct{}

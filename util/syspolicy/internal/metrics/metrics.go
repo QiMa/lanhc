@@ -10,16 +10,16 @@ import (
 
 	xmaps "golang.org/x/exp/maps"
 
-	"tailscale.com/syncs"
-	"tailscale.com/types/lazy"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/slicesx"
-	"tailscale.com/util/syspolicy/internal"
-	"tailscale.com/util/syspolicy/internal/loggerx"
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/util/syspolicy/setting"
-	"tailscale.com/util/testenv"
+	"lanhc.com/syncs"
+	"lanhc.com/types/lazy"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/slicesx"
+	"lanhc.com/util/syspolicy/internal"
+	"lanhc.com/util/syspolicy/internal/loggerx"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/util/syspolicy/setting"
+	"lanhc.com/util/testenv"
 )
 
 var lazyReportMetrics lazy.SyncValue[bool] // used as a test hook
@@ -78,14 +78,14 @@ func newScopeMetrics(scope setting.Scope) *policyScopeMetrics {
 	// Example: windows_syspolicy_errors or windows_syspolicy_user_errors.
 	//
 	// TODO(nickkhyl): maybe make the `{os}_syspolicy_errors` metric a gauge rather than a counter?
-	// It was a counter prior to https://github.com/tailscale/tailscale/issues/12687, so I kept it as such.
+	// It was a counter prior to https://github.com/lanhc/lanhc/issues/12687, so I kept it as such.
 	// But I think a gauge makes more sense: syspolicy errors indicate a mismatch between the expected
 	// policy value type or format and the actual value read from the underlying store (like the Windows Registry).
 	// We'll encounter the same error every time we re-read the policy setting from the backing store
 	// until the policy value is corrected by the user, or until we fix the bug in the code or ADMX.
 	// There's probably no reason to count and accumulate them over time.
 	//
-	// Brief discussion: https://github.com/tailscale/tailscale/pull/13113#discussion_r1723475136
+	// Brief discussion: https://github.com/lanhc/lanhc/pull/13113#discussion_r1723475136
 	numErrored := newMetric([]string{prefix, "errors"}, clientmetric.TypeCounter)
 	return &policyScopeMetrics{hasAny, numErrored}
 }

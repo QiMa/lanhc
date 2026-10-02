@@ -8,8 +8,8 @@ import (
 	"crypto/subtle"
 
 	"go4.org/mem"
-	"tailscale.com/types/structs"
-	"tailscale.com/types/tkatype"
+	"lanhc.com/types/structs"
+	"lanhc.com/types/tkatype"
 )
 
 const (

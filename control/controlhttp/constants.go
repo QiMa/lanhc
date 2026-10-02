@@ -10,14 +10,14 @@ import (
 	"sync/atomic"
 	"time"
 
-	"tailscale.com/health"
-	"tailscale.com/net/dnscache"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/netx"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
+	"lanhc.com/health"
+	"lanhc.com/net/dnscache"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/netx"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
 )
 
 const (
@@ -31,7 +31,7 @@ const (
 // tests where the control plane only runs on HTTP.
 const NoPort = "none"
 
-// Dialer contains configuration on how to dial the Tailscale control server.
+// Dialer contains configuration on how to dial the Lanhc control server.
 type Dialer struct {
 	// Hostname is the hostname to connect to, with no port number.
 	//

@@ -10,8 +10,8 @@ import (
 	"net/netip"
 	"testing"
 
-	"tailscale.com/net/stun"
-	"tailscale.com/util/must"
+	"lanhc.com/net/stun"
+	"lanhc.com/util/must"
 )
 
 // TODO(bradfitz): fuzz this.

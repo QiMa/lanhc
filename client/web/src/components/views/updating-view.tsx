@@ -12,7 +12,7 @@ import Spinner from "src/ui/spinner"
 import { useLocation } from "wouter"
 
 /**
- * UpdatingView is rendered when the user initiates a Tailscale update, and
+ * UpdatingView is rendered when the user initiates a Lanhc update, and
  * the update is in-progress, failed, or completed.
  */
 export function UpdatingView({
@@ -44,7 +44,7 @@ export function UpdatingView({
             <CheckCircleIcon />
             <h1 className="text-2xl m-3">Update complete!</h1>
             <p className="text-gray-400">
-              You updated Tailscale
+              You updated Lanhc
               {versionInfo && versionInfo.LatestVersion
                 ? ` to ${versionInfo.LatestVersion}`
                 : null}
@@ -63,7 +63,7 @@ export function UpdatingView({
             <CheckCircleIcon />
             <h1 className="text-2xl m-3">Up to date!</h1>
             <p className="text-gray-400">
-              You are already running Tailscale {currentVersion}, which is the
+              You are already running Lanhc {currentVersion}, which is the
               newest version available.
             </p>
             <Button

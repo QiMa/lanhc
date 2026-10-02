@@ -7,7 +7,7 @@ import (
 	"net/netip"
 	"sort"
 
-	"tailscale.com/types/key"
+	"lanhc.com/types/key"
 )
 
 // DERPMap describes the set of DERP packet relay servers that are available.
@@ -27,7 +27,7 @@ type DERPMap struct {
 	// The numbers are not necessarily contiguous.
 	Regions map[int]*DERPRegion
 
-	// OmitDefaultRegions specifies to not use Tailscale's DERP servers, and only use those
+	// OmitDefaultRegions specifies to not use Lanhc's DERP servers, and only use those
 	// specified in this DERPMap. If there are none set outside of the defaults, this is a noop.
 	//
 	// This field is only meaningful if the Regions map is non-nil (indicating a change).
@@ -74,9 +74,9 @@ type DERPHomeParams struct {
 type DERPRegion struct {
 	// RegionID is a unique integer for a geographic region.
 	//
-	// It corresponds to the legacy derpN.tailscale.com hostnames
+	// It corresponds to the legacy derpN.lanhc.com hostnames
 	// used by older clients. (Older clients will continue to resolve
-	// derpN.tailscale.com when contacting peers, rather than use
+	// derpN.lanhc.com when contacting peers, rather than use
 	// the server-provided DERPMap)
 	//
 	// RegionIDs must be non-zero, positive, and guaranteed to fit

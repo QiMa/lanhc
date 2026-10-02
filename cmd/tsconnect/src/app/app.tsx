@@ -48,14 +48,14 @@ class App extends Component<{}, AppState> {
     if (lockedOut) {
       lockedOutInstructions = (
         <div class="container mx-auto px-4 text-center space-y-4">
-          <p>This instance of Tailscale Connect needs to be signed, due to
-            {" "}<a href="https://tailscale.com/kb/1226/tailnet-lock/" class="link">tailnet lock</a>{" "}
+          <p>This instance of Lanhc Connect needs to be signed, due to
+            {" "}<a href="https://lanhc.com/kb/1226/tailnet-lock/" class="link">tailnet lock</a>{" "}
             being enabled on this domain.
           </p>
 
           <p>
             Run the following command on a device with a trusted tailnet lock key:
-            <pre>tailscale lock sign {netMap.self.nodeKey}</pre>
+            <pre>lanhc lock sign {netMap.self.nodeKey}</pre>
           </p>
         </div>
       )

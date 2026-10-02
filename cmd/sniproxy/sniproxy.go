@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // The sniproxy is an outbound SNI proxy. It receives TLS connections over
-// Tailscale on one or more TCP ports and sends them out to the same SNI
+// Lanhc on one or more TCP ports and sends them out to the same SNI
 // hostname & port on the internet. It can optionally forward one or more
 // TCP ports to a specific destination. It only does TCP.
 package main
@@ -22,19 +22,19 @@ import (
 	"strings"
 
 	"github.com/peterbourgon/ff/v3"
-	"tailscale.com/client/local"
-	"tailscale.com/hostinfo"
-	"tailscale.com/ipn"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsnet"
-	"tailscale.com/tsweb"
-	"tailscale.com/types/appctype"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/nettype"
-	"tailscale.com/util/mak"
+	"lanhc.com/client/local"
+	"lanhc.com/hostinfo"
+	"lanhc.com/ipn"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsnet"
+	"lanhc.com/tsweb"
+	"lanhc.com/types/appctype"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/nettype"
+	"lanhc.com/util/mak"
 )
 
-const configCapKey = "tailscale.com/sniproxy"
+const configCapKey = "lanhc.com/sniproxy"
 
 // portForward is the state for a single port forwarding entry, as passed to the --forward flag.
 type portForward struct {
@@ -93,7 +93,7 @@ func main() {
 
 // run actually runs the sniproxy. Its separate from main() to assist in testing.
 func run(ctx context.Context, ts *tsnet.Server, wgPort int, hostname string, promoteHTTPS bool, debugPort int, ports, forwards string) {
-	// Wire up Tailscale node + app connector server
+	// Wire up Lanhc node + app connector server
 	hostinfo.SetApp("sniproxy")
 	var s sniproxy
 	s.ts = ts
@@ -221,7 +221,7 @@ func (s *sniproxy) advertiseRoutesFromConfig(ctx context.Context, c *appctype.Ap
 }
 
 func (s *sniproxy) mergeConfigFromFlags(out *appctype.AppConnectorConfig, ports, forwards string) {
-	ip4, ip6 := s.ts.TailscaleIPs()
+	ip4, ip6 := s.ts.LanhcIPs()
 
 	sniConfigFromFlags := appctype.SNIProxyConfig{
 		Addrs: []netip.Addr{ip4, ip6},

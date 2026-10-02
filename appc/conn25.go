@@ -9,14 +9,14 @@ import (
 	"slices"
 	"strings"
 
-	"tailscale.com/ipn/ipnext"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/appctype"
-	"tailscale.com/types/dnstype"
-	"tailscale.com/util/set"
+	"lanhc.com/ipn/ipnext"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/appctype"
+	"lanhc.com/types/dnstype"
+	"lanhc.com/util/set"
 )
 
-const AppConnectorsExperimentalAttrName = "tailscale.com/app-connectors-experimental"
+const AppConnectorsExperimentalAttrName = "lanhc.com/app-connectors-experimental"
 
 func isPeerEligibleConnector(peer tailcfg.NodeView) bool {
 	if !peer.Valid() || !peer.Hostinfo().Valid() {
@@ -58,7 +58,7 @@ func PickConnector(nb ipnext.NodeBackend, app appctype.Conn25Attr) []tailcfg.Nod
 // DNSAddrScheme is the custom URI scheme used for conn25-managed split DNS
 // entries to determine the destination at query time rather than configuration
 // time.
-const DNSAddrScheme = "tailscale-app"
+const DNSAddrScheme = "lanhc-app"
 
 func AppDNSRoutes(hasCap func(c tailcfg.NodeCapability) bool, self tailcfg.NodeView) map[string][]*dnstype.Resolver {
 	if !hasCap(AppConnectorsExperimentalAttrName) {

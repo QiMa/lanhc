@@ -9,34 +9,34 @@ import (
 	"errors"
 	"runtime"
 
-	"tailscale.com/envknob"
-	"tailscale.com/version"
-	"tailscale.com/version/distro"
+	"lanhc.com/envknob"
+	"lanhc.com/version"
+	"lanhc.com/version/distro"
 )
 
-// CanRunTailscaleSSH reports whether serving a Tailscale SSH server is
+// CanRunLanhcSSH reports whether serving a Lanhc SSH server is
 // supported for the current os/distro.
-func CanRunTailscaleSSH() error {
+func CanRunLanhcSSH() error {
 	switch runtime.GOOS {
 	case "linux":
 		if distro.Get() == distro.Synology && !envknob.UseWIPCode() {
-			return errors.New("The Tailscale SSH server does not run on Synology.")
+			return errors.New("The Lanhc SSH server does not run on Synology.")
 		}
 		if distro.Get() == distro.QNAP && !envknob.UseWIPCode() {
-			return errors.New("The Tailscale SSH server does not run on QNAP.")
+			return errors.New("The Lanhc SSH server does not run on QNAP.")
 		}
 		// otherwise okay
 	case "darwin":
-		// okay only in tailscaled mode for now.
+		// okay only in lanhcd mode for now.
 		if version.IsSandboxedMacOS() {
-			return errors.New("The Tailscale SSH server does not run in sandboxed Tailscale GUI builds.")
+			return errors.New("The Lanhc SSH server does not run in sandboxed Lanhc GUI builds.")
 		}
 	case "freebsd", "openbsd", "plan9":
 	default:
-		return errors.New("The Tailscale SSH server is not supported on " + runtime.GOOS)
+		return errors.New("The Lanhc SSH server is not supported on " + runtime.GOOS)
 	}
 	if !envknob.CanSSHD() {
-		return errors.New("The Tailscale SSH server has been administratively disabled.")
+		return errors.New("The Lanhc SSH server has been administratively disabled.")
 	}
 	return nil
 }
@@ -45,9 +45,9 @@ func CanRunTailscaleSSH() error {
 // current os/distro.
 func CanUseExitNode() error {
 	switch dist := distro.Get(); dist {
-	case distro.Synology, // see https://github.com/tailscale/tailscale/issues/1995
+	case distro.Synology, // see https://github.com/lanhc/lanhc/issues/1995
 		distro.QNAP:
-		return errors.New("Tailscale exit nodes cannot be used on " + string(dist))
+		return errors.New("Lanhc exit nodes cannot be used on " + string(dist))
 	}
 	return nil
 }

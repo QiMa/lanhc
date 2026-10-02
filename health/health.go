@@ -18,16 +18,16 @@ import (
 	"sync/atomic"
 	"time"
 
-	"tailscale.com/envknob"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
-	"tailscale.com/types/opt"
-	"tailscale.com/util/cibuild"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/mak"
-	"tailscale.com/version"
+	"lanhc.com/envknob"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
+	"lanhc.com/types/opt"
+	"lanhc.com/util/cibuild"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/mak"
+	"lanhc.com/version"
 )
 
 var (
@@ -59,7 +59,7 @@ var receiveNames = []string{
 	ReceiveDERP: "ReceiveDERP",
 }
 
-// Tracker tracks the health of various Tailscale subsystems,
+// Tracker tracks the health of various Lanhc subsystems,
 // comparing each subsystems' state with each other to make sure
 // they're consistent based on the user's intended state.
 //
@@ -283,7 +283,7 @@ type WarnableCode string
 // Warnable, along with more metadata that makes it easier for a GUI to display
 // the Warnable in a user-friendly way.
 type Warnable struct {
-	// Code is a string that uniquely identifies this Warnable across the entire Tailscale backend,
+	// Code is a string that uniquely identifies this Warnable across the entire Lanhc backend,
 	// and can be mapped to a user-displayable localized string.
 	Code WarnableCode
 	// Title is a string that the GUI uses as title for any message involving this Warnable. The title
@@ -959,7 +959,7 @@ func (t *Tracker) SetAuthRoutineInError(err error) {
 	t.selfCheckLocked()
 }
 
-// SetLatestVersion records the latest version of the Tailscale client.
+// SetLatestVersion records the latest version of the Lanhc client.
 // v can be nil if unknown.
 func (t *Tracker) SetLatestVersion(v *tailcfg.ClientVersion) {
 	if t.nil() {
@@ -1145,12 +1145,12 @@ func (t *Tracker) updateBuiltinWarnablesLocked() {
 	// KeepAlive by.
 	const tooIdle = 2*time.Minute + 5*time.Second
 
-	// Whether user recently turned on Tailscale.
+	// Whether user recently turned on Lanhc.
 	recentlyOn := now.Sub(t.ipnWantRunningLastTrue) < 5*time.Second
 
 	homeDERP := t.derpHomeRegion
 	if recentlyOn || !t.inMapPoll {
-		// If user just turned Tailscale on, don't warn for a bit.
+		// If user just turned Lanhc on, don't warn for a bit.
 		// Also, if we're not in a map poll, that means we don't yet
 		// have a DERPMap or aren't in a state where we even want
 		t.setHealthyLocked(noDERPHomeWarnable)

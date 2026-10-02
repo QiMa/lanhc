@@ -21,9 +21,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tstest"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tstest"
 )
 
 func TestEgressPodReadiness(t *testing.T) {
@@ -66,7 +66,7 @@ func TestEgressPodReadiness(t *testing.T) {
 				ConditionType: tsEgressReadinessGate,
 			}},
 			Containers: []corev1.Container{{
-				Name: "tailscale",
+				Name: "lanhc",
 				Env: []corev1.EnvVar{{
 					Name:  "TS_ENABLE_HEALTH_CHECK",
 					Value: "true",

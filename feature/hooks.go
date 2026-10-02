@@ -10,17 +10,17 @@ import (
 	"os"
 	"sync"
 
-	"tailscale.com/types/logger"
-	"tailscale.com/types/persist"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/persist"
 )
 
 // HookRegisterLogSinkFlags is a hook for the syslog feature to register
-// its flags (such as tailscaled's --syslog) with the process's default
-// flag set. If set, tailscaled calls it before flag parsing.
+// its flags (such as lanhcd's --syslog) with the process's default
+// flag set. If set, lanhcd calls it before flag parsing.
 var HookRegisterLogSinkFlags Hook[func()]
 
 // HookLogSink is a hook for the syslog feature to redirect the process's
-// logs to an alternate sink. If set, tailscaled calls it once early in
+// logs to an alternate sink. If set, lanhcd calls it once early in
 // main, after flag parsing; on that first call, if the user requested an
 // alternate sink, it points the standard library's default logger at that
 // sink. It returns the sink, or nil if logs are not being redirected.

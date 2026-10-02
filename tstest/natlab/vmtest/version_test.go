@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-var testDownloadVersion = flag.Bool("test-download-version", false, "in TestVersionDownload, actually hit pkgs.tailscale.com")
+var testDownloadVersion = flag.Bool("test-download-version", false, "in TestVersionDownload, actually hit pkgs.lanhc.com")
 
 func TestResolveTestVersionInvalid(t *testing.T) {
 	bad := []string{
@@ -69,7 +69,7 @@ func TestVersionDownload(t *testing.T) {
 	if dir != wantDir {
 		t.Errorf("dir = %q, want %q", dir, wantDir)
 	}
-	for _, name := range []string{"tailscale", "tailscaled"} {
+	for _, name := range []string{"lanhc", "lanhcd"} {
 		fi, err := os.Stat(filepath.Join(dir, name))
 		if err != nil {
 			t.Errorf("missing %s: %v", name, err)

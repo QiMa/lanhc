@@ -12,13 +12,13 @@ import (
 	"time"
 
 	"golang.org/x/sync/errgroup"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/net/traffic"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsconst"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/mak"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/net/traffic"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsconst"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/mak"
 )
 
 var (
@@ -104,7 +104,7 @@ func (c *Client) probe(ctx context.Context, nodes iter.Seq[probed], limit int, t
 			defer timestampProbe(n)
 
 			// TODO(sfllaw): Why did we choose Disco ping instead of TSMP ping?
-			// After all, a TSMP ping proves that the peer Tailscale node is there
+			// After all, a TSMP ping proves that the peer Lanhc node is there
 			// and that both nodes know each other’s WireGuard keys,
 			// while a Disco ping only proves that the peer can be found using DERP.
 			// However, TSMP is wrapped in a long-lived WireGuard connection,

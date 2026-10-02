@@ -22,10 +22,10 @@ import (
 	"unsafe"
 
 	"golang.org/x/sys/windows"
-	"tailscale.com/cmd/tailscaled/childproc"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/winutil"
-	"tailscale.com/util/winutil/conpty"
+	"lanhc.com/cmd/lanhcd/childproc"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/winutil"
+	"lanhc.com/util/winutil/conpty"
 )
 
 func init() {
@@ -39,7 +39,7 @@ var errInsufficientCapabilityLevel = errors.New("insufficient capability level")
 // retrieving this information. srcName must be non-empty, ASCII-only, and no
 // longer than 8 characters.
 //
-// NOTE: This should only be used by Tailscale SSH! It is not a generic
+// NOTE: This should only be used by Lanhc SSH! It is not a generic
 // mechanism for access checks!
 func ListGroupIDsForSSHPreAuthOnly(srcName string, u *user.User) ([]string, error) {
 	tok, err := createToken(srcName, u, tokenTypeIdentification, CapImpersonateOnly)

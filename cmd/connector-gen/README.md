@@ -1,8 +1,8 @@
 # connector-gen
 
-Generate Tailscale app connector configuration details from third party data.
+Generate Lanhc app connector configuration details from third party data.
 
-Tailscale app connectors are used to dynamically route traffic for domain names
+Lanhc app connectors are used to dynamically route traffic for domain names
 via specific nodes on a tailnet. For larger upstream domains this may involve a
 large number of domains or routes, and fully dynamic discovery may be slower or
 involve more manual labor than ideal. This can be accelerated by

@@ -28,11 +28,11 @@ import (
 	"github.com/huin/goupnp"
 	"github.com/huin/goupnp/dcps/internetgateway2"
 	"github.com/huin/goupnp/soap"
-	"tailscale.com/envknob"
-	"tailscale.com/net/netns"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/ctxkey"
-	"tailscale.com/util/mak"
+	"lanhc.com/envknob"
+	"lanhc.com/net/netns"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/ctxkey"
+	"lanhc.com/util/mak"
 )
 
 // upnpHTTPClientKey is a context key for storing an HTTP client to use
@@ -97,7 +97,7 @@ type upnpMapping struct {
 // mapping request. Other implementations like miniupnp send an upper-case
 // protocol as well. See:
 //
-//	https://github.com/tailscale/tailscale/issues/7377
+//	https://github.com/lanhc/lanhc/issues/7377
 const upnpProtocolUDP = "UDP"
 
 func (u *upnpMapping) MappingType() string      { return "upnp" }
@@ -161,7 +161,7 @@ type upnpClient interface {
 
 // tsPortMappingDesc gets sent to UPnP clients as a human-readable label for the portmapping.
 // It is not used for anything other than labelling.
-const tsPortMappingDesc = "tailscale-portmap"
+const tsPortMappingDesc = "lanhc-portmap"
 
 // addAnyPortMapping abstracts over different UPnP client connections, calling
 // the available AddAnyPortMapping call if available for WAN IP connection v2,
@@ -265,7 +265,7 @@ func getUPnPRootDevice(ctx context.Context, logf logger.Logf, debug DebugKnobs, 
 		return nil, nil, fmt.Errorf("unexpected host %q in %q", u.Host, meta.Location)
 	}
 	if ipp.Addr() != gw {
-		// https://github.com/tailscale/tailscale/issues/5502
+		// https://github.com/lanhc/lanhc/issues/5502
 		logf("UPnP discovered root %q does not match gateway IP %v; repointing at gateway which is assumed to be floating",
 			meta.Location, gw)
 		u.Host = net.JoinHostPort(gw.String(), u.Port())
@@ -590,7 +590,7 @@ func (c *Client) getUPnPPortMapping(
 // unsupported features.
 //
 // It returns the external address and port that was mapped (i.e. the
-// address+port that another Tailscale node can use to make a connection to
+// address+port that another Lanhc node can use to make a connection to
 // this one) and the UPnP client that was used to obtain that mapping.
 func (c *Client) tryUPnPPortmapWithDevice(
 	ctx context.Context,
@@ -636,7 +636,7 @@ func (c *Client) tryUPnPPortmapWithDevice(
 	// If this is an error and the code is
 	// "OnlyPermanentLeasesSupported", then we retry with no lease
 	// duration; see the following issue for details:
-	//    https://github.com/tailscale/tailscale/issues/9343
+	//    https://github.com/lanhc/lanhc/issues/9343
 	if err != nil {
 		code, ok := getUPnPErrorCode(err)
 		if ok {
@@ -644,7 +644,7 @@ func (c *Client) tryUPnPPortmapWithDevice(
 		}
 
 		// From the UPnP spec: http://upnp.org/specs/gw/UPnP-gw-WANIPConnection-v2-Service.pdf
-		//     402: Invalid Args (see: https://github.com/tailscale/tailscale/issues/15223)
+		//     402: Invalid Args (see: https://github.com/lanhc/lanhc/issues/15223)
 		//     725: OnlyPermanentLeasesSupported
 		if ok && (code == 402 || code == 725) {
 			newPort, err = addAnyPortMapping(

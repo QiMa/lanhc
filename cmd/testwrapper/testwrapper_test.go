@@ -35,7 +35,7 @@ func cmdTestwrapper(t *testing.T, args ...string) *exec.Cmd {
 	cmd.Env = append(os.Environ(),
 		"TS_TESTWRAPPER_BUDGET=2s",
 		"TS_TESTWRAPPER_MIN_RETRIES=2",
-		"GITHUB_REPOSITORY=tailscale/tailscale",
+		"GITHUB_REPOSITORY=lanhc/lanhc",
 	)
 	return cmd
 }
@@ -64,13 +64,13 @@ func TestRetry(t *testing.T) {
 import (
 	"os"
 	"testing"
-	"tailscale.com/cmd/testwrapper/flakytest"
+	"lanhc.com/cmd/testwrapper/flakytest"
 )
 
 func TestOK(t *testing.T) {}
 
 func TestFlakeRun(t *testing.T) {
-	flakytest.Mark(t, "https://github.com/tailscale/tailscale/issues/1234")
+	flakytest.Mark(t, "https://github.com/lanhc/lanhc/issues/1234")
 	e := os.Getenv(flakytest.FlakeAttemptEnv)
 	if e == "" {
 		t.Skip("not running in testwrapper")
@@ -92,7 +92,7 @@ func TestFlakeRun(t *testing.T) {
 	if !bytes.Contains(out, []byte("flakytest failures JSON:")) {
 		t.Errorf("missing flakytest failures JSON line in output:\n%s", out)
 	}
-	if !bytes.Contains(out, []byte("https://github.com/tailscale/tailscale/issues/1234")) {
+	if !bytes.Contains(out, []byte("https://github.com/lanhc/lanhc/issues/1234")) {
 		t.Errorf("missing real issue URL in output:\n%s", out)
 	}
 	if bytes.Contains(out, []byte("permanent test failures JSON:")) {
@@ -150,7 +150,7 @@ func TestAutoFlake(t *testing.T) {
 	if !bytes.Contains(out, []byte("/issues/UNKNOWN")) {
 		t.Errorf("missing fake /issues/UNKNOWN URL in output:\n%s", out)
 	}
-	if !bytes.Contains(out, []byte("https://github.com/tailscale/tailscale/issues/UNKNOWN")) {
+	if !bytes.Contains(out, []byte("https://github.com/lanhc/lanhc/issues/UNKNOWN")) {
 		t.Errorf("missing fake URL with detected repo in output:\n%s", out)
 	}
 	if bytes.Contains(out, []byte("permanent test failures JSON:")) {
@@ -225,7 +225,7 @@ func TestRaceSuppressesFlakyRetry(t *testing.T) {
 import (
 	"sync"
 	"testing"
-	"tailscale.com/cmd/testwrapper/flakytest"
+	"lanhc.com/cmd/testwrapper/flakytest"
 )
 
 var counter int
@@ -239,7 +239,7 @@ func TestRace(t *testing.T) {
 }
 
 func TestFlaky(t *testing.T) {
-	flakytest.Mark(t, "https://github.com/tailscale/tailscale/issues/0")
+	flakytest.Mark(t, "https://github.com/lanhc/lanhc/issues/0")
 	t.Fatal("flaky test failing; would normally be retried")
 }
 `)
@@ -275,7 +275,7 @@ func TestFlaky(t *testing.T) {
 // them and TSan prints during a different test's window). Without
 // the race-detection fix, the WARNING: DATA RACE block would be
 // stuck in a passing test's log buffer and dropped on the floor.
-// See https://github.com/tailscale/tailscale/issues/19603.
+// See https://github.com/lanhc/lanhc/issues/19603.
 func TestRaceAttributedToPassingTest(t *testing.T) {
 	if runtime.GOOS != "linux" || runtime.GOARCH != "amd64" {
 		t.Skip("test requires the race detector, which needs linux/amd64")

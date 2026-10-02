@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"testing"
 
-	"tailscale.com/util/winutil"
+	"lanhc.com/util/winutil"
 )
 
 func init() {
@@ -30,7 +30,7 @@ func init() {
 // type assertions about the types of listeners and conns we expect.
 func TestExpectedWindowsTypes(t *testing.T) {
 	t.Cleanup(downgradeSDDL())
-	const sock = `\\.\pipe\tailscale-test`
+	const sock = `\\.\pipe\lanhc-test`
 	ln, err := Listen(sock)
 	if err != nil {
 		t.Fatal(err)

@@ -3,7 +3,7 @@
 
 //go:build !plan9
 
-// tailscale-operator provides a way to expose services running in a Kubernetes
+// lanhc-operator provides a way to expose services running in a Kubernetes
 // cluster to your Tailnet.
 package main
 
@@ -18,21 +18,21 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	tsoperator "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/tstest"
+	tsoperator "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/tstest"
 )
 
 func TestProxyClass(t *testing.T) {
 	pc := &tsapi.ProxyClass{
-		TypeMeta: metav1.TypeMeta{Kind: "ProxyClass", APIVersion: "tailscale.com/v1alpha1"},
+		TypeMeta: metav1.TypeMeta{Kind: "ProxyClass", APIVersion: "lanhc.com/v1alpha1"},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test",
 			// The apiserver is supposed to set the UID, but the fake client
 			// doesn't. So, set it explicitly because other code later depends
 			// on it being set.
 			UID:        types.UID("1234-UID"),
-			Finalizers: []string{"tailscale.com/finalizer"},
+			Finalizers: []string{"lanhc.com/finalizer"},
 		},
 		Spec: tsapi.ProxyClassSpec{
 			StatefulSet: &tsapi.StatefulSet{
@@ -41,10 +41,10 @@ func TestProxyClass(t *testing.T) {
 				Pod: &tsapi.Pod{
 					Labels:      tsapi.Labels{"foo": "bar", "xyz1234": "abc567"},
 					Annotations: map[string]string{"foo.io/bar": "{'key': 'val1232'}"},
-					TailscaleContainer: &tsapi.Container{
+					LanhcContainer: &tsapi.Container{
 						Env:             []tsapi.Env{{Name: "FOO", Value: "BAR"}},
 						ImagePullPolicy: "IfNotPresent",
-						Image:           "ghcr.my-repo/tailscale:v0.01testsomething",
+						Image:           "ghcr.my-repo/lanhc:v0.01testsomething",
 					},
 				},
 			},
@@ -94,47 +94,47 @@ func TestProxyClass(t *testing.T) {
 
 	// 3. A ProxyClass resource with invalid image reference gets it status updated to Invalid with an error message.
 	pc.Spec.StatefulSet.Labels = nil
-	pc.Spec.StatefulSet.Pod.TailscaleContainer.Image = "FOO bar"
+	pc.Spec.StatefulSet.Pod.LanhcContainer.Image = "FOO bar"
 	mustUpdate(t, fc, "", "test", func(proxyClass *tsapi.ProxyClass) {
 		proxyClass.Spec.StatefulSet.Labels = nil
-		proxyClass.Spec.StatefulSet.Pod.TailscaleContainer.Image = pc.Spec.StatefulSet.Pod.TailscaleContainer.Image
+		proxyClass.Spec.StatefulSet.Pod.LanhcContainer.Image = pc.Spec.StatefulSet.Pod.LanhcContainer.Image
 	})
 	expectReconciled(t, pcr, "", "test")
-	msg = `ProxyClass is not valid: spec.statefulSet.pod.tailscaleContainer.image: Invalid value: "FOO bar": invalid reference format: repository name (library/FOO bar) must be lowercase`
+	msg = `ProxyClass is not valid: spec.statefulSet.pod.lanhcContainer.image: Invalid value: "FOO bar": invalid reference format: repository name (library/FOO bar) must be lowercase`
 	tsoperator.SetProxyClassCondition(pc, tsapi.ProxyClassReady, metav1.ConditionFalse, reasonProxyClassInvalid, msg, 0, cl, zl.Sugar())
 	expectEqual(t, fc, pc)
-	expectedEvent = `Warning ProxyClassInvalid ProxyClass is not valid: spec.statefulSet.pod.tailscaleContainer.image: Invalid value: "FOO bar": invalid reference format: repository name (library/FOO bar) must be lowercase`
+	expectedEvent = `Warning ProxyClassInvalid ProxyClass is not valid: spec.statefulSet.pod.lanhcContainer.image: Invalid value: "FOO bar": invalid reference format: repository name (library/FOO bar) must be lowercase`
 	expectEvents(t, fr, []string{expectedEvent})
 
 	// 4. A ProxyClass resource with invalid init container image reference gets it status updated to Invalid with an error message.
 	pc.Spec.StatefulSet.Labels = nil
-	pc.Spec.StatefulSet.Pod.TailscaleContainer.Image = ""
-	pc.Spec.StatefulSet.Pod.TailscaleInitContainer = &tsapi.Container{
+	pc.Spec.StatefulSet.Pod.LanhcContainer.Image = ""
+	pc.Spec.StatefulSet.Pod.LanhcInitContainer = &tsapi.Container{
 		Image: "FOO bar",
 	}
 	mustUpdate(t, fc, "", "test", func(proxyClass *tsapi.ProxyClass) {
-		proxyClass.Spec.StatefulSet.Pod.TailscaleContainer.Image = pc.Spec.StatefulSet.Pod.TailscaleContainer.Image
-		proxyClass.Spec.StatefulSet.Pod.TailscaleInitContainer = &tsapi.Container{
-			Image: pc.Spec.StatefulSet.Pod.TailscaleInitContainer.Image,
+		proxyClass.Spec.StatefulSet.Pod.LanhcContainer.Image = pc.Spec.StatefulSet.Pod.LanhcContainer.Image
+		proxyClass.Spec.StatefulSet.Pod.LanhcInitContainer = &tsapi.Container{
+			Image: pc.Spec.StatefulSet.Pod.LanhcInitContainer.Image,
 		}
 	})
 	expectReconciled(t, pcr, "", "test")
-	msg = `ProxyClass is not valid: spec.statefulSet.pod.tailscaleInitContainer.image: Invalid value: "FOO bar": invalid reference format: repository name (library/FOO bar) must be lowercase`
+	msg = `ProxyClass is not valid: spec.statefulSet.pod.lanhcInitContainer.image: Invalid value: "FOO bar": invalid reference format: repository name (library/FOO bar) must be lowercase`
 	tsoperator.SetProxyClassCondition(pc, tsapi.ProxyClassReady, metav1.ConditionFalse, reasonProxyClassInvalid, msg, 0, cl, zl.Sugar())
 	expectEqual(t, fc, pc)
-	expectedEvent = `Warning ProxyClassInvalid ProxyClass is not valid: spec.statefulSet.pod.tailscaleInitContainer.image: Invalid value: "FOO bar": invalid reference format: repository name (library/FOO bar) must be lowercase`
+	expectedEvent = `Warning ProxyClassInvalid ProxyClass is not valid: spec.statefulSet.pod.lanhcInitContainer.image: Invalid value: "FOO bar": invalid reference format: repository name (library/FOO bar) must be lowercase`
 	expectEvents(t, fr, []string{expectedEvent})
 
-	// 5. An valid ProxyClass but with a Tailscale env vars set results in warning events.
-	pc.Spec.StatefulSet.Pod.TailscaleInitContainer.Image = "" // unset previous test
+	// 5. An valid ProxyClass but with a Lanhc env vars set results in warning events.
+	pc.Spec.StatefulSet.Pod.LanhcInitContainer.Image = "" // unset previous test
 	mustUpdate(t, fc, "", "test", func(proxyClass *tsapi.ProxyClass) {
-		proxyClass.Spec.StatefulSet.Pod.TailscaleInitContainer.Image = pc.Spec.StatefulSet.Pod.TailscaleInitContainer.Image
-		proxyClass.Spec.StatefulSet.Pod.TailscaleContainer.Env = []tsapi.Env{{Name: "TS_USERSPACE", Value: "true"}, {Name: "EXPERIMENTAL_TS_CONFIGFILE_PATH"}, {Name: "EXPERIMENTAL_ALLOW_PROXYING_CLUSTER_TRAFFIC_VIA_INGRESS"}}
+		proxyClass.Spec.StatefulSet.Pod.LanhcInitContainer.Image = pc.Spec.StatefulSet.Pod.LanhcInitContainer.Image
+		proxyClass.Spec.StatefulSet.Pod.LanhcContainer.Env = []tsapi.Env{{Name: "TS_USERSPACE", Value: "true"}, {Name: "EXPERIMENTAL_TS_CONFIGFILE_PATH"}, {Name: "EXPERIMENTAL_ALLOW_PROXYING_CLUSTER_TRAFFIC_VIA_INGRESS"}}
 	})
 	expectedEvents := []string{
-		"Warning CustomTSEnvVar ProxyClass overrides the default value for TS_USERSPACE env var for tailscale container. Running with custom values for Tailscale env vars is not recommended and might break in the future.",
-		"Warning CustomTSEnvVar ProxyClass overrides the default value for EXPERIMENTAL_TS_CONFIGFILE_PATH env var for tailscale container. Running with custom values for Tailscale env vars is not recommended and might break in the future.",
-		"Warning CustomTSEnvVar ProxyClass overrides the default value for EXPERIMENTAL_ALLOW_PROXYING_CLUSTER_TRAFFIC_VIA_INGRESS env var for tailscale container. Running with custom values for Tailscale env vars is not recommended and might break in the future.",
+		"Warning CustomTSEnvVar ProxyClass overrides the default value for TS_USERSPACE env var for lanhc container. Running with custom values for Lanhc env vars is not recommended and might break in the future.",
+		"Warning CustomTSEnvVar ProxyClass overrides the default value for EXPERIMENTAL_TS_CONFIGFILE_PATH env var for lanhc container. Running with custom values for Lanhc env vars is not recommended and might break in the future.",
+		"Warning CustomTSEnvVar ProxyClass overrides the default value for EXPERIMENTAL_ALLOW_PROXYING_CLUSTER_TRAFFIC_VIA_INGRESS env var for lanhc container. Running with custom values for Lanhc env vars is not recommended and might break in the future.",
 	}
 	expectReconciled(t, pcr, "", "test")
 	expectEvents(t, fr, expectedEvents)
@@ -297,7 +297,7 @@ func TestValidateProxyClass(t *testing.T) {
 				Spec: tsapi.ProxyClassSpec{
 					StatefulSet: &tsapi.StatefulSet{
 						Pod: &tsapi.Pod{
-							TailscaleContainer: &tsapi.Container{
+							LanhcContainer: &tsapi.Container{
 								Debug: &tsapi.Debug{
 									Enable: true,
 								},
@@ -313,7 +313,7 @@ func TestValidateProxyClass(t *testing.T) {
 				Spec: tsapi.ProxyClassSpec{
 					StatefulSet: &tsapi.StatefulSet{
 						Pod: &tsapi.Pod{
-							TailscaleInitContainer: &tsapi.Container{
+							LanhcInitContainer: &tsapi.Container{
 								Debug: &tsapi.Debug{
 									Enable: true,
 								},

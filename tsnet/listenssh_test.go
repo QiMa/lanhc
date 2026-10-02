@@ -17,9 +17,9 @@ import (
 
 	gossh "golang.org/x/crypto/ssh"
 
-	_ "tailscale.com/feature/ssh"
-	"tailscale.com/ssh/tailssh"
-	"tailscale.com/tstest"
+	_ "lanhc.com/feature/ssh"
+	"lanhc.com/ssh/tailssh"
+	"lanhc.com/tstest"
 )
 
 // TestListenSSH starts two tsnet nodes on a test tailnet, has one listen
@@ -72,7 +72,7 @@ func TestListenSSH(t *testing.T) {
 			return err
 		}
 		for _, peer := range st.Peer {
-			if slices.Contains(peer.TailscaleIPs, clientIP) {
+			if slices.Contains(peer.LanhcIPs, clientIP) {
 				return nil
 			}
 		}
@@ -81,7 +81,7 @@ func TestListenSSH(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Dial srvNode's SSH listener from clientNode's Tailscale network.
+	// Dial srvNode's SSH listener from clientNode's Lanhc network.
 	addr := net.JoinHostPort(srvIP.String(), "22")
 	tcpConn, err := clientNode.Dial(ctx, "tcp", addr)
 	if err != nil {

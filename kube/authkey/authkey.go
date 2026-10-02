@@ -19,15 +19,15 @@ import (
 	"log"
 	"time"
 
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/conffile"
-	"tailscale.com/kube/kubeapi"
-	"tailscale.com/kube/kubeclient"
-	"tailscale.com/kube/kubetypes"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/conffile"
+	"lanhc.com/kube/kubeapi"
+	"lanhc.com/kube/kubeclient"
+	"lanhc.com/kube/kubetypes"
 )
 
 const (
-	TailscaleContainerFieldManager = "tailscale-container"
+	LanhcContainerFieldManager = "lanhc-container"
 )
 
 // SetReissueAuthKey sets the reissue_authkey marker in the state Secret to
@@ -111,7 +111,7 @@ func WaitForAuthKeyReissue(ctx context.Context, oldAuthKey string, maxWait time.
 	}
 }
 
-// AuthKeyFromConfig extracts the auth key from a tailscaled config file.
+// AuthKeyFromConfig extracts the auth key from a lanhcd config file.
 // Returns empty string if the file cannot be read or contains no auth key.
 func AuthKeyFromConfig(path string) string {
 	if cfg, err := conffile.Load(path); err == nil && cfg.Parsed.AuthKey != nil {

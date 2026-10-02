@@ -15,13 +15,13 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/control/ts2021"
-	"tailscale.com/control/tsp"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest/integration/testcontrol"
-	"tailscale.com/types/key"
-	"tailscale.com/util/must"
+	"lanhc.com/control/ts2021"
+	"lanhc.com/control/tsp"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest/integration/testcontrol"
+	"lanhc.com/types/key"
+	"lanhc.com/util/must"
 )
 
 // TestStreamingMapReqReadOnlyByVersion verifies that testcontrol matches

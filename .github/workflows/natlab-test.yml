@@ -55,7 +55,7 @@ jobs:
       - name: Cache cloud VM images
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
-          path: ~/.cache/tailscale/vmtest/images
+          path: ~/.cache/lanhc/vmtest/images
           key: natlab-vmimages-${{ hashFiles('tstest/natlab/vmtest/images.go') }}
 
       # The gokrazy VM image is keyed by github.sha. That means we rebuild
@@ -155,7 +155,7 @@ jobs:
       - name: Restore cloud VM images
         uses: actions/cache/restore@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
-          path: ~/.cache/tailscale/vmtest/images
+          path: ~/.cache/lanhc/vmtest/images
           key: natlab-vmimages-${{ hashFiles('tstest/natlab/vmtest/images.go') }}
 
       - name: Restore gokrazy VM image

@@ -11,7 +11,7 @@ import (
 	"os/exec"
 
 	"golang.org/x/sys/unix"
-	"tailscale.com/version/distro"
+	"lanhc.com/version/distro"
 )
 
 func init() {

@@ -25,8 +25,8 @@ import (
 )
 
 const (
-	regBase       = `SOFTWARE\Tailscale IPN`
-	regPolicyBase = `SOFTWARE\Policies\Tailscale`
+	regBase       = `SOFTWARE\Lanhc IPN`
+	regPolicyBase = `SOFTWARE\Policies\Lanhc`
 )
 
 // ErrNoShell is returned when the shell process is not found.

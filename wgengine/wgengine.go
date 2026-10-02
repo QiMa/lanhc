@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package wgengine provides the Tailscale WireGuard engine interface.
+// Package wgengine provides the Lanhc WireGuard engine interface.
 package wgengine
 
 import (
@@ -10,17 +10,17 @@ import (
 	"time"
 
 	"github.com/gaissmai/bart"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/net/dns"
-	"tailscale.com/net/packet"
-	"tailscale.com/net/routemanager"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
-	"tailscale.com/types/netmap"
-	"tailscale.com/wgengine/filter"
-	"tailscale.com/wgengine/router"
-	"tailscale.com/wgengine/wgcfg"
-	"tailscale.com/wgengine/wgint"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/net/dns"
+	"lanhc.com/net/packet"
+	"lanhc.com/net/routemanager"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
+	"lanhc.com/types/netmap"
+	"lanhc.com/wgengine/filter"
+	"lanhc.com/wgengine/router"
+	"lanhc.com/wgengine/wgcfg"
+	"lanhc.com/wgengine/wgint"
 )
 
 // Status is the Engine status.
@@ -82,7 +82,7 @@ type PeerForIP struct {
 	Route netip.Prefix
 }
 
-// Engine is the Tailscale WireGuard engine interface.
+// Engine is the Lanhc WireGuard engine interface.
 type Engine interface {
 	// Reconfig reconfigures WireGuard and makes sure it's running.
 	// This also handles setting up any kernel routes.
@@ -130,7 +130,7 @@ type Engine interface {
 	// SetPeerRoutes updates the per-peer route attributes used by the
 	// tun-layer data plane for per-packet NAT rewrites and
 	// jailed-filter selection. native4 and native6 are this node's own
-	// Tailscale addresses, and routes maps each peer's addresses and
+	// Lanhc addresses, and routes maps each peer's addresses and
 	// routed prefixes to its attributes; it is a shared immutable
 	// snapshot from [routemanager.RouteManager.Outbound].
 	//
@@ -172,7 +172,7 @@ type Engine interface {
 	// Ping is a request to start a ping of the given message size to the peer
 	// handling the given IP, then call cb with its ping latency & method.
 	//
-	// If size is zero too small, it is ignored. See tailscale.PingOpts for details.
+	// If size is zero too small, it is ignored. See lanhc.PingOpts for details.
 	Ping(ip netip.Addr, pingType tailcfg.PingType, size int, cb func(*ipnstate.PingResult))
 
 	// InstallCaptureHook registers a function to be called to capture
@@ -232,7 +232,7 @@ type Engine interface {
 	// SetWGPeerLookup installs the function used by the engine's
 	// wireguard-go log wrapper to rewrite peer references in log lines
 	// (mapping wireguard-go's "peer(XXXX…YYYY)" form to the
-	// Tailscale-conventional short string form).
+	// Lanhc-conventional short string form).
 	//
 	// It is expected to be called once during LocalBackend construction.
 	// The function is called concurrently and must be safe to call with
@@ -250,7 +250,7 @@ type Engine interface {
 	// set it before peers are started or lazily created, and maintain any
 	// snapshots, sequence numbers, and pubsub state outside wireguard-go.
 	//
-	// In Tailscale, the usual implementation is
+	// In Lanhc, the usual implementation is
 	// ipnlocal.LocalBackend.onPeerWireGuardState, installed early in
 	// LocalBackend construction.
 	SetPeerSessionStateFunc(func(key.NodePublic, PeerWireGuardState))

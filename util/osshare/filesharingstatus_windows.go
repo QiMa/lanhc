@@ -12,13 +12,13 @@ import (
 	"runtime"
 
 	"golang.org/x/sys/windows/registry"
-	"tailscale.com/types/lazy"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/winutil"
+	"lanhc.com/types/lazy"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/winutil"
 )
 
 const (
-	sendFileShellKey = `*\shell\tailscale`
+	sendFileShellKey = `*\shell\lanhc`
 )
 
 var ipnExePath lazy.SyncValue[string] // absolute path of the GUI executable
@@ -34,7 +34,7 @@ func getIpnExePath(logf logger.Logf) string {
 
 func findGUIInSameDirAsThisExe(logf logger.Logf) string {
 	// Find the absolute path of the GUI, assuming that it's in the same
-	// directory as this executable (tailscaled.exe).
+	// directory as this executable (lanhcd.exe).
 	p, err := os.Executable()
 	if err != nil {
 		logf("os.Executable error: %v", err)
@@ -49,10 +49,10 @@ func findGUIInSameDirAsThisExe(logf logger.Logf) string {
 		return ""
 	}
 	d := filepath.Dir(p)
-	candidates := []string{"tailscale-ipn.exe"}
+	candidates := []string{"lanhc-gui.exe"}
 	if runtime.GOARCH == "arm64" {
 		// This name may be used on Windows 10 ARM64.
-		candidates = append(candidates, "tailscale-gui-386.exe")
+		candidates = append(candidates, "lanhc-gui-386.exe")
 	}
 	for _, c := range candidates {
 		testPath := filepath.Join(d, c)
@@ -63,7 +63,7 @@ func findGUIInSameDirAsThisExe(logf logger.Logf) string {
 	return ""
 }
 
-// SetFileSharingEnabled adds/removes "Send with Tailscale" from the Windows shell menu.
+// SetFileSharingEnabled adds/removes "Send with Lanhc" from the Windows shell menu.
 func SetFileSharingEnabled(enabled bool, logf logger.Logf) {
 	logf = logger.WithPrefix(logf, fmt.Sprintf("SetFileSharingEnabled(%v) error: ", enabled))
 	if enabled {
@@ -87,7 +87,7 @@ func enableFileSharing(logf logger.Logf) {
 		return
 	}
 	defer k.Close()
-	if err := k.SetStringValue("", "Send with Tailscale..."); err != nil {
+	if err := k.SetStringValue("", "Send with Lanhc..."); err != nil {
 		logf("k.SetStringValue error: %v", err)
 		return
 	}

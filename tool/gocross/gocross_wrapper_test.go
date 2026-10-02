@@ -14,7 +14,7 @@ import (
 	"strings"
 	"testing"
 
-	"tailscale.com/util/must"
+	"lanhc.com/util/must"
 )
 
 func TestGocrossWrapper(t *testing.T) {

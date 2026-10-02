@@ -30,21 +30,21 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	"tailscale.com/client/tailscale/v2"
+	lanhcclient "tailscale.com/client/tailscale/v2"
 
-	"tailscale.com/ipn"
-	tsoperator "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/k8s-operator/tsclient"
-	"tailscale.com/kube/k8s-proxy/conf"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/types/opt"
+	"lanhc.com/ipn"
+	tsoperator "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/k8s-operator/tsclient"
+	"lanhc.com/kube/k8s-proxy/conf"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/types/opt"
 )
 
 const (
-	testProxyImage = "tailscale/tailscale:test"
+	testProxyImage = "lanhc/lanhc:test"
 )
 
 var (
@@ -620,7 +620,7 @@ func TestProxyGroupWithStaticEndpoints(t *testing.T) {
 			pg := &tsapi.ProxyGroup{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       "test",
-					Finalizers: []string{"tailscale.com/finalizer"},
+					Finalizers: []string{"lanhc.com/finalizer"},
 				},
 				Spec: tsapi.ProxyGroupSpec{
 					Type:       tsapi.ProxyGroupTypeEgress,
@@ -851,7 +851,7 @@ func TestFindStaticEndpointsStableOrder(t *testing.T) {
 	}
 	existingSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: "test-0-config", Namespace: tsNamespace},
-		Data:       map[string][]byte{tsoperator.TailscaledConfigFileName(106): cfgJSON},
+		Data:       map[string][]byte{tsoperator.LanhcdConfigFileName(106): cfgJSON},
 	}
 
 	nodes := []*corev1.Node{
@@ -909,7 +909,7 @@ func TestProxyGroup(t *testing.T) {
 	pg := &tsapi.ProxyGroup{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:       "test",
-			Finalizers: []string{"tailscale.com/finalizer"},
+			Finalizers: []string{"lanhc.com/finalizer"},
 			Generation: 1,
 		},
 		Spec: tsapi.ProxyGroupSpec{
@@ -947,7 +947,7 @@ func TestProxyGroup(t *testing.T) {
 		proxyType:          "proxygroup",
 		stsName:            pg.Name,
 		parentType:         "proxygroup",
-		tailscaleNamespace: "tailscale",
+		lanhcNamespace: "lanhc",
 		resourceVersion:    "1",
 	}
 
@@ -993,13 +993,13 @@ func TestProxyGroup(t *testing.T) {
 			t.Fatalf("expected %d egress ProxyGroups, got %d", expected, reconciler.egressProxyGroups.Len())
 		}
 		expectProxyGroupResources(t, fc, pg, true, pc)
-		var keyReq tailscale.KeyCapabilities
+		var keyReq lanhcclient.KeyCapabilities
 		keyReq.Devices.Create.Reusable = false
 		keyReq.Devices.Create.Ephemeral = false
 		keyReq.Devices.Create.Preauthorized = true
 		keyReq.Devices.Create.Tags = []string{"tag:test-tag"}
 
-		if diff := cmp.Diff(tsClient.keyRequests, []tailscale.KeyCapabilities{keyReq, keyReq}); diff != "" {
+		if diff := cmp.Diff(tsClient.keyRequests, []lanhcclient.KeyCapabilities{keyReq, keyReq}); diff != "" {
 			t.Fatalf("unexpected secrets (-got +want):\n%s", diff)
 		}
 	})
@@ -1105,7 +1105,7 @@ func TestProxyGroup(t *testing.T) {
 		if diff := cmp.Diff(tsClient.deleted, []string{"nodeid-1", "nodeid-2", "nodeid-0"}); diff != "" {
 			t.Fatalf("unexpected deleted devices (-got +want):\n%s", diff)
 		}
-		expectMissing[corev1.Service](t, reconciler, "tailscale", metricsResourceName(pg.Name))
+		expectMissing[corev1.Service](t, reconciler, "lanhc", metricsResourceName(pg.Name))
 		// The fake client does not clean up objects whose owner has been
 		// deleted, so we can't test for the owned resources getting deleted.
 	})
@@ -1237,7 +1237,7 @@ func TestProxyGroupTypes(t *testing.T) {
 		mustUpdate(t, fc, "", pc.Name, func(p *tsapi.ProxyClass) {
 			p.Spec.StatefulSet = &tsapi.StatefulSet{
 				Pod: &tsapi.Pod{
-					TailscaleContainer: &tsapi.Container{
+					LanhcContainer: &tsapi.Container{
 						Env: []tsapi.Env{{
 							Name:  "TS_LOCAL_ADDR_PORT",
 							Value: "127.0.0.1:8080",
@@ -1546,7 +1546,7 @@ func TestIngressAdvertiseServicesConfigPreserved(t *testing.T) {
 			Namespace: tsNamespace,
 		},
 		Data: map[string][]byte{
-			tsoperator.TailscaledConfigFileName(pgMinCapabilityVersion): existingConfigBytes,
+			tsoperator.LanhcdConfigFileName(pgMinCapabilityVersion): existingConfigBytes,
 		},
 	})
 
@@ -1583,7 +1583,7 @@ func TestIngressAdvertiseServicesConfigPreserved(t *testing.T) {
 			ResourceVersion: "2",
 		},
 		Data: map[string][]byte{
-			tsoperator.TailscaledConfigFileName(pgMinCapabilityVersion): expectedConfigBytes,
+			tsoperator.LanhcdConfigFileName(pgMinCapabilityVersion): expectedConfigBytes,
 		},
 	})
 }
@@ -1630,28 +1630,28 @@ func TestValidateProxyGroup(t *testing.T) {
 			pgName:         authAPIServerProxySAName,
 			expectedErrs:   1,
 		},
-		"tailscale_image_for_kube_pg_1": {
+		"lanhc_image_for_kube_pg_1": {
 			typ:            tsapi.ProxyGroupTypeKubernetesAPIServer,
 			staticSAExists: true,
-			image:          "example.com/tailscale/tailscale",
+			image:          "example.com/lanhc/lanhc",
 			expectedErrs:   1,
 		},
-		"tailscale_image_for_kube_pg_2": {
+		"lanhc_image_for_kube_pg_2": {
 			typ:            tsapi.ProxyGroupTypeKubernetesAPIServer,
 			staticSAExists: true,
-			image:          "example.com/tailscale",
+			image:          "example.com/lanhc",
 			expectedErrs:   1,
 		},
-		"tailscale_image_for_kube_pg_3": {
+		"lanhc_image_for_kube_pg_3": {
 			typ:            tsapi.ProxyGroupTypeKubernetesAPIServer,
 			staticSAExists: true,
-			image:          "example.com/tailscale/tailscale:latest",
+			image:          "example.com/lanhc/lanhc:latest",
 			expectedErrs:   1,
 		},
-		"tailscale_image_for_kube_pg_4": {
+		"lanhc_image_for_kube_pg_4": {
 			typ:            tsapi.ProxyGroupTypeKubernetesAPIServer,
 			staticSAExists: true,
-			image:          "tailscale/tailscale",
+			image:          "lanhc/lanhc",
 			expectedErrs:   1,
 		},
 		"k8s_proxy_image_for_ingress_pg": {
@@ -1686,12 +1686,12 @@ func TestValidateProxyGroup(t *testing.T) {
 				},
 			}
 			if tc.image != "" {
-				pc.Spec.StatefulSet.Pod.TailscaleContainer = &tsapi.Container{
+				pc.Spec.StatefulSet.Pod.LanhcContainer = &tsapi.Container{
 					Image: tc.image,
 				}
 			}
 			if tc.initContainer {
-				pc.Spec.StatefulSet.Pod.TailscaleInitContainer = &tsapi.Container{}
+				pc.Spec.StatefulSet.Pod.LanhcInitContainer = &tsapi.Container{}
 			}
 			pgName := "some-pg"
 			if tc.pgName != "" {
@@ -1756,7 +1756,7 @@ func TestProxyGroupGetAuthKey(t *testing.T) {
 	pg := &tsapi.ProxyGroup{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:       "test",
-			Finalizers: []string{"tailscale.com/finalizer"},
+			Finalizers: []string{"lanhc.com/finalizer"},
 		},
 		Spec: tsapi.ProxyGroupSpec{
 			Type:     tsapi.ProxyGroupTypeEgress,
@@ -1774,7 +1774,7 @@ func TestProxyGroupGetAuthKey(t *testing.T) {
 			value = fmt.Appendf(nil, `{"AuthKey": "%s"}`, *authKey)
 		}
 		return map[string][]byte{
-			tsoperator.TailscaledConfigFileName(pgMinCapabilityVersion): value,
+			tsoperator.LanhcdConfigFileName(pgMinCapabilityVersion): value,
 		}
 	}
 
@@ -2104,11 +2104,11 @@ func addNodeIDToStateSecrets(t *testing.T, fc client.WithWatch, pg *tsapi.ProxyG
 		pod := &corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      fmt.Sprintf("%s-%d", pg.Name, i),
-				Namespace: "tailscale",
+				Namespace: "lanhc",
 				UID:       types.UID(podUID),
 			},
 		}
-		if _, err := createOrUpdate(t.Context(), fc, "tailscale", pod, nil); err != nil {
+		if _, err := createOrUpdate(t.Context(), fc, "lanhc", pod, nil); err != nil {
 			t.Fatalf("failed to create or update Pod %s: %v", pod.Name, err)
 		}
 		mustUpdate(t, fc, tsNamespace, pgStateSecretName(pg.Name, i), func(s *corev1.Secret) {

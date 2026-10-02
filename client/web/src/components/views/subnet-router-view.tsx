@@ -45,9 +45,9 @@ export default function SubnetRouterView({
     <>
       <h1 className="mb-1">Subnet router</h1>
       <p className="description mb-5">
-        Add devices to your tailnet without installing Tailscale.{" "}
+        Add devices to your tailnet without installing Lanhc.{" "}
         <a
-          href="https://tailscale.com/kb/1019/subnets/"
+          href="https://lanhc.com/kb/1019/subnets/"
           className="text-blue-700"
           target="_blank"
           rel="noreferrer"

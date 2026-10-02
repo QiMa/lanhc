@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/util/syspolicy/ptype"
-	"tailscale.com/util/syspolicy/setting"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/util/syspolicy/ptype"
+	"lanhc.com/util/syspolicy/setting"
 )
 
 func TestJSONPolicyStoreReadString(t *testing.T) {

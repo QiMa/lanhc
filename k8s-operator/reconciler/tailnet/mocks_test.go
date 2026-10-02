@@ -9,9 +9,9 @@ import (
 	"context"
 	"io"
 
-	"tailscale.com/client/tailscale/v2"
+	lanhcclient "tailscale.com/client/tailscale/v2"
 
-	"tailscale.com/k8s-operator/tsclient"
+	"lanhc.com/k8s-operator/tsclient"
 )
 
 type (
@@ -40,7 +40,7 @@ type (
 	}
 )
 
-func (m MockKeyResource) List(_ context.Context, _ bool) ([]tailscale.Key, error) {
+func (m MockKeyResource) List(_ context.Context, _ bool) ([]lanhcclient.Key, error) {
 	if m.Error {
 		return nil, io.EOF
 	}
@@ -48,7 +48,7 @@ func (m MockKeyResource) List(_ context.Context, _ bool) ([]tailscale.Key, error
 	return nil, nil
 }
 
-func (m MockDeviceResource) List(_ context.Context, _ ...tailscale.ListDevicesOptions) ([]tailscale.Device, error) {
+func (m MockDeviceResource) List(_ context.Context, _ ...lanhcclient.ListDevicesOptions) ([]lanhcclient.Device, error) {
 	if m.Error {
 		return nil, io.EOF
 	}
@@ -56,7 +56,7 @@ func (m MockDeviceResource) List(_ context.Context, _ ...tailscale.ListDevicesOp
 	return nil, nil
 }
 
-func (m MockVIPServiceResource) List(_ context.Context) ([]tailscale.VIPService, error) {
+func (m MockVIPServiceResource) List(_ context.Context) ([]lanhcclient.VIPService, error) {
 	if m.Error {
 		return nil, io.EOF
 	}

@@ -18,14 +18,14 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
-	"tailscale.com/control/controlbase"
-	"tailscale.com/control/controlhttp/controlhttpcommon"
-	"tailscale.com/net/netutil"
-	"tailscale.com/net/wsconn"
-	"tailscale.com/types/key"
+	"lanhc.com/control/controlbase"
+	"lanhc.com/control/controlhttp/controlhttpcommon"
+	"lanhc.com/net/netutil"
+	"lanhc.com/net/wsconn"
+	"lanhc.com/types/key"
 )
 
-// AcceptHTTP upgrades the HTTP request given by w and r into a Tailscale
+// AcceptHTTP upgrades the HTTP request given by w and r into a Lanhc
 // control protocol base transport connection.
 //
 // AcceptHTTP always writes an HTTP response to w. The caller must not attempt
@@ -54,12 +54,12 @@ func acceptHTTP(ctx context.Context, w http.ResponseWriter, r *http.Request, pri
 
 	initB64 := r.Header.Get(controlhttpcommon.HandshakeHeaderName)
 	if initB64 == "" {
-		http.Error(w, "missing Tailscale handshake header", http.StatusBadRequest)
-		return nil, errors.New("no tailscale handshake header in HTTP request")
+		http.Error(w, "missing Lanhc handshake header", http.StatusBadRequest)
+		return nil, errors.New("no lanhc handshake header in HTTP request")
 	}
 	init, err := base64.StdEncoding.DecodeString(initB64)
 	if err != nil {
-		http.Error(w, "invalid tailscale handshake header", http.StatusBadRequest)
+		http.Error(w, "invalid lanhc handshake header", http.StatusBadRequest)
 		return nil, fmt.Errorf("decoding base64 handshake header: %v", err)
 	}
 
@@ -116,7 +116,7 @@ func acceptHTTP(ctx context.Context, w http.ResponseWriter, r *http.Request, pri
 }
 
 // acceptWebsocket upgrades a WebSocket connection (from a client that cannot
-// speak HTTP) to a Tailscale control protocol base transport connection.
+// speak HTTP) to a Lanhc control protocol base transport connection.
 func acceptWebsocket(ctx context.Context, w http.ResponseWriter, r *http.Request, private key.MachinePrivate) (*controlbase.Conn, error) {
 	c, err := websocket.Accept(w, r, &websocket.AcceptOptions{
 		Subprotocols:   []string{controlhttpcommon.UpgradeHeaderValue},
@@ -141,12 +141,12 @@ func acceptWebsocket(ctx context.Context, w http.ResponseWriter, r *http.Request
 	}
 	initB64 := r.Form.Get(controlhttpcommon.HandshakeHeaderName)
 	if initB64 == "" {
-		c.Close(websocket.StatusPolicyViolation, "missing Tailscale handshake parameter")
-		return nil, errors.New("no tailscale handshake parameter in HTTP request")
+		c.Close(websocket.StatusPolicyViolation, "missing Lanhc handshake parameter")
+		return nil, errors.New("no lanhc handshake parameter in HTTP request")
 	}
 	init, err := base64.StdEncoding.DecodeString(initB64)
 	if err != nil {
-		c.Close(websocket.StatusPolicyViolation, "invalid tailscale handshake parameter")
+		c.Close(websocket.StatusPolicyViolation, "invalid lanhc handshake parameter")
 		return nil, fmt.Errorf("decoding base64 handshake parameter: %v", err)
 	}
 

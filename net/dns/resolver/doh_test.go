@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"golang.org/x/net/dns/dnsmessage"
-	"tailscale.com/net/dns/publicdns"
+	"lanhc.com/net/dns/publicdns"
 )
 
 var testDoH = flag.Bool("test-doh", false, "do real DoH tests against the network")
@@ -25,7 +25,7 @@ func someDNSQuestion(t testing.TB) []byte {
 	})
 	b.StartQuestions() // err
 	b.Question(dnsmessage.Question{
-		Name:  dnsmessage.MustNewName("tailscale.com."),
+		Name:  dnsmessage.MustNewName("lanhc.com."),
 		Type:  dnsmessage.TypeA,
 		Class: dnsmessage.ClassINET,
 	})

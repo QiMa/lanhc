@@ -3,9 +3,9 @@
 
 // Package tlsdial generates tls.Config values and does x509 validation of
 // certs. It bakes in the LetsEncrypt roots so even if the user's machine
-// doesn't have TLS roots, we can at least connect to Tailscale's LetsEncrypt
+// doesn't have TLS roots, we can at least connect to Lanhc's LetsEncrypt
 // services.  It's the unified point where we can add shared policy on outgoing
-// TLS connections from the three places in the client that connect to Tailscale
+// TLS connections from the three places in the client that connect to Lanhc
 // (logs, control, DERP).
 package tlsdial
 
@@ -26,14 +26,14 @@ import (
 	"sync/atomic"
 	"time"
 
-	"tailscale.com/derp/derpconst"
-	"tailscale.com/envknob"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/health"
-	"tailscale.com/hostinfo"
-	"tailscale.com/internal/lanhc"
-	"tailscale.com/net/bakedroots"
-	"tailscale.com/net/tlsdial/blockblame"
+	"lanhc.com/derp/derpconst"
+	"lanhc.com/envknob"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/health"
+	"lanhc.com/hostinfo"
+	"lanhc.com/internal/lanhc"
+	"lanhc.com/net/bakedroots"
+	"lanhc.com/net/tlsdial/blockblame"
 )
 
 var counterFallbackOK int32 // atomic
@@ -47,9 +47,9 @@ var tlsdialWarningPrinted sync.Map // map[string]bool
 
 var mitmBlockWarnable = health.Register(&health.Warnable{
 	Code:  "blockblame-mitm-detected",
-	Title: "Network may be blocking Tailscale",
+	Title: "Network may be blocking Lanhc",
 	Text: func(args health.Args) string {
-		return fmt.Sprintf("Network equipment from %q may be blocking Tailscale traffic on this network. Connect to another network, or contact your network administrator for assistance.", args["manufacturer"])
+		return fmt.Sprintf("Network equipment from %q may be blocking Lanhc traffic on this network. Connect to another network, or contact your network administrator for assistance.", args["manufacturer"])
 	},
 	Severity:            health.SeverityMedium,
 	ImpactsConnectivity: true,
@@ -116,7 +116,7 @@ func Config(ht *health.Tracker, base *tls.Config) *tls.Config {
 	conf.VerifyConnection = func(cs tls.ConnectionState) (retErr error) {
 		dialedHost := cs.ServerName
 
-		if !lanhc.Isolated && strings.HasSuffix(dialedHost, ".tailscale.com") && hostinfo.IsNATLabGuestVM() {
+		if !lanhc.Isolated && strings.HasSuffix(dialedHost, ".lanhc.com") && hostinfo.IsNATLabGuestVM() {
 			// Allow official log endpoint TLS MITM for integration tests when
 			// the client's running within a NATLab VM. This branch is dead in
 			// downstream builds that never dial official hosts.
@@ -140,7 +140,7 @@ func Config(ht *health.Tracker, base *tls.Config) *tls.Config {
 					// Show a dedicated warning.
 					m, ok := blockblame.VerifyCertificate(cert)
 					if ok {
-						log.Printf("tlsdial: server cert seen while dialing %q looks like %q equipment (could be blocking Tailscale)", dialedHost, m.Name)
+						log.Printf("tlsdial: server cert seen while dialing %q looks like %q equipment (could be blocking Lanhc)", dialedHost, m.Name)
 						ht.SetUnhealthy(mitmBlockWarnable, health.Args{"manufacturer": m.Name})
 					} else {
 						ht.SetHealthy(mitmBlockWarnable)

@@ -1,12 +1,12 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package e2e runs end-to-end tests for the Tailscale Kubernetes operator.
+// Package e2e runs end-to-end tests for the Lanhc Kubernetes operator.
 //
 // To run without arguments, it requires:
 //
 // * Kubernetes cluster with local kubeconfig for it (direct connection, no API server proxy)
-// * Tailscale operator installed with --set apiServerProxyConfig.mode="true"
+// * Lanhc operator installed with --set apiServerProxyConfig.mode="true"
 // * ACLs from acl.hujson
 // * OAuth client secret in TS_API_CLIENT_SECRET env, with at least auth_keys write scope and tag:k8s tag
 // * Default ProxyClass and operator env vars as appropriate to set the desired default proxy images.
@@ -24,5 +24,5 @@
 //
 // * go
 // * container runtime with the docker daemon API available
-// * devcontrol: ./tool/go run --tags=tailscale_saas ./cmd/devcontrol --generate-test-devices=k8s-operator-e2e --scenario-output-dir=/tmp/k8s-operator-e2e --test-dns=http://localhost:8055
+// * devcontrol: ./tool/go run --tags=lanhc_saas ./cmd/devcontrol --generate-test-devices=k8s-operator-e2e --scenario-output-dir=/tmp/k8s-operator-e2e --test-dns=http://localhost:8055
 package e2e

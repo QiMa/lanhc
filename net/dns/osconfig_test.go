@@ -9,8 +9,8 @@ import (
 	"reflect"
 	"testing"
 
-	"tailscale.com/tstest"
-	"tailscale.com/util/dnsname"
+	"lanhc.com/tstest"
+	"lanhc.com/util/dnsname"
 )
 
 func TestOSConfigPrintable(t *testing.T) {
@@ -29,8 +29,8 @@ func TestOSConfigPrintable(t *testing.T) {
 			netip.AddrFrom4([4]byte{8, 8, 8, 8}),
 		},
 		SearchDomains: []dnsname.FQDN{
-			dnsname.FQDN("foo.beta.tailscale.net."),
-			dnsname.FQDN("bar.beta.tailscale.net."),
+			dnsname.FQDN("foo.beta.lanhc.net."),
+			dnsname.FQDN("bar.beta.lanhc.net."),
 		},
 		MatchDomains: []dnsname.FQDN{
 			dnsname.FQDN("ts.com."),
@@ -38,7 +38,7 @@ func TestOSConfigPrintable(t *testing.T) {
 	}
 	s := fmt.Sprintf("%+v", ocfg)
 
-	const expected = `{Nameservers:[8.8.8.8] SearchDomains:[foo.beta.tailscale.net. bar.beta.tailscale.net.] MatchDomains:[ts.com.] Hosts:[&{Addr:100.1.2.3 Hosts:[server client]} &{Addr:100.1.2.4 Hosts:[otherhost]}]}`
+	const expected = `{Nameservers:[8.8.8.8] SearchDomains:[foo.beta.lanhc.net. bar.beta.lanhc.net.] MatchDomains:[ts.com.] Hosts:[&{Addr:100.1.2.3 Hosts:[server client]} &{Addr:100.1.2.4 Hosts:[otherhost]}]}`
 	if s != expected {
 		t.Errorf("format mismatch:\n   got: %s\n  want: %s", s, expected)
 	}

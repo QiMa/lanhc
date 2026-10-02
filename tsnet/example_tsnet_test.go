@@ -13,7 +13,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"tailscale.com/tsnet"
+	"lanhc.com/tsnet"
 )
 
 // ExampleServer shows you how to construct a ready-to-use tsnet instance.
@@ -41,7 +41,7 @@ func ExampleServer_hostname() {
 }
 
 // ExampleServer_dir shows you how to configure the persistent directory for
-// a tsnet application. This is where the Tailscale node information is stored
+// a tsnet application. This is where the Lanhc node information is stored
 // so that your application can reconnect to your tailnet when the application
 // is restarted.
 //
@@ -64,7 +64,7 @@ func ExampleServer_dir() {
 }
 
 // ExampleServer_multipleInstances shows you how to configure multiple instances
-// of tsnet per program. This allows you to have multiple Tailscale nodes in the
+// of tsnet per program. This allows you to have multiple Lanhc nodes in the
 // same process/container.
 func ExampleServer_multipleInstances() {
 	baseDir := "/data"

@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package web provides the Tailscale client for web.
+// Package web provides the Lanhc client for web.
 package web
 
 import (
@@ -22,34 +22,34 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/client/local"
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/envknob"
-	"tailscale.com/envknob/featureknob"
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/hostinfo"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/licenses"
-	"tailscale.com/net/netutil"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsweb"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/views"
-	"tailscale.com/util/ctxkey"
-	"tailscale.com/util/httpm"
-	"tailscale.com/util/syspolicy/policyclient"
-	"tailscale.com/version"
-	"tailscale.com/version/distro"
+	"lanhc.com/client/local"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/envknob"
+	"lanhc.com/envknob/featureknob"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/hostinfo"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/licenses"
+	"lanhc.com/net/netutil"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsweb"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/views"
+	"lanhc.com/util/ctxkey"
+	"lanhc.com/util/httpm"
+	"lanhc.com/util/syspolicy/policyclient"
+	"lanhc.com/version"
+	"lanhc.com/version/distro"
 )
 
-// ListenPort is the static port used for the web client when run inside tailscaled.
+// ListenPort is the static port used for the web client when run inside lanhcd.
 // (5252 are the numbers above the letters "TSTS" on a qwerty keyboard.)
 const ListenPort = 5252
 
-// Server is the backend server for a Tailscale web client.
+// Server is the backend server for a Lanhc web client.
 type Server struct {
 	mode ServerMode
 
@@ -76,10 +76,10 @@ type Server struct {
 	assetsCleanup func()       // called from Server.Shutdown
 
 	// browserSessions is an in-memory cache of browser sessions for the
-	// full management web client, which is only accessible over Tailscale.
+	// full management web client, which is only accessible over Lanhc.
 	//
 	// Users obtain a valid browser session by connecting to the web client
-	// over Tailscale and verifying their identity by authenticating on the
+	// over Lanhc and verifying their identity by authenticating on the
 	// control server.
 	//
 	// browserSessions get reset on every Server restart.
@@ -102,7 +102,7 @@ type ServerMode string
 const (
 	// LoginServerMode serves a read-only login client for logging a
 	// node into a tailnet, and viewing a read-only interface of the
-	// node's current Tailscale settings.
+	// node's current Lanhc settings.
 	//
 	// In this mode, API calls are authenticated via platform auth.
 	LoginServerMode ServerMode = "login"
@@ -115,12 +115,12 @@ const (
 	// such as Home Assistant's declarative YAML configuration.
 	ReadOnlyServerMode ServerMode = "readonly"
 
-	// ManageServerMode serves a management client for editing tailscale
+	// ManageServerMode serves a management client for editing lanhc
 	// settings of a node.
 	//
-	// This mode restricts the app to only being assessible over Tailscale,
+	// This mode restricts the app to only being assessible over Lanhc,
 	// and API calls are authenticated via browser sessions associated with
-	// the source's Tailscale identity. If the source browser does not have
+	// the source's Lanhc identity. If the source browser does not have
 	// a valid session, a read-only version of the app is displayed.
 	ManageServerMode ServerMode = "manage"
 )
@@ -170,7 +170,7 @@ type ServerOpts struct {
 	OriginOverride string
 }
 
-// NewServer constructs a new Tailscale web client server.
+// NewServer constructs a new Lanhc web client server.
 // If err is empty, s is always non-nil.
 // ctx is only required to live the duration of the NewServer call,
 // and not the lifespan of the web server.
@@ -319,7 +319,7 @@ func (s *Server) Shutdown() {
 	}
 }
 
-// ServeHTTP processes all requests for the Tailscale web client.
+// ServeHTTP processes all requests for the Lanhc web client.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handler := s.serve
 
@@ -333,9 +333,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 	if s.mode == ManageServerMode {
-		// In manage mode, requests must be sent directly to the bare Tailscale IP address.
+		// In manage mode, requests must be sent directly to the bare Lanhc IP address.
 		// If a request comes in on any other hostname, redirect.
-		if s.requireTailscaleIP(w, r) {
+		if s.requireLanhcIP(w, r) {
 			return // user was redirected
 		}
 
@@ -386,14 +386,14 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 	s.assetsHandler.ServeHTTP(w, r)
 }
 
-// requireTailscaleIP redirects an incoming request if the HTTP request was not made to a bare Tailscale IP address.
-// The request will be redirected to the Tailscale IP, port 5252, with the original request path.
+// requireLanhcIP redirects an incoming request if the HTTP request was not made to a bare Lanhc IP address.
+// The request will be redirected to the Lanhc IP, port 5252, with the original request path.
 // This allows any custom hostname to be used to access the device, but protects against DNS rebinding attacks.
 // Returns true if the request has been fully handled, either be returning a redirect or an HTTP error.
-func (s *Server) requireTailscaleIP(w http.ResponseWriter, r *http.Request) (handled bool) {
+func (s *Server) requireLanhcIP(w http.ResponseWriter, r *http.Request) (handled bool) {
 	const (
-		ipv4ServiceHost = tsaddr.TailscaleServiceIPString
-		ipv6ServiceHost = "[" + tsaddr.TailscaleServiceIPv6String + "]"
+		ipv4ServiceHost = tsaddr.LanhcServiceIPString
+		ipv6ServiceHost = "[" + tsaddr.LanhcServiceIPv6String + "]"
 	)
 	// allow requests on quad-100 (or ipv6 equivalent)
 	host := strings.TrimSuffix(r.Host, ":80")
@@ -410,13 +410,13 @@ func (s *Server) requireTailscaleIP(w http.ResponseWriter, r *http.Request) (han
 
 	ipv4, ipv6 := s.selfNodeAddresses(r, st)
 	if r.Host == fmt.Sprintf("%s:%d", ipv4.String(), ListenPort) {
-		return false // already accessing over Tailscale IP
+		return false // already accessing over Lanhc IP
 	}
 	if r.Host == fmt.Sprintf("[%s]:%d", ipv6.String(), ListenPort) {
-		return false // already accessing over Tailscale IP
+		return false // already accessing over Lanhc IP
 	}
 
-	// Not currently accessing via Tailscale IP,
+	// Not currently accessing via Lanhc IP,
 	// redirect them.
 
 	var preferV6 bool
@@ -435,10 +435,10 @@ func (s *Server) requireTailscaleIP(w http.ResponseWriter, r *http.Request) (han
 	return true
 }
 
-// selfNodeAddresses return the Tailscale IPv4 and IPv6 addresses for the self node.
+// selfNodeAddresses return the Lanhc IPv4 and IPv6 addresses for the self node.
 // st is expected to be a status with peers included.
 func (s *Server) selfNodeAddresses(r *http.Request, st *ipnstate.Status) (ipv4, ipv6 netip.Addr) {
-	for _, ip := range st.Self.TailscaleIPs {
+	for _, ip := range st.Self.LanhcIPs {
 		if ip.Is4() {
 			ipv4 = ip
 		} else if ip.Is6() {
@@ -471,12 +471,12 @@ func (s *Server) selfNodeAddresses(r *http.Request, st *ipnstate.Status) (ipv4, 
 // authorizeRequest manages writing out any relevant authorization
 // errors to the ResponseWriter itself.
 func (s *Server) authorizeRequest(w http.ResponseWriter, r *http.Request) (ok bool) {
-	if s.mode == ManageServerMode { // client using tailscale auth
+	if s.mode == ManageServerMode { // client using lanhc auth
 		session, _, _, err := s.getSession(r)
 		switch {
-		case errors.Is(err, errNotUsingTailscale):
-			// All requests must be made over tailscale.
-			http.Error(w, "must access over tailscale", http.StatusUnauthorized)
+		case errors.Is(err, errNotUsingLanhc):
+			// All requests must be made over lanhc.
+			http.Error(w, "must access over lanhc", http.StatusUnauthorized)
 			return false
 		case r.URL.Path == "/api/data" && r.Method == httpm.GET:
 			// Readonly endpoint allowed without valid browser session.
@@ -521,7 +521,7 @@ func (s *Server) serveLoginAPI(w http.ResponseWriter, r *http.Request) {
 	case r.URL.Path == "/api/data" && r.Method == httpm.GET:
 		s.serveGetNodeData(w, r)
 	case r.URL.Path == "/api/up" && r.Method == httpm.POST:
-		s.serveTailscaleUp(w, r)
+		s.serveLanhcUp(w, r)
 	case r.URL.Path == "/api/device-details-click" && r.Method == httpm.POST:
 		s.serveDeviceDetailsClick(w, r)
 	default:
@@ -554,7 +554,7 @@ func handleJSON[data any](h func(ctx context.Context, data data) error) http.Han
 var contextKeyPeer = ctxkey.New("peer-capabilities", peerCapabilities{})
 
 func (s *Server) setPeer(r *http.Request) (*http.Request, error) {
-	// TODO(tailscale/corp#16695,sonia): We also call StatusWithoutPeers and
+	// TODO(lanhc/corp#16695,sonia): We also call StatusWithoutPeers and
 	// WhoIs when originally checking for a session from authorizeRequest.
 	// Would be nice if we could pipe those through to here so we don't end
 	// up having to re-call them to grab the peer capabilities.
@@ -639,7 +639,7 @@ type authResponse struct {
 	NeedsSynoAuth  bool            `json:"needsSynoAuth,omitempty"`
 }
 
-// viewerIdentity is the Tailscale identity of the source node
+// viewerIdentity is the Lanhc identity of the source node
 // connected to this web client.
 type viewerIdentity struct {
 	LoginName     string           `json:"loginName"`
@@ -703,7 +703,7 @@ func (s *Server) serveAPIAuth(w http.ResponseWriter, r *http.Request) {
 	// We might have a session for which we haven't awaited the result yet.
 	// This can happen when the AuthURL opens in the same browser tab instead
 	// of a new one due to browser settings.
-	// (See https://github.com/tailscale/tailscale/issues/11905)
+	// (See https://github.com/lanhc/lanhc/issues/11905)
 	// We therefore set a PendingAuth flag when creating a new session, check
 	// it here and call awaitUserAuth if we find it to be true. Once the auth
 	// wait completes, awaitUserAuth will set PendingAuth to false.
@@ -714,7 +714,7 @@ func (s *Server) serveAPIAuth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch {
-	case sErr != nil && errors.Is(sErr, errNotUsingTailscale):
+	case sErr != nil && errors.Is(sErr, errNotUsingLanhc):
 		s.lc.IncrementCounter(r.Context(), "web_client_viewing_local", 1)
 		resp.Authorized = false // restricted to the read-only view
 	case sErr != nil && errors.Is(sErr, errNotOwner):
@@ -750,7 +750,7 @@ func (s *Server) serveAPIAuth(w http.ResponseWriter, r *http.Request) {
 		resp.Authorized = !caps.isEmpty()
 	default:
 		if whois == nil || (whois.Node.StableID == status.Self.ID) {
-			// whois being nil implies local as the request did not come over Tailscale.
+			// whois being nil implies local as the request did not come over Lanhc.
 			s.lc.IncrementCounter(r.Context(), "web_client_viewing_local", 1)
 		} else {
 			s.lc.IncrementCounter(r.Context(), "web_client_viewing_remote", 1)
@@ -792,7 +792,7 @@ func (s *Server) serveAPIAuthSessionNew(w http.ResponseWriter, r *http.Request) 
 			SameSite: http.SameSiteStrictMode,
 			Expires:  session.expires(),
 			// We can't set Secure to true because we serve over HTTP
-			// (but only on Tailscale IPs, hence over encrypted
+			// (but only on Lanhc IPs, hence over encrypted
 			// connections that a LAN-local attacker cannot sniff).
 			// In the future, we could support HTTPS requests using
 			// the full MagicDNS hostname, and could set this.
@@ -978,10 +978,10 @@ func (s *Server) serveGetNodeData(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if data.UsingExitNode.Name == "" {
-			// Falling back to TailscaleIP/StableNodeID when the peer
+			// Falling back to LanhcIP/StableNodeID when the peer
 			// is no longer included in status.
-			if len(e.TailscaleIPs) > 0 {
-				data.UsingExitNode.Name = e.TailscaleIPs[0].Addr().String()
+			if len(e.LanhcIPs) > 0 {
+				data.UsingExitNode.Name = e.LanhcIPs[0].Addr().String()
 			} else {
 				data.UsingExitNode.Name = string(e.ID)
 			}
@@ -995,7 +995,7 @@ func availableFeatures() map[string]bool {
 		"advertise-exit-node": true, // available on all platforms
 		"advertise-routes":    true, // available on all platforms
 		"use-exit-node":       featureknob.CanUseExitNode() == nil,
-		"ssh":                 featureknob.CanRunTailscaleSSH() == nil,
+		"ssh":                 featureknob.CanRunLanhcSSH() == nil,
 		"auto-update":         version.IsUnstableBuild() && feature.CanAutoUpdate(),
 	}
 	return features
@@ -1131,9 +1131,9 @@ func (s *Server) servePostRoutes(ctx context.Context, data postRoutesRequest) er
 	return err
 }
 
-// tailscaleUp starts the daemon with the provided options.
+// lanhcUp starts the daemon with the provided options.
 // If reauthentication has been requested, an authURL is returned to complete device registration.
-func (s *Server) tailscaleUp(ctx context.Context, st *ipnstate.Status, opt tailscaleUpOptions) (authURL string, retErr error) {
+func (s *Server) lanhcUp(ctx context.Context, st *ipnstate.Status, opt lanhcUpOptions) (authURL string, retErr error) {
 	origAuthURL := st.AuthURL
 	isRunning := st.BackendState == ipn.Running.String()
 
@@ -1212,18 +1212,18 @@ func (s *Server) tailscaleUp(ctx context.Context, st *ipnstate.Status, opt tails
 	}
 }
 
-type tailscaleUpOptions struct {
+type lanhcUpOptions struct {
 	// If true, force reauthentication of the client.
-	// Otherwise simply reconnect, the same as running `tailscale up`.
+	// Otherwise simply reconnect, the same as running `lanhc up`.
 	Reauthenticate bool
 
 	ControlURL string
 	AuthKey    string
 }
 
-// serveTailscaleUp serves requests to /api/up.
+// serveLanhcUp serves requests to /api/up.
 // If the user needs to authenticate, an authURL is provided in the response.
-func (s *Server) serveTailscaleUp(w http.ResponseWriter, r *http.Request) {
+func (s *Server) serveLanhcUp(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	st, err := s.lc.Status(r.Context())
@@ -1232,7 +1232,7 @@ func (s *Server) serveTailscaleUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var opt tailscaleUpOptions
+	var opt lanhcUpOptions
 	type mi map[string]any
 	if err := json.NewDecoder(r.Body).Decode(&opt); err != nil {
 		w.WriteHeader(400)
@@ -1241,9 +1241,9 @@ func (s *Server) serveTailscaleUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	s.logf("tailscaleUp(reauth=%v) ...", opt.Reauthenticate)
-	url, err := s.tailscaleUp(r.Context(), st, opt)
-	s.logf("tailscaleUp = (URL %v, %v)", url != "", err)
+	s.logf("lanhcUp(reauth=%v) ...", opt.Reauthenticate)
+	url, err := s.lanhcUp(r.Context(), st, opt)
+	s.logf("lanhcUp = (URL %v, %v)", url != "", err)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(mi{"error": err.Error()})
@@ -1302,7 +1302,7 @@ func (s *Server) proxyRequestToLocalAPI(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Make request to tailscaled localapi.
+	// Make request to lanhcd localapi.
 	resp, err := s.lc.DoLocalRequest(req)
 	if err != nil {
 		http.Error(w, err.Error(), resp.StatusCode)

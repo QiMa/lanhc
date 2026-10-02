@@ -7,13 +7,13 @@ import (
 	"os"
 	"testing"
 
-	"tailscale.com/util/cibuild"
+	"lanhc.com/util/cibuild"
 )
 
 func TestMain(m *testing.M) {
 	if cibuild.On() {
 		// Skip CI on GitHub for now
-		// TODO: https://github.com/tailscale/tailscale/issues/7866
+		// TODO: https://github.com/lanhc/lanhc/issues/7866
 		os.Exit(0)
 	}
 	os.Exit(m.Run())

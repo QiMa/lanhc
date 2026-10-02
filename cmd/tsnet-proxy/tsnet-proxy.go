@@ -4,7 +4,7 @@
 // The tsnet-proxy command exposes a local port on the tailnet under a
 // chosen hostname. By default it proxies raw TCP; pass --http to reverse
 // proxy as HTTP, or --https to reverse proxy as HTTPS with an auto-issued
-// Tailscale cert. Both HTTP modes inject Tailscale-User-* identity headers
+// Lanhc cert. Both HTTP modes inject Lanhc-User-* identity headers
 // from WhoIs.
 //
 // Arguments are <name> <local> [tailnet]: local is the port on localhost
@@ -19,7 +19,7 @@
 //
 // Or run directly from the module, no checkout required:
 //
-//	go run tailscale.com/cmd/tsnet-proxy@latest myapp 8080
+//	go run lanhc.com/cmd/tsnet-proxy@latest myapp 8080
 package main
 
 import (
@@ -36,13 +36,13 @@ import (
 	"strconv"
 	"unicode/utf8"
 
-	"tailscale.com/client/local"
-	"tailscale.com/tsnet"
+	"lanhc.com/client/local"
+	"lanhc.com/tsnet"
 )
 
 func main() {
-	asHTTP := flag.Bool("http", false, "reverse proxy as HTTP and inject Tailscale-User-* headers")
-	asHTTPS := flag.Bool("https", false, "reverse proxy as HTTPS with an auto-issued Tailscale cert; implies --http")
+	asHTTP := flag.Bool("http", false, "reverse proxy as HTTP and inject Lanhc-User-* headers")
+	asHTTPS := flag.Bool("https", false, "reverse proxy as HTTPS with an auto-issued Lanhc cert; implies --http")
 	dir := flag.String("dir", "", "directory to persist tsnet state (default: per-user config dir)")
 	verbose := flag.Bool("v", false, "verbose tsnet backend logs")
 	flag.Usage = func() {
@@ -100,7 +100,7 @@ func main() {
 			Rewrite: func(r *httputil.ProxyRequest) {
 				r.SetURL(targetURL)
 				r.SetXForwarded()
-				addTailscaleIdentityHeaders(lc, r)
+				addLanhcIdentityHeaders(lc, r)
 			},
 		}
 		log.Fatal(http.Serve(ln, rp))
@@ -147,23 +147,23 @@ func proxyTCP(c net.Conn, target string) {
 	io.Copy(c, d)
 }
 
-func addTailscaleIdentityHeaders(lc *local.Client, r *httputil.ProxyRequest) {
-	r.Out.Header.Del("Tailscale-User-Login")
-	r.Out.Header.Del("Tailscale-User-Name")
-	r.Out.Header.Del("Tailscale-User-Profile-Pic")
-	r.Out.Header.Del("Tailscale-Funnel-Request")
-	r.Out.Header.Del("Tailscale-Headers-Info")
+func addLanhcIdentityHeaders(lc *local.Client, r *httputil.ProxyRequest) {
+	r.Out.Header.Del("Lanhc-User-Login")
+	r.Out.Header.Del("Lanhc-User-Name")
+	r.Out.Header.Del("Lanhc-User-Profile-Pic")
+	r.Out.Header.Del("Lanhc-Funnel-Request")
+	r.Out.Header.Del("Lanhc-Headers-Info")
 
 	who, err := lc.WhoIs(r.In.Context(), r.In.RemoteAddr)
 	if err != nil || who == nil || who.Node.IsTagged() {
 		return
 	}
-	r.Out.Header.Set("Tailscale-User-Login", encHeader(who.UserProfile.LoginName))
-	r.Out.Header.Set("Tailscale-User-Name", encHeader(who.UserProfile.DisplayName))
-	r.Out.Header.Set("Tailscale-User-Profile-Pic", who.UserProfile.ProfilePicURL)
+	r.Out.Header.Set("Lanhc-User-Login", encHeader(who.UserProfile.LoginName))
+	r.Out.Header.Set("Lanhc-User-Name", encHeader(who.UserProfile.DisplayName))
+	r.Out.Header.Set("Lanhc-User-Profile-Pic", who.UserProfile.ProfilePicURL)
 }
 
-// encHeader mirrors the encoding tailscaled's serve path applies to
+// encHeader mirrors the encoding lanhcd's serve path applies to
 // user-provided strings destined for HTTP headers.
 func encHeader(v string) string {
 	if !utf8.ValidString(v) {

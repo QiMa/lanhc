@@ -27,11 +27,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	tsoperator "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/tstime"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/set"
+	tsoperator "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/tstime"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/set"
 )
 
 const (
@@ -39,7 +39,7 @@ const (
 	reasonProxyClassValid    = "ProxyClassValid"
 	reasonCustomTSEnvVar     = "CustomTSEnvVar"
 	messageProxyClassInvalid = "ProxyClass is not valid: %v"
-	messageCustomTSEnvVar    = "ProxyClass overrides the default value for %s env var for %s container. Running with custom values for Tailscale env vars is not recommended and might break in the future."
+	messageCustomTSEnvVar    = "ProxyClass overrides the default value for %s env var for %s container. Running with custom values for Lanhc env vars is not recommended and might break in the future."
 )
 
 type ProxyClassReconciler struct {
@@ -75,7 +75,7 @@ func (pcr *ProxyClassReconciler) Reconcile(ctx context.Context, req reconcile.Re
 		logger.Debugf("ProxyClass not found, assuming it was deleted")
 		return reconcile.Result{}, nil
 	} else if err != nil {
-		return reconcile.Result{}, fmt.Errorf("failed to get tailscale.com ProxyClass: %w", err)
+		return reconcile.Result{}, fmt.Errorf("failed to get lanhc.com ProxyClass: %w", err)
 	}
 	if !pc.DeletionTimestamp.IsZero() {
 		logger.Debugf("ProxyClass is being deleted")
@@ -138,35 +138,35 @@ func (pcr *ProxyClassReconciler) validate(ctx context.Context, pc *tsapi.ProxyCl
 					violations = append(violations, errs...)
 				}
 			}
-			if tc := pod.TailscaleContainer; tc != nil {
+			if tc := pod.LanhcContainer; tc != nil {
 				for _, e := range tc.Env {
 					if strings.HasPrefix(string(e.Name), "TS_") {
-						pcr.recorder.Event(pc, corev1.EventTypeWarning, reasonCustomTSEnvVar, fmt.Sprintf(messageCustomTSEnvVar, string(e.Name), "tailscale"))
+						pcr.recorder.Event(pc, corev1.EventTypeWarning, reasonCustomTSEnvVar, fmt.Sprintf(messageCustomTSEnvVar, string(e.Name), "lanhc"))
 					}
 					if strings.EqualFold(string(e.Name), "EXPERIMENTAL_TS_CONFIGFILE_PATH") {
-						pcr.recorder.Event(pc, corev1.EventTypeWarning, reasonCustomTSEnvVar, fmt.Sprintf(messageCustomTSEnvVar, string(e.Name), "tailscale"))
+						pcr.recorder.Event(pc, corev1.EventTypeWarning, reasonCustomTSEnvVar, fmt.Sprintf(messageCustomTSEnvVar, string(e.Name), "lanhc"))
 					}
 					if strings.EqualFold(string(e.Name), "EXPERIMENTAL_ALLOW_PROXYING_CLUSTER_TRAFFIC_VIA_INGRESS") {
-						pcr.recorder.Event(pc, corev1.EventTypeWarning, reasonCustomTSEnvVar, fmt.Sprintf(messageCustomTSEnvVar, string(e.Name), "tailscale"))
+						pcr.recorder.Event(pc, corev1.EventTypeWarning, reasonCustomTSEnvVar, fmt.Sprintf(messageCustomTSEnvVar, string(e.Name), "lanhc"))
 					}
 				}
 				if tc.Image != "" {
 					// Same validation as used by kubelet https://github.com/kubernetes/kubernetes/blob/release-1.30/pkg/kubelet/images/image_manager.go#L212
 					if _, err := dockerref.ParseNormalizedNamed(tc.Image); err != nil {
-						violations = append(violations, field.TypeInvalid(field.NewPath("spec", "statefulSet", "pod", "tailscaleContainer", "image"), tc.Image, err.Error()))
+						violations = append(violations, field.TypeInvalid(field.NewPath("spec", "statefulSet", "pod", "lanhcContainer", "image"), tc.Image, err.Error()))
 					}
 				}
 			}
-			if tc := pod.TailscaleInitContainer; tc != nil {
+			if tc := pod.LanhcInitContainer; tc != nil {
 				if tc.Image != "" {
 					// Same validation as used by kubelet https://github.com/kubernetes/kubernetes/blob/release-1.30/pkg/kubelet/images/image_manager.go#L212
 					if _, err := dockerref.ParseNormalizedNamed(tc.Image); err != nil {
-						violations = append(violations, field.TypeInvalid(field.NewPath("spec", "statefulSet", "pod", "tailscaleInitContainer", "image"), tc.Image, err.Error()))
+						violations = append(violations, field.TypeInvalid(field.NewPath("spec", "statefulSet", "pod", "lanhcInitContainer", "image"), tc.Image, err.Error()))
 					}
 				}
 
 				if tc.Debug != nil {
-					violations = append(violations, field.TypeInvalid(field.NewPath("spec", "statefulSet", "pod", "tailscaleInitContainer", "debug"), tc.Debug, "debug settings cannot be configured on the init container"))
+					violations = append(violations, field.TypeInvalid(field.NewPath("spec", "statefulSet", "pod", "lanhcInitContainer", "debug"), tc.Debug, "debug settings cannot be configured on the init container"))
 				}
 			}
 		}
@@ -215,7 +215,7 @@ func hasServiceMonitorCRD(ctx context.Context, cl client.Client) (bool, error) {
 	return true, nil
 }
 
-// maybeCleanup removes tailscale.com finalizer and ensures that the ProxyClass
+// maybeCleanup removes lanhc.com finalizer and ensures that the ProxyClass
 // is no longer counted towards k8s_proxyclass_resources.
 func (pcr *ProxyClassReconciler) maybeCleanup(ctx context.Context, logger *zap.SugaredLogger, pc *tsapi.ProxyClass) error {
 	ix := slices.Index(pc.Finalizers, FinalizerName)

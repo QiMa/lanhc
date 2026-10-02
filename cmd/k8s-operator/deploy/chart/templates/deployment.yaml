@@ -134,7 +134,7 @@ spec:
               readOnly: true
             {{- else if .Values.oauth.audience }}
             - name: oidc-jwt
-              mountPath: /var/run/secrets/tailscale/serviceaccount
+              mountPath: /var/run/secrets/lanhc/serviceaccount
               readOnly: true
             {{- else }}
             - name: oauth

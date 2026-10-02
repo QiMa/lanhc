@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
-	"tailscale.com/tstime"
-	"tailscale.com/util/ctxkey"
-	"tailscale.com/util/rands"
+	"lanhc.com/tstime"
+	"lanhc.com/util/ctxkey"
+	"lanhc.com/util/rands"
 )
 
 // RequestID is an opaque identifier for a HTTP request, used to correlate
@@ -39,7 +39,7 @@ var RequestIDKey ctxkey.Key[RequestID]
 // RequestIDHeader is a custom HTTP header that the WithRequestID middleware
 // uses to determine whether to re-use a given request ID from the client
 // or generate a new one.
-const RequestIDHeader = "X-Tailscale-Request-Id"
+const RequestIDHeader = "X-Lanhc-Request-Id"
 
 // GenerateRequestID generates a new request ID with the current format.
 func GenerateRequestID() RequestID {

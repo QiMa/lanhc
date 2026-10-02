@@ -12,18 +12,18 @@ import (
 	"net/netip"
 	"strings"
 
-	"tailscale.com/net/tsdial"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
-	"tailscale.com/types/netmap"
-	"tailscale.com/util/set"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
+	"lanhc.com/types/netmap"
+	"lanhc.com/util/set"
 )
 
 // localState implements ipnLocalBackend for testing.
 type localState struct {
 	sshEnabled   bool
 	matchingRule *tailcfg.SSHRule
-	varRoot      string // if empty, TailscaleVarRoot returns ""
+	varRoot      string // if empty, LanhcVarRoot returns ""
 
 	// caps, if non-empty, are advertised via NetMap().AllCaps. Used to gate
 	// features like NodeAttrSSHEnvironmentVariables in tests.
@@ -96,7 +96,7 @@ func (ts *localState) DoNoiseRequest(req *http.Request) (*http.Response, error) 
 	return rec.Result(), nil
 }
 
-func (ts *localState) TailscaleVarRoot() string {
+func (ts *localState) LanhcVarRoot() string {
 	return ts.varRoot
 }
 

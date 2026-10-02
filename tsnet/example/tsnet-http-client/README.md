@@ -2,4 +2,4 @@
 
 # tsnet-http-client
 
-The tshello server demonstrates how to use Tailscale as a library.
+The tshello server demonstrates how to use Lanhc as a library.

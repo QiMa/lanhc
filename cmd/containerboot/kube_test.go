@@ -13,13 +13,13 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"tailscale.com/ipn"
-	"tailscale.com/kube/egressservices"
-	"tailscale.com/kube/ingressservices"
-	"tailscale.com/kube/kubeapi"
-	"tailscale.com/kube/kubeclient"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tailcfg"
+	"lanhc.com/ipn"
+	"lanhc.com/kube/egressservices"
+	"lanhc.com/kube/ingressservices"
+	"lanhc.com/kube/kubeapi"
+	"lanhc.com/kube/kubeclient"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tailcfg"
 )
 
 func TestSetupKube(t *testing.T) {
@@ -298,7 +298,7 @@ func TestResetContainerbootState(t *testing.T) {
 				kubetypes.KeyHTTPSEndpoint:       nil,
 				egressservices.KeyEgressServices: nil,
 				ingressservices.IngressConfigKey: nil,
-				// Tailscaled keys not included in patch.
+				// Lanhcd keys not included in patch.
 			},
 		},
 		"new_authkey_issued": {

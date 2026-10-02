@@ -12,7 +12,7 @@ import (
 
 // TestLoadAbsentIsErrNoConfig verifies that an absent config source (here a
 // missing file, the same read-phase seam the "vm:user-data" 404 goes through)
-// is reported as ErrNoConfig, so callers using tailscaled's "optional:" prefix
+// is reported as ErrNoConfig, so callers using lanhcd's "optional:" prefix
 // can boot unconfigured instead of failing.
 func TestLoadAbsentIsErrNoConfig(t *testing.T) {
 	_, err := Load(filepath.Join(t.TempDir(), "does-not-exist.json"))

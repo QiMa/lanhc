@@ -12,8 +12,8 @@ import (
 	"net/http"
 	"strings"
 
-	"tailscale.com/derp/derpserver"
-	"tailscale.com/net/connectproxy"
+	"lanhc.com/derp/derpserver"
+	"lanhc.com/net/connectproxy"
 )
 
 // serveConnect handles a CONNECT request for ACE support.
@@ -56,18 +56,18 @@ func serveConnect(s *derpserver.Server, w http.ResponseWriter, r *http.Request) 
 				// encryption, varying by the request type:
 				//
 				//  1. TLS from client to ACE proxy (CONNECT)
-				//  2a. TLS from ACE proxy to https://controlplane.tailscale.com/key (port 443)
-				//  2b. ts2021 Noise from ACE proxy to http://controlplane.tailscale.com/ts2021 (port 80)
+				//  2a. TLS from ACE proxy to https://controlplane.lanhc.com/key (port 443)
+				//  2b. ts2021 Noise from ACE proxy to http://controlplane.lanhc.com/ts2021 (port 80)
 				//
 				// But nothing's stopping the client from doing its ts2021
 				// upgrade over https anyway and having three layers of
 				// encryption. But we can at least permit the client to do a
-				// "CONNECT controlplane.tailscale.com:80 HTTP/1.1" if it wants.
+				// "CONNECT controlplane.lanhc.com:80 HTTP/1.1" if it wants.
 				return fmt.Errorf("only ports 443 and 80 are allowed")
 			}
 			// TODO(bradfitz): make policy configurable from flags and/or come
-			// from local tailscaled nodeAttrs
-			if !strings.HasSuffix(host, ".tailscale.com") || strings.Contains(host, "derp") {
+			// from local lanhcd nodeAttrs
+			if !strings.HasSuffix(host, ".lanhc.com") || strings.Contains(host, "derp") {
 				return errors.New("bad host")
 			}
 			return nil

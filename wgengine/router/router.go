@@ -14,13 +14,13 @@ import (
 	"slices"
 
 	"github.com/tailscale/wireguard-go/tun"
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/health"
-	"tailscale.com/net/netmon"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/preftype"
-	"tailscale.com/util/eventbus"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/health"
+	"lanhc.com/net/netmon"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/preftype"
+	"lanhc.com/util/eventbus"
 )
 
 // Router is responsible for managing the system network stack.
@@ -82,7 +82,7 @@ func New(logf logger.Logf, tundev tun.Device, netMon *netmon.Monitor,
 		})
 	}
 	if !buildfeatures.HasOSRouter {
-		return nil, errors.New("router: tailscaled was built without OSRouter support")
+		return nil, errors.New("router: lanhcd was built without OSRouter support")
 	}
 	return nil, fmt.Errorf("unsupported OS %q", runtime.GOOS)
 }
@@ -93,7 +93,7 @@ func New(logf logger.Logf, tundev tun.Device, netMon *netmon.Monitor,
 var HookCleanUp feature.Hook[func(_ logger.Logf, _ *netmon.Monitor, ifName string)]
 
 // CleanUp restores the system network configuration to its original state
-// in case the Tailscale daemon terminated without closing the router.
+// in case the Lanhc daemon terminated without closing the router.
 // No other state needs to be instantiated before this runs.
 func CleanUp(logf logger.Logf, netMon *netmon.Monitor, interfaceName string) {
 	if f, ok := HookCleanUp.GetOk(); ok {
@@ -101,21 +101,21 @@ func CleanUp(logf logger.Logf, netMon *netmon.Monitor, interfaceName string) {
 	}
 }
 
-// Config is the subset of Tailscale configuration that is relevant to
+// Config is the subset of Lanhc configuration that is relevant to
 // the OS's network stack.
 type Config struct {
 	// LocalAddrs are the address(es) for this node. This is
 	// typically one IPv4/32 (the 100.x.y.z CGNAT) and one
-	// IPv6/128 (Tailscale ULA).
+	// IPv6/128 (Lanhc ULA).
 	LocalAddrs []netip.Prefix
 
-	// Routes are the routes that point into the Tailscale
+	// Routes are the routes that point into the Lanhc
 	// interface.  These are the /32 and /128 routes to peers, as
 	// well as any other subnets that peers are advertising and
 	// this node has chosen to use.
 	Routes []netip.Prefix
 
-	// LocalRoutes are the routes that should not be routed through Tailscale.
+	// LocalRoutes are the routes that should not be routed through Lanhc.
 	// There are no priorities set in how these routes are added, normal
 	// routing rules apply.
 	LocalRoutes []netip.Prefix
@@ -126,7 +126,7 @@ type Config struct {
 	NewMTU int
 
 	// SubnetRoutes is the list of subnets that this node is
-	// advertising to other Tailscale nodes.
+	// advertising to other Lanhc nodes.
 	// As of 2023-10-11, this field is only used for network
 	// flow logging and is otherwise ignored.
 	SubnetRoutes []netip.Prefix
@@ -136,7 +136,7 @@ type Config struct {
 	StatefulFiltering   bool                   // Apply stateful filtering to inbound connections
 	NetfilterMode       preftype.NetfilterMode // how much to manage netfilter rules
 	NetfilterKind       string                 // what kind of netfilter to use ("nftables", "iptables", or "" to auto-detect)
-	RemoveCGNATDropRule bool                   // whether to remove the firewall rule to drop non-Tailscale inbound traffic from CGNAT IPs
+	RemoveCGNATDropRule bool                   // whether to remove the firewall rule to drop non-Lanhc inbound traffic from CGNAT IPs
 }
 
 func (a *Config) Equal(b *Config) bool {

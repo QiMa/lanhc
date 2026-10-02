@@ -18,8 +18,8 @@ import (
 	"path"
 	"time"
 
-	"tailscale.com/tsweb"
-	"tailscale.com/util/precompress"
+	"lanhc.com/tsweb"
+	"lanhc.com/util/precompress"
 )
 
 //go:embed index.html

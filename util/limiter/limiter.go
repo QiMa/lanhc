@@ -10,8 +10,8 @@ import (
 	"io"
 	"time"
 
-	"tailscale.com/syncs"
-	"tailscale.com/util/lru"
+	"lanhc.com/syncs"
+	"lanhc.com/util/lru"
 )
 
 // Limiter is a keyed token bucket rate limiter.

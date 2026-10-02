@@ -15,12 +15,12 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/ipn/ipnstate"
-	. "tailscale.com/tailcfg"
-	"tailscale.com/tstest/deptest"
-	"tailscale.com/types/key"
-	"tailscale.com/types/opt"
-	"tailscale.com/util/must"
+	"lanhc.com/ipn/ipnstate"
+	. "lanhc.com/tailcfg"
+	"lanhc.com/tstest/deptest"
+	"lanhc.com/types/key"
+	"lanhc.com/types/opt"
+	"lanhc.com/util/must"
 )
 
 func fieldsOf(t reflect.Type) (fields []string) {
@@ -312,7 +312,7 @@ func TestHostinfoEqual(t *testing.T) {
 	}
 }
 
-func TestHostinfoTailscaleSSHEnabled(t *testing.T) {
+func TestHostinfoLanhcSSHEnabled(t *testing.T) {
 	tests := []struct {
 		hi   *Hostinfo
 		want bool
@@ -332,7 +332,7 @@ func TestHostinfoTailscaleSSHEnabled(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		got := tt.hi.TailscaleSSHEnabled()
+		got := tt.hi.LanhcSSHEnabled()
 		if got != tt.want {
 			t.Errorf("%d. got %v; want %v", i, got, tt.want)
 		}
@@ -833,7 +833,7 @@ func FuzzNodeIsRouter(f *testing.F) {
 		ps := peerStatusFromNode(n.View())
 		t.Logf("%v %v", n.Addresses, n.AllowedIPs)
 
-		if len(n.Addresses) != len(ps.TailscaleIPs) ||
+		if len(n.Addresses) != len(ps.LanhcIPs) ||
 			len(n.AllowedIPs) != ps.AllowedIPs.Len() {
 			t.Skip("n and ps are not equivalent")
 		}
@@ -856,7 +856,7 @@ func peerStatusFromNode(n NodeView) *ipnstate.PeerStatus {
 	}
 	for _, p := range n.Addresses().All() {
 		if p.IsSingleIP() {
-			ps.TailscaleIPs = append(ps.TailscaleIPs, p.Addr())
+			ps.LanhcIPs = append(ps.LanhcIPs, p.Addr())
 		}
 	}
 	ps.AllowedIPs = new(n.AllowedIPs())
@@ -1124,8 +1124,8 @@ func TestDeps(t *testing.T) {
 			// Make sure we don't again accidentally bring in a dependency on
 			// drive or its transitive dependencies
 			"testing":                        "do not use testing package in production code",
-			"tailscale.com/drive/driveimpl":  "https://github.com/tailscale/tailscale/pull/10631",
-			"github.com/studio-b12/gowebdav": "https://github.com/tailscale/tailscale/pull/10631",
+			"lanhc.com/drive/driveimpl":  "https://github.com/lanhc/lanhc/pull/10631",
+			"github.com/studio-b12/gowebdav": "https://github.com/lanhc/lanhc/pull/10631",
 		},
 	}.Check(t)
 }
@@ -1315,7 +1315,7 @@ func TestServiceActionTypeValid(t *testing.T) {
 // encoding/json with SessionDuration encoded as int64 nanoseconds.
 // It notably guards against jsonv2 `format` tag options in struct
 // tags, which Go 1.27's encoding/json rejects at runtime.
-// See https://github.com/tailscale/tailscale/issues/20528.
+// See https://github.com/lanhc/lanhc/issues/20528.
 func TestSSHActionJSON(t *testing.T) {
 	a := SSHAction{
 		Accept:          true,

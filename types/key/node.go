@@ -14,8 +14,8 @@ import (
 	"go4.org/mem"
 	"golang.org/x/crypto/curve25519"
 	"golang.org/x/crypto/nacl/box"
-	"tailscale.com/types/structs"
-	"tailscale.com/util/bufiox"
+	"lanhc.com/types/structs"
+	"lanhc.com/util/bufiox"
 )
 
 const (
@@ -216,7 +216,7 @@ func NodePublicFromRaw32(raw mem.RO) NodePublic {
 // with a "bad01" ("bad ol'", ~"bad old") prefix. It's used for expired node
 // keys so when we debug a customer issue, the "bad01" can jump out to us. See:
 //
-//	https://github.com/tailscale/tailscale/issues/6932
+//	https://github.com/lanhc/lanhc/issues/6932
 var badOldPrefix = []byte{109, 167, 116, 213, 215, 116}
 
 // NodePublicWithBadOldPrefix returns a copy of k with its leading public key
@@ -234,7 +234,7 @@ func (k NodePublic) IsZero() bool {
 	return k == NodePublic{}
 }
 
-// ShortString returns the Tailscale conventional debug representation
+// ShortString returns the Lanhc conventional debug representation
 // of a public key: the first five base64 digits of the key, in square
 // brackets.
 func (k NodePublic) ShortString() string {

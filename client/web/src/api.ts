@@ -14,7 +14,7 @@ export const swrConfig: SWRConfiguration = {
 }
 
 type APIType =
-  | { action: "up"; data: TailscaleUpData }
+  | { action: "up"; data: LanhcUpData }
   | { action: "logout" }
   | { action: "new-auth-session"; data: AuthSessionNewData }
   | { action: "update-prefs"; data: LocalPrefsData }
@@ -24,7 +24,7 @@ type APIType =
 /**
  * POST /api/up data
  */
-type TailscaleUpData = {
+type LanhcUpData = {
   Reauthenticate?: boolean // force reauthentication
   ControlURL?: string
   AuthKey?: string
@@ -130,12 +130,12 @@ export function useAPI() {
             .catch(handlePostError("Failed to login"))
 
         /**
-         * "logout" handles logging the node out of tailscale, effectively
+         * "logout" handles logging the node out of lanhc, effectively
          * expiring its node key.
          */
         case "logout":
           // For logout, must increment metric before running api call,
-          // as tailscaled will be unreachable after the call completes.
+          // as lanhcd will be unreachable after the call completes.
           incrementMetric("web_client_node_disconnect")
           return apiFetch("/local/v0/logout", "POST")
             .then(() => mutate("/auth"))
@@ -151,7 +151,7 @@ export function useAPI() {
           )
 
         /**
-         * "update-prefs" handles setting the node's tailscale prefs.
+         * "update-prefs" handles setting the node's lanhc prefs.
          */
         case "update-prefs": {
           return optimisticMutate<NodeData>(

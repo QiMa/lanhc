@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/ipproto"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/ipproto"
 )
 
 // Message is the log message that captures network traffic.
@@ -67,7 +67,7 @@ type Node struct {
 	// Name is the fully-qualified name of the node.
 	Name string `json:"name,omitzero"` // e.g., "carbonite.example.ts.net"
 
-	// Addresses are the Tailscale IP addresses of the node.
+	// Addresses are the Lanhc IP addresses of the node.
 	Addresses []netip.Addr `json:"addresses,omitempty"`
 
 	// OS is the operating system of the node.

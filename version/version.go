@@ -11,8 +11,8 @@ import (
 	"strings"
 	"sync"
 
-	tailscaleroot "tailscale.com"
-	"tailscale.com/types/lazy"
+	lanhcroot "lanhc.com"
+	"lanhc.com/types/lazy"
 )
 
 // Stamp vars can have their value set at build time by linker flags (see
@@ -32,8 +32,8 @@ var (
 	// output.
 	shortStamp string
 
-	// gitCommitStamp is the git commit of the github.com/tailscale/tailscale
-	// repository at which Tailscale was built. Its format is the one returned
+	// gitCommitStamp is the git commit of the github.com/lanhc/lanhc
+	// repository at which Lanhc was built. Its format is the one returned
 	// by `git rev-parse <commit>`. If set, it is used instead of any git commit
 	// information embedded by the Go tool.
 	gitCommitStamp string
@@ -42,16 +42,16 @@ var (
 	// was dirty. Its value is ORed with the dirty bit embedded by the Go tool.
 	//
 	// We need this because when we build binaries from another repo that
-	// imports tailscale.com, the Go tool doesn't stamp any dirtiness info into
+	// imports lanhc.com, the Go tool doesn't stamp any dirtiness info into
 	// the binary. Instead, we have to inject the dirty bit ourselves here.
 	gitDirtyStamp bool
 
 	// extraGitCommit, is the git commit of a "supplemental" repository at which
-	// Tailscale was built. Its format is the same as gitCommit.
+	// Lanhc was built. Its format is the same as gitCommit.
 	//
 	// extraGitCommit is used to track the source revision when the main
-	// Tailscale repository is integrated into and built from another repository
-	// (for example, Tailscale's proprietary code, or the Android OSS
+	// Lanhc repository is integrated into and built from another repository
+	// (for example, Lanhc's proprietary code, or the Android OSS
 	// repository). Together, gitCommit and extraGitCommit exactly describe what
 	// repositories and commits were used in a build.
 	extraGitCommitStamp string
@@ -61,10 +61,10 @@ var long lazy.SyncValue[string]
 
 // Long returns a full version number for this build, of one of the forms:
 //
-//   - "x.y.z-commithash-otherhash" for release builds distributed by Tailscale
+//   - "x.y.z-commithash-otherhash" for release builds distributed by Lanhc
 //   - "x.y.z-commithash" for release builds built with build_dist.sh
 //   - "x.y.z-changecount-commithash-otherhash" for untagged release branch
-//     builds by Tailscale (these are not distributed).
+//     builds by Lanhc (these are not distributed).
 //   - "x.y.z-changecount-commithash" for untagged release branch builds
 //     built with build_dist.sh
 //   - "x.y.z-devYYYYMMDD-commithash{,-dirty}" for builds made with plain "go
@@ -77,9 +77,9 @@ func Long() string {
 		}
 		bi := getEmbeddedInfo()
 		if !bi.valid {
-			return strings.TrimSpace(tailscaleroot.VersionDotTxt) + "-ERR-BuildInfo"
+			return strings.TrimSpace(lanhcroot.VersionDotTxt) + "-ERR-BuildInfo"
 		}
-		return fmt.Sprintf("%s-dev%s-t%s%s", strings.TrimSpace(tailscaleroot.VersionDotTxt), bi.commitDate, bi.commitAbbrev(), dirtyString())
+		return fmt.Sprintf("%s-dev%s-t%s%s", strings.TrimSpace(lanhcroot.VersionDotTxt), bi.commitDate, bi.commitAbbrev(), dirtyString())
 	})
 }
 
@@ -87,7 +87,7 @@ var short lazy.SyncValue[string]
 
 // Short returns a short version number for this build, of the forms:
 //
-//   - "x.y.z" for builds distributed by Tailscale or built with build_dist.sh
+//   - "x.y.z" for builds distributed by Lanhc or built with build_dist.sh
 //   - "x.y.z-devYYYYMMDD" for builds made with plain "go build" or "go install"
 //   - "x.y.z-ERR-BuildInfo" for builds made by plain "go run"
 func Short() string {
@@ -97,9 +97,9 @@ func Short() string {
 		}
 		bi := getEmbeddedInfo()
 		if !bi.valid {
-			return strings.TrimSpace(tailscaleroot.VersionDotTxt) + "-ERR-BuildInfo"
+			return strings.TrimSpace(lanhcroot.VersionDotTxt) + "-ERR-BuildInfo"
 		}
-		return strings.TrimSpace(tailscaleroot.VersionDotTxt) + "-dev" + bi.commitDate
+		return strings.TrimSpace(lanhcroot.VersionDotTxt) + "-dev" + bi.commitDate
 	})
 }
 
@@ -146,17 +146,17 @@ var getEmbeddedInfo = sync.OnceValue(func() embeddedInfo {
 	return ret
 })
 
-// tailscaleToolchainRev returns the git hash of the Tailscale Go toolchain
+// lanhcToolchainRev returns the git hash of the Lanhc Go toolchain
 // used to build this binary, if any. It is read separately from getEmbeddedInfo
 // because that function discards build info when VCS fields are missing (e.g.
 // in test binaries), but the toolchain rev is still present.
-var tailscaleToolchainRev = sync.OnceValue(func() string {
+var lanhcToolchainRev = sync.OnceValue(func() string {
 	bi, ok := debug.ReadBuildInfo()
 	if !ok {
 		return ""
 	}
 	for _, s := range bi.Settings {
-		if s.Key == "tailscale.toolchain.rev" {
+		if s.Key == "lanhc.toolchain.rev" {
 			return s.Value
 		}
 	}
@@ -189,9 +189,9 @@ func majorMinorPatch() string {
 	return ret
 }
 
-// IsTailscaleGo reports whether the current binary was built with
-// Tailscale's custom Go toolchain.
-func IsTailscaleGo() bool { return isTailscaleGo }
+// IsLanhcGo reports whether the current binary was built with
+// Lanhc's custom Go toolchain.
+func IsLanhcGo() bool { return isLanhcGo }
 
 func isValidLongWithTwoRepos(v string) bool {
 	s := strings.Split(v, "-")

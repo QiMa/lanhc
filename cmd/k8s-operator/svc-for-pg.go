@@ -26,23 +26,23 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"tailscale.com/client/tailscale/v2"
+	lanhcclient "tailscale.com/client/tailscale/v2"
 
-	"tailscale.com/ipn"
-	tsoperator "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/k8s-operator/tsclient"
-	"tailscale.com/kube/ingressservices"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
+	"lanhc.com/ipn"
+	tsoperator "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/k8s-operator/tsclient"
+	"lanhc.com/kube/ingressservices"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
 )
 
 const (
-	svcPGFinalizerName                   = "tailscale.com/service-pg-finalizer"
+	svcPGFinalizerName                   = "lanhc.com/service-pg-finalizer"
 	reasonIngressSvcInvalid              = "IngressSvcInvalid"
 	reasonIngressSvcConfigured           = "IngressSvcConfigured"
 	reasonIngressSvcNoBackendsConfigured = "IngressSvcNoBackendsConfigured"
@@ -50,7 +50,7 @@ const (
 
 var gaugePGServiceResources = clientmetric.NewGauge(kubetypes.MetricServicePGResourceCount)
 
-// HAServiceReconciler is a controller that reconciles Tailscale Kubernetes
+// HAServiceReconciler is a controller that reconciles Lanhc Kubernetes
 // Services that should be exposed on an ingress ProxyGroup (in HA mode).
 type HAServiceReconciler struct {
 	client.Client
@@ -60,7 +60,7 @@ type HAServiceReconciler struct {
 	clients               ClientProvider
 	tsNamespace           string
 	defaultTags           []string
-	operatorID            string // stableID of the operator's Tailscale device
+	operatorID            string // stableID of the operator's Lanhc device
 
 	clock tstime.Clock
 
@@ -70,15 +70,15 @@ type HAServiceReconciler struct {
 	managedServices set.Slice[types.UID]
 }
 
-// Reconcile reconciles Services that should be exposed over Tailscale in HA
+// Reconcile reconciles Services that should be exposed over Lanhc in HA
 // mode (on a ProxyGroup). It looks at all Services with
-// tailscale.com/proxy-group annotation. For each such Service, it ensures that
-// a Tailscale Service named after the hostname of the Service exists and is up to
+// lanhc.com/proxy-group annotation. For each such Service, it ensures that
+// a Lanhc Service named after the hostname of the Service exists and is up to
 // date.
 // HA Servicees support multi-cluster Service setup.
-// Each Tailscale Service contains a list of owner references that uniquely identify
+// Each Lanhc Service contains a list of owner references that uniquely identify
 // the operator.  When an Service that acts as a
-// backend is being deleted, the corresponding Tailscale Service is only deleted if the
+// backend is being deleted, the corresponding Lanhc Service is only deleted if the
 // only owner reference that it contains is for this operator. If other owner
 // references are found, then cleanup operation only removes this operator's owner
 // reference.
@@ -122,21 +122,21 @@ func (r *HAServiceReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 
 	tsClient, err := r.clients.For(pg.Spec.Tailnet)
 	if err != nil {
-		return res, fmt.Errorf("failed to get tailscale client: %w", err)
+		return res, fmt.Errorf("failed to get lanhc client: %w", err)
 	}
 
 	hostname := nameForService(svc)
 	logger = logger.With("hostname", hostname)
 
-	if !svc.DeletionTimestamp.IsZero() || !r.isTailscaleService(svc) {
-		logger.Debugf("Service is being deleted or is (no longer) referring to Tailscale ingress/egress, ensuring any created resources are cleaned up")
+	if !svc.DeletionTimestamp.IsZero() || !r.isLanhcService(svc) {
+		logger.Debugf("Service is being deleted or is (no longer) referring to Lanhc ingress/egress, ensuring any created resources are cleaned up")
 		_, err = r.maybeCleanup(ctx, hostname, svc, logger, tsClient)
 		return res, err
 	}
 
-	// needsRequeue is set to true if the underlying Tailscale Service has changed as a result of this reconcile. If that
-	// is the case, we reconcile the Ingress one more time to ensure that concurrent updates to the Tailscale Service in a
-	// multi-cluster Ingress setup have not resulted in another actor overwriting our Tailscale Service update.
+	// needsRequeue is set to true if the underlying Lanhc Service has changed as a result of this reconcile. If that
+	// is the case, we reconcile the Ingress one more time to ensure that concurrent updates to the Lanhc Service in a
+	// multi-cluster Ingress setup have not resulted in another actor overwriting our Lanhc Service update.
 	needsRequeue := false
 	needsRequeue, err = r.maybeProvision(ctx, hostname, svc, pg, logger, tsClient)
 	if err != nil {
@@ -153,14 +153,14 @@ func (r *HAServiceReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 	return reconcile.Result{}, nil
 }
 
-// maybeProvision ensures that a Tailscale Service for this Ingress exists and is up to date and that the serve config for the
+// maybeProvision ensures that a Lanhc Service for this Ingress exists and is up to date and that the serve config for the
 // corresponding ProxyGroup contains the Ingress backend's definition.
-// If a Tailscale Service does not exist, it will be created.
-// If a Tailscale Service exists, but only with owner references from other operator instances, an owner reference for this
+// If a Lanhc Service does not exist, it will be created.
+// If a Lanhc Service exists, but only with owner references from other operator instances, an owner reference for this
 // operator instance is added.
-// If a Tailscale Service exists, but does not have an owner reference from any operator, we error
+// If a Lanhc Service exists, but does not have an owner reference from any operator, we error
 // out assuming that this is an owner reference created by an unknown actor.
-// Returns true if the operation resulted in a Tailscale Service update.
+// Returns true if the operation resulted in a Lanhc Service update.
 func (r *HAServiceReconciler) maybeProvision(ctx context.Context, hostname string, svc *corev1.Service, pg *tsapi.ProxyGroup, logger *zap.SugaredLogger, tsClient tsclient.Client) (svcsChanged bool, err error) {
 	oldSvcStatus := svc.Status.DeepCopy()
 	defer func() {
@@ -181,7 +181,7 @@ func (r *HAServiceReconciler) maybeProvision(ctx context.Context, hostname strin
 		// because once the finalizer is in place this block gets skipped. So,
 		// this is a nice place to tell the operator that the high level,
 		// multi-reconcile operation is underway.
-		logger.Infof("exposing Service over tailscale")
+		logger.Infof("exposing Service over lanhc")
 		svc.Finalizers = append(svc.Finalizers, svcPGFinalizerName)
 		if err := r.Update(ctx, svc); err != nil {
 			return false, fmt.Errorf("failed to add finalizer: %w", err)
@@ -192,37 +192,37 @@ func (r *HAServiceReconciler) maybeProvision(ctx context.Context, hostname strin
 		r.mu.Unlock()
 	}
 
-	// 1. Ensure that if Service's hostname/name has changed, any Tailscale Service
+	// 1. Ensure that if Service's hostname/name has changed, any Lanhc Service
 	// resources corresponding to the old hostname are cleaned up.
-	// In practice, this function will ensure that any Tailscale Services that are
+	// In practice, this function will ensure that any Lanhc Services that are
 	// associated with the provided ProxyGroup and no longer owned by a
 	// Service are cleaned up. This is fine- it is not expensive and ensures
 	// that in edge cases (a single update changed both hostname and removed
-	// ProxyGroup annotation) the Tailscale Service is more likely to be
+	// ProxyGroup annotation) the Lanhc Service is more likely to be
 	// (eventually) removed.
 	svcsChanged, err = r.maybeCleanupProxyGroup(ctx, pg.Name, logger, tsClient)
 	if err != nil {
-		return false, fmt.Errorf("failed to cleanup Tailscale Service resources for ProxyGroup: %w", err)
+		return false, fmt.Errorf("failed to cleanup Lanhc Service resources for ProxyGroup: %w", err)
 	}
 
-	// 2. Ensure that there isn't a Tailscale Service with the same hostname
+	// 2. Ensure that there isn't a Lanhc Service with the same hostname
 	// already created and not owned by this Service.
 	serviceName := tailcfg.ServiceName("svc:" + hostname)
 	existingTSSvc, err := tsClient.VIPServices().Get(ctx, serviceName.String())
-	if err != nil && !tailscale.IsNotFound(err) {
-		return false, fmt.Errorf("error getting Tailscale Service %q: %w", hostname, err)
+	if err != nil && !lanhcclient.IsNotFound(err) {
+		return false, fmt.Errorf("error getting Lanhc Service %q: %w", hostname, err)
 	}
 
-	// 3. Generate the Tailscale Service owner annotation for new or existing Tailscale Service.
-	// This checks and ensures that Tailscale Service's owner references are updated
+	// 3. Generate the Lanhc Service owner annotation for new or existing Lanhc Service.
+	// This checks and ensures that Lanhc Service's owner references are updated
 	// for this Service and errors if that is not possible (i.e. because it
-	// appears that the Tailscale Service has been created by a non-operator actor).
+	// appears that the Lanhc Service has been created by a non-operator actor).
 	updatedAnnotations, err := ownerAnnotations(r.operatorID, existingTSSvc)
 	if err != nil {
-		instr := fmt.Sprintf("To proceed, you can either manually delete the existing Tailscale Service or choose a different hostname with the '%s' annotaion", AnnotationHostname)
-		msg := fmt.Sprintf("error ensuring ownership of Tailscale Service %s: %v. %s", hostname, err, instr)
+		instr := fmt.Sprintf("To proceed, you can either manually delete the existing Lanhc Service or choose a different hostname with the '%s' annotaion", AnnotationHostname)
+		msg := fmt.Sprintf("error ensuring ownership of Lanhc Service %s: %v. %s", hostname, err, instr)
 		logger.Warn(msg)
-		r.recorder.Event(svc, corev1.EventTypeWarning, "InvalidTailscaleService", msg)
+		r.recorder.Event(svc, corev1.EventTypeWarning, "InvalidLanhcService", msg)
 		tsoperator.SetServiceCondition(svc, tsapi.IngressSvcValid, metav1.ConditionFalse, reasonIngressSvcInvalid, msg, r.clock, logger)
 		return false, nil
 	}
@@ -232,7 +232,7 @@ func (r *HAServiceReconciler) maybeProvision(ctx context.Context, hostname strin
 		tags = strings.Split(tstr, ",")
 	}
 
-	tsSvc := tailscale.VIPService{
+	tsSvc := lanhcclient.VIPService{
 		Name:        serviceName.String(),
 		Tags:        tags,
 		Ports:       []string{"do-not-validate"}, // we don't want to validate ports
@@ -243,15 +243,15 @@ func (r *HAServiceReconciler) maybeProvision(ctx context.Context, hostname strin
 		tsSvc.Addrs = existingTSSvc.Addrs
 	}
 
-	// TODO(irbekrm): right now if two Service resources attempt to apply different Tailscale Service configs (different
+	// TODO(irbekrm): right now if two Service resources attempt to apply different Lanhc Service configs (different
 	// tags) we can end up reconciling those in a loop. We should detect when a Service
 	// with the same generation number has been reconciled ~more than N times and stop attempting to apply updates.
 	if existingTSSvc == nil ||
 		!reflect.DeepEqual(tsSvc.Tags, existingTSSvc.Tags) ||
 		!ownersAreSetAndEqual(tsSvc, *existingTSSvc) {
-		logger.Infof("Ensuring Tailscale Service exists and is up to date")
+		logger.Infof("Ensuring Lanhc Service exists and is up to date")
 		if err = tsClient.VIPServices().CreateOrUpdate(ctx, tsSvc); err != nil {
-			return false, fmt.Errorf("error creating Tailscale Service: %w", err)
+			return false, fmt.Errorf("error creating Lanhc Service: %w", err)
 		}
 
 		existingTSSvc = &tsSvc
@@ -270,10 +270,10 @@ func (r *HAServiceReconciler) maybeProvision(ctx context.Context, hostname strin
 		existingTSSvc, err = tsClient.VIPServices().Get(ctx, tsSvc.Name)
 		switch {
 		case err != nil:
-			return false, fmt.Errorf("error getting Tailscale Service: %w", err)
+			return false, fmt.Errorf("error getting Lanhc Service: %w", err)
 		case len(existingTSSvc.Addrs) == 0:
 			// TODO(irbekrm): this should be a retry
-			return false, fmt.Errorf("unexpected: Tailscale Service addresses not populated")
+			return false, fmt.Errorf("unexpected: Lanhc Service addresses not populated")
 		}
 	}
 
@@ -282,7 +282,7 @@ func (r *HAServiceReconciler) maybeProvision(ctx context.Context, hostname strin
 	for _, tsip := range existingTSSvc.Addrs {
 		ip, err := netip.ParseAddr(tsip)
 		if err != nil {
-			return false, fmt.Errorf("error parsing Tailscale Service address: %w", err)
+			return false, fmt.Errorf("error parsing Lanhc Service address: %w", err)
 		}
 
 		if ip.Is4() {
@@ -302,12 +302,12 @@ func (r *HAServiceReconciler) maybeProvision(ctx context.Context, hostname strin
 		if ip.Is4() {
 			cfg.IPv4Mapping = &ingressservices.Mapping{
 				ClusterIP:          ip,
-				TailscaleServiceIP: tsSvcIPv4,
+				LanhcServiceIP: tsSvcIPv4,
 			}
 		} else if ip.Is6() {
 			cfg.IPv6Mapping = &ingressservices.Mapping{
 				ClusterIP:          ip,
-				TailscaleServiceIP: tsSvcIPv6,
+				LanhcServiceIP: tsSvcIPv6,
 			}
 		}
 	}
@@ -326,10 +326,10 @@ func (r *HAServiceReconciler) maybeProvision(ctx context.Context, hostname strin
 	}
 
 	logger.Infof("updating AdvertiseServices config")
-	// 4. Update tailscaled's AdvertiseServices config, which should add the Tailscale Service
+	// 4. Update lanhcd's AdvertiseServices config, which should add the Lanhc Service
 	// IPs to the ProxyGroup Pods' AllowedIPs in the next netmap update if approved.
 	if err = r.maybeUpdateAdvertiseServicesConfig(ctx, svc, pg.Name, serviceName, &cfg, true, logger); err != nil {
-		return false, fmt.Errorf("failed to update tailscaled config: %w", err)
+		return false, fmt.Errorf("failed to update lanhcd config: %w", err)
 	}
 
 	count, err := r.numberPodsAdvertising(ctx, pg.Name, serviceName)
@@ -337,11 +337,11 @@ func (r *HAServiceReconciler) maybeProvision(ctx context.Context, hostname strin
 		return false, fmt.Errorf("failed to get number of advertised Pods: %w", err)
 	}
 
-	// TODO(irbekrm): here and when creating the Tailscale Service, verify if the
+	// TODO(irbekrm): here and when creating the Lanhc Service, verify if the
 	// error is not terminal (and therefore should not be reconciled). For
-	// example, if the hostname is already a hostname of a Tailscale node,
+	// example, if the hostname is already a hostname of a Lanhc node,
 	// the GET here will fail.
-	// If there are no Pods advertising the Tailscale Service (yet), we want to set 'svc.Status.LoadBalancer.Ingress' to nil"
+	// If there are no Pods advertising the Lanhc Service (yet), we want to set 'svc.Status.LoadBalancer.Ingress' to nil"
 	var lbs []corev1.LoadBalancerIngress
 	conditionStatus := metav1.ConditionFalse
 	conditionType := tsapi.IngressSvcConfigured
@@ -370,8 +370,8 @@ func (r *HAServiceReconciler) maybeProvision(ctx context.Context, hostname strin
 	return svcsChanged, nil
 }
 
-// maybeCleanup ensures that any resources, such as a Tailscale Service created for this Service, are cleaned up when the
-// Service is being deleted or is unexposed. The cleanup is safe for a multi-cluster setup- the Tailscale Service is only
+// maybeCleanup ensures that any resources, such as a Lanhc Service created for this Service, are cleaned up when the
+// Service is being deleted or is unexposed. The cleanup is safe for a multi-cluster setup- the Lanhc Service is only
 // deleted if it does not contain any other owner references. If it does the cleanup only removes the owner reference
 // corresponding to this Service.
 func (r *HAServiceReconciler) maybeCleanup(ctx context.Context, hostname string, svc *corev1.Service, logger *zap.SugaredLogger, tsClient tsclient.Client) (svcChanged bool, err error) {
@@ -381,7 +381,7 @@ func (r *HAServiceReconciler) maybeCleanup(ctx context.Context, hostname string,
 		logger.Debugf("no finalizer, nothing to do")
 		return false, nil
 	}
-	logger.Infof("Ensuring that Tailscale Service %q configuration is cleaned up", hostname)
+	logger.Infof("Ensuring that Lanhc Service %q configuration is cleaned up", hostname)
 
 	defer func() {
 		if err != nil {
@@ -391,16 +391,16 @@ func (r *HAServiceReconciler) maybeCleanup(ctx context.Context, hostname string,
 	}()
 
 	serviceName := tailcfg.ServiceName("svc:" + hostname)
-	//  1. Clean up the Tailscale Service.
-	svcChanged, err = cleanupTailscaleService(ctx, tsClient, serviceName.String(), r.operatorID, logger)
+	//  1. Clean up the Lanhc Service.
+	svcChanged, err = cleanupLanhcService(ctx, tsClient, serviceName.String(), r.operatorID, logger)
 	if err != nil {
-		return false, fmt.Errorf("error deleting Tailscale Service: %w", err)
+		return false, fmt.Errorf("error deleting Lanhc Service: %w", err)
 	}
 
-	// 2. Unadvertise the Tailscale Service.
+	// 2. Unadvertise the Lanhc Service.
 	pgName := svc.Annotations[AnnotationProxyGroup]
 	if err = r.maybeUpdateAdvertiseServicesConfig(ctx, svc, pgName, serviceName, nil, false, logger); err != nil {
-		return false, fmt.Errorf("failed to update tailscaled config services: %w", err)
+		return false, fmt.Errorf("failed to update lanhcd config services: %w", err)
 	}
 
 	// TODO: maybe wait for the service to be unadvertised, only then remove the backend routing
@@ -413,7 +413,7 @@ func (r *HAServiceReconciler) maybeCleanup(ctx context.Context, hostname string,
 	if cm == nil || cfgs == nil {
 		return true, nil
 	}
-	logger.Infof("Removing Tailscale Service %q from ingress config for ProxyGroup %q", hostname, pgName)
+	logger.Infof("Removing Lanhc Service %q from ingress config for ProxyGroup %q", hostname, pgName)
 	delete(cfgs, serviceName.String())
 	cfgBytes, err := json.Marshal(cfgs)
 	if err != nil {
@@ -423,8 +423,8 @@ func (r *HAServiceReconciler) maybeCleanup(ctx context.Context, hostname string,
 	return true, r.Update(ctx, cm)
 }
 
-// Tailscale Services that are associated with the provided ProxyGroup and no longer managed this operator's instance are deleted, if not owned by other operator instances, else the owner reference is cleaned up.
-// Returns true if the operation resulted in existing Tailscale Service updates (owner reference removal).
+// Lanhc Services that are associated with the provided ProxyGroup and no longer managed this operator's instance are deleted, if not owned by other operator instances, else the owner reference is cleaned up.
+// Returns true if the operation resulted in existing Lanhc Service updates (owner reference removal).
 func (r *HAServiceReconciler) maybeCleanupProxyGroup(ctx context.Context, proxyGroupName string, logger *zap.SugaredLogger, tsClient tsclient.Client) (svcsChanged bool, err error) {
 	cm, config, err := ingressSvcsConfigs(ctx, r.Client, proxyGroupName, r.tsNamespace)
 	if err != nil {
@@ -446,21 +446,21 @@ func (r *HAServiceReconciler) maybeCleanupProxyGroup(ctx context.Context, proxyG
 			}
 		}
 		if !found {
-			logger.Infof("Tailscale Service %q is not owned by any Service, cleaning up", tsSvcName)
+			logger.Infof("Lanhc Service %q is not owned by any Service, cleaning up", tsSvcName)
 
-			// Make sure the Tailscale Service is not advertised in tailscaled or serve config.
+			// Make sure the Lanhc Service is not advertised in lanhcd or serve config.
 			if err = r.maybeUpdateAdvertiseServicesConfig(ctx, nil, proxyGroupName, tailcfg.ServiceName(tsSvcName), &cfg, false, logger); err != nil {
-				return false, fmt.Errorf("failed to update tailscaled config services: %w", err)
+				return false, fmt.Errorf("failed to update lanhcd config services: %w", err)
 			}
 
-			svcsChanged, err = cleanupTailscaleService(ctx, tsClient, tsSvcName, r.operatorID, logger)
+			svcsChanged, err = cleanupLanhcService(ctx, tsClient, tsSvcName, r.operatorID, logger)
 			if err != nil {
-				return false, fmt.Errorf("deleting Tailscale Service %q: %w", tsSvcName, err)
+				return false, fmt.Errorf("deleting Lanhc Service %q: %w", tsSvcName, err)
 			}
 
 			_, ok := config[tsSvcName]
 			if ok {
-				logger.Infof("Removing Tailscale Service %q from serve config", tsSvcName)
+				logger.Infof("Removing Lanhc Service %q from serve config", tsSvcName)
 				delete(config, tsSvcName)
 				ingressConfigChanged = true
 			}
@@ -497,7 +497,7 @@ func (r *HAServiceReconciler) deleteFinalizer(ctx context.Context, svc *corev1.S
 	return nil
 }
 
-func (r *HAServiceReconciler) isTailscaleService(svc *corev1.Service) bool {
+func (r *HAServiceReconciler) isLanhcService(svc *corev1.Service) bool {
 	proxyGroup := svc.Annotations[AnnotationProxyGroup]
 	return r.shouldExpose(svc) && proxyGroup != ""
 }
@@ -510,20 +510,20 @@ func (r *HAServiceReconciler) shouldExposeClusterIP(svc *corev1.Service) bool {
 	if svc.Spec.ClusterIP == "" || svc.Spec.ClusterIP == "None" {
 		return false
 	}
-	return isTailscaleLoadBalancerService(svc, r.isDefaultLoadBalancer) || hasExposeAnnotation(svc)
+	return isLanhcLoadBalancerService(svc, r.isDefaultLoadBalancer) || hasExposeAnnotation(svc)
 }
 
-// cleanupTailscaleService deletes any Tailscale Service by the provided name if it is not owned by operator instances other than this one.
-// If a Tailscale Service is found, but contains other owner references, only removes this operator's owner reference.
-// If a Tailscale Service by the given name is not found or does not contain this operator's owner reference, do nothing.
-// It returns true if an existing Tailscale Service was updated to remove owner reference, as well as any error that occurred.
-func cleanupTailscaleService(ctx context.Context, tsClient tsclient.Client, name string, operatorID string, logger *zap.SugaredLogger) (updated bool, err error) {
+// cleanupLanhcService deletes any Lanhc Service by the provided name if it is not owned by operator instances other than this one.
+// If a Lanhc Service is found, but contains other owner references, only removes this operator's owner reference.
+// If a Lanhc Service by the given name is not found or does not contain this operator's owner reference, do nothing.
+// It returns true if an existing Lanhc Service was updated to remove owner reference, as well as any error that occurred.
+func cleanupLanhcService(ctx context.Context, tsClient tsclient.Client, name string, operatorID string, logger *zap.SugaredLogger) (updated bool, err error) {
 	svc, err := tsClient.VIPServices().Get(ctx, name)
 	switch {
-	case tailscale.IsNotFound(err):
+	case lanhcclient.IsNotFound(err):
 		return false, nil
 	case err != nil:
-		return false, fmt.Errorf("unexpected error getting Tailscale Service %q: %w", name, err)
+		return false, fmt.Errorf("unexpected error getting Lanhc Service %q: %w", name, err)
 	}
 
 	if svc == nil {
@@ -532,7 +532,7 @@ func cleanupTailscaleService(ctx context.Context, tsClient tsclient.Client, name
 
 	o, err := parseOwnerAnnotation(svc)
 	if err != nil {
-		return false, fmt.Errorf("error parsing Tailscale Service owner annotation: %w", err)
+		return false, fmt.Errorf("error parsing Lanhc Service owner annotation: %w", err)
 	}
 
 	if o == nil || len(o.OwnerRefs) == 0 {
@@ -540,7 +540,7 @@ func cleanupTailscaleService(ctx context.Context, tsClient tsclient.Client, name
 	}
 
 	// Comparing with the operatorID only means that we will not be able to
-	// clean up Tailscale Services in cases where the operator was deleted from the
+	// clean up Lanhc Services in cases where the operator was deleted from the
 	// cluster before deleting the Ingress. Perhaps the comparison could be
 	// 'if or.OperatorID == r.operatorID || or.ingressUID == r.ingressUID'.
 	ix := slices.IndexFunc(o.OwnerRefs, func(or OwnerRef) bool {
@@ -551,16 +551,16 @@ func cleanupTailscaleService(ctx context.Context, tsClient tsclient.Client, name
 	}
 
 	if len(o.OwnerRefs) == 1 {
-		logger.Infof("Deleting Tailscale Service %q", name)
+		logger.Infof("Deleting Lanhc Service %q", name)
 		return false, tsClient.VIPServices().Delete(ctx, name)
 	}
 
 	o.OwnerRefs = slices.Delete(o.OwnerRefs, ix, ix+1)
-	logger.Infof("Updating Tailscale Service %q", name)
+	logger.Infof("Updating Lanhc Service %q", name)
 
 	data, err := json.Marshal(o)
 	if err != nil {
-		return false, fmt.Errorf("error marshalling updated Tailscale Service owner reference: %w", err)
+		return false, fmt.Errorf("error marshalling updated Lanhc Service owner reference: %w", err)
 	}
 
 	svc.Annotations[ownerAnnotation] = string(data)
@@ -600,7 +600,7 @@ func (r *HAServiceReconciler) backendRoutesSetup(ctx context.Context, serviceNam
 		return false, fmt.Errorf("error checking ingress config status: %w", err)
 	}
 	if !statusUpToDate || !reflect.DeepEqual(gotCfgs.Configs.GetConfig(serviceName), wantsCfg) {
-		logger.Debugf("Pod %q is not ready to advertise Tailscale Service", pod.Name)
+		logger.Debugf("Pod %q is not ready to advertise Lanhc Service", pod.Name)
 		return false, nil
 	}
 	return true, nil
@@ -727,7 +727,7 @@ func (r *HAServiceReconciler) numberPodsAdvertising(ctx context.Context, pgName 
 	return count, nil
 }
 
-// dnsNameForService returns the DNS name for the given Tailscale Service name.
+// dnsNameForService returns the DNS name for the given Lanhc Service name.
 func dnsNameForService(ctx context.Context, cl client.Client, svc tailcfg.ServiceName, pg *tsapi.ProxyGroup, namespace string) (string, error) {
 	s := svc.WithoutPrefix()
 
@@ -838,7 +838,7 @@ func (r *HAServiceReconciler) validateService(ctx context.Context, svc *corev1.S
 		// namespace; flagging them as duplicates here breaks multi-tailnet
 		// setups where a single-proxy Service on the primary tailnet shares
 		// a hostname with a ProxyGroup ingress on a secondary tailnet.
-		if !r.isTailscaleService(&s) {
+		if !r.isLanhcService(&s) {
 			continue
 		}
 		if nameForService(&s) != svcName {

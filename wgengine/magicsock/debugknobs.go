@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"tailscale.com/envknob"
+	"lanhc.com/envknob"
 )
 
 // Various debugging and experimental tweakables, set by environment
@@ -79,8 +79,8 @@ var (
 func inTest() bool { return envknob.Bool("IN_TS_TEST") }
 
 // pretendpoints returns TS_DEBUG_PRETENDPOINT as []AddrPort, if set.
-// See https://github.com/tailscale/tailscale/issues/12578 and
-// https://github.com/tailscale/tailscale/pull/12735.
+// See https://github.com/lanhc/lanhc/issues/12578 and
+// https://github.com/lanhc/lanhc/pull/12735.
 //
 // It can be between 0 and 3 comma-separated AddrPorts.
 var pretendpoints = sync.OnceValue(func() (ret []netip.AddrPort) {

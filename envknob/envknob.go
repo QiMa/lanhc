@@ -4,8 +4,8 @@
 // Package envknob provides access to environment-variable tweakable
 // debug settings.
 //
-// These are primarily knobs used by Tailscale developers during
-// development or by users when instructed to by Tailscale developers
+// These are primarily knobs used by Lanhc developers during
+// development or by users when instructed to by Lanhc developers
 // when debugging something. They are not a stable interface and may
 // be removed or any time.
 //
@@ -31,13 +31,13 @@ import (
 	"sync/atomic"
 	"time"
 
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/syncs"
-	"tailscale.com/types/opt"
-	"tailscale.com/util/testenv"
-	"tailscale.com/version"
-	"tailscale.com/version/distro"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/syncs"
+	"lanhc.com/types/opt"
+	"lanhc.com/util/testenv"
+	"lanhc.com/version"
+	"lanhc.com/version/distro"
 )
 
 var (
@@ -401,11 +401,11 @@ func LookupUintSized(envVar string, base, bitSize int) (v uint, ok bool) {
 	panic("unreachable")
 }
 
-// UseWIPCode is whether TAILSCALE_USE_WIP_CODE is set to permit use
+// UseWIPCode is whether LANHC_USE_WIP_CODE is set to permit use
 // of Work-In-Progress code.
-func UseWIPCode() bool { return Bool("TAILSCALE_USE_WIP_CODE") }
+func UseWIPCode() bool { return Bool("LANHC_USE_WIP_CODE") }
 
-// CanSSHD reports whether the Tailscale SSH server is allowed to run.
+// CanSSHD reports whether the Lanhc SSH server is allowed to run.
 //
 // If disabled (when this reports false), the SSH server won't start (won't
 // intercept port 22) if previously configured to do so and any attempt to
@@ -429,10 +429,10 @@ func TKASkipSignatureCheck() bool { return Bool("TS_UNSAFE_SKIP_NKS_VERIFICATION
 // AssumeNetworkUp reports whether to assume network connectivity for development.
 func AssumeNetworkUp() bool { return Bool("TS_ASSUME_NETWORK_UP_FOR_TEST") }
 
-// App returns the tailscale app type of this instance, if set via
+// App returns the lanhc app type of this instance, if set via
 // TS_INTERNAL_APP env var. TS_INTERNAL_APP can be used to set app type for
-// components that wrap tailscaled, such as containerboot. App type is intended
-// to only be used to set known predefined app types, such as Tailscale
+// components that wrap lanhcd, such as containerboot. App type is intended
+// to only be used to set known predefined app types, such as Lanhc
 // Kubernetes Operator components.
 func App() string {
 	a := os.Getenv("TS_INTERNAL_APP")
@@ -465,7 +465,7 @@ func IsCertShareReadWriteMode() bool {
 	return m == "rw"
 }
 
-// CrashOnUnexpected reports whether the Tailscale client should panic
+// CrashOnUnexpected reports whether the Lanhc client should panic
 // on unexpected conditions. If TS_DEBUG_CRASH_ON_UNEXPECTED is set, that's
 // used. Otherwise the default value is true for unstable builds.
 func CrashOnUnexpected() bool {
@@ -486,7 +486,7 @@ func NoLogsNoSupport() bool {
 var allowRemoteUpdate = RegisterBool("TS_ALLOW_ADMIN_CONSOLE_REMOTE_UPDATE")
 
 // AllowsRemoteUpdate reports whether this node has opted-in to letting the
-// Tailscale control plane initiate a Tailscale update (e.g. on behalf of an
+// Lanhc control plane initiate a Lanhc update (e.g. on behalf of an
 // admin on the admin console).
 func AllowsRemoteUpdate() bool {
 	if !buildfeatures.HasClientUpdate {
@@ -554,17 +554,17 @@ func ApplyDiskConfigError() error { return applyDiskConfigErr }
 //
 // It exists primarily for Windows and macOS to make it easy to apply
 // environment variables to a running service in a way similar to modifying
-// /etc/default/tailscaled on Linux.
+// /etc/default/lanhcd on Linux.
 //
-// On Windows, you use %ProgramData%\Tailscale\tailscaled-env.txt instead.
+// On Windows, you use %ProgramData%\Lanhc\lanhcd-env.txt instead.
 //
 // On macOS, use one of:
 //
-//   - /private/var/root/Library/Containers/io.tailscale.ipn.macsys.network-extension/Data/tailscaled-env.txt
+//   - /private/var/root/Library/Containers/io.lanhc.ipn.macsys.network-extension/Data/lanhcd-env.txt
 //     for standalone macOS GUI builds
-//   - ~/Library/Containers/io.tailscale.ipn.macos.network-extension/Data/tailscaled-env.txt
+//   - ~/Library/Containers/io.lanhc.ipn.macos.network-extension/Data/lanhcd-env.txt
 //     for App Store builds
-//   - /etc/tailscale/tailscaled-env.txt for tailscaled-on-macOS (homebrew, etc)
+//   - /etc/lanhc/lanhcd-env.txt for lanhcd-on-macOS (homebrew, etc)
 func ApplyDiskConfig() (err error) {
 	if runtime.GOOS == "linux" && !(buildfeatures.HasDebug || buildfeatures.HasSynology) {
 		// This function does nothing on Linux, unless you're
@@ -622,43 +622,43 @@ func ApplyDiskConfig() (err error) {
 }
 
 // getPlatformEnvFiles returns a list of paths to the current platform's
-// optional tailscaled-env.txt file. It returns an empty list if none is
+// optional lanhcd-env.txt file. It returns an empty list if none is
 // defined for the platform.
 func getPlatformEnvFiles() []string {
 	switch runtime.GOOS {
 	case "windows":
 		return []string{
-			filepath.Join(os.Getenv("ProgramData"), "Tailscale", "tailscaled-env.txt"),
+			filepath.Join(os.Getenv("ProgramData"), "Lanhc", "lanhcd-env.txt"),
 		}
 	case "linux":
 		if buildfeatures.HasSynology && distro.Get() == distro.Synology {
-			return []string{"/etc/tailscale/tailscaled-env.txt"}
+			return []string{"/etc/lanhc/lanhcd-env.txt"}
 		}
 	case "darwin":
 		if version.IsSandboxedMacOS() { // the two GUI variants (App Store or separate download)
 			// On the App Store variant, the home directory is set
 			// to something like:
-			//	~/Library/Containers/io.tailscale.ipn.macos.network-extension/Data
+			//	~/Library/Containers/io.lanhc.ipn.macos.network-extension/Data
 			//
 			// On the macsys (downloadable Mac GUI) variant, the
 			// home directory can be unset, but we have a working
 			// directory that looks like:
-			//	/private/var/root/Library/Containers/io.tailscale.ipn.macsys.network-extension/Data
+			//	/private/var/root/Library/Containers/io.lanhc.ipn.macsys.network-extension/Data
 			//
 			// Try both and see if we can find the file in either
 			// location.
 			var candidates []string
 			if home := os.Getenv("HOME"); home != "" {
-				candidates = append(candidates, filepath.Join(home, "tailscaled-env.txt"))
+				candidates = append(candidates, filepath.Join(home, "lanhcd-env.txt"))
 			}
 			if wd, err := os.Getwd(); err == nil {
-				candidates = append(candidates, filepath.Join(wd, "tailscaled-env.txt"))
+				candidates = append(candidates, filepath.Join(wd, "lanhcd-env.txt"))
 			}
 
 			return candidates
 		} else {
-			// Open source / homebrew variable, running tailscaled-on-macOS.
-			return []string{"/etc/tailscale/tailscaled-env.txt"}
+			// Open source / homebrew variable, running lanhcd-on-macOS.
+			return []string{"/etc/lanhc/lanhcd-env.txt"}
 		}
 	}
 	return nil

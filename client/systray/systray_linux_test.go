@@ -20,13 +20,13 @@ import (
 	"time"
 
 	dbus "github.com/godbus/dbus/v5"
-	"tailscale.com/client/local"
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
-	"tailscale.com/util/cibuild"
+	"lanhc.com/client/local"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
+	"lanhc.com/util/cibuild"
 )
 
 // startSessionBus starts a private dbus session bus for the test and
@@ -104,12 +104,12 @@ func startFakeWatcher(t *testing.T, addr string) <-chan string {
 	return watcher.registered
 }
 
-// startFakeLocalAPI serves a fake tailscaled LocalAPI on a unix socket
+// startFakeLocalAPI serves a fake lanhcd LocalAPI on a unix socket
 // and returns the socket path.
 //
 // The fake reports a running backend with the suggest-exit-node-ui node
 // attribute, and suggests an exit node that has no Location. This mirrors
-// the tailnet in https://github.com/tailscale/tailscale/issues/20678 where
+// the tailnet in https://github.com/lanhc/lanhc/issues/20678 where
 // building the exit node menu panicked.
 func startFakeLocalAPI(t *testing.T) string {
 	t.Helper()
@@ -119,7 +119,7 @@ func startFakeLocalAPI(t *testing.T) string {
 		PublicKey:    key.NewNode().Public(),
 		HostName:     "self-host",
 		DNSName:      "self-host.example.ts.net.",
-		TailscaleIPs: []netip.Addr{netip.MustParseAddr("100.64.0.1")},
+		LanhcIPs: []netip.Addr{netip.MustParseAddr("100.64.0.1")},
 		Online:       true,
 		CapMap: tailcfg.NodeCapMap{
 			tailcfg.NodeAttrSuggestExitNodeUI: nil,
@@ -130,7 +130,7 @@ func startFakeLocalAPI(t *testing.T) string {
 		PublicKey:      key.NewNode().Public(),
 		HostName:       "exit1",
 		DNSName:        "exit1.example.ts.net.",
-		TailscaleIPs:   []netip.Addr{netip.MustParseAddr("100.64.0.2")},
+		LanhcIPs:   []netip.Addr{netip.MustParseAddr("100.64.0.2")},
 		Online:         true,
 		ExitNodeOption: true,
 	}
@@ -180,7 +180,7 @@ func startFakeLocalAPI(t *testing.T) string {
 		serveJSON(w, struct{}{})
 	})
 
-	sock := filepath.Join(t.TempDir(), "tailscaled.sock")
+	sock := filepath.Join(t.TempDir(), "lanhcd.sock")
 	ln, err := net.Listen("unix", sock)
 	if err != nil {
 		t.Fatal(err)

@@ -26,9 +26,9 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/atomicfile"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tempfork/acme"
+	"lanhc.com/atomicfile"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tempfork/acme"
 )
 
 // shortlivedProfile is the ACME certificate profile required by
@@ -96,7 +96,7 @@ func newIPCertManager(certdir, email, directoryURL string, next certProvider) (*
 		client: &acme.Client{
 			Key:          accountKey,
 			DirectoryURL: directoryURL,
-			UserAgent:    "tailscale-derper",
+			UserAgent:    "lanhc-derper",
 		},
 		next:   next,
 		certs:  make(map[netip.Addr]*ipCertEntry),
@@ -456,7 +456,7 @@ func (m *ipCertManager) obtainCert(ctx context.Context, ip netip.Addr) error {
 		HostName: ipStr,
 	}
 	dnJSON, _ := json.Marshal(dn)
-	log.Printf("derper: acme: got cert for %v (expires %v). Configure it in DERPMap using (https://tailscale.com/s/custom-derp):\n  %s", ip, leaf.NotAfter, dnJSON)
+	log.Printf("derper: acme: got cert for %v (expires %v). Configure it in DERPMap using (https://lanhc.com/s/custom-derp):\n  %s", ip, leaf.NotAfter, dnJSON)
 	return nil
 }
 

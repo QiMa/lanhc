@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"maps"
 
-	"tailscale.com/types/tkatype"
+	"lanhc.com/types/tkatype"
 )
 
 // KeyKind describes the different varieties of a Key.

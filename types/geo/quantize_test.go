@@ -7,7 +7,7 @@ import (
 	"testing"
 	"testing/quick"
 
-	"tailscale.com/types/geo"
+	"lanhc.com/types/geo"
 )
 
 func TestPointAnonymize(t *testing.T) {

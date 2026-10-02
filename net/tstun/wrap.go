@@ -21,27 +21,27 @@ import (
 	"github.com/tailscale/wireguard-go/device"
 	"github.com/tailscale/wireguard-go/tun"
 	"go4.org/mem"
-	"tailscale.com/disco"
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/net/packet"
-	"tailscale.com/net/packet/checksum"
-	"tailscale.com/net/routemanager"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/syncs"
-	"tailscale.com/tstime/mono"
-	"tailscale.com/types/events"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/netlogfunc"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/usermetric"
-	"tailscale.com/wgengine/filter"
-	"tailscale.com/wgengine/netstack/gro"
-	"tailscale.com/wgengine/wgcfg"
+	"lanhc.com/disco"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/net/packet"
+	"lanhc.com/net/packet/checksum"
+	"lanhc.com/net/routemanager"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/syncs"
+	"lanhc.com/tstime/mono"
+	"lanhc.com/types/events"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/netlogfunc"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/usermetric"
+	"lanhc.com/wgengine/filter"
+	"lanhc.com/wgengine/netstack/gro"
+	"lanhc.com/wgengine/wgcfg"
 )
 
 const maxBufferSize = device.MaxMessageSize
@@ -206,7 +206,7 @@ type Wrapper struct {
 	// OnUnmappedTransitIPMessage, if non-nil, is called when a TSMP message is
 	// received indicating that a packet was rejected by a connector due to a
 	// missing transit IP->real IP mapping.
-	OnUnmappedTransitIPMessage func(packet.TailscaleRejectedHeader)
+	OnUnmappedTransitIPMessage func(packet.LanhcRejectedHeader)
 
 	// PeerAPIPort, if non-nil, returns the peerapi port that's
 	// running for the given IP address.
@@ -269,7 +269,7 @@ type tunVectorReadResult struct {
 // Start unblocks any Wrapper.Read calls that have already started
 // and makes the Wrapper functional.
 //
-// Start must be called exactly once after the various Tailscale
+// Start must be called exactly once after the various Lanhc
 // subsystems have been wired up to each other.
 func (w *Wrapper) Start() {
 	w.started.Store(true)
@@ -571,7 +571,7 @@ func (pc *peerConfigTable) dnat(p *packet.Parsed) {
 //
 // The nil value is a valid configuration.
 type peerConfigTable struct {
-	// nativeAddr4 and nativeAddr6 are the IPv4/IPv6 Tailscale Addresses of
+	// nativeAddr4 and nativeAddr6 are the IPv4/IPv6 Lanhc Addresses of
 	// the current node.
 	//
 	// These are implicitly used as the address to rewrite to in the DNAT
@@ -629,7 +629,7 @@ func (pc *peerConfigTable) selectSrcIP(oldSrc, dst netip.Addr) netip.Addr {
 		return oldSrc
 	}
 
-	// If this packet doesn't originate from this Tailscale node, don't
+	// If this packet doesn't originate from this Lanhc node, don't
 	// SNAT it (e.g. if we're a subnet router).
 	if oldSrc.Is4() && oldSrc != pc.nativeAddr4 {
 		return oldSrc
@@ -692,14 +692,14 @@ type SetIPer interface {
 func (t *Wrapper) SetWGConfig(wcfg *wgcfg.Config) {
 	if t.isTAP {
 		if sip, ok := t.tdev.(SetIPer); ok {
-			sip.SetIP(tsaddr.FirstTailscaleAddrs(slices.All(wcfg.Addresses)))
+			sip.SetIP(tsaddr.FirstLanhcAddrs(slices.All(wcfg.Addresses)))
 		}
 	}
 }
 
-// SetPeerRoutes is called whenever this node's Tailscale addresses or
+// SetPeerRoutes is called whenever this node's Lanhc addresses or
 // the route manager's outbound table change. native4 and native6 are
-// this node's own Tailscale addresses, and routes maps each peer's
+// this node's own Lanhc addresses, and routes maps each peer's
 // addresses and routed prefixes to its route attributes.
 //
 // A nil routes table disables all per-packet peer processing (NAT
@@ -738,8 +738,8 @@ func (t *Wrapper) SetPeerRoutes(native4, native6 netip.Addr, routes *bart.Table[
 }
 
 var (
-	magicDNSIPPort   = netip.AddrPortFrom(tsaddr.TailscaleServiceIP(), 0) // 100.100.100.100:0
-	magicDNSIPPortv6 = netip.AddrPortFrom(tsaddr.TailscaleServiceIPv6(), 0)
+	magicDNSIPPort   = netip.AddrPortFrom(tsaddr.LanhcServiceIP(), 0) // 100.100.100.100:0
+	magicDNSIPPortv6 = netip.AddrPortFrom(tsaddr.LanhcServiceIPv6(), 0)
 )
 
 func (t *Wrapper) filterPacketOutboundToWireGuard(p *packet.Parsed, pc *peerConfigTable, gro *gro.GRO) (filter.Response, *gro.GRO) {
@@ -761,7 +761,7 @@ func (t *Wrapper) filterPacketOutboundToWireGuard(p *packet.Parsed, pc *peerConf
 		}
 	}
 
-	// TSMP traffic should only originate from tailscaled, not from the host
+	// TSMP traffic should only originate from lanhcd, not from the host
 	// itself.
 	if p.IPProto == ipproto.TSMP {
 		t.limitedLogf("[unexpected] received TSMP out packet over tstun; dropping")
@@ -770,7 +770,7 @@ func (t *Wrapper) filterPacketOutboundToWireGuard(p *packet.Parsed, pc *peerConf
 	}
 
 	// Issue 1526 workaround: if we sent disco packets over
-	// Tailscale from ourselves, then drop them, as that shouldn't
+	// Lanhc from ourselves, then drop them, as that shouldn't
 	// happen unless a networking stack is confused, as it seems
 	// macOS in Network Extension mode might be.
 	if p.IPProto == ipproto.UDP && // disco is over UDP; avoid isSelfDisco call for TCP/etc
@@ -860,7 +860,7 @@ func (t *Wrapper) awaitStart() {
 		case <-t.startCh:
 			return
 		case <-time.After(1 * time.Second):
-			// Multiple times while remixing tailscaled I (Brad) have forgotten
+			// Multiple times while remixing lanhcd I (Brad) have forgotten
 			// to call Start and then wasted far too much time debugging.
 			// I do not wish that debugging on anyone else. Hopefully this'll help:
 			t.logf("tstun: awaiting Wrapper.Start call")
@@ -1117,7 +1117,7 @@ func (t *Wrapper) filterPacketInboundFromWireGuard(p *packet.Parsed, captHook pa
 			if f := t.OnTSMPPongReceived; f != nil {
 				f(data)
 			}
-		} else if data, ok := p.AsTailscaleRejectedHeader(); ok {
+		} else if data, ok := p.AsLanhcRejectedHeader(); ok {
 			if data.Reason == packet.RejectedDueToUnknownAppConnectorTransitIP {
 				if f := t.OnUnmappedTransitIPMessage; f != nil {
 					f(data)
@@ -1135,7 +1135,7 @@ func (t *Wrapper) filterPacketInboundFromWireGuard(p *packet.Parsed, captHook pa
 	}
 
 	// Issue 1526 workaround: if we see disco packets over
-	// Tailscale from ourselves, then drop them, as that shouldn't
+	// Lanhc from ourselves, then drop them, as that shouldn't
 	// happen unless a networking stack is confused, as it seems
 	// macOS in Network Extension mode might be.
 	if p.IPProto == ipproto.UDP && // disco is over UDP; avoid isSelfDisco call for TCP/etc
@@ -1181,10 +1181,10 @@ func (t *Wrapper) filterPacketInboundFromWireGuard(p *packet.Parsed, captHook pa
 
 		// Tell them, via TSMP, we're dropping them due to the ACL.
 		// Their host networking stack can translate this into ICMP
-		// or whatnot as required. But notably, their GUI or tailscale CLI
+		// or whatnot as required. But notably, their GUI or lanhc CLI
 		// can show them a rejection history with reasons.
 		if p.IPVersion == 4 && p.IPProto == ipproto.TCP && p.TCPFlags&packet.TCPSyn != 0 && !t.disableTSMPRejected {
-			rj := packet.TailscaleRejectedHeader{
+			rj := packet.LanhcRejectedHeader{
 				IPSrc:  p.Dst.Addr(),
 				IPDst:  p.Src.Addr(),
 				Src:    p.Src,

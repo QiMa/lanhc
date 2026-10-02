@@ -14,8 +14,8 @@ import (
 	"slices"
 
 	"go4.org/mem"
-	"tailscale.com/util/set"
-	"tailscale.com/util/testenv"
+	"lanhc.com/util/set"
+	"lanhc.com/util/testenv"
 )
 
 // rand fills b with cryptographically strong random bytes. Panics if
@@ -100,7 +100,7 @@ func fromHexChar(c byte) (byte, bool) {
 	return 0, false
 }
 
-// debug32 returns the Tailscale conventional debug representation of
+// debug32 returns the Lanhc conventional debug representation of
 // a key: the first five base64 digits of the key, in square brackets.
 func debug32(k [32]byte) string {
 	if k == [32]byte{} {

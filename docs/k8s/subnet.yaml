@@ -5,13 +5,13 @@ kind: Pod
 metadata:
   name: subnet-router
   labels:
-    app: tailscale
+    app: lanhc
 spec:
   serviceAccountName: "{{SA_NAME}}"
   containers:
-  - name: tailscale
+  - name: lanhc
     imagePullPolicy: Always
-    image: "ghcr.io/tailscale/tailscale:latest"
+    image: "ghcr.io/lanhc/lanhc:latest"
     env:
     # Store the state in a k8s secret
     - name: TS_KUBE_SECRET
@@ -23,7 +23,7 @@ spec:
     - name: TS_AUTHKEY
       valueFrom:
         secretKeyRef:
-          name: tailscale-auth
+          name: lanhc-auth
           key: TS_AUTHKEY
           optional: true
     - name: TS_ROUTES

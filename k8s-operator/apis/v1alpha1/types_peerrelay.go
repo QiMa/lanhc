@@ -31,7 +31,7 @@ type PeerRelay struct {
 	Spec PeerRelaySpec `json:"spec"`
 
 	// Status describes the status of the PeerRelay. This is set
-	// and managed by the Tailscale operator.
+	// and managed by the Lanhc operator.
 	// +optional
 	Status PeerRelayStatus `json:"status"`
 }
@@ -47,14 +47,14 @@ type PeerRelayList struct {
 
 // +kubebuilder:validation:XValidation:rule="!has(self.aws) || !has(self.aws.elasticIPs) || self.aws.elasticIPs.size() >= self.replicas",message="spec.aws.elasticIPs must contain at least one entry per replica"
 type PeerRelaySpec struct {
-	// Tags that the Tailscale node will be tagged with.
+	// Tags that the Lanhc node will be tagged with.
 	// Defaults to [tag:k8s].
 	// To autoapprove the device defined by a PeerRelay,
-	// you can configure Tailscale ACLs to give these tags the necessary
+	// you can configure Lanhc ACLs to give these tags the necessary
 	// permissions.
-	// See https://tailscale.com/kb/1337/acl-syntax#autoapprovers.
+	// See https://lanhc.com/kb/1337/acl-syntax#autoapprovers.
 	// If you specify custom tags here, you must also make the operator an owner of these tags.
-	// See  https://tailscale.com/kb/1236/kubernetes-operator/#setting-up-the-kubernetes-operator.
+	// See  https://lanhc.com/kb/1236/kubernetes-operator/#setting-up-the-kubernetes-operator.
 	// Tags cannot be changed once a PeerRelay node has been created.
 	// Tag values must be in form ^tag:[a-zA-Z][a-zA-Z0-9-]*$.
 	// +optional
@@ -77,7 +77,7 @@ type PeerRelaySpec struct {
 
 	// Replicas specifies how many devices to create. Set this to enable
 	// high availability for peer relays.
-	// https://tailscale.com/kb/1115/high-availability. Defaults to 1.
+	// https://lanhc.com/kb/1115/high-availability. Defaults to 1.
 	// +optional
 	// +kubebuilder:validation:Minimum=0
 	// +kubebuilder:default=1

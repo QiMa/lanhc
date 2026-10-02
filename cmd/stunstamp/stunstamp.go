@@ -34,14 +34,14 @@ import (
 	"github.com/golang/snappy"
 	"github.com/prometheus/prometheus/prompb"
 	"github.com/tcnksm/go-httpstat"
-	"tailscale.com/net/stun"
-	"tailscale.com/net/tcpinfo"
-	"tailscale.com/tailcfg"
-	"tailscale.com/util/backoff"
+	"lanhc.com/net/stun"
+	"lanhc.com/net/tcpinfo"
+	"lanhc.com/tailcfg"
+	"lanhc.com/util/backoff"
 )
 
 var (
-	flagDERPMap        = flag.String("derp-map", "https://login.tailscale.com/derpmap/default", "URL to DERP map")
+	flagDERPMap        = flag.String("derp-map", "https://login.lanhc.com/derpmap/default", "URL to DERP map")
 	flagInterval       = flag.Duration("interval", time.Minute, "interval to probe at in time.ParseDuration() format")
 	flagIPv6           = flag.Bool("ipv6", false, "probe IPv6 addresses")
 	flagRemoteWriteURL = flag.String("rw-url", "", "prometheus remote write URL")

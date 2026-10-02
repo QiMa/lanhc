@@ -10,13 +10,13 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/ipn"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/key"
-	"tailscale.com/types/netmap"
-	"tailscale.com/util/must"
-	"tailscale.com/wgengine/filter"
+	"lanhc.com/ipn"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/key"
+	"lanhc.com/types/netmap"
+	"lanhc.com/util/must"
+	"lanhc.com/wgengine/filter"
 )
 
 // waitFor blocks until the LocalBackend's current netmap satisfies the given

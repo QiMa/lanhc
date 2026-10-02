@@ -9,11 +9,11 @@ import (
 	"strings"
 	"testing"
 
-	"tailscale.com/tstest/natlab/vmtest"
+	"lanhc.com/tstest/natlab/vmtest"
 )
 
 // TestWebClientLocalAccess verifies that, after enabling the web client on a
-// single node, the node's own Tailscale IP responds on port 5252 and that a
+// single node, the node's own Lanhc IP responds on port 5252 and that a
 // same-node session can be created and used to access the management UI as
 // the owner.
 func TestWebClientLocalAccess(t *testing.T) {
@@ -55,12 +55,12 @@ func TestWebClientRemoteAccess(t *testing.T) {
 	assertSessionRejectedNotOwner(t, env, client, baseURL)
 }
 
-// enableWebClient turns on the management web client on n via "tailscale set
+// enableWebClient turns on the management web client on n via "lanhc set
 // --webclient", fataling the test on error.
 func enableWebClient(t *testing.T, env *vmtest.Env, n *vmtest.Node) {
 	t.Helper()
-	if out, err := env.Tailscale(n, "set", "--webclient"); err != nil {
-		t.Fatalf("tailscale set --webclient on %s: %v\n%s", n.Name(), err, out)
+	if out, err := env.Lanhc(n, "set", "--webclient"); err != nil {
+		t.Fatalf("lanhc set --webclient on %s: %v\n%s", n.Name(), err, out)
 	}
 }
 
@@ -69,10 +69,10 @@ func enableWebClient(t *testing.T, env *vmtest.Env, n *vmtest.Node) {
 func webClientBaseURL(t *testing.T, env *vmtest.Env, n *vmtest.Node) string {
 	t.Helper()
 	st := env.Status(n)
-	if st.Self == nil || len(st.Self.TailscaleIPs) == 0 {
-		t.Fatalf("%s has no Tailscale IPs; status=%+v", n.Name(), st)
+	if st.Self == nil || len(st.Self.LanhcIPs) == 0 {
+		t.Fatalf("%s has no Lanhc IPs; status=%+v", n.Name(), st)
 	}
-	return fmt.Sprintf("http://%s:5252", st.Self.TailscaleIPs[0])
+	return fmt.Sprintf("http://%s:5252", st.Self.LanhcIPs[0])
 }
 
 // viewerName returns the DNS-name form (no trailing dot) that the web client
@@ -102,7 +102,7 @@ func viewerName(t *testing.T, env *vmtest.Env, n *vmtest.Node) string {
 //
 // This exercises the check-mode path in client/web/auth.go (the
 // controlSupportsCheckMode branch), which fires for the natlab test control
-// server's hostname (control.tailscale).
+// server's hostname (control.lanhc).
 //
 // Use this for both same-node (self-as-owner) and cross-node-same-user
 // (peer-as-owner) paths: the assertions are identical.

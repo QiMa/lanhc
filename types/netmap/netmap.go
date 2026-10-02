@@ -13,13 +13,13 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tka"
-	"tailscale.com/types/key"
-	"tailscale.com/types/views"
-	"tailscale.com/util/set"
-	"tailscale.com/wgengine/filter/filtertype"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tka"
+	"lanhc.com/types/key"
+	"lanhc.com/types/views"
+	"lanhc.com/util/set"
+	"lanhc.com/wgengine/filter/filtertype"
 )
 
 // NetworkMap is the current state of the world.
@@ -102,7 +102,7 @@ func (nm *NetworkMap) GetAddresses() views.Slice[netip.Prefix] {
 // VIP addresses that correspond to the service. The service names are
 // with the prefix "svc:".
 //
-// TODO(tailscale/corp##25997): cache the result of decoding the capmap so that
+// TODO(lanhc/corp##25997): cache the result of decoding the capmap so that
 // we don't have to decode it multiple times after each netmap update.
 func (nm *NetworkMap) GetVIPServiceIPMap() tailcfg.ServiceIPMappings {
 	if nm == nil {
@@ -185,9 +185,9 @@ func (nm *NetworkMap) SelfNodeOrZero() tailcfg.NodeView {
 // AnyPeersAdvertiseRoutes reports whether any peer is advertising non-exit node routes.
 func (nm *NetworkMap) AnyPeersAdvertiseRoutes() bool {
 	for _, p := range nm.Peers {
-		// NOTE: (ChaosInTheCRD) if the peer being advertised is a tailscale ip, we ignore it in this check
+		// NOTE: (ChaosInTheCRD) if the peer being advertised is a lanhc ip, we ignore it in this check
 		for _, r := range p.PrimaryRoutes().All() {
-			if !tsaddr.IsTailscaleIP(r.Addr()) || !r.IsSingleIP() {
+			if !tsaddr.IsLanhcIP(r.Addr()) || !r.IsSingleIP() {
 				return true
 			}
 		}
@@ -211,10 +211,10 @@ func (nm *NetworkMap) HasCap(c tailcfg.NodeCapability) bool {
 	return nm != nil && nm.AllCaps.Contains(c)
 }
 
-// PeerByTailscaleIP returns a peer's Node based on its Tailscale IP.
+// PeerByLanhcIP returns a peer's Node based on its Lanhc IP.
 //
 // If nm is nil or no peer is found, ok is false.
-func (nm *NetworkMap) PeerByTailscaleIP(ip netip.Addr) (peer tailcfg.NodeView, ok bool) {
+func (nm *NetworkMap) PeerByLanhcIP(ip netip.Addr) (peer tailcfg.NodeView, ok bool) {
 	// TODO(bradfitz):
 	if nm == nil {
 		return tailcfg.NodeView{}, false

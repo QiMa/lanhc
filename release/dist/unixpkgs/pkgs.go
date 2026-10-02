@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package unixpkgs contains dist Targets for building unix Tailscale packages.
+// Package unixpkgs contains dist Targets for building unix Lanhc packages.
 package unixpkgs
 
 import (
@@ -17,7 +17,7 @@ import (
 
 	"github.com/goreleaser/nfpm/v2"
 	"github.com/goreleaser/nfpm/v2/files"
-	"tailscale.com/release/dist"
+	"lanhc.com/release/dist"
 )
 
 type tgzTarget struct {
@@ -46,18 +46,18 @@ func (t *tgzTarget) Build(b *dist.Build) ([]string, error) {
 	if t.goEnv["GOOS"] == "linux" {
 		// Linux used to be the only tgz architecture, so we didn't put the OS
 		// name in the filename.
-		filename = fmt.Sprintf("tailscale_%s_%s.tgz", b.Version.Short, t.arch())
+		filename = fmt.Sprintf("lanhc_%s_%s.tgz", b.Version.Short, t.arch())
 	} else {
-		filename = fmt.Sprintf("tailscale_%s_%s_%s.tgz", b.Version.Short, t.os(), t.arch())
+		filename = fmt.Sprintf("lanhc_%s_%s_%s.tgz", b.Version.Short, t.os(), t.arch())
 	}
 	if err := b.BuildWebClientAssets(); err != nil {
 		return nil, err
 	}
-	ts, err := b.BuildGoBinary("tailscale.com/cmd/tailscale", t.goEnv)
+	ts, err := b.BuildGoBinary("lanhc.com/cmd/lanhc", t.goEnv)
 	if err != nil {
 		return nil, err
 	}
-	tsd, err := b.BuildGoBinary("tailscale.com/cmd/tailscaled", t.goEnv)
+	tsd, err := b.BuildGoBinary("lanhc.com/cmd/lanhcd", t.goEnv)
 	if err != nil {
 		return nil, err
 	}
@@ -119,10 +119,10 @@ func (t *tgzTarget) Build(b *dist.Build) ([]string, error) {
 	if err := addDir(dir); err != nil {
 		return nil, err
 	}
-	if err := addFile(tsd, filepath.Join(dir, "tailscaled"), 0755); err != nil {
+	if err := addFile(tsd, filepath.Join(dir, "lanhcd"), 0755); err != nil {
 		return nil, err
 	}
-	if err := addFile(ts, filepath.Join(dir, "tailscale"), 0755); err != nil {
+	if err := addFile(ts, filepath.Join(dir, "lanhc"), 0755); err != nil {
 		return nil, err
 	}
 	if t.os() == "linux" {
@@ -130,20 +130,20 @@ func (t *tgzTarget) Build(b *dist.Build) ([]string, error) {
 		if err := addDir(dir); err != nil {
 			return nil, err
 		}
-		tailscaledDir, err := b.GoPkg("tailscale.com/cmd/tailscaled")
+		lanhcdDir, err := b.GoPkg("lanhc.com/cmd/lanhcd")
 		if err != nil {
 			return nil, err
 		}
-		if err := addFile(filepath.Join(tailscaledDir, "tailscaled.service"), filepath.Join(dir, "tailscaled.service"), 0644); err != nil {
+		if err := addFile(filepath.Join(lanhcdDir, "lanhcd.service"), filepath.Join(dir, "lanhcd.service"), 0644); err != nil {
 			return nil, err
 		}
-		if err := addFile(filepath.Join(tailscaledDir, "tailscaled.defaults"), filepath.Join(dir, "tailscaled.defaults"), 0644); err != nil {
+		if err := addFile(filepath.Join(lanhcdDir, "lanhcd.defaults"), filepath.Join(dir, "lanhcd.defaults"), 0644); err != nil {
 			return nil, err
 		}
-		if err := addFile(filepath.Join(tailscaledDir, "tailscale-online.target"), filepath.Join(dir, "tailscale-online.target"), 0644); err != nil {
+		if err := addFile(filepath.Join(lanhcdDir, "lanhc-online.target"), filepath.Join(dir, "lanhc-online.target"), 0644); err != nil {
 			return nil, err
 		}
-		if err := addFile(filepath.Join(tailscaledDir, "tailscale-wait-online.service"), filepath.Join(dir, "tailscale-wait-online.service"), 0644); err != nil {
+		if err := addFile(filepath.Join(lanhcdDir, "lanhc-wait-online.service"), filepath.Join(dir, "lanhc-wait-online.service"), 0644); err != nil {
 			return nil, err
 		}
 	}
@@ -194,20 +194,20 @@ func (t *debTarget) Build(b *dist.Build) ([]string, error) {
 	if err := b.BuildWebClientAssets(); err != nil {
 		return nil, err
 	}
-	ts, err := b.BuildGoBinary("tailscale.com/cmd/tailscale", t.goEnv)
+	ts, err := b.BuildGoBinary("lanhc.com/cmd/lanhc", t.goEnv)
 	if err != nil {
 		return nil, err
 	}
-	tsd, err := b.BuildGoBinary("tailscale.com/cmd/tailscaled", t.goEnv)
+	tsd, err := b.BuildGoBinary("lanhc.com/cmd/lanhcd", t.goEnv)
 	if err != nil {
 		return nil, err
 	}
 
-	tailscaledDir, err := b.GoPkg("tailscale.com/cmd/tailscaled")
+	lanhcdDir, err := b.GoPkg("lanhc.com/cmd/lanhcd")
 	if err != nil {
 		return nil, err
 	}
-	repoDir, err := b.GoPkg("tailscale.com")
+	repoDir, err := b.GoPkg("lanhc.com")
 	if err != nil {
 		return nil, err
 	}
@@ -217,45 +217,45 @@ func (t *debTarget) Build(b *dist.Build) ([]string, error) {
 		&files.Content{
 			Type:        files.TypeFile,
 			Source:      ts,
-			Destination: "/usr/bin/tailscale",
+			Destination: "/usr/bin/lanhc",
 		},
 		&files.Content{
 			Type:        files.TypeFile,
 			Source:      tsd,
-			Destination: "/usr/sbin/tailscaled",
+			Destination: "/usr/sbin/lanhcd",
 		},
 		&files.Content{
 			Type:        files.TypeFile,
-			Source:      filepath.Join(tailscaledDir, "tailscaled.service"),
-			Destination: "/lib/systemd/system/tailscaled.service",
+			Source:      filepath.Join(lanhcdDir, "lanhcd.service"),
+			Destination: "/lib/systemd/system/lanhcd.service",
 		},
 		&files.Content{
 			Type:        files.TypeFile,
-			Source:      filepath.Join(tailscaledDir, "tailscale-online.target"),
-			Destination: "/lib/systemd/system/tailscale-online.target",
+			Source:      filepath.Join(lanhcdDir, "lanhc-online.target"),
+			Destination: "/lib/systemd/system/lanhc-online.target",
 		},
 		&files.Content{
 			Type:        files.TypeFile,
-			Source:      filepath.Join(tailscaledDir, "tailscale-wait-online.service"),
-			Destination: "/lib/systemd/system/tailscale-wait-online.service",
+			Source:      filepath.Join(lanhcdDir, "lanhc-wait-online.service"),
+			Destination: "/lib/systemd/system/lanhc-wait-online.service",
 		},
 		&files.Content{
 			Type:        files.TypeConfigNoReplace,
-			Source:      filepath.Join(tailscaledDir, "tailscaled.defaults"),
-			Destination: "/etc/default/tailscaled",
+			Source:      filepath.Join(lanhcdDir, "lanhcd.defaults"),
+			Destination: "/etc/default/lanhcd",
 		},
 	}, 0, "deb", false)
 	if err != nil {
 		return nil, err
 	}
 	info := nfpm.WithDefaults(&nfpm.Info{
-		Name:        "tailscale",
+		Name:        "lanhc",
 		Arch:        arch,
 		Platform:    "linux",
 		Version:     b.Version.Short,
-		Maintainer:  "Tailscale Inc <info@tailscale.com>",
+		Maintainer:  "Lanhc Inc <info@lanhc.com>",
 		Description: "The easiest, most secure, cross platform way to use WireGuard + oauth2 + 2FA/SSO",
-		Homepage:    "https://www.tailscale.com",
+		Homepage:    "https://www.lanhc.com",
 		License:     "MIT",
 		Section:     "net",
 		Priority:    "extra",
@@ -268,10 +268,10 @@ func (t *debTarget) Build(b *dist.Build) ([]string, error) {
 			},
 			Depends: []string{
 				// iptables is almost always required but not strictly needed.
-				// Even if you can technically run Tailscale without it (by
+				// Even if you can technically run Lanhc without it (by
 				// manually configuring nftables or userspace mode), we still
 				// mark this as "Depends" because our previous experiment in
-				// https://github.com/tailscale/tailscale/issues/9236 of making
+				// https://github.com/lanhc/lanhc/issues/9236 of making
 				// it only Recommends caused too many problems. Until our
 				// nftables table is more mature, we'd rather err on the side of
 				// wasting a little disk by including iptables for people who
@@ -280,18 +280,18 @@ func (t *debTarget) Build(b *dist.Build) ([]string, error) {
 				"iptables",
 			},
 			Recommends: []string{
-				"tailscale-archive-keyring (>= 1.35.181)",
+				"lanhc-archive-keyring (>= 1.35.181)",
 				// The "ip" command isn't needed since 2021-11-01 in
 				// 408b0923a61972ed but kept as an option as of
 				// 2021-11-18 in d24ed3f68e35e802d531371.  See
-				// https://github.com/tailscale/tailscale/issues/391.
+				// https://github.com/lanhc/lanhc/issues/391.
 				// We keep it recommended because it's usually
 				// installed anyway and it's useful for debugging. But
 				// we can live without it, so it's not Depends.
 				"iproute2",
 			},
-			Replaces:  []string{"tailscale-relay"},
-			Conflicts: []string{"tailscale-relay"},
+			Replaces:  []string{"lanhc-relay"},
+			Conflicts: []string{"lanhc-relay"},
 		},
 	})
 	pkg, err := nfpm.Get("deb")
@@ -299,7 +299,7 @@ func (t *debTarget) Build(b *dist.Build) ([]string, error) {
 		return nil, err
 	}
 
-	filename := fmt.Sprintf("tailscale_%s_%s.deb", b.Version.Short, arch)
+	filename := fmt.Sprintf("lanhc_%s_%s.deb", b.Version.Short, arch)
 	log.Printf("Building %s", filename)
 	f, err := os.Create(filepath.Join(b.Out, filename))
 	if err != nil {
@@ -341,20 +341,20 @@ func (t *rpmTarget) Build(b *dist.Build) ([]string, error) {
 	if err := b.BuildWebClientAssets(); err != nil {
 		return nil, err
 	}
-	ts, err := b.BuildGoBinary("tailscale.com/cmd/tailscale", t.goEnv)
+	ts, err := b.BuildGoBinary("lanhc.com/cmd/lanhc", t.goEnv)
 	if err != nil {
 		return nil, err
 	}
-	tsd, err := b.BuildGoBinary("tailscale.com/cmd/tailscaled", t.goEnv)
+	tsd, err := b.BuildGoBinary("lanhc.com/cmd/lanhcd", t.goEnv)
 	if err != nil {
 		return nil, err
 	}
 
-	tailscaledDir, err := b.GoPkg("tailscale.com/cmd/tailscaled")
+	lanhcdDir, err := b.GoPkg("lanhc.com/cmd/lanhcd")
 	if err != nil {
 		return nil, err
 	}
-	repoDir, err := b.GoPkg("tailscale.com")
+	repoDir, err := b.GoPkg("lanhc.com")
 	if err != nil {
 		return nil, err
 	}
@@ -364,51 +364,51 @@ func (t *rpmTarget) Build(b *dist.Build) ([]string, error) {
 		&files.Content{
 			Type:        files.TypeFile,
 			Source:      ts,
-			Destination: "/usr/bin/tailscale",
+			Destination: "/usr/bin/lanhc",
 		},
 		&files.Content{
 			Type:        files.TypeFile,
 			Source:      tsd,
-			Destination: "/usr/sbin/tailscaled",
+			Destination: "/usr/sbin/lanhcd",
 		},
 		&files.Content{
 			Type:        files.TypeFile,
-			Source:      filepath.Join(tailscaledDir, "tailscaled.service"),
-			Destination: "/lib/systemd/system/tailscaled.service",
+			Source:      filepath.Join(lanhcdDir, "lanhcd.service"),
+			Destination: "/lib/systemd/system/lanhcd.service",
 		},
 		&files.Content{
 			Type:        files.TypeFile,
-			Source:      filepath.Join(tailscaledDir, "tailscale-online.target"),
-			Destination: "/lib/systemd/system/tailscale-online.target",
+			Source:      filepath.Join(lanhcdDir, "lanhc-online.target"),
+			Destination: "/lib/systemd/system/lanhc-online.target",
 		},
 		&files.Content{
 			Type:        files.TypeFile,
-			Source:      filepath.Join(tailscaledDir, "tailscale-wait-online.service"),
-			Destination: "/lib/systemd/system/tailscale-wait-online.service",
+			Source:      filepath.Join(lanhcdDir, "lanhc-wait-online.service"),
+			Destination: "/lib/systemd/system/lanhc-wait-online.service",
 		},
 		&files.Content{
 			Type:        files.TypeConfigNoReplace,
-			Source:      filepath.Join(tailscaledDir, "tailscaled.defaults"),
-			Destination: "/etc/default/tailscaled",
+			Source:      filepath.Join(lanhcdDir, "lanhcd.defaults"),
+			Destination: "/etc/default/lanhcd",
 		},
 		// SELinux policy on e.g. CentOS 8 forbids writing to /var/cache.
 		// Creating an empty directory at install time resolves this issue.
 		&files.Content{
 			Type:        files.TypeDir,
-			Destination: "/var/cache/tailscale",
+			Destination: "/var/cache/lanhc",
 		},
 	}, 0, "rpm", false)
 	if err != nil {
 		return nil, err
 	}
 	info := nfpm.WithDefaults(&nfpm.Info{
-		Name:        "tailscale",
+		Name:        "lanhc",
 		Arch:        arch,
 		Platform:    "linux",
 		Version:     b.Version.Short,
-		Maintainer:  "Tailscale Inc <info@tailscale.com>",
+		Maintainer:  "Lanhc Inc <info@lanhc.com>",
 		Description: "The easiest, most secure, cross platform way to use WireGuard + oauth2 + 2FA/SSO",
-		Homepage:    "https://www.tailscale.com",
+		Homepage:    "https://www.lanhc.com",
 		License:     "MIT",
 		Overridables: nfpm.Overridables{
 			Contents: contents,
@@ -418,8 +418,8 @@ func (t *rpmTarget) Build(b *dist.Build) ([]string, error) {
 				PostRemove:  filepath.Join(repoDir, "release/rpm/rpm.postrm.sh"),
 			},
 			Depends:   []string{"iptables", "iproute"},
-			Replaces:  []string{"tailscale-relay"},
-			Conflicts: []string{"tailscale-relay"},
+			Replaces:  []string{"lanhc-relay"},
+			Conflicts: []string{"lanhc-relay"},
 			RPM: nfpm.RPM{
 				Group: "Network",
 				Signature: nfpm.RPMSignature{
@@ -435,7 +435,7 @@ func (t *rpmTarget) Build(b *dist.Build) ([]string, error) {
 		return nil, err
 	}
 
-	filename := fmt.Sprintf("tailscale_%s_%s.rpm", b.Version.Short, arch)
+	filename := fmt.Sprintf("lanhc_%s_%s.rpm", b.Version.Short, arch)
 	log.Printf("Building %s", filename)
 
 	f, err := os.Create(filepath.Join(b.Out, filename))

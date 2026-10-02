@@ -25,7 +25,7 @@ func detectFormat(w io.Writer, inverse bool) (format Format, _ error) {
 
 	// Almost every terminal supports UTF-8, but the Linux
 	// console may have partial or no support, which is
-	// especially painful inside VMs. See tailscale/tailscale#12935.
+	// especially painful inside VMs. See lanhc/lanhc#12935.
 	format = FormatSmall
 
 	// Is the locale (LC_CTYPE) set to UTF-8?

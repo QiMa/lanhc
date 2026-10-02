@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// mkpkg builds the Tailscale rpm and deb packages.
+// mkpkg builds the Lanhc rpm and deb packages.
 package main
 
 import (
@@ -49,7 +49,7 @@ func parseEmptyDirs(s string) files.Contents {
 
 func main() {
 	out := flag.String("out", "", "output file to write")
-	name := flag.String("name", "tailscale", "package name")
+	name := flag.String("name", "lanhc", "package name")
 	description := flag.String("description", "The easiest, most secure, cross platform way to use WireGuard + oauth2 + 2FA/SSO", "package description")
 	goarch := flag.String("arch", "amd64", "GOARCH this package is for")
 	pkgType := flag.String("type", "deb", "type of package to build (deb or rpm)")
@@ -84,9 +84,9 @@ func main() {
 		Arch:        *goarch,
 		Platform:    "linux",
 		Version:     *version,
-		Maintainer:  "Tailscale Inc <info@tailscale.com>",
+		Maintainer:  "Lanhc Inc <info@lanhc.com>",
 		Description: *description,
-		Homepage:    "https://www.tailscale.com",
+		Homepage:    "https://www.lanhc.com",
 		License:     "MIT",
 		Overridables: nfpm.Overridables{
 			Contents: contents,

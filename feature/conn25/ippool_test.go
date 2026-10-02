@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"go4.org/netipx"
-	"tailscale.com/util/must"
+	"lanhc.com/util/must"
 )
 
 func TestNext(t *testing.T) {

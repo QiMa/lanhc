@@ -17,7 +17,7 @@ package syncs
 type ShardValue[T any] struct {
 	shards []T
 
-	//lint:ignore U1000 unused under tailscale_go builds.
+	//lint:ignore U1000 unused under lanhc_go builds.
 	pool shardValuePool
 }
 

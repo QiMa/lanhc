@@ -55,5 +55,5 @@
 //
 // See the [usage examples].
 //
-// [usage examples]: https://github.com/tailscale/tailscale/blob/main/util/eventbus/eventbustest/examples_test.go
+// [usage examples]: https://github.com/lanhc/lanhc/blob/main/util/eventbus/eventbustest/examples_test.go
 package eventbustest

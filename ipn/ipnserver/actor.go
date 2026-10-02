@@ -12,13 +12,13 @@ import (
 	"runtime"
 	"time"
 
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnauth"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/ctxkey"
-	"tailscale.com/util/osuser"
-	"tailscale.com/version"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnauth"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/ctxkey"
+	"lanhc.com/util/osuser"
+	"lanhc.com/version"
 )
 
 var _ ipnauth.Actor = (*actor)(nil)
@@ -27,7 +27,7 @@ var _ ipnauth.Actor = (*actor)(nil)
 // specific to the current (as of 2024-08-27) permission model.
 //
 // Deprecated: this type exists for compatibility reasons and will be removed as
-// we progress on tailscale/corp#18342.
+// we progress on lanhc/corp#18342.
 type actor struct {
 	logf logger.Logf
 	ci   *ipnauth.ConnIdentity
@@ -50,7 +50,7 @@ func newActor(logf logger.Logf, c net.Conn) (*actor, error) {
 	if pid := ci.Pid(); pid != 0 {
 		// Derive [ipnauth.ClientID] from the PID of the connected client process.
 		// TODO(nickkhyl): This is transient and will be re-worked as we
-		// progress on tailscale/corp#18342. At minimum, we should use a 2-tuple
+		// progress on lanhc/corp#18342. At minimum, we should use a 2-tuple
 		// (PID + StartTime) or a 3-tuple (PID + StartTime + UID) to identify
 		// the client process. This helps prevent security issues where a
 		// terminated client process's PID could be reused by a different
@@ -205,7 +205,7 @@ func connIsLocalSystem(ci *ipnauth.ConnIdentity) bool {
 // access to the local machine, for whatever that means with respect to the
 // current OS.
 //
-// This is useful because tailscaled itself always runs with elevated rights:
+// This is useful because lanhcd itself always runs with elevated rights:
 // we want to avoid privilege escalation for certain mutative operations.
 func connIsLocalAdmin(logf logger.Logf, ci *ipnauth.ConnIdentity, operatorUID string) bool {
 	if ci == nil {
@@ -234,7 +234,7 @@ func connIsLocalAdmin(logf logger.Logf, ci *ipnauth.ConnIdentity, operatorUID st
 		if version.IsSandboxedMacOS() {
 			return false
 		}
-		// This is a standalone tailscaled setup, use the same logic as on
+		// This is a standalone lanhcd setup, use the same logic as on
 		// Linux.
 		fallthrough
 	case "linux", "solaris", "illumos":
@@ -251,7 +251,7 @@ func connIsLocalAdmin(logf logger.Logf, ci *ipnauth.ConnIdentity, operatorUID st
 		if uid == "0" {
 			return true
 		}
-		// if non-root, must be operator AND able to execute "sudo tailscale".
+		// if non-root, must be operator AND able to execute "sudo lanhc".
 		if operatorUID != "" && uid != operatorUID {
 			return false
 		}
@@ -262,7 +262,7 @@ func connIsLocalAdmin(logf logger.Logf, ci *ipnauth.ConnIdentity, operatorUID st
 		// Short timeout just in case sudo hangs for some reason.
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
-		if err := exec.CommandContext(ctx, "sudo", "--other-user="+u.Name, "--list", "tailscale").Run(); err != nil {
+		if err := exec.CommandContext(ctx, "sudo", "--other-user="+u.Name, "--list", "lanhc").Run(); err != nil {
 			return false
 		}
 		return true

@@ -9,10 +9,10 @@ import (
 	"slices"
 	"testing"
 
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
-	"tailscale.com/util/set"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
+	"lanhc.com/util/set"
 )
 
 var (
@@ -553,7 +553,7 @@ func TestUpsertPeerNodeView(t *testing.T) {
 	wantOutbound(t, rm, "8.8.8.8", k1, true)
 }
 
-// TestUpsertPeerNodeViewVIPService checks that a single Tailscale IP
+// TestUpsertPeerNodeViewVIPService checks that a single Lanhc IP
 // in a peer's AllowedIPs but not in its Addresses (such as a VIP
 // service address hosted by the peer) is classified as a self address
 // and stays routable without Prefs.RouteAll, mirroring nmcfg's
@@ -570,7 +570,7 @@ func TestUpsertPeerNodeViewVIPService(t *testing.T) {
 		AllowedIPs: []netip.Prefix{
 			pfx("100.64.0.1/32"),
 			pfx("100.100.5.5/32"),  // VIP service address
-			pfx("192.168.1.99/32"), // single non-Tailscale IP: a subnet route
+			pfx("192.168.1.99/32"), // single non-Lanhc IP: a subnet route
 			pfx("10.0.0.0/24"),
 		},
 	}

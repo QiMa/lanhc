@@ -1,0 +1,25 @@
+#!/sbin/openrc-run
+
+set -a
+source /etc/default/lanhcd
+set +a
+
+command="/usr/sbin/lanhcd"
+command_args="--state=/var/lib/lanhc/lanhcd.state --port=$PORT --socket=/var/run/lanhc/lanhcd.sock $FLAGS"
+command_background=true
+pidfile="/run/lanhcd.pid"
+start_stop_daemon_args="-1 /var/log/lanhcd.log -2 /var/log/lanhcd.log"
+
+depend() {
+    need net
+}
+
+start_pre() {
+    mkdir -p /var/run/lanhc
+    mkdir -p /var/lib/lanhc
+    $command --cleanup
+}
+
+stop_post() {
+    $command --cleanup
+}

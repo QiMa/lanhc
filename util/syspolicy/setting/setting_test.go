@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"tailscale.com/types/lazy"
-	"tailscale.com/util/syspolicy/internal"
-	"tailscale.com/util/syspolicy/pkey"
+	"lanhc.com/types/lazy"
+	"lanhc.com/util/syspolicy/internal"
+	"lanhc.com/util/syspolicy/pkey"
 )
 
 func TestSettingDefinition(t *testing.T) {

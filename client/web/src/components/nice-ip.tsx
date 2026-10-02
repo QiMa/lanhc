@@ -3,7 +3,7 @@
 
 import cx from "classnames"
 import React from "react"
-import { isTailscaleIPv6 } from "src/utils/util"
+import { isLanhcIPv6 } from "src/utils/util"
 
 type Props = {
   ip: string
@@ -16,7 +16,7 @@ type Props = {
 export default function NiceIP(props: Props) {
   const { ip, className } = props
 
-  if (!isTailscaleIPv6(ip)) {
+  if (!isLanhcIPv6(ip)) {
     return <span className={className}>{ip}</span>
   }
 

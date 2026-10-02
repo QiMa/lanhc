@@ -35,21 +35,21 @@ import (
 
 	"github.com/pires/go-proxyproto"
 	"go4.org/mem"
-	"tailscale.com/ipn"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/netutil"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/lazy"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/views"
-	"tailscale.com/util/backoff"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/ctxkey"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/slicesx"
-	"tailscale.com/util/usermetric"
-	"tailscale.com/version"
+	"lanhc.com/ipn"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/netutil"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/lazy"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/views"
+	"lanhc.com/util/backoff"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/ctxkey"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/slicesx"
+	"lanhc.com/util/usermetric"
+	"lanhc.com/version"
 )
 
 func init() {
@@ -78,9 +78,9 @@ const (
 // current etag of a resource.
 var ErrETagMismatch = errors.New("etag mismatch")
 
-// ErrProxyToTailscaledSocket is returned when attempting to proxy
-// to the tailscaled socket itself, which would create a loop.
-var ErrProxyToTailscaledSocket = errors.New("cannot proxy to tailscaled socket")
+// ErrProxyToLanhcdSocket is returned when attempting to proxy
+// to the lanhcd socket itself, which would create a loop.
+var ErrProxyToLanhcdSocket = errors.New("cannot proxy to lanhcd socket")
 
 var serveHTTPContextKey ctxkey.Key[*serveHTTPContext]
 
@@ -102,13 +102,13 @@ type funnelFlow struct {
 	IngressPeer tailcfg.NodeView
 }
 
-// localListener is the state of host-level net.Listen for a specific (Tailscale IP, port)
-// combination. If there are two TailscaleIPs (v4 and v6) and three ports being served,
+// localListener is the state of host-level net.Listen for a specific (Lanhc IP, port)
+// combination. If there are two LanhcIPs (v4 and v6) and three ports being served,
 // then there will be six of these active and looping in their Run method.
 //
 // This is not used in userspace-networking mode.
 //
-// localListener is used by tailscale serve (TCP only), the built-in web client and Taildrive.
+// localListener is used by lanhc serve (TCP only), the built-in web client and Taildrive.
 // Most serve traffic and peer traffic for the web client are intercepted by netstack.
 // This listener exists purely for connections from the machine itself, as that goes via the kernel,
 // so we need to be in the kernel's listening/routing tables.
@@ -168,9 +168,9 @@ func (s *localListener) Run() {
 
 		var lc net.ListenConfig
 		if initListenConfig != nil {
-			ifIndex, err := netmon.TailscaleInterfaceIndex()
+			ifIndex, err := netmon.LanhcInterfaceIndex()
 			if err != nil {
-				s.logf("localListener failed to get Tailscale interface index %v, backing off: %v", s.ap, err)
+				s.logf("localListener failed to get Lanhc interface index %v, backing off: %v", s.ap, err)
 				s.bo.BackOff(s.ctx, err)
 				continue
 			}
@@ -178,7 +178,7 @@ func (s *localListener) Run() {
 			// On macOS, this sets the lc.Control hook to
 			// setsockopt the interface index to bind to. This is
 			// required by the network sandbox which will not automatically
-			// bind to the tailscale interface to prevent routing loops.
+			// bind to the lanhc interface to prevent routing loops.
 			// Explicit binding allows us to bypass that restriction.
 			if err := initListenConfig(&lc, ip, ifIndex); err != nil {
 				s.logf("localListener failed to init listen config %v, backing off: %v", s.ap, err)
@@ -190,7 +190,7 @@ func (s *localListener) Run() {
 			if version.IsSandboxedMacOS() && s.ap.Port() < 1024 {
 				// On macOS, we need to bind to ""/all-interfaces due to
 				// the network sandbox. Ideally we would only bind to the
-				// Tailscale interface, but macOS errors out if we try to
+				// Lanhc interface, but macOS errors out if we try to
 				// to listen on privileged ports binding only to a specific
 				// interface. (#6364)
 				ipStr = ""
@@ -245,7 +245,7 @@ func (s *localListener) shouldWarnAboutListenError(err error) bool {
 
 // handleListenersAccept accepts connections for the Listener. It calls the
 // handler in a new goroutine for each accepted connection. This is used to
-// handle local "tailscale serve" and web client traffic originating from the
+// handle local "lanhc serve" and web client traffic originating from the
 // machine itself.
 func (s *localListener) handleListenersAccept(ln net.Listener) error {
 	for {
@@ -331,7 +331,7 @@ func (b *LocalBackend) setServeConfigLocked(config *ipn.ServeConfig, etag string
 		return errors.New("Unable to turn on Funnel while shields-up is enabled")
 	}
 	if b.isConfigLocked_Locked() {
-		return errors.New("can't reconfigure tailscaled when using a config file; config file is locked")
+		return errors.New("can't reconfigure lanhcd when using a config file; config file is locked")
 	}
 
 	nm := b.NetMapNoPeers()
@@ -571,7 +571,7 @@ func (c *serviceMeteredConn) CloseWrite() error {
 
 // meteredConnForService wraps c to count peer bytes against the per-Service
 // Serve counters. The per-Service series is never evicted, so it leaks
-// (intentionally) until tailscaled exits.
+// (intentionally) until lanhcd exits.
 func (b *LocalBackend) meteredConnForService(c net.Conn, svc tailcfg.ServiceName) net.Conn {
 	// Plain (non-Service) serve passes an empty svc; don't meter it.
 	if svc == "" || b.metrics.serveBytesInbound == nil || b.metrics.serveBytesOutbound == nil {
@@ -872,8 +872,8 @@ func (b *LocalBackend) proxyHandlerForBackend(backend string) (http.Handler, err
 		if socketPath == "" {
 			return nil, fmt.Errorf("empty unix socket path")
 		}
-		if b.isTailscaledSocket(socketPath) {
-			return nil, ErrProxyToTailscaledSocket
+		if b.isLanhcdSocket(socketPath) {
+			return nil, ErrProxyToLanhcdSocket
 		}
 		u, _ := url.Parse("http://localhost")
 		return &reverseProxy{
@@ -900,16 +900,16 @@ func (b *LocalBackend) proxyHandlerForBackend(backend string) (http.Handler, err
 	return p, nil
 }
 
-// isTailscaledSocket reports whether socketPath refers to the same file
-// as the tailscaled socket. It uses os.SameFile to handle symlinks,
+// isLanhcdSocket reports whether socketPath refers to the same file
+// as the lanhcd socket. It uses os.SameFile to handle symlinks,
 // bind mounts, and other path variations.
-func (b *LocalBackend) isTailscaledSocket(socketPath string) bool {
-	tailscaledSocket := b.sys.SocketPath
-	if tailscaledSocket == "" {
+func (b *LocalBackend) isLanhcdSocket(socketPath string) bool {
+	lanhcdSocket := b.sys.SocketPath
+	if lanhcdSocket == "" {
 		return false
 	}
 	fi1, err1 := os.Stat(socketPath)
-	fi2, err2 := os.Stat(tailscaledSocket)
+	fi2, err2 := os.Stat(lanhcdSocket)
 	if err1 != nil || err2 != nil {
 		return false
 	}
@@ -978,7 +978,7 @@ func (rp *reverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			r.Out.Host = r.In.Host
 		}
 		addProxyForwardedHeaders(r)
-		rp.lb.addTailscaleIdentityHeaders(r)
+		rp.lb.addLanhcIdentityHeaders(r)
 		if err := rp.lb.addAppCapabilitiesHeader(r); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -1075,20 +1075,20 @@ func addProxyForwardedHeaders(r *httputil.ProxyRequest) {
 	}
 }
 
-func (b *LocalBackend) addTailscaleIdentityHeaders(r *httputil.ProxyRequest) {
+func (b *LocalBackend) addLanhcIdentityHeaders(r *httputil.ProxyRequest) {
 	// Clear any incoming values squatting in the headers.
-	r.Out.Header.Del("Tailscale-User-Login")
-	r.Out.Header.Del("Tailscale-User-Name")
-	r.Out.Header.Del("Tailscale-User-Profile-Pic")
-	r.Out.Header.Del("Tailscale-Funnel-Request")
-	r.Out.Header.Del("Tailscale-Headers-Info")
+	r.Out.Header.Del("Lanhc-User-Login")
+	r.Out.Header.Del("Lanhc-User-Name")
+	r.Out.Header.Del("Lanhc-User-Profile-Pic")
+	r.Out.Header.Del("Lanhc-Funnel-Request")
+	r.Out.Header.Del("Lanhc-Headers-Info")
 
 	c, ok := serveHTTPContextKey.ValueOk(r.Out.Context())
 	if !ok {
 		return
 	}
 	if c.Funnel != nil {
-		r.Out.Header.Set("Tailscale-Funnel-Request", "?1")
+		r.Out.Header.Set("Lanhc-Funnel-Request", "?1")
 		return
 	}
 	node, user, ok := b.WhoIs("tcp", c.SrcAddr)
@@ -1100,21 +1100,21 @@ func (b *LocalBackend) addTailscaleIdentityHeaders(r *httputil.ProxyRequest) {
 		// Only currently set for nodes with user identities.
 		return
 	}
-	r.Out.Header.Set("Tailscale-User-Login", encTailscaleHeaderValue(user.LoginName))
-	r.Out.Header.Set("Tailscale-User-Name", encTailscaleHeaderValue(user.DisplayName))
-	r.Out.Header.Set("Tailscale-User-Profile-Pic", user.ProfilePicURL)
-	r.Out.Header.Set("Tailscale-Headers-Info", "https://tailscale.com/s/serve-headers")
+	r.Out.Header.Set("Lanhc-User-Login", encLanhcHeaderValue(user.LoginName))
+	r.Out.Header.Set("Lanhc-User-Name", encLanhcHeaderValue(user.DisplayName))
+	r.Out.Header.Set("Lanhc-User-Profile-Pic", user.ProfilePicURL)
+	r.Out.Header.Set("Lanhc-Headers-Info", "https://lanhc.com/s/serve-headers")
 }
 
-// encTailscaleHeaderValue cleans or encodes as necessary v, to be suitable in
+// encLanhcHeaderValue cleans or encodes as necessary v, to be suitable in
 // an HTTP header value. See
-// https://github.com/tailscale/tailscale/issues/11603.
+// https://github.com/lanhc/lanhc/issues/11603.
 //
 // If v is not a valid UTF-8 string, it returns an empty string.
 // If v is a valid ASCII string, it returns v unmodified.
 // If v is a valid UTF-8 string with non-ASCII characters, it returns a
 // RFC 2047 Q-encoded string.
-func encTailscaleHeaderValue(v string) string {
+func encLanhcHeaderValue(v string) string {
 	if !utf8.ValidString(v) {
 		return ""
 	}
@@ -1122,7 +1122,7 @@ func encTailscaleHeaderValue(v string) string {
 }
 
 func (b *LocalBackend) addAppCapabilitiesHeader(r *httputil.ProxyRequest) error {
-	const appCapabilitiesHeaderName = "Tailscale-App-Capabilities"
+	const appCapabilitiesHeaderName = "Lanhc-App-Capabilities"
 	r.Out.Header.Del(appCapabilitiesHeaderName)
 
 	c, ok := serveHTTPContextKey.ValueOk(r.Out.Context())
@@ -1151,7 +1151,7 @@ func (b *LocalBackend) addAppCapabilitiesHeader(r *httputil.ProxyRequest) error 
 		return fmt.Errorf("unable to process app capabilities")
 	}
 
-	r.Out.Header.Set(appCapabilitiesHeaderName, encTailscaleHeaderValue(string(peerCapsSerialized)))
+	r.Out.Header.Set(appCapabilitiesHeaderName, encLanhcHeaderValue(string(peerCapsSerialized)))
 	return nil
 }
 
@@ -1501,23 +1501,23 @@ func handleServeIngress(ph PeerAPIHandler, w http.ResponseWriter, r *http.Reques
 		logAndError(http.StatusMethodNotAllowed, "only POST allowed")
 		return
 	}
-	srcAddrStr := r.Header.Get("Tailscale-Ingress-Src")
+	srcAddrStr := r.Header.Get("Lanhc-Ingress-Src")
 	if srcAddrStr == "" {
-		bad("Tailscale-Ingress-Src header not set")
+		bad("Lanhc-Ingress-Src header not set")
 		return
 	}
 	srcAddr, err := netip.ParseAddrPort(srcAddrStr)
 	if err != nil {
-		bad("Tailscale-Ingress-Src header invalid; want ip:port")
+		bad("Lanhc-Ingress-Src header invalid; want ip:port")
 		return
 	}
-	target := ipn.HostPort(r.Header.Get("Tailscale-Ingress-Target"))
+	target := ipn.HostPort(r.Header.Get("Lanhc-Ingress-Target"))
 	if target == "" {
-		bad("Tailscale-Ingress-Target header not set")
+		bad("Lanhc-Ingress-Target header not set")
 		return
 	}
 	if _, _, err := net.SplitHostPort(string(target)); err != nil {
-		bad("Tailscale-Ingress-Target header invalid; want host:port")
+		bad("Lanhc-Ingress-Target header invalid; want host:port")
 		return
 	}
 
@@ -1790,7 +1790,7 @@ func validateServeConfigUpdate(existing, incoming ipn.ServeConfigView) error {
 		}
 	}
 
-	// Validations for Tailscale Services.
+	// Validations for Lanhc Services.
 	for svcName, incomingSvcCfg := range incoming.Services().All() {
 		existingSvcCfg, exists := existing.Services().GetOk(svcName)
 		if !exists {

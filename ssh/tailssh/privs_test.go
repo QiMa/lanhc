@@ -20,8 +20,8 @@ import (
 	"syscall"
 	"testing"
 
-	"tailscale.com/tstest"
-	"tailscale.com/types/logger"
+	"lanhc.com/tstest"
+	"lanhc.com/types/logger"
 )
 
 func TestDoDropPrivileges(t *testing.T) {
@@ -137,7 +137,7 @@ func TestDoDropPrivileges(t *testing.T) {
 		},
 		// This is a regression test for the following bug, triggered
 		// on Darwin & FreeBSD:
-		//    https://github.com/tailscale/tailscale/issues/7616
+		//    https://github.com/lanhc/lanhc/issues/7616
 		{
 			name:             "same_values",
 			uid:              uidgid1,

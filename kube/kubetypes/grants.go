@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package kubetypes contains types and constants related to the Tailscale
+// Package kubetypes contains types and constants related to the Lanhc
 // Kubernetes Operator.
 // These are split into a separate package for consumption of
 // non-Kubernetes shared libraries and binaries. Be mindful of not increasing
@@ -19,10 +19,10 @@ type KubernetesCapRule struct {
 	// of a 'kubectl exec' session, matching `src` of this grant, to an API
 	// server proxy, matching `dst` of this grant, should be sent to.
 	// This list must not contain more than one tag. The field
-	// name matches the `Recorder` field with equal semantics for Tailscale
+	// name matches the `Recorder` field with equal semantics for Lanhc
 	// SSH session recorder. This field is set by users in ACL grants and is
 	// then parsed by control, which resolves the tags and populates `RecorderAddrs``.
-	// https://tailscale.com/kb/1246/tailscale-ssh-session-recording#turn-on-session-recording-in-acls
+	// https://lanhc.com/kb/1246/lanhc-ssh-session-recording#turn-on-session-recording-in-acls
 	Recorders []string `json:"recorder,omitempty"`
 	// RecorderAddrs is a list of addresses that should be addresses of one
 	// or more tsrecorder instance(s). If set, any `kubectl exec` session
@@ -36,13 +36,13 @@ type KubernetesCapRule struct {
 	// matching `src` to an API server proxy matching `dst` should fail
 	// closed if it cannot be recorded (i.e if no recorder can be reached).
 	// Default is to fail open.
-	// The field name matches `EnforceRecorder` field with equal semantics for Tailscale SSH
+	// The field name matches `EnforceRecorder` field with equal semantics for Lanhc SSH
 	// session recorder.
-	// https://tailscale.com/kb/1246/tailscale-ssh-session-recording#turn-on-session-recording-in-your-tailnet-policy-file
+	// https://lanhc.com/kb/1246/lanhc-ssh-session-recording#turn-on-session-recording-in-your-tailnet-policy-file
 	EnforceRecorder bool `json:"enforceRecorder,omitempty"`
 	// EnableEvents defines whether kubectl API request events (beta)
 	// should be recorded or not.
-	// https://tailscale.com/kb/1246/tailscale-ssh-session-recording#turn-on-session-recording-in-your-tailnet-policy-file
+	// https://lanhc.com/kb/1246/lanhc-ssh-session-recording#turn-on-session-recording-in-your-tailnet-policy-file
 	EnableEvents bool `json:"enableEvents,omitempty"`
 }
 

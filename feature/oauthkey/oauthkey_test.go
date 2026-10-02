@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"tailscale.com/internal/client/tailscale"
+	"lanhc.com/internal/client/lanhc"
 )
 
 func TestResolveAuthKey(t *testing.T) {
@@ -82,7 +82,7 @@ func TestResolveAuthKey(t *testing.T) {
 				}
 			}
 
-			got, err := resolveAuthKey(context.Background(), tailscale.ResolveAuthKeyArgs{
+			got, err := resolveAuthKey(context.Background(), lanhc.ResolveAuthKeyArgs{
 				AuthKey: tt.clientID,
 				Tags:    tt.tags,
 			})
@@ -120,21 +120,21 @@ func TestResolveAuthKeyAttributes(t *testing.T) {
 			clientSecret:  "tskey-client-abc",
 			wantEphemeral: true,
 			wantPreauth:   false,
-			wantBaseURL:   "https://api.tailscale.com",
+			wantBaseURL:   "https://api.lanhc.com",
 		},
 		{
 			name:          "ephemeral=false",
 			clientSecret:  "tskey-client-abc?ephemeral=false",
 			wantEphemeral: false,
 			wantPreauth:   false,
-			wantBaseURL:   "https://api.tailscale.com",
+			wantBaseURL:   "https://api.lanhc.com",
 		},
 		{
 			name:          "preauthorized=true",
 			clientSecret:  "tskey-client-abc?preauthorized=true",
 			wantEphemeral: true,
 			wantPreauth:   true,
-			wantBaseURL:   "https://api.tailscale.com",
+			wantBaseURL:   "https://api.lanhc.com",
 		},
 		{
 			name:          "baseURL-custom",

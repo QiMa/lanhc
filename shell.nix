@@ -1,5 +1,5 @@
 # This is a shell.nix file used to describe the environment that
-# tailscale needs for development.
+# lanhc needs for development.
 #
 # For more information about this and why this file is useful, see here:
 # https://nixos.org/guides/nix-pills/developing-with-nix-shell.html

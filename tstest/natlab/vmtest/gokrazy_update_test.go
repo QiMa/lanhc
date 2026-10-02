@@ -16,9 +16,9 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/tstest"
-	"tailscale.com/tstest/natlab/vmtest"
-	"tailscale.com/tstest/natlab/vnet"
+	"lanhc.com/tstest"
+	"lanhc.com/tstest/natlab/vmtest"
+	"lanhc.com/tstest/natlab/vnet"
 )
 
 // TestGokrazyUpdatesItselfToSameImage exercises the Gokrazy appliance update
@@ -45,10 +45,10 @@ func TestGokrazyUpdatesItselfToSameImage(t *testing.T) {
 	}
 	t.Logf("initial gokrazy root: %s", rootBefore)
 
-	out, err := env.Tailscale(node,
+	out, err := env.Lanhc(node,
 		"update",
 		"--",
-		"--gokrazy-update-from-url=http://files.tailscale/natlabapp.gaf",
+		"--gokrazy-update-from-url=http://files.lanhc/natlabapp.gaf",
 		"--unsigned",
 	)
 	if err != nil {

@@ -26,16 +26,16 @@ import (
 	"testing/synctest"
 	"time"
 
-	"tailscale.com/derp"
-	"tailscale.com/derp/derphttp"
-	"tailscale.com/derp/derpserver"
-	"tailscale.com/feature"
-	"tailscale.com/net/memnet"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/netx"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/types/key"
+	"lanhc.com/derp"
+	"lanhc.com/derp/derphttp"
+	"lanhc.com/derp/derpserver"
+	"lanhc.com/feature"
+	"lanhc.com/net/memnet"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/netx"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/types/key"
 )
 
 func TestSendRecv(t *testing.T) {
@@ -485,7 +485,7 @@ func TestRunWatchConnectionLoopServeConnect(t *testing.T) {
 }
 
 // verify that the LocalAddr method doesn't acquire the mutex.
-// See https://github.com/tailscale/tailscale/issues/11519
+// See https://github.com/lanhc/lanhc/issues/11519
 func TestLocalAddrNoMutex(t *testing.T) {
 	var c derphttp.Client
 
@@ -570,7 +570,7 @@ func TestManualDial(t *testing.T) {
 		t.Skip("skipping live network test without --live-net-tests")
 	}
 	dm := &tailcfg.DERPMap{}
-	res, err := http.Get("https://controlplane.tailscale.com/derpmap/default")
+	res, err := http.Get("https://controlplane.lanhc.com/derpmap/default")
 	if err != nil {
 		t.Fatalf("fetching DERPMap: %v", err)
 	}
@@ -597,7 +597,7 @@ func TestURLDial(t *testing.T) {
 		t.Skip("skipping live network test without --live-net-tests")
 	}
 	dm := &tailcfg.DERPMap{}
-	res, err := http.Get("https://controlplane.tailscale.com/derpmap/default")
+	res, err := http.Get("https://controlplane.lanhc.com/derpmap/default")
 	if err != nil {
 		t.Fatalf("fetching DERPMap: %v", err)
 	}

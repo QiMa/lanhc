@@ -5,4 +5,4 @@
 
 package netlog
 
-import _ "tailscale.com/feature/netlog"
+import _ "lanhc.com/feature/netlog"

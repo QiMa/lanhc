@@ -1,0 +1,63 @@
+#!/bin/sh
+# Copyright (c) Tailscale Inc & contributors
+# SPDX-License-Identifier: BSD-3-Clause
+
+### BEGIN INIT INFO
+# Provides:             lanhcd
+# Required-Start:
+# Required-Stop:
+# Default-Start:
+# Default-Stop:
+# Short-Description:    Lanhc Mesh Wireguard VPN
+### END INIT INFO
+
+set -e
+
+# /etc/init.d/lanhc: start and stop the Lanhc VPN service
+
+test -x /usr/sbin/lanhcd || exit 0
+
+umask 022
+
+. /lib/lsb/init-functions
+
+# Are we running from init?
+run_by_init() {
+    ([ "$previous" ] && [ "$runlevel" ]) || [ "$runlevel" = S ]
+}
+
+export PATH="${PATH:+$PATH:}/usr/sbin:/sbin"
+
+case "$1" in
+  start)
+        log_daemon_msg "Starting Lanhc VPN" "lanhcd" || true
+        if start-stop-daemon --start --oknodo --name lanhcd -m --pidfile /run/lanhcd.pid --background \
+                --exec /usr/sbin/lanhcd -- \
+                --state=/var/lib/lanhc/lanhcd.state \
+                --socket=/run/lanhc/lanhcd.sock \
+                --port 41641;
+        then
+            log_end_msg 0 || true
+        else
+            log_end_msg 1 || true
+        fi
+        ;;
+  stop)
+        log_daemon_msg "Stopping Lanhc VPN" "lanhcd" || true
+        if start-stop-daemon --stop --remove-pidfile --pidfile /run/lanhcd.pid --exec /usr/sbin/lanhcd; then
+            log_end_msg 0 || true
+        else
+            log_end_msg 1 || true
+        fi
+        ;;
+
+  status)
+        status_of_proc -p /run/lanhcd.pid /usr/sbin/lanhcd lanhcd && exit 0 || exit $?
+        ;;
+
+  *)
+        log_action_msg "Usage: /etc/init.d/lanhcd {start|stop|status}" || true
+        exit 1
+esac
+
+exit 0

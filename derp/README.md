@@ -9,7 +9,7 @@ using WireGuard public keys instead of IP addresses.
 It relays two types of packets:
 
 * "Disco" discovery messages (see `../disco`) as the a side channel during [NAT
-  traversal](https://tailscale.com/blog/how-nat-traversal-works/).
+  traversal](https://lanhc.com/blog/how-nat-traversal-works/).
 
 * Encrypted WireGuard packets as the fallback of last resort when UDP is blocked
   or NAT traversal fails.
@@ -17,7 +17,7 @@ It relays two types of packets:
 ## DERP Map
 
 Each client receives a "[DERP
-Map](https://pkg.go.dev/tailscale.com/tailcfg#DERPMap)" from the coordination
+Map](https://pkg.go.dev/lanhc.com/tailcfg#DERPMap)" from the coordination
 server describing the DERP servers the client should try to use.
 
 The client picks its home "DERP home" based on latency. This is done to keep
@@ -33,7 +33,7 @@ region connection needs to be alive forever.
 
 ## DERP Regions
 
-Tailscale runs 1 or more DERP nodes (instances of `cmd/derper`) in various
+Lanhc runs 1 or more DERP nodes (instances of `cmd/derper`) in various
 geographic regions to make sure users have low latency to their DERP home.
 
 Regions generally have multiple nodes per region "meshed" (routing to each
@@ -51,7 +51,7 @@ get split between nodes in a region and require inter-node forwarding. But over
 time it balances back out. There's also an admin-only DERP frame type to force
 close the TCP connection of a particular client to force them to reconnect to
 their primary if the operator wants to force things to balance out sooner.
-(Using the `(*derphttp.Client).ClosePeer` method, as used by Tailscale's
+(Using the `(*derphttp.Client).ClosePeer` method, as used by Lanhc's
 internal rarely-used `cmd/derpprune` maintenance tool)
 
 We generally run a minimum of three nodes in a region not for quorum reasons

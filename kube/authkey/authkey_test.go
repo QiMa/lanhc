@@ -12,10 +12,10 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"tailscale.com/ipn"
-	"tailscale.com/kube/kubeapi"
-	"tailscale.com/kube/kubeclient"
-	"tailscale.com/kube/kubetypes"
+	"lanhc.com/ipn"
+	"lanhc.com/kube/kubeapi"
+	"lanhc.com/kube/kubeclient"
+	"lanhc.com/kube/kubetypes"
 )
 
 func TestSetReissueAuthKey(t *testing.T) {
@@ -27,7 +27,7 @@ func TestSetReissueAuthKey(t *testing.T) {
 		},
 	}
 
-	err := SetReissueAuthKey(context.Background(), kc, "test-secret", "old-auth-key", TailscaleContainerFieldManager)
+	err := SetReissueAuthKey(context.Background(), kc, "test-secret", "old-auth-key", LanhcContainerFieldManager)
 	if err != nil {
 		t.Fatalf("SetReissueAuthKey() error = %v", err)
 	}
@@ -58,7 +58,7 @@ func TestClearReissueAuthKey(t *testing.T) {
 		},
 	}
 
-	err := ClearReissueAuthKey(context.Background(), kc, "test-secret", TailscaleContainerFieldManager)
+	err := ClearReissueAuthKey(context.Background(), kc, "test-secret", LanhcContainerFieldManager)
 	if err != nil {
 		t.Fatalf("ClearReissueAuthKey() error = %v", err)
 	}

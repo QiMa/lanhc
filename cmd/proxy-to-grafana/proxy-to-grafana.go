@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // proxy-to-grafana is a reverse proxy which identifies users based on their
-// originating Tailscale identity and maps them to corresponding Grafana
+// originating Lanhc identity and maps them to corresponding Grafana
 // users, creating them if needed.
 //
 // It uses Grafana's AuthProxy feature:
@@ -22,7 +22,7 @@
 //	headers = Email:X-Webauth-User, Name:X-Webauth-Name, Role:X-Webauth-Role
 //	enable_login_token = true
 //
-// You can use grants in Tailscale ACL to give users different roles in Grafana.
+// You can use grants in Lanhc ACL to give users different roles in Grafana.
 // For example, to give group:eng the Editor role, add the following to your ACLs:
 //
 //	 "grants": [
@@ -53,20 +53,20 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsnet"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsnet"
 )
 
 var (
-	hostname     = flag.String("hostname", "", "Tailscale hostname to serve on, used as the base name for MagicDNS or subdomain in your domain alias for HTTPS.")
+	hostname     = flag.String("hostname", "", "Lanhc hostname to serve on, used as the base name for MagicDNS or subdomain in your domain alias for HTTPS.")
 	backendAddr  = flag.String("backend-addr", "", "Address of the Grafana server served over HTTP, in host:port format. Typically localhost:nnnn.")
-	tailscaleDir = flag.String("state-dir", "./", "Alternate directory to use for Tailscale state storage. If empty, a default is used.")
-	useHTTPS     = flag.Bool("use-https", false, "Serve over HTTPS via your *.ts.net subdomain if enabled in Tailscale admin.")
-	loginServer  = flag.String("login-server", "", "URL to alternative control server. If empty, the default Tailscale control is used.")
+	lanhcDir = flag.String("state-dir", "./", "Alternate directory to use for Lanhc state storage. If empty, a default is used.")
+	useHTTPS     = flag.Bool("use-https", false, "Serve over HTTPS via your *.ts.net subdomain if enabled in Lanhc admin.")
+	loginServer  = flag.String("login-server", "", "URL to alternative control server. If empty, the default Lanhc control is used.")
 )
 
-// aclCap is the Tailscale ACL capability used to configure proxy-to-grafana.
+// aclCap is the Lanhc ACL capability used to configure proxy-to-grafana.
 const aclCap tailcfg.PeerCapability = "tailscale.com/cap/proxy-to-grafana"
 
 // aclGrant is an access control rule that assigns Grafana permissions
@@ -126,7 +126,7 @@ func main() {
 		log.Fatal("missing --backend-addr")
 	}
 	ts := &tsnet.Server{
-		Dir:        *tailscaleDir,
+		Dir:        *lanhcDir,
 		Hostname:   *hostname,
 		ControlURL: *loginServer,
 	}
@@ -157,13 +157,13 @@ func main() {
 		})
 
 		go func() {
-			// wait for tailscale to start before trying to fetch cert names
+			// wait for lanhc to start before trying to fetch cert names
 			for range 60 {
 				st, err := localClient.Status(context.Background())
 				if err != nil {
-					log.Printf("error retrieving tailscale status; retrying: %v", err)
+					log.Printf("error retrieving lanhc status; retrying: %v", err)
 				} else {
-					log.Printf("tailscale status: %v", st.BackendState)
+					log.Printf("lanhc status: %v", st.BackendState)
 					if st.BackendState == "Running" {
 						break
 					}
@@ -211,9 +211,9 @@ func modifyRequest(req *http.Request, localClient whoisIdentitySource) {
 		return
 	}
 
-	user, role, err := getTailscaleIdentity(req.Context(), localClient, req.RemoteAddr)
+	user, role, err := getLanhcIdentity(req.Context(), localClient, req.RemoteAddr)
 	if err != nil {
-		log.Printf("error getting Tailscale user: %v", err)
+		log.Printf("error getting Lanhc user: %v", err)
 		return
 	}
 
@@ -222,7 +222,7 @@ func modifyRequest(req *http.Request, localClient whoisIdentitySource) {
 	req.Header.Set("X-Webauth-Role", role.String())
 }
 
-func getTailscaleIdentity(ctx context.Context, localClient whoisIdentitySource, ipPort string) (*tailcfg.UserProfile, grafanaRole, error) {
+func getLanhcIdentity(ctx context.Context, localClient whoisIdentitySource, ipPort string) (*tailcfg.UserProfile, grafanaRole, error) {
 	whois, err := localClient.WhoIs(ctx, ipPort)
 	if err != nil {
 		return nil, ViewerRole, fmt.Errorf("failed to identify remote host: %w", err)

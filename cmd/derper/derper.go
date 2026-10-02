@@ -5,10 +5,10 @@
 //
 // For more information, see:
 //
-//   - About: https://tailscale.com/kb/1232/derp-servers
-//   - Protocol & Go docs: https://pkg.go.dev/tailscale.com/derp
-//   - Running a DERP server: https://github.com/tailscale/tailscale/tree/main/cmd/derper#derp
-package main // import "tailscale.com/cmd/derper"
+//   - About: https://lanhc.com/kb/1232/derp-servers
+//   - Protocol & Go docs: https://pkg.go.dev/lanhc.com/derp
+//   - Running a DERP server: https://github.com/lanhc/lanhc/tree/main/cmd/derper#derp
+package main // import "lanhc.com/cmd/derper"
 
 import (
 	"cmp"
@@ -39,18 +39,18 @@ import (
 
 	"github.com/tailscale/setec/client/setec"
 	"golang.org/x/time/rate"
-	"tailscale.com/atomicfile"
-	"tailscale.com/derp/derpserver"
-	"tailscale.com/metrics"
-	"tailscale.com/net/ktimeout"
-	"tailscale.com/net/stunserver"
-	"tailscale.com/tsweb"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/version"
+	"lanhc.com/atomicfile"
+	"lanhc.com/derp/derpserver"
+	"lanhc.com/metrics"
+	"lanhc.com/net/ktimeout"
+	"lanhc.com/net/stunserver"
+	"lanhc.com/tsweb"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/version"
 
 	// Support for prometheus varz in tsweb
-	_ "tailscale.com/tsweb/promvarz"
+	_ "lanhc.com/tsweb/promvarz"
 )
 
 var (
@@ -62,7 +62,7 @@ var (
 	configPath  = flag.String("c", "", "config file path")
 	certMode    = flag.String("certmode", "letsencrypt", "mode for getting a cert. possible options: manual, letsencrypt, gcp")
 	certDir     = flag.String("certdir", tsweb.DefaultCertDir("derper-certs"), "directory to store ACME (e.g. LetsEncrypt) certs, if addr's port is :443")
-	hostname    = flag.String("hostname", "derp.tailscale.com", "TLS host name for certs, if addr's port is :443. It can be an IP address when --certmode=manual (to avoid SNI checks) or when --acme-ip-certs is set (to run an IP-only server with no hostname cert)")
+	hostname    = flag.String("hostname", "derp.lanhc.com", "TLS host name for certs, if addr's port is :443. It can be an IP address when --certmode=manual (to avoid SNI checks) or when --acme-ip-certs is set (to run an IP-only server with no hostname cert)")
 	acmeEABKid  = flag.String("acme-eab-kid", "", "ACME External Account Binding (EAB) Key ID (required for --certmode=gcp)")
 	acmeEABKey  = flag.String("acme-eab-key", "", "ACME External Account Binding (EAB) HMAC key, base64-encoded (required for --certmode=gcp)")
 	acmeEmail   = flag.String("acme-email", "", "ACME account contact email address (required for --certmode=gcp, optional for letsencrypt)")
@@ -79,11 +79,11 @@ var (
 	bootstrapDNS    = flag.String("bootstrap-dns-names", "", "optional comma-separated list of hostnames to make available at /bootstrap-dns")
 	unpublishedDNS  = flag.String("unpublished-bootstrap-dns-names", "", "optional comma-separated list of hostnames to make available at /bootstrap-dns and not publish in the list. If an entry contains a slash, the second part names a DNS record to poll for its TXT record with a `0` to `100` value for rollout percentage.")
 
-	verifyClients   = flag.Bool("verify-clients", false, "verify clients to this DERP server through a local tailscaled instance.")
+	verifyClients   = flag.Bool("verify-clients", false, "verify clients to this DERP server through a local lanhcd instance.")
 	verifyClientURL = flag.String("verify-client-url", "", "if non-empty, an admission controller URL for permitting client connections; see tailcfg.DERPAdmitClientRequest")
 	verifyFailOpen  = flag.Bool("verify-client-url-fail-open", true, "whether we fail open if --verify-client-url is unreachable")
 
-	socket = flag.String("socket", "", "optional alternate path to tailscaled socket (only relevant when using --verify-clients)")
+	socket = flag.String("socket", "", "optional alternate path to lanhcd socket (only relevant when using --verify-clients)")
 
 	acceptConnLimit = flag.Float64("accept-connection-limit", math.Inf(+1), "rate limit for accepting new connection")
 	acceptConnBurst = flag.Int("accept-connection-burst", math.MaxInt, "burst limit for accepting new connection")
@@ -107,7 +107,7 @@ var (
 )
 
 const setecMeshKeyName = "meshkey"
-const meshKeyEnvVar = "TAILSCALE_DERPER_MESH_KEY"
+const meshKeyEnvVar = "LANHC_DERPER_MESH_KEY"
 
 type config struct {
 	PrivateKey key.NodePrivate
@@ -191,7 +191,7 @@ func main() {
 
 	s := derpserver.New(cfg.PrivateKey, log.Printf)
 	s.SetVerifyClient(*verifyClients)
-	s.SetTailscaledSocketPath(*socket)
+	s.SetLanhcdSocketPath(*socket)
 	s.SetVerifyClientURL(*verifyClientURL)
 	s.SetVerifyClientURLFailOpen(*verifyFailOpen)
 	s.SetTCPWriteTimeout(*tcpWriteTimeout)
@@ -448,7 +448,7 @@ func watchRateConfig(ctx context.Context, s *derpserver.Server, path string) {
 	}
 }
 
-var validProdHostname = regexp.MustCompile(`^derp([^.]*)\.tailscale\.com\.?$`)
+var validProdHostname = regexp.MustCompile(`^derp([^.]*)\.lanhc\.com\.?$`)
 
 func prodAutocertHostPolicy(_ context.Context, host string) error {
 	if validProdHostname.MatchString(host) {
@@ -553,17 +553,17 @@ type templateData struct {
 var homePageTemplate = template.Must(template.New("home").Parse(`<html><body>
 <h1>DERP</h1>
 <p>
-  This is a <a href="https://tailscale.com/">Tailscale</a> DERP server.
+  This is a <a href="https://lanhc.com/">Lanhc</a> DERP server.
 </p>
 
 <p>
   It provides STUN, interactive connectivity establishment, and relaying of end-to-end encrypted traffic
-  for Tailscale clients.
+  for Lanhc clients.
 </p>
 
 {{if .ShowAbuseInfo }}
 <p>
-  If you suspect abuse, please contact <a href="mailto:security@tailscale.com">security@tailscale.com</a>.
+  If you suspect abuse, please contact <a href="mailto:security@lanhc.com">security@lanhc.com</a>.
 </p>
 {{end}}
 
@@ -573,12 +573,12 @@ var homePageTemplate = template.Must(template.New("home").Parse(`<html><body>
 
 <ul>
 {{if .ShowAbuseInfo }}
-  <li><a href="https://tailscale.com/security-policies">Tailscale Security Policies</a></li>
-  <li><a href="https://tailscale.com/tailscale-aup">Tailscale Acceptable Use Policies</a></li>
+  <li><a href="https://lanhc.com/security-policies">Lanhc Security Policies</a></li>
+  <li><a href="https://lanhc.com/lanhc-aup">Lanhc Acceptable Use Policies</a></li>
 {{end}}
-  <li><a href="https://tailscale.com/kb/1232/derp-servers">About DERP</a></li>
-  <li><a href="https://pkg.go.dev/tailscale.com/derp">Protocol & Go docs</a></li>
-  <li><a href="https://github.com/tailscale/tailscale/tree/main/cmd/derper#derp">How to run a DERP server</a></li>
+  <li><a href="https://lanhc.com/kb/1232/derp-servers">About DERP</a></li>
+  <li><a href="https://pkg.go.dev/lanhc.com/derp">Protocol & Go docs</a></li>
+  <li><a href="https://github.com/lanhc/lanhc/tree/main/cmd/derper#derp">How to run a DERP server</a></li>
 </ul>
 
 {{if .Disabled}}

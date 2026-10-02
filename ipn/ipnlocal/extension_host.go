@@ -14,15 +14,15 @@ import (
 	"sync/atomic"
 	"time"
 
-	"tailscale.com/control/controlclient"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnauth"
-	"tailscale.com/ipn/ipnext"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/execqueue"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/testenv"
+	"lanhc.com/control/controlclient"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnauth"
+	"lanhc.com/ipn/ipnext"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/execqueue"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/testenv"
 )
 
 // ExtensionHost is a bridge between the [LocalBackend] and the registered [ipnext.Extension]s.
@@ -466,7 +466,7 @@ func (h *ExtensionHost) active() bool {
 // used when no GUI/CLI client is connected, using background profile
 // resolvers registered by extensions.
 //
-// It returns an invalid view if Tailscale should not run in the background
+// It returns an invalid view if Lanhc should not run in the background
 // and instead disconnect until a GUI/CLI client connects.
 //
 // As of 2025-02-07, this is only used on Windows.
@@ -476,7 +476,7 @@ func (h *ExtensionHost) DetermineBackgroundProfile(profiles ipnext.ProfileStore)
 	}
 	// TODO(nickkhyl): check if the returned profile is allowed on the device,
 	// such as when [syspolicy.Tailnet] policy setting requires a specific Tailnet.
-	// See tailscale/corp#26249.
+	// See lanhc/corp#26249.
 
 	// Attempt to resolve the background profile using the registered
 	// background profile resolvers (e.g., [ipn/desktop.desktopSessionsExt] on Windows).
@@ -486,7 +486,7 @@ func (h *ExtensionHost) DetermineBackgroundProfile(profiles ipnext.ProfileStore)
 		}
 	}
 
-	// Otherwise, switch to an empty profile and disconnect Tailscale
+	// Otherwise, switch to an empty profile and disconnect Lanhc
 	// until a GUI or CLI client connects.
 	return ipn.LoginProfileView{}
 }

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // The natc command is a work-in-progress implementation of a NAT based
-// connector for Tailscale. It is intended to be used to route traffic to a
+// connector for Lanhc. It is intended to be used to route traffic to a
 // specific domain through a specific node.
 package main
 
@@ -30,24 +30,24 @@ import (
 	"github.com/peterbourgon/ff/v3"
 	"go4.org/netipx"
 	"golang.org/x/net/dns/dnsmessage"
-	"tailscale.com/client/local"
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/cmd/natc/ippool"
-	"tailscale.com/envknob"
-	"tailscale.com/hostinfo"
-	"tailscale.com/ipn"
-	"tailscale.com/net/netutil"
-	"tailscale.com/tsnet"
-	"tailscale.com/tsweb"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/must"
-	"tailscale.com/wgengine/netstack"
+	"lanhc.com/client/local"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/cmd/natc/ippool"
+	"lanhc.com/envknob"
+	"lanhc.com/hostinfo"
+	"lanhc.com/ipn"
+	"lanhc.com/net/netutil"
+	"lanhc.com/tsnet"
+	"lanhc.com/tsweb"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/must"
+	"lanhc.com/wgengine/netstack"
 )
 
 func main() {
 	hostinfo.SetApp("natc")
 	if !envknob.UseWIPCode() {
-		log.Fatal("cmd/natc is a work in progress and has not been security reviewed;\nits use requires TAILSCALE_USE_WIP_CODE=1 be set in the environment for now.")
+		log.Fatal("cmd/natc is a work in progress and has not been security reviewed;\nits use requires LANHC_USE_WIP_CODE=1 be set in the environment for now.")
 	}
 
 	// Parse flags
@@ -501,9 +501,9 @@ func v4ForV6(v6 netip.Addr) netip.Addr {
 
 // tsMBox is the mailbox used in SOA records.
 // The convention is to replace the @ symbol with a dot.
-// So in this case, the mailbox is support.tailscale.com. with the trailing dot
+// So in this case, the mailbox is support.lanhc.com. with the trailing dot
 // to indicate that it is a fully qualified domain name.
-var tsMBox = dnsmessage.MustNewName("support.tailscale.com.")
+var tsMBox = dnsmessage.MustNewName("support.lanhc.com.")
 
 // handleTCPFlow handles a TCP flow from the given source to the given
 // destination. It uses the source address to determine the node that sent the

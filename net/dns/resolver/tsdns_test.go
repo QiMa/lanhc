@@ -23,16 +23,16 @@ import (
 
 	miekdns "github.com/miekg/dns"
 	dns "golang.org/x/net/dns/dnsmessage"
-	"tailscale.com/health"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/tstest"
-	"tailscale.com/types/dnstype"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/eventbus/eventbustest"
-	"tailscale.com/util/set"
+	"lanhc.com/health"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/tstest"
+	"lanhc.com/types/dnstype"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/eventbus/eventbustest"
+	"lanhc.com/util/set"
 )
 
 var (
@@ -397,10 +397,10 @@ func TestResolveLocal(t *testing.T) {
 		// Without any suffix domain:
 		{"via_form3_hex_bare", dnsname.FQDN("1-2-3-4-via-0xff."), dns.TypeAAAA, netip.MustParseAddr("fd7a:115c:a1e0:b1a:0:ff:1.2.3.4"), dns.RCodeSuccess},
 		{"via_form3_dec_bare", dnsname.FQDN("1-2-3-4-via-1."), dns.TypeAAAA, netip.MustParseAddr("fd7a:115c:a1e0:b1a:0:1:1.2.3.4"), dns.RCodeSuccess},
-		// With a Tailscale domain:
+		// With a Lanhc domain:
 		{"via_form3_dec_ts.net", dnsname.FQDN("1-2-3-4-via-1.foo.ts.net."), dns.TypeAAAA, netip.MustParseAddr("fd7a:115c:a1e0:b1a:0:1:1.2.3.4"), dns.RCodeSuccess},
-		{"via_form3_dec_tailscale.net", dnsname.FQDN("1-2-3-4-via-1.foo.tailscale.net."), dns.TypeAAAA, netip.MustParseAddr("fd7a:115c:a1e0:b1a:0:1:1.2.3.4"), dns.RCodeSuccess},
-		// Non-Tailscale domain suffixes aren't allowed for now: (the allowed
+		{"via_form3_dec_lanhc.net", dnsname.FQDN("1-2-3-4-via-1.foo.lanhc.net."), dns.TypeAAAA, netip.MustParseAddr("fd7a:115c:a1e0:b1a:0:1:1.2.3.4"), dns.RCodeSuccess},
+		// Non-Lanhc domain suffixes aren't allowed for now: (the allowed
 		// suffixes are currently hard-coded and not plumbed via the netmap)
 		{"via_form3_dec_example.com", dnsname.FQDN("1-2-3-4-via-1.example.com."), dns.TypeAAAA, netip.Addr{}, dns.RCodeRefused},
 		{"via_form3_dec_examplets.net", dnsname.FQDN("1-2-3-4-via-1.examplets.net."), dns.TypeAAAA, netip.Addr{}, dns.RCodeRefused},
@@ -813,7 +813,7 @@ func TestDelegate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
 			if tt.title == "hugetxt" && runtime.GOOS == "darwin" {
-				t.Skip("known to not work on macOS: https://github.com/tailscale/tailscale/issues/2229")
+				t.Skip("known to not work on macOS: https://github.com/lanhc/lanhc/issues/2229")
 			}
 			payload, err := syncRespond(r, tt.query)
 			if err != nil {
@@ -1135,7 +1135,7 @@ func TestFull(t *testing.T) {
 // (notably macOS's mDNSResponder) seem to cache the nonexistence of
 // a name for a really long time, so nodes renamed in the admin
 // console don't start resolving under their new name for a while
-// (tailscale/corp#45631).
+// (lanhc/corp#45631).
 func TestNegativeCachingSOA(t *testing.T) {
 	r := newResolver(t)
 	defer r.Close()
@@ -1726,7 +1726,7 @@ func TestUnARPA(t *testing.T) {
 // TestServfail validates that a SERVFAIL error response is returned if
 // all upstream resolvers respond with SERVFAIL.
 //
-// See: https://github.com/tailscale/tailscale/issues/4722
+// See: https://github.com/lanhc/lanhc/issues/4722
 func TestServfail(t *testing.T) {
 	server := serveDNS(t, "127.0.0.1:0", "test.site.", miekdns.HandlerFunc(func(w miekdns.ResponseWriter, req *miekdns.Msg) {
 		m := new(miekdns.Msg)

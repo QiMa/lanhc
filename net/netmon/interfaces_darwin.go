@@ -12,8 +12,8 @@ import (
 
 	"golang.org/x/net/route"
 	"golang.org/x/sys/unix"
-	"tailscale.com/syncs"
-	"tailscale.com/util/mak"
+	"lanhc.com/syncs"
+	"lanhc.com/util/mak"
 )
 
 // fetchRoutingTable calls route.FetchRIB, fetching NET_RT_DUMP2.
@@ -56,7 +56,7 @@ func getDelegatedInterface(ifIndex int) (int, error) {
 		mak.Set(&ifNames.m, ifIndex, ifName)
 	}
 
-	// Only tunnels (like Tailscale itself) have a delegated interface, avoid
+	// Only tunnels (like Lanhc itself) have a delegated interface, avoid
 	// the ioctl if we can.
 	if !strings.HasPrefix(ifName, "utun") {
 		return 0, nil

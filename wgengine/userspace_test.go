@@ -20,28 +20,28 @@ import (
 
 	"github.com/tailscale/wireguard-go/device"
 	"go4.org/mem"
-	"tailscale.com/cmd/testwrapper/flakytest"
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/derp"
-	"tailscale.com/derp/derpserver"
-	"tailscale.com/envknob"
-	"tailscale.com/health"
-	"tailscale.com/net/dns"
-	"tailscale.com/net/dns/resolver"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/stun/stuntest"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/dnstype"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/opt"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/eventbus/eventbustest"
-	"tailscale.com/util/usermetric"
-	"tailscale.com/wgengine/router"
-	"tailscale.com/wgengine/wgcfg"
+	"lanhc.com/cmd/testwrapper/flakytest"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/derp"
+	"lanhc.com/derp/derpserver"
+	"lanhc.com/envknob"
+	"lanhc.com/health"
+	"lanhc.com/net/dns"
+	"lanhc.com/net/dns/resolver"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/stun/stuntest"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/dnstype"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/opt"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/eventbus/eventbustest"
+	"lanhc.com/util/usermetric"
+	"lanhc.com/wgengine/router"
+	"lanhc.com/wgengine/wgcfg"
 )
 
 func TestPeerWireGuardStateValuesMatchWireguardGo(t *testing.T) {
@@ -150,7 +150,7 @@ func (c *recordingOSConfigurator) GetBaseConfig() (dns.OSConfig, error) {
 // failure does not prevent DNS from being configured. Historically Reconfig
 // returned on router error before dns.Set ran, so MagicDNS was never
 // configured on hosts where router config failed on every reconfig. See
-// tailscale/tailscale#20447.
+// lanhc/lanhc#20447.
 func TestUserspaceEngineReconfigDNSAfterRouterError(t *testing.T) {
 	bus := eventbustest.NewBus(t)
 
@@ -190,7 +190,7 @@ func TestUserspaceEngineReconfigDNSAfterRouterError(t *testing.T) {
 }
 
 func TestUserspaceEnginePortReconfig(t *testing.T) {
-	flakytest.Mark(t, "https://github.com/tailscale/tailscale/issues/2855")
+	flakytest.Mark(t, "https://github.com/lanhc/lanhc/issues/2855")
 	const defaultPort = 49983
 
 	var knobs controlknobs.Knobs
@@ -525,7 +525,7 @@ func TestLinkChangeReapplyPreservesMagicDNSRoutes(t *testing.T) {
 // linkChangeQueue work to finish before tearing down the subsystems
 // that linkChange uses.
 //
-// See https://github.com/tailscale/tailscale/issues/17641.
+// See https://github.com/lanhc/lanhc/issues/17641.
 func TestCloseWaitsForLinkChange(t *testing.T) {
 	bus := eventbustest.NewBus(t)
 

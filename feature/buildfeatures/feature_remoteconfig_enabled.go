@@ -7,7 +7,7 @@
 
 package buildfeatures
 
-// HasRemoteConfig is whether the binary was built with support for modular feature "Full remote configuration of this node by the tailnet admin, opting out of Tailscale's per-feature double opt-in in favor of a single client-side trust decision".
+// HasRemoteConfig is whether the binary was built with support for modular feature "Full remote configuration of this node by the tailnet admin, opting out of Lanhc's per-feature double opt-in in favor of a single client-side trust decision".
 // Specifically, it's whether the binary was NOT built with the "ts_omit_remoteconfig" build tag.
 // It's a const so it can be used for dead code elimination.
 const HasRemoteConfig = true

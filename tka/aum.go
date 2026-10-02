@@ -14,8 +14,8 @@ import (
 
 	"github.com/fxamacker/cbor/v2"
 	"golang.org/x/crypto/blake2s"
-	"tailscale.com/types/tkatype"
-	"tailscale.com/util/set"
+	"lanhc.com/types/tkatype"
+	"lanhc.com/util/set"
 )
 
 // AUMHash represents the BLAKE2s digest of an Authority Update Message (AUM).
@@ -213,7 +213,7 @@ func (a *AUM) StaticValidate() error {
 	case AUMNoOp:
 	default:
 		// An AUM with an unknown message kind was received! That means
-		// that a future version of tailscaled added some feature we don't
+		// that a future version of lanhcd added some feature we don't
 		// understand.
 		//
 		// The future-compatibility contract for AUM message types is that

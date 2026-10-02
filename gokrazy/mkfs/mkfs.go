@@ -6,7 +6,7 @@
 // determined by the gokrazy partition layout.
 //
 // Used by gokrazy/build.go when producing a "--full" disk image and by
-// "tailscale configure flash-appliance" when flashing an image to an
+// "lanhc configure flash-appliance" when flashing an image to an
 // SD card, so the appliance has a working /perm on first boot without
 // requiring users to install mkfs.ext4 (e.g. e2fsprogs on macOS).
 package mkfs
@@ -24,7 +24,7 @@ import (
 	"github.com/bradfitz/monogok/disklayout"
 	"github.com/diskfs/go-diskfs/backend"
 	"github.com/diskfs/go-diskfs/filesystem/ext4"
-	"tailscale.com/util/progresstracking"
+	"lanhc.com/util/progresstracking"
 )
 
 // gptSecondaryReservedSectors is the number of 512-byte sectors that

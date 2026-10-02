@@ -10,7 +10,7 @@
 //
 //	go run ./tsnet/example/ssh-game
 //
-// Then from another Tailscale node:
+// Then from another Lanhc node:
 //
 //	ssh -p 2222 <hostname>
 package main
@@ -23,9 +23,9 @@ import (
 	"net"
 	"strings"
 
-	_ "tailscale.com/feature/ssh"
-	"tailscale.com/ssh/tailssh"
-	"tailscale.com/tsnet"
+	_ "lanhc.com/feature/ssh"
+	"lanhc.com/ssh/tailssh"
+	"lanhc.com/tsnet"
 )
 
 func main() {

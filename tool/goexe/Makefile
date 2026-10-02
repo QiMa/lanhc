@@ -1,7 +1,7 @@
-# Builds tool/go.exe, a thin wrapper that execs the Tailscale Go
+# Builds tool/go.exe, a thin wrapper that execs the Lanhc Go
 # toolchain without going through cmd.exe (which mangles ^ and other
 # special characters in arguments).
-# See https://github.com/tailscale/tailscale/issues/19255
+# See https://github.com/lanhc/lanhc/issues/19255
 #
 # Built as no_std Rust with raw Win32 API calls for minimal size (~17KB).
 # The resulting go.exe is checked into the repo at tool/go.exe.

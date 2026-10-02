@@ -7,10 +7,10 @@ package health
 type Arg string
 
 const (
-	// ArgAvailableVersion provides an update notification Warnable with the available version of the Tailscale client.
+	// ArgAvailableVersion provides an update notification Warnable with the available version of the Lanhc client.
 	ArgAvailableVersion Arg = "available-version"
 
-	// ArgCurrentVersion provides an update notification Warnable with the current version of the Tailscale client.
+	// ArgCurrentVersion provides an update notification Warnable with the current version of the Lanhc client.
 	ArgCurrentVersion Arg = "current-version"
 
 	// ArgDuration provides a Warnable with how long the Warnable has been in an unhealthy state.

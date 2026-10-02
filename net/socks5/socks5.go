@@ -3,13 +3,13 @@
 
 // Package socks5 is a SOCKS5 server implementation.
 //
-// This is used for userspace networking in Tailscale. Specifically,
+// This is used for userspace networking in Lanhc. Specifically,
 // this is used for dialing out of the machine to other nodes, without
 // the host kernel's involvement, so it doesn't proper routing tables,
 // TUN, IPv6, etc. This package is meant to only handle the SOCKS5 protocol
-// details and not any integration with Tailscale internals itself.
+// details and not any integration with Lanhc internals itself.
 //
-// The glue between this package and Tailscale is in net/socks5/tssocks.
+// The glue between this package and Lanhc is in net/socks5/tssocks.
 package socks5
 
 import (
@@ -25,7 +25,7 @@ import (
 	"strconv"
 	"time"
 
-	"tailscale.com/types/logger"
+	"lanhc.com/types/logger"
 )
 
 // Authentication METHODs described in RFC 1928, section 3.

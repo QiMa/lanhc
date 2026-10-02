@@ -17,7 +17,7 @@ import { SWRConfig } from "swr"
 
 declare var window: any
 // This is used to determine if the react client is built.
-window.Tailscale = true
+window.Lanhc = true
 
 const rootEl = document.createElement("div")
 rootEl.id = "app-root"

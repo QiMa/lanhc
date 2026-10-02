@@ -7,15 +7,15 @@ import (
 	"crypto/tls"
 	"net/http"
 
-	"tailscale.com/control/controlclient"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnauth"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
-	"tailscale.com/types/key"
-	"tailscale.com/types/netmap"
-	"tailscale.com/util/testenv"
-	"tailscale.com/wgengine/filter"
+	"lanhc.com/control/controlclient"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnauth"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
+	"lanhc.com/types/key"
+	"lanhc.com/types/netmap"
+	"lanhc.com/util/testenv"
+	"lanhc.com/wgengine/filter"
 )
 
 // forTest is an unexported type to hide all the test-only
@@ -90,7 +90,7 @@ func (f forTest) AwaitNodeKey(k key.NodePublic) <-chan struct{} {
 
 // CurrentUser returns the current user and the associated WindowsUserID.
 // It will be removed along with the rest of the "current user" functionality
-// as we progress on the multi-user improvements (tailscale/corp#18342).
+// as we progress on the multi-user improvements (lanhc/corp#18342).
 func (f forTest) CurrentUser() (ipn.WindowsUserID, ipnauth.Actor) {
 	b := f.b
 	b.mu.Lock()

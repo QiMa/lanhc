@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package dissector contains the Lua dissector for Tailscale packets.
+// Package dissector contains the Lua dissector for Lanhc packets.
 package dissector
 
 import (

@@ -13,10 +13,10 @@ import (
 	"time"
 
 	"github.com/creachadair/mds/shell"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/tstest/natlab/vmtest"
-	"tailscale.com/tstest/natlab/vnet"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/tstest/natlab/vmtest"
+	"lanhc.com/tstest/natlab/vnet"
 )
 
 const (
@@ -28,7 +28,7 @@ const (
 
 	// driveKanaNFC and driveKanaNFD are the same filename (テズト ä.wav) in
 	// NFC (precomposed) and NFD (decomposed) Unicode normalization forms,
-	// from tailscale/tailscale#15020. They are canonically equivalent but
+	// from lanhc/lanhc#15020. They are canonically equivalent but
 	// byte-wise different: in NFC, ズ is the single code point U+30BA and ä
 	// is U+00E4; in NFD they are ス U+30B9 plus the combining voiced sound
 	// mark U+3099, and "a" plus the combining diaeresis U+0308.
@@ -45,7 +45,7 @@ const (
 //
 // The Unicode cases simulate a macOS WebDAV client, which requests paths in
 // NFD form, accessing a share on a Linux disk whose filenames are NFC bytes
-// (tailscale/tailscale#15020). Requesting a directory listing immediately
+// (lanhc/lanhc#15020). Requesting a directory listing immediately
 // before the NFD PROPFIND also exercises the accessing node's StatCache,
 // which caches children under their NFC hrefs and previously inferred 404
 // for the NFD name without contacting the share host.
@@ -93,8 +93,8 @@ func TestTaildrive(t *testing.T) {
 		setupStep.Fatalf("share dir setup: %v\n%s", err, out)
 		return
 	}
-	if out, err := env.Tailscale(host, "drive", "share", driveShareName, driveShareDir); err != nil {
-		setupStep.Fatalf("tailscale drive share: %v\n%s", err, out)
+	if out, err := env.Lanhc(host, "drive", "share", driveShareName, driveShareDir); err != nil {
+		setupStep.Fatalf("lanhc drive share: %v\n%s", err, out)
 		return
 	}
 	setupStep.End(nil)

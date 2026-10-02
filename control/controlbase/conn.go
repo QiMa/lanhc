@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package controlbase implements the base transport of the Tailscale
+// Package controlbase implements the base transport of the Lanhc
 // 2021 control protocol.
 //
 // The base transport implements Noise IK, instantiated with
@@ -18,8 +18,8 @@ import (
 
 	"golang.org/x/crypto/blake2s"
 	chp "golang.org/x/crypto/chacha20poly1305"
-	"tailscale.com/syncs"
-	"tailscale.com/types/key"
+	"lanhc.com/syncs"
+	"lanhc.com/types/key"
 )
 
 const (

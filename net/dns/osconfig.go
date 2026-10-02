@@ -11,15 +11,15 @@ import (
 	"slices"
 	"strings"
 
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/dnsname"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/dnsname"
 )
 
 // An OSConfigurator applies DNS settings to the operating system.
 type OSConfigurator interface {
 	// SetDNS updates the OS's DNS configuration to match cfg.
-	// If cfg is the zero value, all Tailscale-related DNS
+	// If cfg is the zero value, all Lanhc-related DNS
 	// configuration is removed.
 	// SetDNS must not be called after Close.
 	// SetDNS takes ownership of cfg.
@@ -29,16 +29,16 @@ type OSConfigurator interface {
 	// the configurator can only set a global resolver.
 	SupportsSplitDNS() bool
 	// GetBaseConfig returns the OS's "base" configuration, i.e. the
-	// resolver settings the OS would use without Tailscale
+	// resolver settings the OS would use without Lanhc
 	// contributing any configuration.
-	// GetBaseConfig must return the tailscale-free base config even
-	// after SetDNS has been called to set a Tailscale configuration.
+	// GetBaseConfig must return the lanhc-free base config even
+	// after SetDNS has been called to set a Lanhc configuration.
 	// Only works when SupportsSplitDNS=false.
 
 	// Implementations that don't support getting the base config must
 	// return ErrGetBaseConfigNotSupported.
 	GetBaseConfig() (OSConfig, error)
-	// Close removes Tailscale-related DNS configuration from the OS.
+	// Close removes Lanhc-related DNS configuration from the OS.
 	Close() error
 }
 
@@ -58,7 +58,7 @@ type OSConfig struct {
 	Nameservers []netip.Addr
 	// SearchDomains are the domain suffixes to use when expanding
 	// single-label name queries. SearchDomains is additive to
-	// whatever non-Tailscale search domains the OS has.
+	// whatever non-Lanhc search domains the OS has.
 	SearchDomains []dnsname.FQDN
 	// MatchDomains are the DNS suffixes for which Nameservers should
 	// be used. If empty, Nameservers is installed as the "primary" resolver.
@@ -156,7 +156,7 @@ func (a OSConfig) Equal(b OSConfig) bool {
 // Format implements the fmt.Formatter interface to ensure that Hosts is
 // printed correctly (i.e. not as a bunch of pointers).
 //
-// Fixes https://github.com/tailscale/tailscale/issues/5669
+// Fixes https://github.com/lanhc/lanhc/issues/5669
 func (a OSConfig) Format(f fmt.State, verb rune) {
 	logger.ArgWriter(func(w *bufio.Writer) {
 		if !buildfeatures.HasDNS {

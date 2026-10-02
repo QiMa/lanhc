@@ -95,7 +95,7 @@ export const featureDescription = (f: Feature) => {
     case "use-exit-node":
       return "Using an exit node"
     case "ssh":
-      return "Running a Tailscale SSH server"
+      return "Running a Lanhc SSH server"
     case "auto-update":
       return "Auto updating client versions"
     default:

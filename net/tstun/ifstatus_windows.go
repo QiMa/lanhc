@@ -10,7 +10,7 @@ import (
 
 	"github.com/tailscale/wireguard-go/tun"
 	"golang.zx2c4.com/wireguard/windows/tunnel/winipcfg"
-	"tailscale.com/types/logger"
+	"lanhc.com/types/logger"
 )
 
 // ifaceWatcher waits for an interface to be up.

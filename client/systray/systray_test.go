@@ -8,9 +8,9 @@ package systray
 import (
 	"testing"
 
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
 )
 
 func TestProfileTitleMultiline(t *testing.T) {

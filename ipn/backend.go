@@ -10,16 +10,16 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/drive"
-	"tailscale.com/health"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/empty"
-	"tailscale.com/types/key"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/structs"
-	"tailscale.com/types/views"
-	"tailscale.com/util/syspolicy/policyclient"
+	"lanhc.com/drive"
+	"lanhc.com/health"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/empty"
+	"lanhc.com/types/key"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/structs"
+	"lanhc.com/types/views"
+	"lanhc.com/util/syspolicy/policyclient"
 )
 
 type State int
@@ -114,7 +114,7 @@ const (
 	// Watchers that want narrower per-field updates as well (Online,
 	// LastSeen, DERPHome, Endpoints) should additionally set
 	// [NotifyPeerPatches]. Without [NotifyPeerPatches], any per-field
-	// patch tailscaled would have emitted as a [tailcfg.PeerChange] is
+	// patch lanhcd would have emitted as a [tailcfg.PeerChange] is
 	// promoted into a full-Node entry in [Notify.PeersChanged] for this
 	// watcher, so a watcher that opts only into [NotifyPeerChanges] still
 	// observes every per-peer mutation; it just receives them as full
@@ -128,7 +128,7 @@ const (
 
 	// NotifyNoNetMap, if set, suppresses the legacy [Notify.NetMap] field on
 	// runtime (non-initial) Notify messages delivered to this watcher. It
-	// only matters on platforms where tailscaled still emits NetMap on the
+	// only matters on platforms where lanhcd still emits NetMap on the
 	// bus by default — Windows, macOS, and iOS — and is intended for GUI
 	// clients on those platforms that have migrated to read peers via
 	// [Notify.PeersChanged] / [LocalClient.NetMap]. The initial-state NetMap
@@ -289,8 +289,8 @@ func ValidateNotifyWatchOpt(mask NotifyWatchOpt) error {
 	return nil
 }
 
-// Notify is a communication from a backend (e.g. tailscaled) to a frontend
-// (cmd/tailscale, iOS, macOS, Win Tasktray).
+// Notify is a communication from a backend (e.g. lanhcd) to a frontend
+// (cmd/lanhc, iOS, macOS, Win Tasktray).
 // In any given notification, any or all of these may be nil, meaning
 // that they have not changed.
 // They are JSON-encoded on the wire, despite the lack of struct tags.
@@ -341,7 +341,7 @@ type Notify struct {
 	//
 	//   - On the initial Notify if the watcher requested
 	//     [NotifyInitialNetMap] (any platform).
-	//   - On subsequent Notify messages, only when tailscaled is running
+	//   - On subsequent Notify messages, only when lanhcd is running
 	//     on Windows. On all other platforms it is always nil after the
 	//     initial notify.
 	//
@@ -423,7 +423,7 @@ type Notify struct {
 	BrowseToURL *string       // if non-nil, UI should open a browser right now
 
 	// FilesWaiting if non-nil means that files are buffered in
-	// the Tailscale daemon and ready for local transfer to the
+	// the Lanhc daemon and ready for local transfer to the
 	// user's preferred storage location.
 	//
 	// Deprecated: use LocalClient.AwaitWaitingFiles instead.
@@ -445,7 +445,7 @@ type Notify struct {
 
 	// LocalTCPPort, if non-nil, informs the UI frontend which
 	// (non-zero) localhost TCP port it's listening on.
-	// This is currently only used by Tailscale when run in the
+	// This is currently only used by Lanhc when run in the
 	// macOS Network Extension.
 	LocalTCPPort *uint16 `json:",omitzero"`
 
@@ -538,7 +538,7 @@ type PeerState struct {
 	PeerWireGuardState PeerWireGuardState
 
 	// PeerWireGuardStateAt is the wall-clock time at which the peer entered
-	// [PeerState.PeerWireGuardState], as observed by tailscaled.
+	// [PeerState.PeerWireGuardState], as observed by lanhcd.
 	// It is tracked by [LocalBackend] even when no watchers are subscribed,
 	// so a later subscriber's initial snapshot reflects the true transition
 	// time rather than the subscription time.
@@ -641,7 +641,7 @@ type OutgoingFile struct {
 type StateKey string
 
 // DebuggableComponents is a list of components whose debugging can be turned on
-// and off individually using the tailscale debug command.
+// and off individually using the lanhc debug command.
 var DebuggableComponents = []string{
 	"magicsock",
 	"sockstats",

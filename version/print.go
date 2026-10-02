@@ -18,17 +18,17 @@ var stringLazy = sync.OnceValue(func() string {
 		fmt.Fprintf(&ret, "  track: unstable (dev); frequent updates and bugs are likely\n")
 	}
 	if gitCommit() != "" {
-		fmt.Fprintf(&ret, "  tailscale commit: %s%s\n", gitCommit(), dirtyString())
+		fmt.Fprintf(&ret, "  lanhc commit: %s%s\n", gitCommit(), dirtyString())
 	}
 	fmt.Fprintf(&ret, "  long version: %s\n", Long())
 	if extraGitCommitStamp != "" {
 		fmt.Fprintf(&ret, "  other commit: %s\n", extraGitCommitStamp)
 	}
-	if tsGoRev := tailscaleToolchainRev(); tsGoRev != "" {
+	if tsGoRev := lanhcToolchainRev(); tsGoRev != "" {
 		if len(tsGoRev) > 10 {
 			tsGoRev = tsGoRev[:10]
 		}
-		fmt.Fprintf(&ret, "  go version: %s (tailscale/go %s)\n", runtime.Version(), tsGoRev)
+		fmt.Fprintf(&ret, "  go version: %s (lanhc/go %s)\n", runtime.Version(), tsGoRev)
 	} else {
 		fmt.Fprintf(&ret, "  go version: %s\n", runtime.Version())
 	}

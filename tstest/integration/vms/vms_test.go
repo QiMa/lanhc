@@ -26,13 +26,13 @@ import (
 	expect "github.com/tailscale/goexpect"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/sync/semaphore"
-	"tailscale.com/tstest"
-	"tailscale.com/types/logger"
+	"lanhc.com/tstest"
+	"lanhc.com/types/logger"
 )
 
 const (
 	securePassword = "hunter2"
-	bucketName     = "tailscale-integration-vm-images"
+	bucketName     = "lanhc-integration-vm-images"
 )
 
 var (
@@ -96,7 +96,7 @@ var (
 )
 
 // mkSeed makes the cloud-init seed ISO that is used to configure a VM with
-// tailscale.
+// lanhc.
 func mkSeed(t *testing.T, d Distro, sshKey, hostURL, tdir string, port int) {
 	t.Helper()
 
@@ -325,7 +325,7 @@ func (h *Harness) testDistro(t *testing.T, d Distro, ipm ipMapping) {
 
 	timeout := 30 * time.Second
 
-	t.Run("start-tailscale", func(t *testing.T) {
+	t.Run("start-lanhc", func(t *testing.T) {
 		var batch = []expect.Batcher{
 			&expect.BExp{R: `(\#)`},
 		}
@@ -333,13 +333,13 @@ func (h *Harness) testDistro(t *testing.T, d Distro, ipm ipMapping) {
 		switch d.InitSystem {
 		case "openrc":
 			// NOTE(Xe): this is a sin, however openrc doesn't really have the concept
-			// of service readiness. If this sleep is removed then tailscale will not be
-			// ready once the `tailscale up` command is sent. This is not ideal, but I
+			// of service readiness. If this sleep is removed then lanhc will not be
+			// ready once the `lanhc up` command is sent. This is not ideal, but I
 			// am not really sure there is a good way around this without a delay of
 			// some kind.
-			batch = append(batch, &expect.BSnd{S: "rc-service tailscaled start && sleep 2\n"})
+			batch = append(batch, &expect.BSnd{S: "rc-service lanhcd start && sleep 2\n"})
 		case "systemd":
-			batch = append(batch, &expect.BSnd{S: "systemctl start tailscaled.service\n"})
+			batch = append(batch, &expect.BSnd{S: "systemctl start lanhcd.service\n"})
 		}
 
 		batch = append(batch, &expect.BExp{R: `(\#)`})
@@ -349,27 +349,27 @@ func (h *Harness) testDistro(t *testing.T, d Distro, ipm ipMapping) {
 
 	t.Run("login", func(t *testing.T) {
 		runTestCommands(t, timeout, cli, []expect.Batcher{
-			&expect.BSnd{S: fmt.Sprintf("tailscale up --login-server=%s\n", loginServer)},
+			&expect.BSnd{S: fmt.Sprintf("lanhc up --login-server=%s\n", loginServer)},
 			&expect.BSnd{S: "echo Success.\n"},
 			&expect.BExp{R: `Success.`},
 		})
 	})
 
-	t.Run("tailscale-status", func(t *testing.T) {
+	t.Run("lanhc-status", func(t *testing.T) {
 		dur := 100 * time.Millisecond
 		var outp []byte
 		var err error
 
-		// NOTE(Xe): retry `tailscale status` a few times until it works. When tailscaled
+		// NOTE(Xe): retry `lanhc status` a few times until it works. When lanhcd
 		// starts with testcontrol sometimes there can be up to a few seconds where
-		// tailscaled is in an unknown state on these virtual machines. This exponential
-		// delay loop should delay long enough for tailscaled to be ready.
+		// lanhcd is in an unknown state on these virtual machines. This exponential
+		// delay loop should delay long enough for lanhcd to be ready.
 		for range 10 {
 			sess := getSession(t, cli)
 
-			outp, err = sess.CombinedOutput("tailscale status")
+			outp, err = sess.CombinedOutput("lanhc status")
 			if err == nil {
-				t.Logf("tailscale status: %s", outp)
+				t.Logf("lanhc status: %s", outp)
 				if !strings.Contains(string(outp), "100.64.0.1") {
 					t.Fatal("can't find tester IP")
 				}
@@ -418,7 +418,7 @@ func (h *Harness) testDistro(t *testing.T, d Distro, ipm ipMapping) {
 		t.Run(tt.ipProto+"-address", func(t *testing.T) {
 			sess := getSession(t, cli)
 
-			ipBytes, err := sess.Output("tailscale ip -" + string(tt.ipProto[len(tt.ipProto)-1]))
+			ipBytes, err := sess.Output("lanhc ip -" + string(tt.ipProto[len(tt.ipProto)-1]))
 			if err != nil {
 				t.Fatalf("can't get IP: %v", err)
 			}
@@ -441,9 +441,9 @@ func (h *Harness) testDistro(t *testing.T, d Distro, ipm ipMapping) {
 			t.Fatalf("can't make incoming session: %v", err)
 		}
 		defer sess.Close()
-		ipBytes, err := sess.Output("tailscale ip -4")
+		ipBytes, err := sess.Output("lanhc ip -4")
 		if err != nil {
-			t.Fatalf("can't run `tailscale ip -4`: %v", err)
+			t.Fatalf("can't run `lanhc ip -4`: %v", err)
 		}
 		ip := string(bytes.TrimSpace(ipBytes))
 
@@ -456,7 +456,7 @@ func (h *Harness) testDistro(t *testing.T, d Distro, ipm ipMapping) {
 
 		sshConn, chanchan, reqchan, err := ssh.NewClientConn(conn, net.JoinHostPort(ip, "22"), ccfg)
 		if err != nil {
-			t.Fatalf("can't negotiate connection over tailscale: %v", err)
+			t.Fatalf("can't negotiate connection over lanhc: %v", err)
 		}
 		defer sshConn.Close()
 
@@ -469,7 +469,7 @@ func (h *Harness) testDistro(t *testing.T, d Distro, ipm ipMapping) {
 		}
 		defer sess.Close()
 
-		testIPBytes, err := sess.Output("tailscale ip -4")
+		testIPBytes, err := sess.Output("lanhc ip -4")
 		if err != nil {
 			t.Fatalf("can't run command on remote VM: %v", err)
 		}
@@ -568,7 +568,7 @@ func (h *Harness) testDistro(t *testing.T, d Distro, ipm ipMapping) {
 		}
 		defer sess.Close()
 
-		ip, err := sess.Output("tailscale ip -4")
+		ip, err := sess.Output("lanhc ip -4")
 		if err != nil {
 			t.Fatalf("can't nab ipv4 address: %v", err)
 		}
@@ -669,13 +669,13 @@ func runTestCommands(t *testing.T, timeout time.Duration, cli *ssh.Client, batch
 	if err != nil {
 		sess, terr := cli.NewSession()
 		if terr != nil {
-			t.Fatalf("can't dump tailscaled logs on failed test: %v", terr)
+			t.Fatalf("can't dump lanhcd logs on failed test: %v", terr)
 		}
 		sess.Stdout = logger.FuncWriter(t.Logf)
 		sess.Stderr = logger.FuncWriter(t.Logf)
-		terr = sess.Run("journalctl -u tailscaled")
+		terr = sess.Run("journalctl -u lanhcd")
 		if terr != nil {
-			t.Fatalf("can't dump tailscaled logs on failed test: %v", terr)
+			t.Fatalf("can't dump lanhcd logs on failed test: %v", terr)
 		}
 		t.Fatalf("not successful: %v", err)
 	}

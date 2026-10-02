@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/tsconst"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/tsconst"
 )
 
 var testIsNotExistErr = "exitcode:1"
@@ -561,7 +561,7 @@ func TestAddAndDelCGNATRules(t *testing.T) {
 // TestDelLoopbackRuleMissing verifies DelLoopbackRule is a no-op (not an error)
 // when the rule is absent, so removing an address whose loopback rule was never
 // added in this instance -- e.g. one left on the interface by a previous
-// tailscaled -- isn't blocked. See tailscale/tailscale#19974.
+// lanhcd -- isn't blocked. See lanhc/lanhc#19974.
 func TestDelLoopbackRuleMissing(t *testing.T) {
 	iptr := newFakeIPTablesRunner()
 	if err := iptr.AddChains(); err != nil {

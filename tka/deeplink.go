@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	DeeplinkTailscaleURLScheme = "tailscale"
+	DeeplinkLanhcURLScheme = "lanhc"
 	DeeplinkCommandSign        = "sign-device"
 )
 
@@ -64,7 +64,7 @@ func (a *Authority) NewDeeplink(params NewDeeplinkParams) (string, error) {
 	}
 
 	u := url.URL{
-		Scheme: DeeplinkTailscaleURLScheme,
+		Scheme: DeeplinkLanhcURLScheme,
 		Host:   DeeplinkCommandSign,
 		Path:   "/v1/",
 	}
@@ -96,7 +96,7 @@ type DeeplinkValidationResult struct {
 // ValidateDeeplink validates a device signing deeplink using the authority's stateID.
 // The input urlString follows this structure:
 //
-// tailscale://sign-device/v1/?nk=xxx&tp=xxx&dn=xxx&os=xxx&em=xxx&hm=xxx
+// lanhc://sign-device/v1/?nk=xxx&tp=xxx&dn=xxx&os=xxx&em=xxx&hm=xxx
 //
 // where:
 // - "nk" is the nodekey of the node being signed
@@ -114,10 +114,10 @@ func (a *Authority) ValidateDeeplink(urlString string) DeeplinkValidationResult 
 		}
 	}
 
-	if parsedUrl.Scheme != DeeplinkTailscaleURLScheme {
+	if parsedUrl.Scheme != DeeplinkLanhcURLScheme {
 		return DeeplinkValidationResult{
 			IsValid: false,
-			Error:   fmt.Sprintf("unhandled scheme %s, expected %s", parsedUrl.Scheme, DeeplinkTailscaleURLScheme),
+			Error:   fmt.Sprintf("unhandled scheme %s, expected %s", parsedUrl.Scheme, DeeplinkLanhcURLScheme),
 		}
 	}
 

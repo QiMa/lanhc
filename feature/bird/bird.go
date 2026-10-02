@@ -1,21 +1,21 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package bird integrates Tailscale with the BIRD Internet Routing
-// Daemon: it enables the "tailscale" protocol in BIRD while this node
+// Package bird integrates Lanhc with the BIRD Internet Routing
+// Daemon: it enables the "lanhc" protocol in BIRD while this node
 // is a primary subnet router and disables it otherwise. The BIRD
-// client implementation lives in tailscale.com/chirp.
+// client implementation lives in lanhc.com/chirp.
 package bird
 
 import (
 	"net/netip"
 
-	"tailscale.com/chirp"
-	"tailscale.com/feature"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/views"
-	"tailscale.com/wgengine"
+	"lanhc.com/chirp"
+	"lanhc.com/feature"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/views"
+	"lanhc.com/wgengine"
 )
 
 func init() {
@@ -23,9 +23,9 @@ func init() {
 	wgengine.HookNewBird.Set(newBird)
 }
 
-// protocolName is the name of the BIRD protocol that Tailscale enables
+// protocolName is the name of the BIRD protocol that Lanhc enables
 // while this node is a primary subnet router.
-const protocolName = "tailscale"
+const protocolName = "lanhc"
 
 // bird implements [wgengine.Bird] on top of [chirp.BIRDClient],
 // tracking the primary subnet router state across engine

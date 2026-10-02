@@ -29,48 +29,48 @@ import (
 	"k8s.io/apiserver/pkg/storage/names"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
-	"tailscale.com/client/tailscale/v2"
+	lanhcclient "tailscale.com/client/tailscale/v2"
 
-	"tailscale.com/ipn"
-	tsoperator "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/k8s-operator/tsclient"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/net/netutil"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/opt"
-	"tailscale.com/util/mak"
+	"lanhc.com/ipn"
+	tsoperator "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/k8s-operator/tsclient"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/net/netutil"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/opt"
+	"lanhc.com/util/mak"
 )
 
 const (
 	// Labels that the operator sets on StatefulSets and Pods. If you add a
-	// new label here, do also add it to tailscaleManagedLabels var to
+	// new label here, do also add it to lanhcManagedLabels var to
 	// ensure that it does not get overwritten by ProxyClass configuration.
-	LabelParentType      = "tailscale.com/parent-resource-type"
-	LabelParentName      = "tailscale.com/parent-resource"
-	LabelParentNamespace = "tailscale.com/parent-resource-ns"
+	LabelParentType      = "lanhc.com/parent-resource-type"
+	LabelParentName      = "lanhc.com/parent-resource"
+	LabelParentNamespace = "lanhc.com/parent-resource-ns"
 
-	// LabelProxyClass can be set by users on tailscale Ingresses and Services that define cluster ingress or
+	// LabelProxyClass can be set by users on lanhc Ingresses and Services that define cluster ingress or
 	// cluster egress, to specify that configuration in this ProxyClass should be applied to resources created for
 	// the Ingress or Service.
-	LabelAnnotationProxyClass = "tailscale.com/proxy-class"
+	LabelAnnotationProxyClass = "lanhc.com/proxy-class"
 
-	FinalizerName = "tailscale.com/finalizer"
+	FinalizerName = "lanhc.com/finalizer"
 
 	// Annotations settable by users on services.
-	AnnotationExpose             = "tailscale.com/expose"
-	AnnotationTags               = "tailscale.com/tags"
-	AnnotationHostname           = "tailscale.com/hostname"
-	annotationTailnetTargetIPOld = "tailscale.com/ts-tailnet-target-ip"
-	AnnotationTailnetTargetIP    = "tailscale.com/tailnet-ip"
+	AnnotationExpose             = "lanhc.com/expose"
+	AnnotationTags               = "lanhc.com/tags"
+	AnnotationHostname           = "lanhc.com/hostname"
+	annotationTailnetTargetIPOld = "lanhc.com/ts-tailnet-target-ip"
+	AnnotationTailnetTargetIP    = "lanhc.com/tailnet-ip"
 	// MagicDNS name of tailnet node.
-	AnnotationTailnetTargetFQDN = "tailscale.com/tailnet-fqdn"
+	AnnotationTailnetTargetFQDN = "lanhc.com/tailnet-fqdn"
 
-	AnnotationProxyGroup = "tailscale.com/proxy-group"
+	AnnotationProxyGroup = "lanhc.com/proxy-group"
 
 	// Annotations settable by users on ingresses.
-	AnnotationFunnel       = "tailscale.com/funnel"
-	AnnotationHTTPRedirect = "tailscale.com/http-redirect"
+	AnnotationFunnel       = "lanhc.com/funnel"
+	AnnotationHTTPRedirect = "lanhc.com/http-redirect"
 
 	// If set to true, set up iptables/nftables rules in the proxy forward
 	// cluster traffic to the tailnet IP of that proxy. This can only be set
@@ -79,21 +79,21 @@ const (
 	// using the same hostname as a tailnet workload (in this case, the
 	// MagicDNS name of the ingress proxy). This annotation is experimental.
 	// If it is set to true, the proxy set up for Ingress, will run
-	// tailscale in non-userspace, with NET_ADMIN cap for tailscale
+	// lanhc in non-userspace, with NET_ADMIN cap for lanhc
 	// container and will also run a privileged init container that enables
 	// forwarding.
 	// Eventually this behaviour might become the default.
-	AnnotationExperimentalForwardClusterTrafficViaL7IngresProxy = "tailscale.com/experimental-forward-cluster-traffic-via-ingress"
+	AnnotationExperimentalForwardClusterTrafficViaL7IngresProxy = "lanhc.com/experimental-forward-cluster-traffic-via-ingress"
 
 	// Annotations set by the operator on pods to trigger restarts when the
-	// hostname, IP, FQDN or tailscaled config changes. If you add a new
-	// annotation here, also add it to tailscaleManagedAnnotations var to
+	// hostname, IP, FQDN or lanhcd config changes. If you add a new
+	// annotation here, also add it to lanhcManagedAnnotations var to
 	// ensure that it does not get removed when a ProxyClass configuration
 	// is applied.
-	podAnnotationLastSetClusterIP         = "tailscale.com/operator-last-set-cluster-ip"
-	podAnnotationLastSetClusterDNSName    = "tailscale.com/operator-last-set-cluster-dns-name"
-	podAnnotationLastSetTailnetTargetIP   = "tailscale.com/operator-last-set-ts-tailnet-target-ip"
-	podAnnotationLastSetTailnetTargetFQDN = "tailscale.com/operator-last-set-ts-tailnet-target-fqdn"
+	podAnnotationLastSetClusterIP         = "lanhc.com/operator-last-set-cluster-ip"
+	podAnnotationLastSetClusterDNSName    = "lanhc.com/operator-last-set-cluster-dns-name"
+	podAnnotationLastSetTailnetTargetIP   = "lanhc.com/operator-last-set-ts-tailnet-target-ip"
+	podAnnotationLastSetTailnetTargetFQDN = "lanhc.com/operator-last-set-ts-tailnet-target-fqdn"
 
 	proxyTypeEgress          = "egress_service"
 	proxyTypeIngressService  = "ingress_service"
@@ -106,18 +106,18 @@ const (
 
 	letsEncryptStagingEndpoint = "https://acme-staging-v02.api.letsencrypt.org/directory"
 
-	mainContainerName = "tailscale"
+	mainContainerName = "lanhc"
 	operatorTailnet   = ""
 )
 
 var (
-	// tailscaleManagedLabels are label keys that tailscale operator sets on StatefulSets and Pods.
-	tailscaleManagedLabels = []string{kubetypes.LabelManaged, LabelParentType, LabelParentName, LabelParentNamespace, "app"}
-	// tailscaleManagedAnnotations are annotation keys that tailscale operator sets on StatefulSets and Pods.
-	tailscaleManagedAnnotations = []string{podAnnotationLastSetClusterIP, podAnnotationLastSetTailnetTargetIP, podAnnotationLastSetTailnetTargetFQDN}
+	// lanhcManagedLabels are label keys that lanhc operator sets on StatefulSets and Pods.
+	lanhcManagedLabels = []string{kubetypes.LabelManaged, LabelParentType, LabelParentName, LabelParentNamespace, "app"}
+	// lanhcManagedAnnotations are annotation keys that lanhc operator sets on StatefulSets and Pods.
+	lanhcManagedAnnotations = []string{podAnnotationLastSetClusterIP, podAnnotationLastSetTailnetTargetIP, podAnnotationLastSetTailnetTargetFQDN}
 )
 
-type tailscaleSTSConfig struct {
+type lanhcSTSConfig struct {
 	Replicas            int32
 	ParentResourceName  string
 	ParentResourceUID   string
@@ -171,7 +171,7 @@ type tsnetServer interface {
 	CertDomains() []string
 }
 
-type tailscaleSTSReconciler struct {
+type lanhcSTSReconciler struct {
 	client.Client
 	tsnetServer            tsnetServer
 	clients                ClientProvider
@@ -183,7 +183,7 @@ type tailscaleSTSReconciler struct {
 	loginServer            string
 }
 
-func (r *tailscaleSTSReconciler) validate() error {
+func (r *lanhcSTSReconciler) validate() error {
 	if r.tsFirewallMode != "" && !isValidFirewallMode(r.tsFirewallMode) {
 		return fmt.Errorf("invalid proxy firewall mode %s, valid modes are iptables, nftables or unset", r.tsFirewallMode)
 	}
@@ -197,7 +197,7 @@ func IsHTTPSEnabledOnTailnet(tsnetServer tsnetServer) bool {
 
 // Provision ensures that the StatefulSet for the given service is running and
 // up to date.
-func (r *tailscaleSTSReconciler) Provision(ctx context.Context, logger *zap.SugaredLogger, sts *tailscaleSTSConfig) (*corev1.Service, error) {
+func (r *lanhcSTSReconciler) Provision(ctx context.Context, logger *zap.SugaredLogger, sts *lanhcSTSConfig) (*corev1.Service, error) {
 	// Do full reconcile.
 	// TODO (don't create Service for the Connector)
 	hsvc, err := r.reconcileHeadlessService(ctx, logger, sts)
@@ -219,7 +219,7 @@ func (r *tailscaleSTSReconciler) Provision(ctx context.Context, logger *zap.Suga
 
 	tsClient, err := r.clients.For(sts.Tailnet)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get tailscale client: %w", err)
+		return nil, fmt.Errorf("failed to get lanhc client: %w", err)
 	}
 
 	secretNames, err := r.provisionSecrets(ctx, tsClient, sts, hsvc, logger)
@@ -246,10 +246,10 @@ func (r *tailscaleSTSReconciler) Provision(ctx context.Context, logger *zap.Suga
 // Cleanup removes all resources associated that were created by Provision with
 // the given labels. It returns true when all resources have been removed,
 // otherwise it returns false and the caller should retry later.
-func (r *tailscaleSTSReconciler) Cleanup(ctx context.Context, tailnet string, logger *zap.SugaredLogger, labels map[string]string, typ string) (done bool, _ error) {
+func (r *lanhcSTSReconciler) Cleanup(ctx context.Context, tailnet string, logger *zap.SugaredLogger, labels map[string]string, typ string) (done bool, _ error) {
 	tsClient, err := r.clients.For(tailnet)
 	if err != nil {
-		logger.Errorf("failed to get tailscale client: %v", err)
+		logger.Errorf("failed to get lanhc client: %v", err)
 		return false, nil
 	}
 
@@ -257,7 +257,7 @@ func (r *tailscaleSTSReconciler) Cleanup(ctx context.Context, tailnet string, lo
 	// cascading deletion. That way, the pod that's writing to the Secret will
 	// stop running before we start looking at the Secret's contents, and
 	// assuming k8s ordering semantics don't mess with us, that should avoid
-	// tailscale device deletion races where we fail to notice a device that
+	// lanhc device deletion races where we fail to notice a device that
 	// should be removed.
 	sts, err := getSingleObject[appsv1.StatefulSet](ctx, r.Client, r.operatorNamespace, labels)
 	if err != nil {
@@ -296,7 +296,7 @@ func (r *tailscaleSTSReconciler) Cleanup(ctx context.Context, tailnet string, lo
 			logger.Debugf("deleting device %s from control", string(dev.id))
 			err = tsClient.Devices().Delete(ctx, string(dev.id))
 			switch {
-			case tailscale.IsNotFound(err):
+			case lanhcclient.IsNotFound(err):
 				logger.Debugf("device %s not found, likely because it has already been deleted from control", string(dev.id))
 			case err != nil:
 				return false, fmt.Errorf("deleting device: %w", err)
@@ -357,7 +357,7 @@ func statefulSetNameBase(parent string) string {
 	}
 }
 
-func (r *tailscaleSTSReconciler) reconcileHeadlessService(ctx context.Context, logger *zap.SugaredLogger, sts *tailscaleSTSConfig) (*corev1.Service, error) {
+func (r *lanhcSTSReconciler) reconcileHeadlessService(ctx context.Context, logger *zap.SugaredLogger, sts *lanhcSTSConfig) (*corev1.Service, error) {
 	nameBase := statefulSetNameBase(sts.ParentResourceName)
 	hsvc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
@@ -377,7 +377,7 @@ func (r *tailscaleSTSReconciler) reconcileHeadlessService(ctx context.Context, l
 	return createOrUpdate(ctx, r.Client, r.operatorNamespace, hsvc, func(svc *corev1.Service) { svc.Spec = hsvc.Spec })
 }
 
-func (r *tailscaleSTSReconciler) provisionSecrets(ctx context.Context, tsClient tsclient.Client, stsC *tailscaleSTSConfig, hsvc *corev1.Service, logger *zap.SugaredLogger) ([]string, error) {
+func (r *lanhcSTSReconciler) provisionSecrets(ctx context.Context, tsClient tsclient.Client, stsC *lanhcSTSConfig, hsvc *corev1.Service, logger *zap.SugaredLogger) ([]string, error) {
 	secretNames := make([]string, stsC.Replicas)
 
 	// Start by ensuring we have Secrets for the desired number of replicas. This will handle both creating and scaling
@@ -415,8 +415,8 @@ func (r *tailscaleSTSReconciler) provisionSecrets(ctx context.Context, tsClient 
 
 		if orig == nil {
 			// Create API Key secret which is going to be used by the statefulset
-			// to authenticate with Tailscale.
-			logger.Debugf("creating authkey for new tailscale proxy")
+			// to authenticate with Lanhc.
+			logger.Debugf("creating authkey for new lanhc proxy")
 			tags := stsC.Tags
 			if len(tags) == 0 {
 				tags = r.defaultTags
@@ -428,18 +428,18 @@ func (r *tailscaleSTSReconciler) provisionSecrets(ctx context.Context, tsClient 
 			}
 		}
 
-		configs, err := tailscaledConfig(stsC, tsClient.LoginURL(), authKey, orig, hostname)
+		configs, err := lanhcdConfig(stsC, tsClient.LoginURL(), authKey, orig, hostname)
 		if err != nil {
-			return nil, fmt.Errorf("error creating tailscaled config: %w", err)
+			return nil, fmt.Errorf("error creating lanhcd config: %w", err)
 		}
 
 		latest := tailcfg.CapabilityVersion(-1)
 		var latestConfig ipn.ConfigVAlpha
 		for key, val := range configs {
-			fn := tsoperator.TailscaledConfigFileName(key)
+			fn := tsoperator.LanhcdConfigFileName(key)
 			b, err := json.Marshal(val)
 			if err != nil {
-				return nil, fmt.Errorf("error marshalling tailscaled config: %w", err)
+				return nil, fmt.Errorf("error marshalling lanhcd config: %w", err)
 			}
 
 			mak.Set(&secret.StringData, fn, string(b))
@@ -496,7 +496,7 @@ func (r *tailscaleSTSReconciler) provisionSecrets(ctx context.Context, tsClient 
 		if dev != nil && dev.id != "" {
 			// If we get a not found error then this device has possibly already been deleted in the admin console.
 			// So we can ignore this and move on to removing the secret.
-			if err = tsClient.Devices().Delete(ctx, string(dev.id)); err != nil && !tailscale.IsNotFound(err) {
+			if err = tsClient.Devices().Delete(ctx, string(dev.id)); err != nil && !lanhcclient.IsNotFound(err) {
 				return nil, err
 			}
 		}
@@ -521,11 +521,11 @@ func sanitizeConfig(c ipn.ConfigVAlpha) ipn.ConfigVAlpha {
 	return c
 }
 
-// DeviceInfo returns the device ID, hostname, IPs and capver for the Tailscale device that acts as an operator proxy.
+// DeviceInfo returns the device ID, hostname, IPs and capver for the Lanhc device that acts as an operator proxy.
 // It retrieves info from a Kubernetes Secret labeled with the provided labels. Capver is cross-validated against the
 // Pod to ensure that it is the currently running Pod that set the capver. If the Pod or the Secret does not exist, the
 // returned capver is -1. Either of device ID, hostname and IPs can be empty string if not found in the Secret.
-func (r *tailscaleSTSReconciler) DeviceInfo(ctx context.Context, childLabels map[string]string, logger *zap.SugaredLogger) ([]*device, error) {
+func (r *lanhcSTSReconciler) DeviceInfo(ctx context.Context, childLabels map[string]string, logger *zap.SugaredLogger) ([]*device, error) {
 	var secrets corev1.SecretList
 	if err := r.List(ctx, &secrets, client.InNamespace(r.operatorNamespace), client.MatchingLabels(childLabels)); err != nil {
 		return nil, err
@@ -559,13 +559,13 @@ func (r *tailscaleSTSReconciler) DeviceInfo(ctx context.Context, childLabels map
 	return devices, nil
 }
 
-// device contains tailscale state of a proxy device as gathered from its tailscale state Secret.
+// device contains lanhc state of a proxy device as gathered from its lanhc state Secret.
 type device struct {
 	id       tailcfg.StableNodeID // device's stable ID
 	hostname string               // MagicDNS name of the device
-	ips      []string             // Tailscale IPs of the device
+	ips      []string             // Lanhc IPs of the device
 	// ingressDNSName is the L7 Ingress DNS name. In practice this will be the same value as hostname, but only set
-	// when the device has been configured to serve traffic on it via 'tailscale serve'.
+	// when the device has been configured to serve traffic on it via 'lanhc serve'.
 	ingressDNSName string
 	capver         tailcfg.CapabilityVersion
 }
@@ -609,12 +609,12 @@ func deviceInfo(sec *corev1.Secret, podUID string, log *zap.SugaredLogger) (dev 
 }
 
 func newAuthKey(ctx context.Context, client tsclient.Client, tags []string) (string, error) {
-	var caps tailscale.KeyCapabilities
+	var caps lanhcclient.KeyCapabilities
 	caps.Devices.Create.Reusable = false
 	caps.Devices.Create.Preauthorized = true
 	caps.Devices.Create.Tags = tags
 
-	key, err := client.Keys().CreateAuthKey(ctx, tailscale.CreateKeyRequest{Capabilities: caps})
+	key, err := client.Keys().CreateAuthKey(ctx, lanhcclient.CreateKeyRequest{Capabilities: caps})
 	if err != nil {
 		return "", err
 	}
@@ -628,7 +628,7 @@ var proxyYaml []byte
 //go:embed deploy/manifests/userspace-proxy.yaml
 var userspaceProxyYaml []byte
 
-func (r *tailscaleSTSReconciler) reconcileSTS(ctx context.Context, logger *zap.SugaredLogger, sts *tailscaleSTSConfig, headlessSvc *corev1.Service, proxySecrets []string) (*appsv1.StatefulSet, error) {
+func (r *lanhcSTSReconciler) reconcileSTS(ctx context.Context, logger *zap.SugaredLogger, sts *lanhcSTSConfig, headlessSvc *corev1.Service, proxySecrets []string) (*appsv1.StatefulSet, error) {
 	ss := new(appsv1.StatefulSet)
 	if sts.ServeConfig != nil && sts.ForwardClusterTrafficViaL7IngressProxy != true { // If forwarding cluster traffic via is required we need non-userspace + NET_ADMIN + forwarding
 		if err := yaml.Unmarshal(userspaceProxyYaml, &ss); err != nil {
@@ -688,7 +688,7 @@ func (r *tailscaleSTSReconciler) reconcileSTS(ctx context.Context, logger *zap.S
 			// This ensures that cert renewals can succeed if ACME account
 			// keys have changed since issuance. We cannot guarantee or
 			// validate that the account key has not changed, see
-			// https://github.com/tailscale/tailscale/issues/18251
+			// https://github.com/lanhc/lanhc/issues/18251
 			Name:  "TS_DEBUG_ACME_FORCE_RENEWAL",
 			Value: "true",
 		},
@@ -703,7 +703,7 @@ func (r *tailscaleSTSReconciler) reconcileSTS(ctx context.Context, logger *zap.S
 
 	for i, secret := range proxySecrets {
 		configVolume := corev1.Volume{
-			Name: "tailscaledconfig-" + strconv.Itoa(i),
+			Name: "lanhcdconfig-" + strconv.Itoa(i),
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: secret,
@@ -713,7 +713,7 @@ func (r *tailscaleSTSReconciler) reconcileSTS(ctx context.Context, logger *zap.S
 
 		pod.Spec.Volumes = append(ss.Spec.Template.Spec.Volumes, configVolume)
 		container.VolumeMounts = append(container.VolumeMounts, corev1.VolumeMount{
-			Name:      fmt.Sprintf("tailscaledconfig-%d", i),
+			Name:      fmt.Sprintf("lanhcdconfig-%d", i),
 			ReadOnly:  true,
 			MountPath: path.Join("/etc/tsconfig/", secret),
 		})
@@ -755,14 +755,14 @@ func (r *tailscaleSTSReconciler) reconcileSTS(ctx context.Context, logger *zap.S
 	} else if sts.ServeConfig != nil {
 		container.Env = append(container.Env, corev1.EnvVar{
 			Name:  "TS_SERVE_CONFIG",
-			Value: "/etc/tailscaled/$(POD_NAME)/serve-config",
+			Value: "/etc/lanhcd/$(POD_NAME)/serve-config",
 		})
 
 		for i, secret := range proxySecrets {
 			container.VolumeMounts = append(container.VolumeMounts, corev1.VolumeMount{
 				Name:      "serve-config-" + strconv.Itoa(i),
 				ReadOnly:  true,
-				MountPath: path.Join("/etc/tailscaled", secret),
+				MountPath: path.Join("/etc/lanhcd", secret),
 			})
 
 			pod.Spec.Volumes = append(ss.Spec.Template.Spec.Volumes, corev1.Volume{
@@ -803,7 +803,7 @@ func (r *tailscaleSTSReconciler) reconcileSTS(ctx context.Context, logger *zap.S
 	return createOrUpdate(ctx, r.Client, r.operatorNamespace, ss, updateSS)
 }
 
-func appInfoForProxy(cfg *tailscaleSTSConfig) (string, error) {
+func appInfoForProxy(cfg *lanhcSTSConfig) (string, error) {
 	if cfg.ClusterTargetDNSName != "" || cfg.ClusterTargetIP != "" {
 		return kubetypes.AppIngressProxy, nil
 	}
@@ -824,7 +824,7 @@ func appInfoForProxy(cfg *tailscaleSTSConfig) (string, error) {
 // whose keys are present in the 'managed' map. The reason why this merge is
 // necessary is to ensure that labels/annotations applied from a ProxyClass get removed
 // if they are removed from a ProxyClass or if the ProxyClass no longer applies
-// to this StatefulSet whilst any tailscale managed labels/annotations remain present.
+// to this StatefulSet whilst any lanhc managed labels/annotations remain present.
 func mergeStatefulSetLabelsOrAnnots(current, custom map[string]string, managed []string) map[string]string {
 	if custom == nil {
 		custom = make(map[string]string)
@@ -844,16 +844,16 @@ func debugSetting(pc *tsapi.ProxyClass) bool {
 	if pc == nil ||
 		pc.Spec.StatefulSet == nil ||
 		pc.Spec.StatefulSet.Pod == nil ||
-		pc.Spec.StatefulSet.Pod.TailscaleContainer == nil ||
-		pc.Spec.StatefulSet.Pod.TailscaleContainer.Debug == nil {
+		pc.Spec.StatefulSet.Pod.LanhcContainer == nil ||
+		pc.Spec.StatefulSet.Pod.LanhcContainer.Debug == nil {
 		// This default will change to false in 1.82.0.
 		return pc.Spec.Metrics != nil && pc.Spec.Metrics.Enable
 	}
 
-	return pc.Spec.StatefulSet.Pod.TailscaleContainer.Debug.Enable
+	return pc.Spec.StatefulSet.Pod.LanhcContainer.Debug.Enable
 }
 
-func applyProxyClassToStatefulSet(pc *tsapi.ProxyClass, ss *appsv1.StatefulSet, stsCfg *tailscaleSTSConfig, logger *zap.SugaredLogger) *appsv1.StatefulSet {
+func applyProxyClassToStatefulSet(pc *tsapi.ProxyClass, ss *appsv1.StatefulSet, stsCfg *lanhcSTSConfig, logger *zap.SugaredLogger) *appsv1.StatefulSet {
 	if pc == nil || ss == nil {
 		return ss
 	}
@@ -866,7 +866,7 @@ func applyProxyClassToStatefulSet(pc *tsapi.ProxyClass, ss *appsv1.StatefulSet, 
 		if isEgress {
 			// TODO (irbekrm): fix this
 			// For Ingress proxies that have been configured with
-			// tailscale.com/experimental-forward-cluster-traffic-via-ingress
+			// lanhc.com/experimental-forward-cluster-traffic-via-ingress
 			// annotation, all cluster traffic is forwarded to the
 			// Ingress backend(s).
 			logger.Info("ProxyClass specifies that metrics should be enabled, but this is currently not supported for egress proxies.")
@@ -903,10 +903,10 @@ func applyProxyClassToStatefulSet(pc *tsapi.ProxyClass, ss *appsv1.StatefulSet, 
 
 	// Update StatefulSet metadata.
 	if wantsSSLabels := pc.Spec.StatefulSet.Labels.Parse(); len(wantsSSLabels) > 0 {
-		ss.ObjectMeta.Labels = mergeStatefulSetLabelsOrAnnots(ss.ObjectMeta.Labels, wantsSSLabels, tailscaleManagedLabels)
+		ss.ObjectMeta.Labels = mergeStatefulSetLabelsOrAnnots(ss.ObjectMeta.Labels, wantsSSLabels, lanhcManagedLabels)
 	}
 	if wantsSSAnnots := pc.Spec.StatefulSet.Annotations; len(wantsSSAnnots) > 0 {
-		ss.ObjectMeta.Annotations = mergeStatefulSetLabelsOrAnnots(ss.ObjectMeta.Annotations, wantsSSAnnots, tailscaleManagedAnnotations)
+		ss.ObjectMeta.Annotations = mergeStatefulSetLabelsOrAnnots(ss.ObjectMeta.Annotations, wantsSSAnnots, lanhcManagedAnnotations)
 	}
 
 	// Update Pod fields.
@@ -915,10 +915,10 @@ func applyProxyClassToStatefulSet(pc *tsapi.ProxyClass, ss *appsv1.StatefulSet, 
 	}
 	wantsPod := pc.Spec.StatefulSet.Pod
 	if wantsPodLabels := wantsPod.Labels.Parse(); len(wantsPodLabels) > 0 {
-		ss.Spec.Template.ObjectMeta.Labels = mergeStatefulSetLabelsOrAnnots(ss.Spec.Template.ObjectMeta.Labels, wantsPodLabels, tailscaleManagedLabels)
+		ss.Spec.Template.ObjectMeta.Labels = mergeStatefulSetLabelsOrAnnots(ss.Spec.Template.ObjectMeta.Labels, wantsPodLabels, lanhcManagedLabels)
 	}
 	if wantsPodAnnots := wantsPod.Annotations; len(wantsPodAnnots) > 0 {
-		ss.Spec.Template.ObjectMeta.Annotations = mergeStatefulSetLabelsOrAnnots(ss.Spec.Template.ObjectMeta.Annotations, wantsPodAnnots, tailscaleManagedAnnotations)
+		ss.Spec.Template.ObjectMeta.Annotations = mergeStatefulSetLabelsOrAnnots(ss.Spec.Template.ObjectMeta.Annotations, wantsPodAnnots, lanhcManagedAnnotations)
 	}
 	ss.Spec.Template.Spec.SecurityContext = wantsPod.SecurityContext
 	ss.Spec.Template.Spec.ImagePullSecrets = wantsPod.ImagePullSecrets
@@ -973,14 +973,14 @@ func applyProxyClassToStatefulSet(pc *tsapi.ProxyClass, ss *appsv1.StatefulSet, 
 	}
 	for i, c := range ss.Spec.Template.Spec.Containers {
 		if isMainContainer(&c) {
-			ss.Spec.Template.Spec.Containers[i] = updateContainer(wantsPod.TailscaleContainer, ss.Spec.Template.Spec.Containers[i])
+			ss.Spec.Template.Spec.Containers[i] = updateContainer(wantsPod.LanhcContainer, ss.Spec.Template.Spec.Containers[i])
 			break
 		}
 	}
 	if initContainers := ss.Spec.Template.Spec.InitContainers; len(initContainers) > 0 {
 		for i, c := range initContainers {
 			if c.Name == "sysctler" {
-				ss.Spec.Template.Spec.InitContainers[i] = updateContainer(wantsPod.TailscaleInitContainer, initContainers[i])
+				ss.Spec.Template.Spec.InitContainers[i] = updateContainer(wantsPod.LanhcInitContainer, initContainers[i])
 				break
 			}
 		}
@@ -993,10 +993,10 @@ func enableEndpoints(ss *appsv1.StatefulSet, metrics, debug bool) {
 		if isMainContainer(&c) {
 			if debug {
 				ss.Spec.Template.Spec.Containers[i].Env = append(ss.Spec.Template.Spec.Containers[i].Env,
-					// Serve tailscaled's debug metrics on
+					// Serve lanhcd's debug metrics on
 					// <pod-ip>:9001/debug/metrics. If we didn't specify Pod IP
 					// here, the proxy would, in some cases, also listen to its
-					// Tailscale IP- we don't want folks to start relying on this
+					// Lanhc IP- we don't want folks to start relying on this
 					// side-effect as a feature.
 					corev1.EnvVar{
 						Name:  "TS_DEBUG_ADDR_PORT",
@@ -1005,7 +1005,7 @@ func enableEndpoints(ss *appsv1.StatefulSet, metrics, debug bool) {
 					// TODO(tomhjp): Can remove this env var once 1.76.x is no
 					// longer supported.
 					corev1.EnvVar{
-						Name:  "TS_TAILSCALED_EXTRA_ARGS",
+						Name:  "TS_LANHCD_EXTRA_ARGS",
 						Value: "--debug=$(TS_DEBUG_ADDR_PORT)",
 					},
 				)
@@ -1049,9 +1049,9 @@ func isMainContainer(c *corev1.Container) bool {
 	return c.Name == mainContainerName
 }
 
-// tailscaledConfig takes a proxy config, a newly generated auth key if generated and a Secret with the previous proxy
-// state and auth key and returns tailscaled config files for currently supported proxy versions.
-func tailscaledConfig(stsC *tailscaleSTSConfig, loginUrl string, newAuthkey string, oldSecret *corev1.Secret, hostname string) (tailscaledConfigs, error) {
+// lanhcdConfig takes a proxy config, a newly generated auth key if generated and a Secret with the previous proxy
+// state and auth key and returns lanhcd config files for currently supported proxy versions.
+func lanhcdConfig(stsC *lanhcSTSConfig, loginUrl string, newAuthkey string, oldSecret *corev1.Secret, hostname string) (lanhcdConfigs, error) {
 	conf := &ipn.ConfigVAlpha{
 		Version:             "alpha0",
 		AcceptDNS:           "false",
@@ -1128,7 +1128,7 @@ func latestConfigFromSecret(s *corev1.Secret) (*ipn.ConfigVAlpha, error) {
 	if latestStr != "" {
 		conf = &ipn.ConfigVAlpha{}
 		if err := json.Unmarshal([]byte(s.Data[latestStr]), conf); err != nil {
-			return nil, fmt.Errorf("error unmarshaling tailscaled config from Secret %q in field %q: %w", s.Name, latestStr, err)
+			return nil, fmt.Errorf("error unmarshaling lanhcd config from Secret %q in field %q: %w", s.Name, latestStr, err)
 		}
 	}
 
@@ -1163,7 +1163,7 @@ func deviceAuthed(s *corev1.Secret) bool {
 }
 
 func shouldAcceptRoutes(pc *tsapi.ProxyClass) bool {
-	return pc != nil && pc.Spec.TailscaleConfig != nil && pc.Spec.TailscaleConfig.AcceptRoutes
+	return pc != nil && pc.Spec.LanhcConfig != nil && pc.Spec.LanhcConfig.AcceptRoutes
 }
 
 // ptrObject is a type constraint for pointer types that implement
@@ -1173,7 +1173,7 @@ type ptrObject[T any] interface {
 	*T
 }
 
-type tailscaledConfigs map[tailcfg.CapabilityVersion]ipn.ConfigVAlpha
+type lanhcdConfigs map[tailcfg.CapabilityVersion]ipn.ConfigVAlpha
 
 // createOrMaybeUpdate adds obj to the k8s cluster, unless the object already exists,
 // in which case update is called to make changes to it. If update is nil or returns
@@ -1310,7 +1310,7 @@ func isValidFirewallMode(m string) bool {
 }
 
 // proxyCapVer accepts a proxy state Secret and UID of the current proxy Pod returns the capability version of the
-// tailscale running in that Pod. This is best effort - if the capability version can not (currently) be determined, it
+// lanhc running in that Pod. This is best effort - if the capability version can not (currently) be determined, it
 // returns -1.
 func proxyCapVer(sec *corev1.Secret, podUID string, log *zap.SugaredLogger) tailcfg.CapabilityVersion {
 	if sec == nil || podUID == "" {

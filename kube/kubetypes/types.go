@@ -6,7 +6,7 @@ package kubetypes
 import "fmt"
 
 const (
-	// Hostinfo App values for the Tailscale Kubernetes Operator components.
+	// Hostinfo App values for the Lanhc Kubernetes Operator components.
 	AppOperator                = "k8s-operator"
 	AppInProcessAPIServerProxy = "k8s-operator-proxy"
 	AppIngressProxy            = "k8s-operator-ingress-proxy"
@@ -17,7 +17,7 @@ const (
 	AppProxyGroupIngress       = "k8s-operator-proxygroup-ingress"
 	AppProxyGroupKubeAPIServer = "k8s-operator-proxygroup-kube-apiserver"
 
-	// Clientmetrics for Tailscale Kubernetes Operator components
+	// Clientmetrics for Lanhc Kubernetes Operator components
 	MetricIngressProxyCount              = "k8s_ingress_proxies"      // L3
 	MetricIngressResourceCount           = "k8s_ingress_resources"    // L7
 	MetricIngressPGResourceCount         = "k8s_ingress_pg_resources" // L7 on ProxyGroup
@@ -37,13 +37,13 @@ const (
 	MetricPeerRelayCount                 = "k8s_peerrelay_resources"
 
 	// Keys that containerboot writes to state file that can be used to determine its state.
-	// fields set in Tailscale state Secret. These are mostly used by the Tailscale Kubernetes operator to determine
-	// the state of this tailscale device.
+	// fields set in Lanhc state Secret. These are mostly used by the Lanhc Kubernetes operator to determine
+	// the state of this lanhc device.
 	KeyDeviceID       = "device_id"        // node stable ID of the device
 	KeyDeviceFQDN     = "device_fqdn"      // device's tailnet hostname
 	KeyDeviceIPs      = "device_ips"       // device's tailnet IPs
 	KeyPodUID         = "pod_uid"          // Pod UID
-	KeyCapVer         = "tailscale_capver" // tailcfg.CurrentCapabilityVersion of this proxy instance.
+	KeyCapVer         = "lanhc_capver" // tailcfg.CurrentCapabilityVersion of this proxy instance.
 	KeyReissueAuthkey = "reissue_authkey"  // Proxies will set this to the authkey that failed, or "no-authkey", if they can't log in.
 	// KeyHTTPSEndpoint is a name of a field that can be set to the value of any HTTPS endpoint currently exposed by
 	// this device to the tailnet. This is used by the Kubernetes operator Ingress proxy to communicate to the operator
@@ -58,8 +58,8 @@ const (
 
 	EgessServicesPreshutdownEP = "/internal-egress-services-preshutdown"
 
-	LabelManaged    = "tailscale.com/managed"
-	LabelSecretType = "tailscale.com/secret-type" // "config", "state" "certs"
+	LabelManaged    = "lanhc.com/managed"
+	LabelSecretType = "lanhc.com/secret-type" // "config", "state" "certs"
 
 	LabelSecretTypeConfig = "config"
 	LabelSecretTypeState  = "state"
@@ -71,7 +71,7 @@ const (
 )
 
 // APIServerProxyMode specifies whether the API server proxy will add
-// impersonation headers to requests based on the caller's Tailscale identity.
+// impersonation headers to requests based on the caller's Lanhc identity.
 // May be "auth" or "noauth".
 type APIServerProxyMode string
 

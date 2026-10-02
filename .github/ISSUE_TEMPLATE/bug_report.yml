@@ -5,8 +5,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Need help with your tailnet? [Contact support](https://tailscale.com/contact/support) instead.
-        Otherwise, please check if your bug is [already filed](https://github.com/tailscale/tailscale/issues) before filing a new one.
+        Need help with your tailnet? [Contact support](https://lanhc.com/contact/support) instead.
+        Otherwise, please check if your bug is [already filed](https://github.com/lanhc/lanhc/issues) before filing a new one.
   - type: textarea
     id: what-happened
     attributes:
@@ -55,8 +55,8 @@ body:
   - type: input
     id: ts-version
     attributes:
-      label: Tailscale version
-      description: What Tailscale version are you using?
+      label: Lanhc version
+      description: What Lanhc version are you using?
       placeholder: e.g., 1.14.4
     validations:
       required: false
@@ -64,14 +64,14 @@ body:
     id: other-software
     attributes:
       label: Other software
-      description: What [other software](https://github.com/tailscale/tailscale/wiki/OtherSoftwareInterop) (networking, security, etc) are you running?
+      description: What [other software](https://github.com/lanhc/lanhc/wiki/OtherSoftwareInterop) (networking, security, etc) are you running?
     validations:
       required: false
   - type: input
     id: bug-report
     attributes:
       label: Bug report
-      description: Please run [`tailscale bugreport`](https://tailscale.com/kb/1080/cli/?q=Cli#bugreport) and share the bug identifier. The identifier is a random string which allows Tailscale support to locate your account and gives a point to focus on when looking for errors.
+      description: Please run [`lanhc bugreport`](https://lanhc.com/kb/1080/cli/?q=Cli#bugreport) and share the bug identifier. The identifier is a random string which allows Lanhc support to locate your account and gives a point to focus on when looking for errors.
       placeholder: e.g., BUG-1b7641a16971a9cd75822c0ed8043fee70ae88cf05c52981dc220eb96a5c49a8-20210427151443Z-fbcd4fd3a4b7ad94
     validations:
       required: false

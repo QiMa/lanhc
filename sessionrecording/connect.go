@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // Package sessionrecording contains session recording utils shared amongst
-// Tailscale SSH and Kubernetes API server proxy session recording.
+// Lanhc SSH and Kubernetes API server proxy session recording.
 package sessionrecording
 
 import (
@@ -18,10 +18,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"tailscale.com/net/netutil"
-	"tailscale.com/net/netx"
-	"tailscale.com/tailcfg"
-	"tailscale.com/util/httpm"
+	"lanhc.com/net/netutil"
+	"lanhc.com/net/netx"
+	"lanhc.com/tailcfg"
+	"lanhc.com/util/httpm"
 )
 
 const (

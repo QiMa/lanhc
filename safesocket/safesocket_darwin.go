@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"golang.org/x/sys/unix"
-	"tailscale.com/version"
+	"lanhc.com/version"
 )
 
 func init() {
@@ -39,33 +39,33 @@ type safesocketDarwin struct {
 
 	checkConn   bool        // If true, check macsys safesocket port before returning it
 	isMacSysExt func() bool // Reports true if this binary is the macOS System Extension
-	isMacGUIApp func() bool // Reports true if running as a macOS GUI app (Tailscale.app)
+	isMacGUIApp func() bool // Reports true if running as a macOS GUI app (Lanhc.app)
 }
 
 var ssd = safesocketDarwin{
 	isMacSysExt: version.IsMacSysExt,
 	isMacGUIApp: func() bool { return version.IsMacAppStoreGUI() || version.IsMacSysGUI() },
 	checkConn:   true,
-	sharedDir:   "/Library/Tailscale",
+	sharedDir:   "/Library/Lanhc",
 }
 
 // There are three ways a Darwin binary can be run: as the Mac App Store (macOS)
-// standalone notarized (macsys), or a separate CLI (tailscale) that was
+// standalone notarized (macsys), or a separate CLI (lanhc) that was
 // built or downloaded.
 //
 // The macOS and macsys binaries can communicate directly via XPC with
-// the NEPacketTunnelProvider managed tailscaled process and are responsible for
+// the NEPacketTunnelProvider managed lanhcd process and are responsible for
 // calling SetCredentials when they need to operate as a CLI.
 
 // A built/downloaded CLI binary will not be managing the NEPacketTunnelProvider
-// hosting tailscaled directly and must source the credentials from a 'sameuserproof' file.
-// This file is written to sharedDir when tailscaled/NEPacketTunnelProvider
+// hosting lanhcd directly and must source the credentials from a 'sameuserproof' file.
+// This file is written to sharedDir when lanhcd/NEPacketTunnelProvider
 // calls InitListenerDarwin.
 
 // localTCPPortAndTokenDarwin returns the localhost TCP port number and auth token
 // either from the sameuserproof mechanism, or source and set directly from the
-// NEPacketTunnelProvider managed tailscaled process when the CLI is invoked
-// from the Tailscale.app GUI.
+// NEPacketTunnelProvider managed lanhcd process when the CLI is invoked
+// from the Lanhc.app GUI.
 func localTCPPortAndTokenDarwin() (port int, token string, err error) {
 	ssd.mu.Lock()
 	defer ssd.mu.Unlock()
@@ -75,9 +75,9 @@ func localTCPPortAndTokenDarwin() (port int, token string, err error) {
 		// If something has explicitly set our credentials (typically non-standalone macos binary), use them.
 		return ssd.port, ssd.token, nil
 	case !ssd.isMacGUIApp():
-		// We're not a GUI app (probably cmd/tailscale), so try falling back to sameuserproof.
-		// If portAndTokenFromSameUserProof returns an error here, cmd/tailscale will
-		// attempt to use the default unix socket mechanism supported by tailscaled.
+		// We're not a GUI app (probably cmd/lanhc), so try falling back to sameuserproof.
+		// If portAndTokenFromSameUserProof returns an error here, cmd/lanhc will
+		// attempt to use the default unix socket mechanism supported by lanhcd.
 		return portAndTokenFromSameUserProof()
 	default:
 		return 0, "", ErrTokenNotFound
@@ -85,8 +85,8 @@ func localTCPPortAndTokenDarwin() (port int, token string, err error) {
 }
 
 // SetCredentials sets an token and port used to authenticate safesocket generated
-// by the NEPacketTunnelProvider tailscaled process.  This is only used when running
-// the CLI via Tailscale.app.
+// by the NEPacketTunnelProvider lanhcd process.  This is only used when running
+// the CLI via Lanhc.app.
 func SetCredentials(token string, port int) {
 	ssd.mu.Lock()
 	defer ssd.mu.Unlock()
@@ -210,7 +210,7 @@ func getToken() (string, error) {
 //
 // "sameuserproof" is intended to convey that the user attempting to read
 // the credentials from the file is the same user that wrote them.  For
-// standalone macsys where tailscaled is running as root, we set group
+// standalone macsys where lanhcd is running as root, we set group
 // permissions to allow users in the admin group to read the file.
 func initSameUserProofToken(sharedDir string, port int, token string) error {
 	var err error
@@ -268,12 +268,12 @@ func initSameUserProofToken(sharedDir string, port int, token string) error {
 }
 
 // readMacsysSameuserproof returns the localhost TCP port number and auth token
-// from a sameuserproof file written to /Library/Tailscale.
+// from a sameuserproof file written to /Library/Lanhc.
 //
 // In that case the files are:
 //
-//	/Library/Tailscale/ipnport => $port (symlink with localhost port number target)
-//	/Library/Tailscale/sameuserproof-$port is a file containing only the auth token as a hex string.
+//	/Library/Lanhc/ipnport => $port (symlink with localhost port number target)
+//	/Library/Lanhc/sameuserproof-$port is a file containing only the auth token as a hex string.
 func readMacsysSameUserProof() (port int, token string, err error) {
 	portStr, err := os.Readlink(filepath.Join(ssd.sharedDir, "ipnport"))
 	if err != nil {
@@ -320,7 +320,7 @@ func readMacosSameUserProof() (port int, token string, err error) {
 
 	if err == nil {
 		bs := bufio.NewScanner(bytes.NewReader(out))
-		subStr := []byte(".tailscale.ipn.macos/sameuserproof-")
+		subStr := []byte(".lanhc.ipn.macos/sameuserproof-")
 		for bs.Scan() {
 			line := bs.Bytes()
 			_, after, ok := bytes.Cut(line, subStr)
@@ -344,10 +344,10 @@ func readMacosSameUserProof() (port int, token string, err error) {
 }
 
 func portAndTokenFromSameUserProof() (port int, token string, err error) {
-	// When we're cmd/tailscale, we have no idea what tailscaled is, so we'll try
-	// macos, then macsys and finally, fallback to tailscaled via a unix socket
+	// When we're cmd/lanhc, we have no idea what lanhcd is, so we'll try
+	// macos, then macsys and finally, fallback to lanhcd via a unix socket
 	// if both of those return an error.   You can run macos or macsys and
-	// tailscaled at the same time, but we are forced to choose one and the GUI
+	// lanhcd at the same time, but we are forced to choose one and the GUI
 	// clients are first in line here.  You cannot run macos and macsys simultaneously.
 	if port, token, err := readMacosSameUserProof(); err == nil {
 		return port, token, nil

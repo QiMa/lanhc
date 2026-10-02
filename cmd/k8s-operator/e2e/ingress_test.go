@@ -17,13 +17,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"tailscale.com/client/tailscale/v2"
-	kube "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tsnet"
-	"tailscale.com/tstest"
-	"tailscale.com/util/httpm"
+	lanhcclient "tailscale.com/client/tailscale/v2"
+	kube "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tsnet"
+	"lanhc.com/tstest"
+	"lanhc.com/util/httpm"
 )
 
 // See [TestMain] for test requirements.
@@ -41,7 +41,7 @@ func TestL3Ingress(t *testing.T) {
 			Name:      generateName("test-ingress"),
 			Namespace: ns,
 			Annotations: map[string]string{
-				"tailscale.com/expose": "true",
+				"lanhc.com/expose": "true",
 			},
 		},
 		Spec: corev1.ServiceSpec{
@@ -79,10 +79,10 @@ func TestL3Ingress(t *testing.T) {
 	if err := tstest.WaitFor(time.Minute, func() error {
 		var secrets corev1.SecretList
 		if err := kubeClient.List(t.Context(), &secrets,
-			client.InNamespace("tailscale"),
+			client.InNamespace("lanhc"),
 			client.MatchingLabels{
-				"tailscale.com/parent-resource":    svc.Name,
-				"tailscale.com/parent-resource-ns": ns,
+				"lanhc.com/parent-resource":    svc.Name,
+				"lanhc.com/parent-resource-ns": ns,
 			},
 		); err != nil {
 			return err
@@ -131,12 +131,12 @@ func TestL3HAIngress(t *testing.T) {
 			Name:      generateName("test-ingress"),
 			Namespace: ns,
 			Annotations: map[string]string{
-				"tailscale.com/proxy-group": pg.Name,
+				"lanhc.com/proxy-group": pg.Name,
 			},
 		},
 		Spec: corev1.ServiceSpec{
 			Type:              corev1.ServiceTypeLoadBalancer,
-			LoadBalancerClass: new("tailscale"),
+			LoadBalancerClass: new("lanhc"),
 			Selector: map[string]string{
 				"app.kubernetes.io/name": nginx.Name,
 			},
@@ -263,7 +263,7 @@ func TestL7HAIngress(t *testing.T) {
 	createAndCleanup(t, kubeClient, pg)
 
 	// Apply Ingress to expose nginx.
-	ingress := l7Ingress(ns, nginx.Name, map[string]string{"tailscale.com/proxy-group": pg.Name})
+	ingress := l7Ingress(ns, nginx.Name, map[string]string{"lanhc.com/proxy-group": pg.Name})
 	createAndCleanup(t, kubeClient, ingress)
 
 	t.Log("Waiting for the Ingress to be ready...")
@@ -334,20 +334,20 @@ func TestL7HAIngressMultiTailnet(t *testing.T) {
 
 	// Apply Ingress to expose nginx.
 	ingress := l7Ingress(ns, nginx.Name, map[string]string{
-		"tailscale.com/proxy-group": secondTailnetPG.Name,
+		"lanhc.com/proxy-group": secondTailnetPG.Name,
 	})
 	createAndCleanup(t, kubeClient, ingress)
 
-	// Check that the tailscale (VIP) Service has been created in the expected Tailnet.
+	// Check that the lanhc (VIP) Service has been created in the expected Tailnet.
 	svcName := "svc:" + ingress.Name
 	if err := tstest.WaitFor(3*time.Minute, func() error {
 		_, err := secondTSClient.VIPServices().Get(t.Context(), svcName)
-		if tailscale.IsNotFound(err) {
-			return fmt.Errorf("Tailscale service %q not yet in expected tailnet", svcName)
+		if lanhcclient.IsNotFound(err) {
+			return fmt.Errorf("Lanhc service %q not yet in expected tailnet", svcName)
 		}
 		return err
 	}); err != nil {
-		t.Fatalf("Tailscale service %q never appeared in expected tailnet: %v", svcName, err)
+		t.Fatalf("Lanhc service %q never appeared in expected tailnet: %v", svcName, err)
 	}
 	hostname, err := waitForIngressHostname(t, ns, ingress.Name)
 	if err != nil {
@@ -367,7 +367,7 @@ func l7Ingress(namespace, svc string, annotations map[string]string) *networking
 			Annotations: annotations,
 		},
 		Spec: networkingv1.IngressSpec{
-			IngressClassName: new("tailscale"),
+			IngressClassName: new("lanhc"),
 			TLS: []networkingv1.IngressTLS{
 				{Hosts: []string{name}},
 			},
@@ -457,7 +457,7 @@ func triggerReconcile(t testing.TB, key client.ObjectKey, obj client.Object, aft
 		if ann == nil {
 			ann = map[string]string{}
 		}
-		ann["tailscale.com/trigger-reconcile"] = "true"
+		ann["lanhc.com/trigger-reconcile"] = "true"
 		obj.SetAnnotations(ann)
 		if err := kubeClient.Update(t.Context(), obj); err != nil {
 			t.Logf("failed to update %s: %v", key, err)
@@ -515,11 +515,11 @@ func verifyProxyGroupTailnet(t *testing.T, pg *tsapi.ProxyGroup, cl *tsnet.Serve
 	if err := tstest.WaitFor(3*time.Minute, func() error {
 		var secrets corev1.SecretList
 		if err := kubeClient.List(t.Context(), &secrets,
-			client.InNamespace("tailscale"),
+			client.InNamespace("lanhc"),
 			client.MatchingLabels{
 				kubetypes.LabelSecretType:            kubetypes.LabelSecretTypeState,
-				"tailscale.com/parent-resource-type": "proxygroup",
-				"tailscale.com/parent-resource":      pg.Name,
+				"lanhc.com/parent-resource-type": "proxygroup",
+				"lanhc.com/parent-resource":      pg.Name,
 			},
 		); err != nil {
 			return err

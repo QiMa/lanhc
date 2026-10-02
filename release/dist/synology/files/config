@@ -1,11 +1,11 @@
 {
 	".url": {
-		"SYNO.SDS.Tailscale": {
+		"SYNO.SDS.Lanhc": {
 			"type": "url",
-			"title": "Tailscale",
+			"title": "Lanhc",
 			"icon": "PACKAGE_ICON_256.PNG",
-			"url": "webman/3rdparty/Tailscale/index.cgi/",
-			"urlTarget": "_syno_tailscale"
+			"url": "webman/3rdparty/Lanhc/index.cgi/",
+			"urlTarget": "_syno_lanhc"
 		}
 	}
 }

@@ -6,8 +6,8 @@
 //
 // DERP routes packets to clients using curve25519 keys as addresses.
 //
-// DERP is used by Tailscale nodes to proxy encrypted WireGuard
-// packets through the Tailscale cloud servers when a direct path
+// DERP is used by Lanhc nodes to proxy encrypted WireGuard
+// packets through the Lanhc cloud servers when a direct path
 // cannot be found or opened. DERP is a last resort. Both sides
 // between very aggressive NATs, firewalls, no IPv6, etc? Well, DERP.
 package derp

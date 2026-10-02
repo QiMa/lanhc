@@ -252,10 +252,10 @@ func TestContentSecurityPolicyHeader(t *testing.T) {
 		{
 			name: "custom-CSP",
 			csp: CSP{
-				"default-src":               {"'self'", "https://tailscale.com"},
+				"default-src":               {"'self'", "https://lanhc.com"},
 				"upgrade-insecure-requests": nil,
 			},
-			wantCSP: `default-src 'self' https://tailscale.com; upgrade-insecure-requests;`,
+			wantCSP: `default-src 'self' https://lanhc.com; upgrade-insecure-requests;`,
 		},
 		{
 			name:     "api-routes-no-CSP-headers",

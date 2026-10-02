@@ -6,7 +6,7 @@ package cmpver_test
 import (
 	"testing"
 
-	"tailscale.com/util/cmpver"
+	"lanhc.com/util/cmpver"
 )
 
 func TestCompare(t *testing.T) {
@@ -62,37 +62,37 @@ func TestCompare(t *testing.T) {
 		},
 
 		{
-			name: "tailscale-major",
+			name: "lanhc-major",
 			v1:   "1.0-0",
 			v2:   "0.97-105",
 			want: 1,
 		},
 		{
-			name: "tailscale-minor",
+			name: "lanhc-minor",
 			v1:   "0.98-0",
 			v2:   "0.97-105",
 			want: 1,
 		},
 		{
-			name: "tailscale-patch",
+			name: "lanhc-patch",
 			v1:   "0.97-120",
 			v2:   "0.97-105",
 			want: 1,
 		},
 		{
-			name: "tailscale-equal",
+			name: "lanhc-equal",
 			v1:   "0.97-105",
 			v2:   "0.97-105",
 			want: 0,
 		},
 		{
-			name: "tailscale-weird-extra-field",
+			name: "lanhc-weird-extra-field",
 			v1:   "0.96.1-0", // more fields == larger
 			v2:   "0.96-105",
 			want: 1,
 		},
 		{
-			name: "tailscale-three-digits",
+			name: "lanhc-three-digits",
 			v1:   "1.100.2",
 			v2:   "1.55.0",
 			want: 1,

@@ -16,13 +16,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
-	"tailscale.com/feature"
-	"tailscale.com/internal/client/tailscale"
+	"lanhc.com/feature"
+	"lanhc.com/internal/client/lanhc"
 )
 
 func init() {
 	feature.Register("awsparamstore")
-	tailscale.HookResolveValueFromParameterStore.Set(ResolveValue)
+	lanhc.HookResolveValueFromParameterStore.Set(ResolveValue)
 }
 
 // parseARN parses and verifies that the input string is an

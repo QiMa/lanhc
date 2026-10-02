@@ -19,13 +19,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	kube "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/kube/kubetypes"
+	kube "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/kube/kubetypes"
 )
 
 const (
-	labelMetricsTarget = "tailscale.com/metrics-target"
+	labelMetricsTarget = "lanhc.com/metrics-target"
 
 	// These labels get transferred from the metrics Service to the ingested Prometheus metrics.
 	labelPromProxyType            = "ts_proxy_type"
@@ -277,7 +277,7 @@ func serviceMonitorTemplate(name, ns string) *ServiceMonitor {
 
 type metricsOpts struct {
 	proxyStsName string            // name of StatefulSet for proxy
-	tsNamespace  string            // namespace in which Tailscale is installed
+	tsNamespace  string            // namespace in which Lanhc is installed
 	proxyLabels  map[string]string // labels of the proxy StatefulSet
 	proxyType    string
 }

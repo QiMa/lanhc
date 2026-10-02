@@ -6,9 +6,9 @@ package routecheck
 import (
 	"net/netip"
 
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/views"
-	"tailscale.com/util/mak"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/views"
+	"lanhc.com/util/mak"
 )
 
 // RoutersByPrefix represents a map of nodes grouped by the subnet that they route.
@@ -18,7 +18,7 @@ import (
 // Note: Fallback routes are not supported by design. If a subnet prefix
 // contained within another more general prefix has no reachable routers,
 // traffic is still sent to one of those unreachable routers.
-// Routers for the general prefix aren’t candidates. See tailscale/tailscale#18550.
+// Routers for the general prefix aren’t candidates. See lanhc/lanhc#18550.
 type RoutersByPrefix map[netip.Prefix][]tailcfg.NodeView
 
 // RoutersByPrefix returns a map of nodes grouped by the subnet that they route.

@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package netknob has Tailscale network knobs.
+// Package netknob has Lanhc network knobs.
 package netknob
 
 import (

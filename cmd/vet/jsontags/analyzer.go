@@ -122,7 +122,7 @@ func run(pass *analysis.Pass) (any, error) {
 					// runtime unless the caller passes the
 					// jsonv2.ExperimentalSupportFormatTag option.
 					// See https://go.dev/issue/71631 and
-					// https://github.com/tailscale/tailscale/issues/20528.
+					// https://github.com/lanhc/lanhc/issues/20528.
 					if key, _, ok := strings.Cut(opt, ":"); ok && key == "format" {
 						report(pass, structType, fieldVar, FormatUnsupported)
 					}

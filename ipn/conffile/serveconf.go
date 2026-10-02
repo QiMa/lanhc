@@ -15,15 +15,15 @@ import (
 
 	jsonv2 "github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
-	"tailscale.com/ipn"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/opt"
-	"tailscale.com/util/mak"
+	"lanhc.com/ipn"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/opt"
+	"lanhc.com/util/mak"
 )
 
 // LegacyVersion is the sentinel [ServicesConfigFile.Version] used to mark a
 // config that was loaded from the legacy raw [ipn.ServeConfig] format (a
-// version-less file, such as "tailscale serve status --json" output). When
+// version-less file, such as "lanhc serve status --json" output). When
 // Version is LegacyVersion, [ServicesConfigFile.Legacy] is set and Services is
 // nil. It is never written to disk; the on-disk format always uses "0.0.1".
 const LegacyVersion = "0.0.0"
@@ -39,13 +39,13 @@ type ServicesConfigFile struct {
 	Services map[tailcfg.ServiceName]*ServiceDetailsFile `json:"services,omitzero"`
 
 	// Legacy holds a raw ipn.ServeConfig parsed from a version-less file (e.g.
-	// "tailscale serve status --json" output). It is non-nil only when Version
+	// "lanhc serve status --json" output). It is non-nil only when Version
 	// is [LegacyVersion]. It is an in-memory loading artifact and is never
 	// serialized.
 	Legacy *ipn.ServeConfig `json:"-"`
 }
 
-// ServiceDetailsFile is the config syntax for an individual Tailscale Service.
+// ServiceDetailsFile is the config syntax for an individual Lanhc Service.
 type ServiceDetailsFile struct {
 	// Version is always "0.0.1", set if and only if this is not inside a
 	// [ServiceConfigFile].
@@ -58,12 +58,12 @@ type ServiceDetailsFile struct {
 	// mapping traffic on the TCP port 443 of the Service to port 8080 on localhost.
 	// The Proto in the key must be populated.
 	// As a special case, if the only mapping provided is "*" -> "TUN", that
-	// enables TUN/L3 mode, where packets are delivered to the Tailscale network
+	// enables TUN/L3 mode, where packets are delivered to the Lanhc network
 	// interface with the understanding that the user will deal with them manually.
 	Endpoints map[*tailcfg.ProtoPortRange]*Target `json:"endpoints"`
 
 	// Advertised is a flag that tells control whether or not the client thinks
-	// it is ready to host a particular Tailscale Service. If unset, it is
+	// it is ready to host a particular Lanhc Service. If unset, it is
 	// assumed to be true.
 	Advertised opt.Bool `json:"advertised,omitzero"`
 }
@@ -81,12 +81,12 @@ const (
 	ProtoTUN              ServiceProtocol = "TUN"
 )
 
-// Target is a destination for traffic to go to when it arrives at a Tailscale
+// Target is a destination for traffic to go to when it arrives at a Lanhc
 // Service host.
 type Target struct {
 	// The protocol over which to communicate with the Destination.
 	// Protocol == ProtoTUN is a special case, activating "TUN mode" where
-	// packets are delivered to the Tailscale TUN interface and then manually
+	// packets are delivered to the Lanhc TUN interface and then manually
 	// handled by the user.
 	Protocol ServiceProtocol
 
@@ -185,7 +185,7 @@ func (t *Target) MarshalText() ([]byte, error) {
 //
 // If the file has a top-level "version" field it is parsed as that versioned
 // declarative format. Otherwise it is treated as a legacy raw [ipn.ServeConfig]
-// (such as "tailscale serve status --json" emits): the returned
+// (such as "lanhc serve status --json" emits): the returned
 // ServicesConfigFile has Version [LegacyVersion] and its Legacy field set to the
 // parsed raw config, with Services left nil.
 //
@@ -212,7 +212,7 @@ func LoadServicesConfig(filename string, forService string) (*ServicesConfigFile
 	}
 	if ver.Version == "" {
 		// No "version" field. This is either the legacy raw ipn.ServeConfig
-		// (e.g. "tailscale serve status --json" output, which set-config still
+		// (e.g. "lanhc serve status --json" output, which set-config still
 		// accepts) or a Services configuration file whose required "version"
 		// field was omitted. Distinguish them by the Services config format's
 		// lowercase "services"/"endpoints" keys, which never appear in a raw

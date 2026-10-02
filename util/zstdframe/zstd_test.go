@@ -13,7 +13,7 @@ import (
 	"testing"
 
 	"github.com/klauspost/compress/zstd"
-	"tailscale.com/util/must"
+	"lanhc.com/util/must"
 )
 
 // Use the concatenation of all Go source files in zstdframe as testdata.

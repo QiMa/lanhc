@@ -12,10 +12,10 @@ import (
 	"slices"
 
 	"go4.org/mem"
-	"tailscale.com/internal/lanhc"
-	"tailscale.com/net/dnsfallback"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
+	"lanhc.com/internal/lanhc"
+	"lanhc.com/net/dnsfallback"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
 )
 
 // EndpointProvider is an enum that represents the source of an Endpoint.
@@ -27,16 +27,16 @@ const (
 	DERPMapPreferred EndpointProvider = iota
 	// DERPMapOther is used for an endpoint that is a DERP node, but not contained in the current preferred DERP region.
 	DERPMapOther
-	// Tailscale is used for endpoints that are the Tailscale coordination server or admin console.
-	Tailscale
+	// Lanhc is used for endpoints that are the Lanhc coordination server or admin console.
+	Lanhc
 )
 
 func (p EndpointProvider) String() string {
 	switch p {
 	case DERPMapPreferred:
 		return "DERPMapPreferred"
-	case Tailscale:
-		return "Tailscale"
+	case Lanhc:
+		return "Lanhc"
 	case DERPMapOther:
 		return "DERPMapOther"
 	default:
@@ -55,23 +55,23 @@ type Endpoint struct {
 	// we will check that the response body contains this string. If it is empty, we will not check the response body
 	// and only check the status code.
 	ExpectedContent string
-	// SupportsTailscaleChallenge is true if the endpoint will return the sent value of the X-Tailscale-Challenge
+	// SupportsLanhcChallenge is true if the endpoint will return the sent value of the X-Lanhc-Challenge
 	// HTTP header in its HTTP response.
-	SupportsTailscaleChallenge bool
+	SupportsLanhcChallenge bool
 	// Provider is the source of the endpoint. This is used to prioritize certain endpoints over others
 	// (for example, a DERP node in the preferred region should always be used first).
 	Provider EndpointProvider
 }
 
 func (e Endpoint) String() string {
-	return fmt.Sprintf("Endpoint{URL=%q, StatusCode=%d, ExpectedContent=%q, SupportsTailscaleChallenge=%v, Provider=%s}", e.URL, e.StatusCode, e.ExpectedContent, e.SupportsTailscaleChallenge, e.Provider.String())
+	return fmt.Sprintf("Endpoint{URL=%q, StatusCode=%d, ExpectedContent=%q, SupportsLanhcChallenge=%v, Provider=%s}", e.URL, e.StatusCode, e.ExpectedContent, e.SupportsLanhcChallenge, e.Provider.String())
 }
 
 func (e Endpoint) Equal(other Endpoint) bool {
 	return e.URL.String() == other.URL.String() &&
 		e.StatusCode == other.StatusCode &&
 		e.ExpectedContent == other.ExpectedContent &&
-		e.SupportsTailscaleChallenge == other.SupportsTailscaleChallenge &&
+		e.SupportsLanhcChallenge == other.SupportsLanhcChallenge &&
 		e.Provider == other.Provider
 }
 
@@ -112,11 +112,11 @@ func availableEndpoints(derpMap *tailcfg.DERPMap, preferredDERPRegionID int, log
 		}
 	}
 
-	// Let's also try the default Tailscale coordination server and admin console.
+	// Let's also try the default Lanhc coordination server and admin console.
 	// These are likely to be blocked on some networks.
 	//
 	// Downstream builds use the DERP nodes in the map (including the embedded
-	// lanhc DERP) instead; appending official Tailscale endpoints here would
+	// lanhc DERP) instead; appending official Lanhc endpoints here would
 	// defeat isolation, so the literals are compiled out.
 	if lanhc.Isolated {
 		slices.SortFunc(endpoints, func(x, y Endpoint) int {
@@ -124,19 +124,19 @@ func availableEndpoints(derpMap *tailcfg.DERPMap, preferredDERPRegionID int, log
 		})
 		return endpoints
 	}
-	appendTailscaleEndpoint := func(urlString string) {
+	appendLanhcEndpoint := func(urlString string) {
 		u, err := url.Parse(urlString)
 		if err != nil {
-			logf("captivedetection: failed to parse Tailscale URL %q: %v", urlString, err)
+			logf("captivedetection: failed to parse Lanhc URL %q: %v", urlString, err)
 			return
 		}
-		endpoints = append(endpoints, Endpoint{u, http.StatusNoContent, "", false, Tailscale})
+		endpoints = append(endpoints, Endpoint{u, http.StatusNoContent, "", false, Lanhc})
 	}
-	appendTailscaleEndpoint("http://controlplane.tailscale.com/generate_204")
-	appendTailscaleEndpoint("http://login.tailscale.com/generate_204")
+	appendLanhcEndpoint("http://controlplane.lanhc.com/generate_204")
+	appendLanhcEndpoint("http://login.lanhc.com/generate_204")
 
 	// Sort the endpoints by provider so that we can prioritize DERP nodes in the preferred region, followed by
-	// any other DERP server elsewhere, then followed by Tailscale endpoints.
+	// any other DERP server elsewhere, then followed by Lanhc endpoints.
 	slices.SortFunc(endpoints, func(x, y Endpoint) int {
 		return cmp.Compare(x.Provider, y.Provider)
 	})
@@ -154,14 +154,14 @@ func (e Endpoint) responseLooksLikeCaptive(r *http.Response, logf logger.Logf) b
 		return true
 	}
 
-	// If the endpoint supports the Tailscale challenge header, check that the response contains the expected header.
-	if e.SupportsTailscaleChallenge {
+	// If the endpoint supports the Lanhc challenge header, check that the response contains the expected header.
+	if e.SupportsLanhcChallenge {
 		expectedResponse := "response ts_" + e.URL.Host
-		hasResponse := r.Header.Get("X-Tailscale-Response") == expectedResponse
+		hasResponse := r.Header.Get("X-Lanhc-Response") == expectedResponse
 		if !hasResponse {
-			// The response did not contain the expected X-Tailscale-Response header, which means we are most likely
+			// The response did not contain the expected X-Lanhc-Response header, which means we are most likely
 			// behind a captive portal (somebody is tampering with the response headers).
-			logf("captive portal check response did not contain expected X-Tailscale-Response header: want=%q, got=%q", expectedResponse, r.Header.Get("X-Tailscale-Response"))
+			logf("captive portal check response did not contain expected X-Lanhc-Response header: want=%q, got=%q", expectedResponse, r.Header.Get("X-Lanhc-Response"))
 			return true
 		}
 	}

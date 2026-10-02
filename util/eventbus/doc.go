@@ -92,7 +92,7 @@
 //
 // Additionally, a debug command exists for monitoring the eventbus:
 //
-//	tailscale debug daemon-bus-events
+//	lanhc debug daemon-bus-events
 //
 // # Testing facilities
 //

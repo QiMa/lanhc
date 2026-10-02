@@ -15,11 +15,11 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/derp/derpserver"
-	"tailscale.com/net/netmon"
-	"tailscale.com/syncs"
-	"tailscale.com/tstest/nettest"
-	"tailscale.com/util/must"
+	"lanhc.com/derp/derpserver"
+	"lanhc.com/net/netmon"
+	"lanhc.com/syncs"
+	"lanhc.com/tstest/nettest"
+	"lanhc.com/util/must"
 )
 
 func TestAvailableEndpointsAlwaysAtLeastTwo(t *testing.T) {
@@ -107,7 +107,7 @@ func TestCaptivePortalRequest(t *testing.T) {
 		if got, want := q.Get("t"), strconv.Itoa(int(now.Unix())); got != want {
 			t.Errorf("timestamp param; got %v, want %v", got, want)
 		}
-		w.Header().Set("X-Tailscale-Response", "response "+r.Header.Get("X-Tailscale-Challenge"))
+		w.Header().Set("X-Lanhc-Response", "response "+r.Header.Get("X-Lanhc-Challenge"))
 
 		w.WriteHeader(http.StatusNoContent)
 	}))
@@ -117,7 +117,7 @@ func TestCaptivePortalRequest(t *testing.T) {
 		URL:                        must.Get(url.Parse(s.URL + "/generate_204")),
 		StatusCode:                 204,
 		ExpectedContent:            "",
-		SupportsTailscaleChallenge: true,
+		SupportsLanhcChallenge: true,
 	}
 
 	found, err := d.verifyCaptivePortalEndpoint(ctx, e, 0)
@@ -140,7 +140,7 @@ func TestAgainstDERPHandler(t *testing.T) {
 		URL:                        must.Get(url.Parse(s.URL + "/generate_204")),
 		StatusCode:                 204,
 		ExpectedContent:            "",
-		SupportsTailscaleChallenge: true,
+		SupportsLanhcChallenge: true,
 	}
 	found, err := d.verifyCaptivePortalEndpoint(ctx, e, 0)
 	if err != nil {

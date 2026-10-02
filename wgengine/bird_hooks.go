@@ -4,14 +4,14 @@
 package wgengine
 
 import (
-	"tailscale.com/feature"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
+	"lanhc.com/feature"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
 )
 
 // Bird is the engine's handle on the BIRD Internet Routing Daemon
 // integration, implemented by the feature/bird package. It enables the
-// "tailscale" protocol in BIRD while this node is a primary subnet
+// "lanhc" protocol in BIRD while this node is a primary subnet
 // router and disables it otherwise.
 //
 // Reconfig and ReconfigDone are only called from [Engine.Reconfig],

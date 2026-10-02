@@ -39,12 +39,12 @@ import (
 
 	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
-	"tailscale.com/client/local"
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
-	"tailscale.com/types/opt"
-	"tailscale.com/types/views"
+	"lanhc.com/client/local"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
+	"lanhc.com/types/opt"
+	"lanhc.com/types/views"
 )
 
 // normalizeMap recursively sorts []any values in a map[string]any to ensure
@@ -275,14 +275,14 @@ func TestFlattenExtraClaims(t *testing.T) {
 func TestExtraClaims(t *testing.T) {
 	tests := []struct {
 		name        string
-		claim       tailscaleClaims
+		claim       lanhcClaims
 		extraClaims []capRule
 		expected    map[string]any
 		expectError bool
 	}{
 		{
 			name: "extra-claim",
-			claim: tailscaleClaims{
+			claim: lanhcClaims{
 				Claims:    jwt.Claims{},
 				Nonce:     "foobar",
 				Key:       key.NodePublic{},
@@ -315,7 +315,7 @@ func TestExtraClaims(t *testing.T) {
 		},
 		{
 			name: "duplicate-claim-distinct-values",
-			claim: tailscaleClaims{
+			claim: lanhcClaims{
 				Claims:    jwt.Claims{},
 				Nonce:     "foobar",
 				Key:       key.NodePublic{},
@@ -353,7 +353,7 @@ func TestExtraClaims(t *testing.T) {
 		},
 		{
 			name: "multiple-extra-claims",
-			claim: tailscaleClaims{
+			claim: lanhcClaims{
 				Claims:    jwt.Claims{},
 				Nonce:     "foobar",
 				Key:       key.NodePublic{},
@@ -392,7 +392,7 @@ func TestExtraClaims(t *testing.T) {
 		},
 		{
 			name: "overwrite-claim",
-			claim: tailscaleClaims{
+			claim: lanhcClaims{
 				Claims:    jwt.Claims{},
 				Nonce:     "foobar",
 				Key:       key.NodePublic{},
@@ -425,7 +425,7 @@ func TestExtraClaims(t *testing.T) {
 		},
 		{
 			name: "empty-extra-claims",
-			claim: tailscaleClaims{
+			claim: lanhcClaims{
 				Claims:    jwt.Claims{},
 				Nonce:     "foobar",
 				Key:       key.NodePublic{},
@@ -810,7 +810,7 @@ func TestExtraUserInfo(t *testing.T) {
 	}
 	token := "valid-token"
 
-	// Create a fake tailscale Node
+	// Create a fake lanhc Node
 	node := &tailcfg.Node{
 		ID:   123,
 		Name: "test-node.test.ts.net.",
@@ -1583,7 +1583,7 @@ func TestAuthorizeStrictMode(t *testing.T) {
 
 			// Set funnel header only when explicitly testing funnel behavior
 			if tt.useFunnel {
-				req.Header.Set("Tailscale-Funnel-Request", "true")
+				req.Header.Set("Lanhc-Funnel-Request", "true")
 			}
 
 			rr := httptest.NewRecorder()

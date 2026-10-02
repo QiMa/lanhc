@@ -3,16 +3,16 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # This script detects the current operating system, and installs
-# Tailscale according to that OS's conventions.
+# Lanhc according to that OS's conventions.
 #
 # Environment variables:
 #   TRACK: Set to "stable" or "unstable" (default: stable)
-#   TAILSCALE_VERSION: Pin to a specific version (e.g., "1.88.4")
+#   LANHC_VERSION: Pin to a specific version (e.g., "1.88.4")
 #
 # Examples:
-#   curl -fsSL https://tailscale.com/install.sh | sh
-#   curl -fsSL https://tailscale.com/install.sh | TAILSCALE_VERSION=1.88.4 sh
-#   curl -fsSL https://tailscale.com/install.sh | TRACK=unstable sh
+#   curl -fsSL https://lanhc.com/install.sh | sh
+#   curl -fsSL https://lanhc.com/install.sh | LANHC_VERSION=1.88.4 sh
+#   curl -fsSL https://lanhc.com/install.sh | TRACK=unstable sh
 
 set -eu
 
@@ -34,7 +34,7 @@ main() {
 	APT_KEY_TYPE="" # Only for apt-based distros
 	APT_SYSTEMCTL_START=false # Only needs to be true for Kali
 	TRACK="${TRACK:-stable}"
-	TAILSCALE_VERSION="${TAILSCALE_VERSION:-}"
+	LANHC_VERSION="${LANHC_VERSION:-}"
 
 	case "$TRACK" in
 		stable|unstable)
@@ -184,7 +184,7 @@ main() {
 					APT_KEY_TYPE="keyring"
 				fi
 				;;
-			Deepin|deepin)  # https://github.com/tailscale/tailscale/issues/7862
+			Deepin|deepin)  # https://github.com/lanhc/lanhc/issues/7862
 				OS="debian"
 				PACKAGETYPE="apt"
 				if [ "$VERSION_MAJOR" -lt 20 ]; then
@@ -297,17 +297,17 @@ main() {
 				PACKAGETYPE="apk"
 				;;
 			nixos)
-				echo "Please add Tailscale to your NixOS configuration directly:"
+				echo "Please add Lanhc to your NixOS configuration directly:"
 				echo
-				echo "services.tailscale.enable = true;"
+				echo "services.lanhc.enable = true;"
 				exit 1
 				;;
 			bazzite)
-				echo "Bazzite comes with Tailscale installed by default."
-				echo "Please enable Tailscale by running the following commands as root:"
+				echo "Bazzite comes with Lanhc installed by default."
+				echo "Please enable Lanhc by running the following commands as root:"
 				echo
-				echo "ujust enable-tailscale"
-				echo "tailscale up"
+				echo "ujust enable-lanhc"
+				echo "lanhc up"
 				exit 1
 				;;
 			void)
@@ -347,13 +347,13 @@ main() {
 				fi
 				;;
 			steamos)
-				echo "To install Tailscale on SteamOS, please follow the instructions here:"
-				echo "https://github.com/tailscale-dev/deck-tailscale"
+				echo "To install Lanhc on SteamOS, please follow the instructions here:"
+				echo "https://github.com/lanhc-dev/deck-lanhc"
 				exit 1
 				;;
 			kde-linux)
-				echo "The maintainers of KDE Linux provide documentation on multiple ways to install Tailscale. These instructions are not officially supported by Tailscale:"
-				echo "https://linux.kde.org/docs/more-software/#tailscale"
+				echo "The maintainers of KDE Linux provide documentation on multiple ways to install Lanhc. These instructions are not officially supported by Lanhc:"
+				echo "https://linux.kde.org/docs/more-software/#lanhc"
 				exit 1
 				;;
 
@@ -408,7 +408,7 @@ main() {
 		exit 1
 	fi
 
-	TEST_URL="https://pkgs.tailscale.com/"
+	TEST_URL="https://pkgs.lanhc.com/"
 	RC=0
 	TEST_OUT=$($CURL "$TEST_URL" 2>&1) || RC=$?
 	if [ $RC != 0 ]; then
@@ -425,7 +425,7 @@ main() {
 	case "$OS" in
 		ubuntu|debian|raspbian|centos|oracle|rhel|amazon-linux|opensuse|photon)
 			# Check with the package server whether a given version is supported.
-			URL="https://pkgs.tailscale.com/$TRACK/$OS/$VERSION/installer-supported"
+			URL="https://pkgs.lanhc.com/$TRACK/$OS/$VERSION/installer-supported"
 			$CURL "$URL" 2> /dev/null | grep -q OK || OS_UNSUPPORTED=1
 			;;
 		fedora)
@@ -439,7 +439,7 @@ main() {
 			;;
 		alpine)
 			# All versions supported, no version checking needed.
-			# TODO: is that true? When was tailscale packaged?
+			# TODO: is that true? When was lanhc packaged?
 			;;
 		void)
 			# Rolling release, no version checking needed.
@@ -475,7 +475,7 @@ main() {
 			other-linux)
 				echo "Couldn't determine what kind of Linux is running."
 				echo "You could try the static binaries at:"
-				echo "https://pkgs.tailscale.com/$TRACK/#static"
+				echo "https://pkgs.lanhc.com/$TRACK/#static"
 				;;
 			"")
 				echo "Couldn't determine what operating system you're running."
@@ -485,7 +485,7 @@ main() {
 				;;
 		esac
 		echo
-		echo "If you'd like us to support your system better, please email support@tailscale.com"
+		echo "If you'd like us to support your system better, please email support@lanhc.com"
 		echo "and tell us what OS you're running."
 		echo
 		echo "Please include the following information we gathered from your system:"
@@ -534,10 +534,10 @@ main() {
 	[ "$VERSION" != "" ] && OSVERSION="$OSVERSION $VERSION"
 
 	# Prepare package name with optional version
-	if [ -n "$TAILSCALE_VERSION" ]; then
-		echo "Installing Tailscale $TAILSCALE_VERSION for $OSVERSION, using method $PACKAGETYPE"
+	if [ -n "$LANHC_VERSION" ]; then
+		echo "Installing Lanhc $LANHC_VERSION for $OSVERSION, using method $PACKAGETYPE"
 	else
-		echo "Installing Tailscale for $OSVERSION, using method $PACKAGETYPE"
+		echo "Installing Lanhc for $OSVERSION, using method $PACKAGETYPE"
 	fi
 	case "$PACKAGETYPE" in
 		apt)
@@ -551,39 +551,39 @@ main() {
 			$SUDO mkdir -p --mode=0755 /usr/share/keyrings
 			case "$APT_KEY_TYPE" in
 				legacy)
-					$CURL "https://pkgs.tailscale.com/$TRACK/$OS/$VERSION.asc" | $SUDO apt-key add -
-					$CURL "https://pkgs.tailscale.com/$TRACK/$OS/$VERSION.list" | $SUDO tee /etc/apt/sources.list.d/tailscale.list
-					$SUDO chmod 0644 /etc/apt/sources.list.d/tailscale.list
+					$CURL "https://pkgs.lanhc.com/$TRACK/$OS/$VERSION.asc" | $SUDO apt-key add -
+					$CURL "https://pkgs.lanhc.com/$TRACK/$OS/$VERSION.list" | $SUDO tee /etc/apt/sources.list.d/lanhc.list
+					$SUDO chmod 0644 /etc/apt/sources.list.d/lanhc.list
 				;;
 				keyring)
-					$CURL "https://pkgs.tailscale.com/$TRACK/$OS/$VERSION.noarmor.gpg" | $SUDO tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
-					$SUDO chmod 0644 /usr/share/keyrings/tailscale-archive-keyring.gpg
-					$CURL "https://pkgs.tailscale.com/$TRACK/$OS/$VERSION.tailscale-keyring.list" | $SUDO tee /etc/apt/sources.list.d/tailscale.list
-					$SUDO chmod 0644 /etc/apt/sources.list.d/tailscale.list
+					$CURL "https://pkgs.lanhc.com/$TRACK/$OS/$VERSION.noarmor.gpg" | $SUDO tee /usr/share/keyrings/lanhc-archive-keyring.gpg >/dev/null
+					$SUDO chmod 0644 /usr/share/keyrings/lanhc-archive-keyring.gpg
+					$CURL "https://pkgs.lanhc.com/$TRACK/$OS/$VERSION.lanhc-keyring.list" | $SUDO tee /etc/apt/sources.list.d/lanhc.list
+					$SUDO chmod 0644 /etc/apt/sources.list.d/lanhc.list
 				;;
 			esac
 			$SUDO apt-get update
-			if [ -n "$TAILSCALE_VERSION" ]; then
-				$SUDO apt-get install -y "tailscale=$TAILSCALE_VERSION" tailscale-archive-keyring
+			if [ -n "$LANHC_VERSION" ]; then
+				$SUDO apt-get install -y "lanhc=$LANHC_VERSION" lanhc-archive-keyring
 			else
-				$SUDO apt-get install -y tailscale tailscale-archive-keyring
+				$SUDO apt-get install -y lanhc lanhc-archive-keyring
 			fi
 			if [ "$APT_SYSTEMCTL_START" = "true" ]; then
-				$SUDO systemctl enable --now tailscaled
-				$SUDO systemctl start tailscaled
+				$SUDO systemctl enable --now lanhcd
+				$SUDO systemctl start lanhcd
 			fi
 			set +x
 		;;
 		yum)
 			set -x
 			$SUDO yum install yum-utils -y
-			$SUDO yum-config-manager -y --add-repo "https://pkgs.tailscale.com/$TRACK/$OS/$VERSION/tailscale.repo"
-			if [ -n "$TAILSCALE_VERSION" ]; then
-				$SUDO yum install "tailscale-$TAILSCALE_VERSION" -y
+			$SUDO yum-config-manager -y --add-repo "https://pkgs.lanhc.com/$TRACK/$OS/$VERSION/lanhc.repo"
+			if [ -n "$LANHC_VERSION" ]; then
+				$SUDO yum install "lanhc-$LANHC_VERSION" -y
 			else
-				$SUDO yum install tailscale -y
+				$SUDO yum install lanhc -y
 			fi
-			$SUDO systemctl enable --now tailscaled
+			$SUDO systemctl enable --now lanhcd
 			set +x
 		;;
 		dnf)
@@ -614,67 +614,67 @@ main() {
 			set -x
 			if [ "$DNF_VERSION" = "3" ]; then
 				$SUDO dnf install -y 'dnf-command(config-manager)'
-				$SUDO dnf config-manager --add-repo "https://pkgs.tailscale.com/$TRACK/$OS/$VERSION/tailscale.repo"
+				$SUDO dnf config-manager --add-repo "https://pkgs.lanhc.com/$TRACK/$OS/$VERSION/lanhc.repo"
 			elif [ "$DNF_VERSION" = "5" ]; then
 				# Already installed config-manager, above.
-				$SUDO dnf config-manager addrepo --overwrite --from-repofile="https://pkgs.tailscale.com/$TRACK/$OS/$VERSION/tailscale.repo"
+				$SUDO dnf config-manager addrepo --overwrite --from-repofile="https://pkgs.lanhc.com/$TRACK/$OS/$VERSION/lanhc.repo"
 			else
 				echo "unexpected: unknown dnf version $DNF_VERSION"
 				exit 1
 			fi
-			if [ -n "$TAILSCALE_VERSION" ]; then
-				$SUDO dnf install -y "tailscale-$TAILSCALE_VERSION"
+			if [ -n "$LANHC_VERSION" ]; then
+				$SUDO dnf install -y "lanhc-$LANHC_VERSION"
 			else
-				$SUDO dnf install -y tailscale
+				$SUDO dnf install -y lanhc
 			fi
-			$SUDO systemctl enable --now tailscaled
+			$SUDO systemctl enable --now lanhcd
 			set +x
 		;;
 		tdnf)
 			set -x
-			curl -fsSL "https://pkgs.tailscale.com/$TRACK/$OS/$VERSION/tailscale.repo" > /etc/yum.repos.d/tailscale.repo
-			if [ -n "$TAILSCALE_VERSION" ]; then
-				$SUDO tdnf install -y "tailscale-$TAILSCALE_VERSION"
+			curl -fsSL "https://pkgs.lanhc.com/$TRACK/$OS/$VERSION/lanhc.repo" > /etc/yum.repos.d/lanhc.repo
+			if [ -n "$LANHC_VERSION" ]; then
+				$SUDO tdnf install -y "lanhc-$LANHC_VERSION"
 			else
-				$SUDO tdnf install -y tailscale
+				$SUDO tdnf install -y lanhc
 			fi
-			$SUDO systemctl enable --now tailscaled
+			$SUDO systemctl enable --now lanhcd
 			set +x
 		;;
 		zypper)
 			set -x
-			$SUDO rpm --import "https://pkgs.tailscale.com/$TRACK/$OS/$VERSION/repo.gpg"
-			$SUDO zypper --non-interactive ar -g -r "https://pkgs.tailscale.com/$TRACK/$OS/$VERSION/tailscale.repo"
+			$SUDO rpm --import "https://pkgs.lanhc.com/$TRACK/$OS/$VERSION/repo.gpg"
+			$SUDO zypper --non-interactive ar -g -r "https://pkgs.lanhc.com/$TRACK/$OS/$VERSION/lanhc.repo"
 			$SUDO zypper --non-interactive --gpg-auto-import-keys refresh
-			if [ -n "$TAILSCALE_VERSION" ]; then
-				$SUDO zypper --non-interactive install "tailscale=$TAILSCALE_VERSION"
+			if [ -n "$LANHC_VERSION" ]; then
+				$SUDO zypper --non-interactive install "lanhc=$LANHC_VERSION"
 			else
-				$SUDO zypper --non-interactive install tailscale
+				$SUDO zypper --non-interactive install lanhc
 			fi
-			$SUDO systemctl enable --now tailscaled
+			$SUDO systemctl enable --now lanhcd
 			set +x
 			;;
 		pacman)
 			set -x
-			if [ -n "$TAILSCALE_VERSION" ]; then
-				echo "Warning: Arch Linux maintains their own Tailscale package. Version pinning may not work as expected, as the target version may no longer be available."
-				$SUDO pacman -S "tailscale=$TAILSCALE_VERSION" --noconfirm
+			if [ -n "$LANHC_VERSION" ]; then
+				echo "Warning: Arch Linux maintains their own Lanhc package. Version pinning may not work as expected, as the target version may no longer be available."
+				$SUDO pacman -S "lanhc=$LANHC_VERSION" --noconfirm
 			else
-				$SUDO pacman -S tailscale --noconfirm
+				$SUDO pacman -S lanhc --noconfirm
 			fi
-			$SUDO systemctl enable --now tailscaled
+			$SUDO systemctl enable --now lanhcd
 			set +x
 			;;
 		pkg)
 			set -x
-			if [ -n "$TAILSCALE_VERSION" ]; then
-				echo "Warning: FreeBSD maintains their own Tailscale package. Version pinning may not work as expected, as the target version may no longer be available."
-				$SUDO pkg install --yes "tailscale-$TAILSCALE_VERSION"
+			if [ -n "$LANHC_VERSION" ]; then
+				echo "Warning: FreeBSD maintains their own Lanhc package. Version pinning may not work as expected, as the target version may no longer be available."
+				$SUDO pkg install --yes "lanhc-$LANHC_VERSION"
 			else
-				$SUDO pkg install --yes tailscale
+				$SUDO pkg install --yes lanhc
 			fi
-			$SUDO service tailscaled enable
-			$SUDO service tailscaled start
+			$SUDO service lanhcd enable
+			$SUDO service lanhcd start
 			set +x
 			;;
 		apk)
@@ -683,43 +683,43 @@ main() {
 				if type setup-apkrepos >/dev/null; then
 					$SUDO setup-apkrepos -c -1
 				else
-					echo "installing tailscale requires the community repo to be enabled in /etc/apk/repositories"
+					echo "installing lanhc requires the community repo to be enabled in /etc/apk/repositories"
 					exit 1
 				fi
 			fi
-			if [ -n "$TAILSCALE_VERSION" ]; then
-				echo "Warning: Alpine Linux maintains their own Tailscale package. Version pinning may not work as expected, as the target version may no longer be available."
-				$SUDO apk add "tailscale=$TAILSCALE_VERSION"
+			if [ -n "$LANHC_VERSION" ]; then
+				echo "Warning: Alpine Linux maintains their own Lanhc package. Version pinning may not work as expected, as the target version may no longer be available."
+				$SUDO apk add "lanhc=$LANHC_VERSION"
 			else
-				$SUDO apk add tailscale
+				$SUDO apk add lanhc
 			fi
-			$SUDO rc-update add tailscale
-			$SUDO rc-service tailscale start
+			$SUDO rc-update add lanhc
+			$SUDO rc-service lanhc start
 			set +x
 			;;
 		xbps)
 			set -x
-			if [ -n "$TAILSCALE_VERSION" ]; then
-				echo "Warning: Void Linux maintains their own Tailscale package. Version pinning may not work as expected, as the target version may no longer be available."
-				$SUDO xbps-install "tailscale-$TAILSCALE_VERSION" -y
+			if [ -n "$LANHC_VERSION" ]; then
+				echo "Warning: Void Linux maintains their own Lanhc package. Version pinning may not work as expected, as the target version may no longer be available."
+				$SUDO xbps-install "lanhc-$LANHC_VERSION" -y
 			else
-				$SUDO xbps-install tailscale -y
+				$SUDO xbps-install lanhc -y
 			fi
 			set +x
 			;;
 		emerge)
 			set -x
-			if [ -n "$TAILSCALE_VERSION" ]; then
-				echo "Warning: Gentoo maintains their own Tailscale package. Version pinning may not work as expected, as the target version may no longer be available."
-				$SUDO emerge --ask=n "=net-vpn/tailscale-$TAILSCALE_VERSION"
+			if [ -n "$LANHC_VERSION" ]; then
+				echo "Warning: Gentoo maintains their own Lanhc package. Version pinning may not work as expected, as the target version may no longer be available."
+				$SUDO emerge --ask=n "=net-vpn/lanhc-$LANHC_VERSION"
 			else
-				$SUDO emerge --ask=n net-vpn/tailscale
+				$SUDO emerge --ask=n net-vpn/lanhc
 			fi
 			set +x
 			;;
 		appstore)
 			set -x
-			open "https://apps.apple.com/us/app/tailscale/id1475387142"
+			open "https://apps.apple.com/us/app/lanhc/id1475387142"
 			set +x
 			;;
 		*)
@@ -728,12 +728,12 @@ main() {
 			;;
 	esac
 
-	echo "Installation complete! Log in to start using Tailscale by running:"
+	echo "Installation complete! Log in to start using Lanhc by running:"
 	echo
 	if [ -z "$SUDO" ]; then
-		echo "tailscale up"
+		echo "lanhc up"
 	else
-		echo "$SUDO tailscale up"
+		echo "$SUDO lanhc up"
 	fi
 }
 

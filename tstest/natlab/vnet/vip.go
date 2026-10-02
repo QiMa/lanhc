@@ -12,15 +12,15 @@ var vips = map[string]virtualIP{} // DNS name => details
 
 var (
 	fakeDNS               = newVIP("dns", "4.11.4.11", "2411::411")
-	fakeProxyControlplane = newVIP("controlplane.tailscale.com", 1)
-	fakeTestAgent         = newVIP("test-driver.tailscale", 2)
-	fakeControl           = newVIP("control.tailscale", 3)
-	fakeDERP1             = newVIP("derp1.tailscale", "33.4.0.1") // 3340=DERP; 1=derp 1
-	fakeDERP2             = newVIP("derp2.tailscale", "33.4.0.2") // 3340=DERP; 2=derp 2
-	fakeLogCatcher        = newVIP("log.tailscale.com", 4)
-	fakeSyslog            = newVIP("syslog.tailscale", 9)
-	fakeCloudInit         = newVIP("cloud-init.tailscale", 5) // serves cloud-init metadata/userdata per node
-	fakeFiles             = newVIP("files.tailscale", 6)      // serves binary files (tta, tailscale, tailscaled) to VMs
+	fakeProxyControlplane = newVIP("controlplane.lanhc.com", 1)
+	fakeTestAgent         = newVIP("test-driver.lanhc", 2)
+	fakeControl           = newVIP("control.lanhc", 3)
+	fakeDERP1             = newVIP("derp1.lanhc", "33.4.0.1") // 3340=DERP; 1=derp 1
+	fakeDERP2             = newVIP("derp2.lanhc", "33.4.0.2") // 3340=DERP; 2=derp 2
+	fakeLogCatcher        = newVIP("log.lanhc.com", 4)
+	fakeSyslog            = newVIP("syslog.lanhc", 9)
+	fakeCloudInit         = newVIP("cloud-init.lanhc", 5) // serves cloud-init metadata/userdata per node
+	fakeFiles             = newVIP("files.lanhc", 6)      // serves binary files (tta, lanhc, lanhcd) to VMs
 	fakeACME              = newVIP("acme.example", 7)         // fake ACME CA for vmtests
 
 	// FakeDualStackWeb is a dual-stack webserver VIP used by

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // Package wintun is the single source of truth for the pinned wintun.dll release
-// the Tailscale Windows client is built and tested against.
+// the Lanhc Windows client is built and tested against.
 package wintun
 
 const (

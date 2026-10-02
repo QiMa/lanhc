@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/net/flowtrack"
-	"tailscale.com/net/packet"
-	"tailscale.com/tstime/mono"
+	"lanhc.com/net/flowtrack"
+	"lanhc.com/net/packet"
+	"lanhc.com/tstime/mono"
 )
 
 // PacketAction may modify the packet.

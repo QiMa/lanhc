@@ -17,22 +17,22 @@ import (
 	"net/netip"
 	"time"
 
-	"tailscale.com/health"
-	"tailscale.com/logpolicy"
-	"tailscale.com/logtail"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/sockstats"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/logid"
-	"tailscale.com/types/netlogfunc"
-	"tailscale.com/types/netlogtype"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/set"
-	"tailscale.com/wgengine/router"
+	"lanhc.com/health"
+	"lanhc.com/logpolicy"
+	"lanhc.com/logtail"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/sockstats"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/logid"
+	"lanhc.com/types/netlogfunc"
+	"lanhc.com/types/netlogtype"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/set"
+	"lanhc.com/wgengine/router"
 
 	jsonv2 "github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
@@ -65,7 +65,7 @@ type NodeSource interface {
 }
 
 // Logger logs statistics about every connection.
-// At present, it only logs connections within a tailscale network.
+// At present, it only logs connections within a lanhc network.
 // By default, exit node traffic is not logged for privacy reasons
 // unless the Tailnet administrator opts-into explicit logging.
 // The zero value is ready for use.
@@ -103,25 +103,25 @@ var testClient *http.Client
 // Startup starts an asynchronous network logger that monitors
 // statistics for the provided tun and/or sock device.
 //
-// The tun [Device] captures packets within the tailscale network,
-// where at least one address is usually a tailscale IP address.
+// The tun [Device] captures packets within the lanhc network,
+// where at least one address is usually a lanhc IP address.
 // The source is usually from the perspective of the current node.
-// If one of the other endpoint is not a tailscale IP address,
+// If one of the other endpoint is not a lanhc IP address,
 // then it suggests the use of a subnet router or exit node.
 // For example, when using a subnet router, the source address is
-// the tailscale IP address of the current node, and
+// the lanhc IP address of the current node, and
 // the destination address is an IP address within the subnet range.
 // In contrast, when acting as a subnet router, the source address is
 // an IP address within the subnet range, and the destination is a
-// tailscale IP address that initiated the subnet proxy connection.
+// lanhc IP address that initiated the subnet proxy connection.
 // In this case, the node acting as a subnet router is acting on behalf
 // of some remote endpoint within the subnet range.
 // The tun is used to populate the VirtualTraffic, SubnetTraffic,
 // and ExitTraffic fields in [netlogtype.Message].
 //
 // The sock [Device] captures packets at the magicsock layer.
-// The source is always a tailscale IP address and the destination
-// is a non-tailscale IP address to contact for that particular tailscale node.
+// The source is always a lanhc IP address and the destination
+// is a non-lanhc IP address to contact for that particular lanhc node.
 // The IP protocol and source port are always zero.
 // The sock is used to populated the PhysicalTraffic field in [netlogtype.Message].
 //
@@ -141,7 +141,7 @@ func (nl *Logger) Startup(logf logger.Logf, source NodeSource, nodeLogID, domain
 	}
 	nl.source = source
 
-	// Startup a log stream to Tailscale's logging service.
+	// Startup a log stream to Lanhc's logging service.
 	if logf == nil {
 		logf = log.Printf
 	}
@@ -150,7 +150,7 @@ func (nl *Logger) Startup(logf logger.Logf, source NodeSource, nodeLogID, domain
 		httpc = testClient
 	}
 	logger := logtail.NewLogger(logtail.Config{
-		Collection:    "tailtraffic.log.tailscale.io",
+		Collection:    "tailtraffic.log.lanhc.io",
 		PrivateID:     nodeLogID,
 		CopyPrivateID: domainLogID,
 		Bus:           bus,
@@ -222,17 +222,17 @@ func (nl *Logger) Startup(logf logger.Logf, source NodeSource, nodeLogID, domain
 }
 
 var (
-	tailscaleServiceIPv4 = tsaddr.TailscaleServiceIP()
-	tailscaleServiceIPv6 = tsaddr.TailscaleServiceIPv6()
+	lanhcServiceIPv4 = tsaddr.LanhcServiceIP()
+	lanhcServiceIPv6 = tsaddr.LanhcServiceIPv6()
 )
 
 func (nl *Logger) updateVirtConn(proto ipproto.Proto, src, dst netip.AddrPort, packets, bytes int, recv bool) {
-	// Network logging is defined as traffic between two Tailscale nodes.
-	// Traffic with the internal Tailscale service is not with another node
+	// Network logging is defined as traffic between two Lanhc nodes.
+	// Traffic with the internal Lanhc service is not with another node
 	// and should not be logged. It also happens to be a high volume
 	// amount of discrete traffic flows (e.g., DNS lookups).
 	switch dst.Addr() {
-	case tailscaleServiceIPv4, tailscaleServiceIPv6:
+	case lanhcServiceIPv4, lanhcServiceIPv6:
 		return
 	}
 
@@ -450,7 +450,7 @@ func (nl *Logger) ReconfigRoutes(cfg *router.Config) {
 }
 
 // withinRoutesLocked reports whether a is within the configured routes,
-// which should only contain Tailscale addresses and subnet routes.
+// which should only contain Lanhc addresses and subnet routes.
 // The [Logger.mu] must be held.
 func (nl *Logger) withinRoutesLocked(a netip.Addr) bool {
 	if nl.routeAddrs.Contains(a) {

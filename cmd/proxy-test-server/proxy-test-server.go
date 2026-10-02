@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // The proxy-test-server command is a simple HTTP proxy server for testing
-// Tailscale's client proxy functionality.
+// Lanhc's client proxy functionality.
 package main
 
 import (
@@ -16,15 +16,15 @@ import (
 	"strings"
 
 	"golang.org/x/crypto/acme/autocert"
-	"tailscale.com/net/connectproxy"
-	"tailscale.com/tempfork/acme"
+	"lanhc.com/net/connectproxy"
+	"lanhc.com/tempfork/acme"
 )
 
 var (
 	listen            = flag.String("listen", ":8080", "Address to listen on for HTTPS proxy requests")
 	hostname          = flag.String("hostname", "localhost", "Hostname for the proxy server")
-	tailscaleOnly     = flag.Bool("tailscale-only", true, "Restrict proxy to Tailscale targets only")
-	extraAllowedHosts = flag.String("allow-hosts", "", "Comma-separated list of allowed target hosts to additionally allow if --tailscale-only is true")
+	lanhcOnly     = flag.Bool("lanhc-only", true, "Restrict proxy to Lanhc targets only")
+	extraAllowedHosts = flag.String("allow-hosts", "", "Comma-separated list of allowed target hosts to additionally allow if --lanhc-only is true")
 )
 
 func main() {
@@ -36,7 +36,7 @@ func main() {
 		Cache:      autocert.DirCache(os.ExpandEnv("$HOME/.cache/autocert/proxy-test-server")),
 	}
 	var allowTarget func(hostPort string) error
-	if *tailscaleOnly {
+	if *lanhcOnly {
 		allowTarget = func(hostPort string) error {
 			host, port, err := net.SplitHostPort(hostPort)
 			if err != nil {
@@ -50,10 +50,10 @@ func main() {
 					return nil // explicitly allowed target
 				}
 			}
-			if !strings.HasSuffix(host, ".tailscale.com") {
-				return fmt.Errorf("target %q is not a Tailscale host", hostPort)
+			if !strings.HasSuffix(host, ".lanhc.com") {
+				return fmt.Errorf("target %q is not a Lanhc host", hostPort)
 			}
-			return nil // valid Tailscale target
+			return nil // valid Lanhc target
 		}
 	}
 

@@ -18,12 +18,12 @@ const (
 )
 
 // CheckUDPGROForwarding checks if the machine is optimally configured to
-// forward UDP packets between the default route and Tailscale TUN interfaces.
+// forward UDP packets between the default route and Lanhc TUN interfaces.
 // It returns a non-nil warn in the case that the configuration is suboptimal.
 // It returns a non-nil err in the case that an error is encountered while
 // performing the check.
 func CheckUDPGROForwarding(tunInterface, defaultRouteInterface string) (warn, err error) {
-	const kbLink = "\nSee https://tailscale.com/s/ethtool-config-udp-gro"
+	const kbLink = "\nSee https://lanhc.com/s/ethtool-config-udp-gro"
 	errWithPrefix := func(format string, a ...any) error {
 		const errPrefix = "couldn't check system's UDP GRO forwarding configuration, "
 		return fmt.Errorf(errPrefix+format, a...)
@@ -61,7 +61,7 @@ func CheckUDPGROForwarding(tunInterface, defaultRouteInterface string) (warn, er
 // SetUDPGROForwarding enables UDP GRO forwarding for the provided default
 // interface. It validates if the provided tun interface has UDP segmentation
 // enabled and, if not, returns an error. See
-// https://tailscale.com/kb/1320/performance-best-practices#linux-optimizations-for-subnet-routers-and-exit-nodes
+// https://lanhc.com/kb/1320/performance-best-practices#linux-optimizations-for-subnet-routers-and-exit-nodes
 func SetUDPGROForwarding(tunInterface, defaultInterface string) error {
 	e, err := ethtool.NewEthtool()
 	if err != nil {
@@ -75,7 +75,7 @@ func SetUDPGROForwarding(tunInterface, defaultInterface string) error {
 	if !tunFeatures[txFeature] {
 		// if txFeature is disabled/nonexistent on the TUN then UDP GRO
 		// forwarding doesn't matter, we won't be taking advantage of it.
-		return fmt.Errorf("Not enabling UDP GRO forwarding as UDP segmentation is disabled for Tailscale interface")
+		return fmt.Errorf("Not enabling UDP GRO forwarding as UDP segmentation is disabled for Lanhc interface")
 	}
 	if err := e.Change(defaultInterface, map[string]bool{rxWantFeature: true, rxDoNotWantFeature: false}); err != nil {
 		return fmt.Errorf("error enabling UDP GRO forwarding: %w", err)

@@ -14,12 +14,12 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/derp"
-	"tailscale.com/derp/derphttp"
-	"tailscale.com/derp/derpserver"
-	"tailscale.com/net/netmon"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
+	"lanhc.com/derp"
+	"lanhc.com/derp/derphttp"
+	"lanhc.com/derp/derpserver"
+	"lanhc.com/net/netmon"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
 )
 
 func TestDerpProber(t *testing.T) {
@@ -32,14 +32,14 @@ func TestDerpProber(t *testing.T) {
 					{
 						Name:     "n1",
 						RegionID: 0,
-						HostName: "derpn1.tailscale.test",
+						HostName: "derpn1.lanhc.test",
 						IPv4:     "1.1.1.1",
 						IPv6:     "::1",
 					},
 					{
 						Name:     "n2",
 						RegionID: 0,
-						HostName: "derpn2.tailscale.test",
+						HostName: "derpn2.lanhc.test",
 						IPv4:     "1.1.1.1",
 						IPv6:     "::1",
 					},
@@ -52,7 +52,7 @@ func TestDerpProber(t *testing.T) {
 					{
 						Name:     "n3",
 						RegionID: 0,
-						HostName: "derpn3.tailscale.test",
+						HostName: "derpn3.lanhc.test",
 						IPv4:     "1.1.1.1",
 						IPv6:     "::1",
 					},
@@ -101,7 +101,7 @@ func TestDerpProber(t *testing.T) {
 	dm.Regions[0].Nodes = append(dm.Regions[0].Nodes, &tailcfg.DERPNode{
 		Name:     "n4",
 		RegionID: 0,
-		HostName: "derpn4.tailscale.test",
+		HostName: "derpn4.lanhc.test",
 		IPv4:     "1.1.1.1",
 		IPv6:     "::1",
 	})

@@ -23,21 +23,21 @@ import (
 
 	"golang.org/x/sys/windows/svc"
 	"golang.org/x/sys/windows/svc/mgr"
-	"tailscale.com/tsconst/wintun"
+	"lanhc.com/tsconst/wintun"
 )
 
-// serviceName is the Windows service tailscaled installs itself as.
-const serviceName = "Tailscale"
+// serviceName is the Windows service lanhcd installs itself as.
+const serviceName = "Lanhc"
 
-// startWindowsServiceDaemon installs and starts tailscaled as a Windows service.
+// startWindowsServiceDaemon installs and starts lanhcd as a Windows service.
 func (n *TestNode) startWindowsServiceDaemon() *Daemon {
 	t := n.env.t
 	t.Helper()
 
-	// A pre-existing Tailscale service means this isn't a disposable/CI machine;
+	// A pre-existing Lanhc service means this isn't a disposable/CI machine;
 	// fail rather than uninstall it. Stale state is wiped below, not fatal.
 	if serviceExists(t) {
-		t.Fatal("existing Tailscale service found; run only on a disposable/CI machine")
+		t.Fatal("existing Lanhc service found; run only on a disposable/CI machine")
 	}
 
 	n.cleanupServiceState()
@@ -101,7 +101,7 @@ func (n *TestNode) stopService() {
 	n.waitServiceState(s, svc.Stopped, 60*time.Second)
 }
 
-// uninstallService removes the service via tailscaled's uninstall-system-daemon
+// uninstallService removes the service via lanhcd's uninstall-system-daemon
 // and waits until it's gone; a missing service is fine.
 func (n *TestNode) uninstallService() {
 	t := n.env.t
@@ -118,7 +118,7 @@ func (n *TestNode) uninstallService() {
 	n.waitServiceGone(30 * time.Second)
 }
 
-// writeServiceEnvFile writes the harness env to the file tailscaled reads at
+// writeServiceEnvFile writes the harness env to the file lanhcd reads at
 // startup, since a service doesn't inherit the test process's environment.
 func (n *TestNode) writeServiceEnvFile() {
 	t := n.env.t
@@ -127,7 +127,7 @@ func (n *TestNode) writeServiceEnvFile() {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		t.Fatalf("creating %s: %v", dir, err)
 	}
-	dst := filepath.Join(dir, "tailscaled-env.txt")
+	dst := filepath.Join(dir, "lanhcd-env.txt")
 	body := strings.Join(n.daemonEnv("windows"), "\n") + "\n"
 	if err := os.WriteFile(dst, []byte(body), 0o644); err != nil {
 		t.Fatalf("writing %s: %v", dst, err)
@@ -145,13 +145,13 @@ func (n *TestNode) cleanupServiceState() {
 	}
 }
 
-// serviceStateDir is the global state dir a Tailscale service uses.
+// serviceStateDir is the global state dir a Lanhc service uses.
 func serviceStateDir() string {
-	return filepath.Join(os.Getenv("ProgramData"), "Tailscale")
+	return filepath.Join(os.Getenv("ProgramData"), "Lanhc")
 }
 
 // waitServiceReady polls the LocalAPI until BackendState leaves NoState,
-// guarding the post-start race (tailscale/tailscale#8695).
+// guarding the post-start race (lanhc/lanhc#8695).
 func (n *TestNode) waitServiceReady(timeout time.Duration) {
 	t := n.env.t
 	t.Helper()
@@ -200,7 +200,7 @@ func (n *TestNode) waitServiceGone(timeout time.Duration) {
 	t.Fatalf("service %q still present after %v", serviceName, timeout)
 }
 
-// serviceExists reports whether the Tailscale service is currently installed.
+// serviceExists reports whether the Lanhc service is currently installed.
 func serviceExists(t testing.TB) bool {
 	t.Helper()
 	m := connectSCM(t)
@@ -223,8 +223,8 @@ func connectSCM(t testing.TB) *mgr.Mgr {
 	return m
 }
 
-// stageWintun downloads and verifies wintun.dll into dir; tailscaled loads it
-// from its executable's dir (cmd/tailscaled.fullyQualifiedWintunPath).
+// stageWintun downloads and verifies wintun.dll into dir; lanhcd loads it
+// from its executable's dir (cmd/lanhcd.fullyQualifiedWintunPath).
 func stageWintun(t testing.TB, dir string) {
 	t.Helper()
 	req, err := http.NewRequestWithContext(t.Context(), "GET", wintun.URL, nil)

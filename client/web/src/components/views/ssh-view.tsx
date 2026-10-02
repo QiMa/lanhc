@@ -20,12 +20,12 @@ export default function SSHView({
 
   return (
     <>
-      <h1 className="mb-1">Tailscale SSH server</h1>
+      <h1 className="mb-1">Lanhc SSH server</h1>
       <p className="description mb-10">
-        Run a Tailscale SSH server on this device and allow other devices in
+        Run a Lanhc SSH server on this device and allow other devices in
         your tailnet to SSH into it.{" "}
         <a
-          href="https://tailscale.com/kb/1193/tailscale-ssh/"
+          href="https://lanhc.com/kb/1193/lanhc-ssh/"
           className="text-blue-700"
           target="_blank"
           rel="noreferrer"
@@ -49,7 +49,7 @@ export default function SSHView({
               }
             />
             <div className="text-black text-sm font-medium leading-tight">
-              Run Tailscale SSH server
+              Run Lanhc SSH server
             </div>
           </label>
         ) : (

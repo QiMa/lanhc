@@ -10,8 +10,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/types/views"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/types/views"
 )
 
 func TestInCrostiniRange(t *testing.T) {
@@ -35,25 +35,25 @@ func TestInCrostiniRange(t *testing.T) {
 	}
 }
 
-func TestTailscaleServiceIP(t *testing.T) {
-	got := TailscaleServiceIP().String()
+func TestLanhcServiceIP(t *testing.T) {
+	got := LanhcServiceIP().String()
 	want := "100.100.100.100"
 	if got != want {
 		t.Errorf("got %q; want %q", got, want)
 	}
-	if TailscaleServiceIPString != want {
-		t.Error("TailscaleServiceIPString is not consistent")
+	if LanhcServiceIPString != want {
+		t.Error("LanhcServiceIPString is not consistent")
 	}
 }
 
-func TestTailscaleServiceIPv6(t *testing.T) {
-	got := TailscaleServiceIPv6().String()
+func TestLanhcServiceIPv6(t *testing.T) {
+	got := LanhcServiceIPv6().String()
 	want := "fd7a:115c:a1e0::53"
 	if got != want {
 		t.Errorf("got %q; want %q", got, want)
 	}
-	if TailscaleServiceIPv6String != want {
-		t.Error("TailscaleServiceIPv6String is not consistent")
+	if LanhcServiceIPv6String != want {
+		t.Error("LanhcServiceIPv6String is not consistent")
 	}
 }
 
@@ -71,10 +71,10 @@ func TestCGNATRange(t *testing.T) {
 
 var sinkIP netip.Addr
 
-func BenchmarkTailscaleServiceAddr(b *testing.B) {
+func BenchmarkLanhcServiceAddr(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
-		sinkIP = TailscaleServiceIP()
+		sinkIP = LanhcServiceIP()
 	}
 }
 
@@ -224,7 +224,7 @@ func TestContainsExitRoute(t *testing.T) {
 	}
 }
 
-func TestIsTailscaleIPv4(t *testing.T) {
+func TestIsLanhcIPv4(t *testing.T) {
 	tests := []struct {
 		in   netip.Addr
 		want bool
@@ -251,20 +251,20 @@ func TestIsTailscaleIPv4(t *testing.T) {
 			want: false,
 		},
 		{
-			// IsTailscaleIPv4 does not unmap, so an IPv4-mapped IPv6 form of a
+			// IsLanhcIPv4 does not unmap, so an IPv4-mapped IPv6 form of a
 			// CGNAT address is not an IPv4 address and must return false.
 			in:   netip.AddrFrom16(netip.MustParseAddr("100.67.19.57").As16()),
 			want: false,
 		},
 	}
 	for _, tt := range tests {
-		if got := IsTailscaleIPv4(tt.in); got != tt.want {
-			t.Errorf("IsTailscaleIPv4(%v) = %v, want %v", tt.in, got, tt.want)
+		if got := IsLanhcIPv4(tt.in); got != tt.want {
+			t.Errorf("IsLanhcIPv4(%v) = %v, want %v", tt.in, got, tt.want)
 		}
 	}
 }
 
-func TestIsTailscaleIP(t *testing.T) {
+func TestIsLanhcIP(t *testing.T) {
 	tests := []struct {
 		in   netip.Addr
 		want bool
@@ -291,24 +291,24 @@ func TestIsTailscaleIP(t *testing.T) {
 			want: false,
 		},
 		{
-			// IPv4-mapped IPv6 form of a CGNAT address is still a Tailscale IP.
+			// IPv4-mapped IPv6 form of a CGNAT address is still a Lanhc IP.
 			in:   netip.MustParseAddr("::ffff:100.67.19.57"),
 			want: true,
 		},
 		{
-			// IPv4-mapped IPv6 form of a non-Tailscale address.
+			// IPv4-mapped IPv6 form of a non-Lanhc address.
 			in:   netip.MustParseAddr("::ffff:10.10.10.10"),
 			want: false,
 		},
 	}
 	for _, tt := range tests {
-		if got := IsTailscaleIP(tt.in); got != tt.want {
-			t.Errorf("IsTailscaleIP(%v) = %v, want %v", tt.in, got, tt.want)
+		if got := IsLanhcIP(tt.in); got != tt.want {
+			t.Errorf("IsLanhcIP(%v) = %v, want %v", tt.in, got, tt.want)
 		}
 	}
 }
 
-func TestFirstTailscaleAddrs(t *testing.T) {
+func TestFirstLanhcAddrs(t *testing.T) {
 	pfx := func(s string) netip.Prefix { return netip.MustParsePrefix(s) }
 	addr := func(s string) netip.Addr { return netip.MustParseAddr(s) }
 	tests := []struct {
@@ -320,13 +320,13 @@ func TestFirstTailscaleAddrs(t *testing.T) {
 		{"empty", nil, netip.Addr{}, netip.Addr{}},
 		{"both", []netip.Prefix{pfx("100.64.0.1/32"), pfx("fd7a:115c:a1e0::1/128")}, addr("100.64.0.1"), addr("fd7a:115c:a1e0::1")},
 		{"first-of-each", []netip.Prefix{pfx("100.64.0.1/32"), pfx("100.64.0.2/32"), pfx("fd7a:115c:a1e0::1/128"), pfx("fd7a:115c:a1e0::2/128")}, addr("100.64.0.1"), addr("fd7a:115c:a1e0::1")},
-		{"non-tailscale-skipped", []netip.Prefix{pfx("192.168.1.1/32"), pfx("2001:db8::1/128"), pfx("100.64.0.9/32")}, addr("100.64.0.9"), netip.Addr{}},
+		{"non-lanhc-skipped", []netip.Prefix{pfx("192.168.1.1/32"), pfx("2001:db8::1/128"), pfx("100.64.0.9/32")}, addr("100.64.0.9"), netip.Addr{}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got4, got6 := FirstTailscaleAddrs(slices.All(tt.in))
+			got4, got6 := FirstLanhcAddrs(slices.All(tt.in))
 			if got4 != tt.want4 || got6 != tt.want6 {
-				t.Errorf("FirstTailscaleAddrs = %v, %v; want %v, %v", got4, got6, tt.want4, tt.want6)
+				t.Errorf("FirstLanhcAddrs = %v, %v; want %v, %v", got4, got6, tt.want4, tt.want6)
 			}
 		})
 	}

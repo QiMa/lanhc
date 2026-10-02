@@ -26,23 +26,23 @@ var ConnectorKind = "Connector"
 // +kubebuilder:printcolumn:name="Status",type="string",JSONPath=`.status.conditions[?(@.type == "ConnectorReady")].reason`,description="Status of the deployed Connector resources."
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
-// Connector defines a Tailscale node that will be deployed in the cluster. The
-// node can be configured to act as a Tailscale subnet router and/or a Tailscale
+// Connector defines a Lanhc node that will be deployed in the cluster. The
+// node can be configured to act as a Lanhc subnet router and/or a Lanhc
 // exit node.
 // Connector is a cluster-scoped resource.
 // More info:
-// https://tailscale.com/kb/1441/kubernetes-operator-connector
+// https://lanhc.com/kb/1441/kubernetes-operator-connector
 type Connector struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	// ConnectorSpec describes the desired Tailscale component.
+	// ConnectorSpec describes the desired Lanhc component.
 	// More info:
 	// https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
 	Spec ConnectorSpec `json:"spec"`
 
 	// ConnectorStatus describes the status of the Connector. This is set
-	// and managed by the Tailscale operator.
+	// and managed by the Lanhc operator.
 	// +optional
 	Status ConnectorStatus `json:"status"`
 }
@@ -56,20 +56,20 @@ type ConnectorList struct {
 	Items []Connector `json:"items"`
 }
 
-// ConnectorSpec describes a Tailscale node to be deployed in the cluster.
+// ConnectorSpec describes a Lanhc node to be deployed in the cluster.
 // +kubebuilder:validation:XValidation:rule="has(self.subnetRouter) || (has(self.exitNode) && self.exitNode == true) || has(self.appConnector)",message="A Connector needs to have at least one of exit node, subnet router or app connector configured."
 // +kubebuilder:validation:XValidation:rule="!((has(self.subnetRouter) || (has(self.exitNode)  && self.exitNode == true)) && has(self.appConnector))",message="The appConnector field is mutually exclusive with exitNode and subnetRouter fields."
 // +kubebuilder:validation:XValidation:rule="!(has(self.hostname) && has(self.replicas) && self.replicas > 1)",message="The hostname field cannot be specified when replicas is greater than 1."
 // +kubebuilder:validation:XValidation:rule="!(has(self.hostname) && has(self.hostnamePrefix))",message="The hostname and hostnamePrefix fields are mutually exclusive."
 type ConnectorSpec struct {
-	// Tags that the Tailscale node will be tagged with.
+	// Tags that the Lanhc node will be tagged with.
 	// Defaults to [tag:k8s].
 	// To autoapprove the subnet routes or exit node defined by a Connector,
-	// you can configure Tailscale ACLs to give these tags the necessary
+	// you can configure Lanhc ACLs to give these tags the necessary
 	// permissions.
-	// See https://tailscale.com/kb/1337/acl-syntax#autoapprovers.
+	// See https://lanhc.com/kb/1337/acl-syntax#autoapprovers.
 	// If you specify custom tags here, you must also make the operator an owner of these tags.
-	// See  https://tailscale.com/kb/1236/kubernetes-operator/#setting-up-the-kubernetes-operator.
+	// See  https://lanhc.com/kb/1236/kubernetes-operator/#setting-up-the-kubernetes-operator.
 	// Tags cannot be changed once a Connector node has been created.
 	// Tag values must be in form ^tag:[a-zA-Z][a-zA-Z0-9-]*$.
 	// +optional
@@ -98,13 +98,13 @@ type ConnectorSpec struct {
 	// +optional
 	ProxyClass string `json:"proxyClass,omitempty"`
 	// SubnetRouter defines subnet routes that the Connector device should
-	// expose to tailnet as a Tailscale subnet router.
-	// https://tailscale.com/kb/1019/subnets/
-	// If this field is unset, the device does not get configured as a Tailscale subnet router.
+	// expose to tailnet as a Lanhc subnet router.
+	// https://lanhc.com/kb/1019/subnets/
+	// If this field is unset, the device does not get configured as a Lanhc subnet router.
 	// This field is mutually exclusive with the appConnector field.
 	// +optional
 	SubnetRouter *SubnetRouter `json:"subnetRouter,omitempty"`
-	// AppConnector defines whether the Connector device should act as a Tailscale app connector. A Connector that is
+	// AppConnector defines whether the Connector device should act as a Lanhc app connector. A Connector that is
 	// configured as an app connector cannot be a subnet router or an exit node. If this field is unset, the
 	// Connector does not act as an app connector.
 	// Note that you will need to manually configure the permissions and the domains for the app connector via the
@@ -117,19 +117,19 @@ type ConnectorSpec struct {
 	// can be whitelisted, it is also your responsibility to ensure that cluster traffic from the connector flows
 	// via that predictable IP, for example by enforcing that cluster egress traffic is routed via an egress NAT
 	// device with a static IP address.
-	// https://tailscale.com/kb/1281/app-connectors
+	// https://lanhc.com/kb/1281/app-connectors
 	// +optional
 	AppConnector *AppConnector `json:"appConnector,omitempty"`
 
-	// ExitNode defines whether the Connector device should act as a Tailscale exit node. Defaults to false.
+	// ExitNode defines whether the Connector device should act as a Lanhc exit node. Defaults to false.
 	// This field is mutually exclusive with the appConnector field.
-	// https://tailscale.com/kb/1103/exit-nodes
+	// https://lanhc.com/kb/1103/exit-nodes
 	// +optional
 	ExitNode bool `json:"exitNode"`
 
 	// Replicas specifies how many devices to create. Set this to enable
 	// high availability for app connectors, subnet routers, or exit nodes.
-	// https://tailscale.com/kb/1115/high-availability. Defaults to 1.
+	// https://lanhc.com/kb/1115/high-availability. Defaults to 1.
 	// +optional
 	// +kubebuilder:validation:Minimum=0
 	Replicas *int32 `json:"replicas,omitempty"`
@@ -146,18 +146,18 @@ type ConnectorSpec struct {
 type SubnetRouter struct {
 	// AdvertiseRoutes refer to CIDRs that the subnet router should make
 	// available. Route values must be strings that represent a valid IPv4
-	// or IPv6 CIDR range. Values can be Tailscale 4via6 subnet routes.
-	// https://tailscale.com/kb/1201/4via6-subnets/
+	// or IPv6 CIDR range. Values can be Lanhc 4via6 subnet routes.
+	// https://lanhc.com/kb/1201/4via6-subnets/
 	AdvertiseRoutes Routes `json:"advertiseRoutes"`
 }
 
-// AppConnector defines a Tailscale app connector node configured via Connector.
+// AppConnector defines a Lanhc app connector node configured via Connector.
 type AppConnector struct {
 	// Routes are optional preconfigured routes for the domains routed via the app connector.
 	// If not set, routes for the domains will be discovered dynamically.
 	// If set, the app connector will immediately be able to route traffic using the preconfigured routes, but may
 	// also dynamically discover other routes.
-	// https://tailscale.com/kb/1332/apps-best-practices#preconfiguration
+	// https://lanhc.com/kb/1332/apps-best-practices#preconfiguration
 	// +optional
 	Routes Routes `json:"routes"`
 }
@@ -252,23 +252,23 @@ const (
 	ProxyClassReady     ConditionType = `ProxyClassReady`
 	ProxyGroupReady     ConditionType = `ProxyGroupReady`     // All proxy Pods running.
 	ProxyGroupAvailable ConditionType = `ProxyGroupAvailable` // At least one proxy Pod running.
-	ProxyReady          ConditionType = `TailscaleProxyReady` // a Tailscale-specific condition type for corev1.Service
+	ProxyReady          ConditionType = `LanhcProxyReady` // a Lanhc-specific condition type for corev1.Service
 	RecorderReady       ConditionType = `RecorderReady`
 	// EgressSvcValid gets set on a user configured ExternalName Service that defines a tailnet target to be exposed
 	// on a ProxyGroup.
 	// Set to true if the user provided configuration is valid.
-	EgressSvcValid ConditionType = `TailscaleEgressSvcValid`
+	EgressSvcValid ConditionType = `LanhcEgressSvcValid`
 	// EgressSvcConfigured gets set on a user configured ExternalName Service that defines a tailnet target to be exposed
 	// on a ProxyGroup.
 	// Set to true if the cluster resources for the service have been successfully configured.
-	EgressSvcConfigured ConditionType = `TailscaleEgressSvcConfigured`
+	EgressSvcConfigured ConditionType = `LanhcEgressSvcConfigured`
 	// EgressSvcReady gets set on a user configured ExternalName Service that defines a tailnet target to be exposed
 	// on a ProxyGroup.
 	// Set to true if the service is ready to route cluster traffic.
-	EgressSvcReady ConditionType = `TailscaleEgressSvcReady`
+	EgressSvcReady ConditionType = `LanhcEgressSvcReady`
 
-	IngressSvcValid      ConditionType = `TailscaleIngressSvcValid`
-	IngressSvcConfigured ConditionType = `TailscaleIngressSvcConfigured`
+	IngressSvcValid      ConditionType = `LanhcIngressSvcValid`
+	IngressSvcConfigured ConditionType = `LanhcIngressSvcConfigured`
 
 	KubeAPIServerProxyValid      ConditionType = `KubeAPIServerProxyValid`      // The kubeAPIServer config for the ProxyGroup is valid.
 	KubeAPIServerProxyConfigured ConditionType = `KubeAPIServerProxyConfigured` // At least one of the ProxyGroup's Pods is advertising the kube-apiserver proxy's hostname.

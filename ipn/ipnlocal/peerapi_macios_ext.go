@@ -9,7 +9,7 @@ import (
 	"net"
 	"net/netip"
 
-	"tailscale.com/net/netns"
+	"lanhc.com/net/netns"
 )
 
 func init() {

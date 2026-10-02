@@ -18,14 +18,14 @@ fi
 
     ./tool/node --version >/dev/null # Ensure node is unpacked and ready
 
-    cachedir="$HOME/.cache/tailscale-yarn"
+    cachedir="$HOME/.cache/lanhc-yarn"
     tarball="${cachedir}.tar.gz"
 
     read -r want_rev < "./tool/yarn.rev"
 
     got_rev=""
     if [[ -x "${cachedir}/bin/yarn" ]]; then
-        got_rev=$(PATH="$HOME/.cache/tailscale-node/bin:$PATH" "${cachedir}/bin/yarn" --version)
+        got_rev=$(PATH="$HOME/.cache/lanhc-node/bin:$PATH" "${cachedir}/bin/yarn" --version)
     fi
 
     if [[ "$want_rev" != "$got_rev" ]]; then
@@ -39,5 +39,5 @@ fi
 
 # Deliberately not using cachedir here, to keep the environment
 # completely pristine for execution of yarn.
-export PATH="$HOME/.cache/tailscale-node/bin:$HOME/.cache/tailscale-yarn/bin:$PATH"
-exec "$HOME/.cache/tailscale-yarn/bin/yarn" "$@"
+export PATH="$HOME/.cache/lanhc-node/bin:$HOME/.cache/lanhc-yarn/bin:$PATH"
+exec "$HOME/.cache/lanhc-yarn/bin/yarn" "$@"

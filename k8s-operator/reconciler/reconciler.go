@@ -16,24 +16,24 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"tailscale.com/kube/kubetypes"
+	"lanhc.com/kube/kubetypes"
 )
 
 const (
-	// FinalizerName is the common finalizer used across all Tailscale Kubernetes resources.
-	FinalizerName = "tailscale.com/finalizer"
+	// FinalizerName is the common finalizer used across all Lanhc Kubernetes resources.
+	FinalizerName = "lanhc.com/finalizer"
 
-	// LabelParentType identifies which Tailscale CRD kind owns a managed resource. Every resource that a Tailscale
+	// LabelParentType identifies which Lanhc CRD kind owns a managed resource. Every resource that a Lanhc
 	// CRD reconciler creates should carry this label alongside LabelParentName.
-	LabelParentType = "tailscale.com/parent-resource-type"
+	LabelParentType = "lanhc.com/parent-resource-type"
 
-	// LabelParentName identifies the name of the Tailscale CRD that owns a managed resource. Combined with
+	// LabelParentName identifies the name of the Lanhc CRD that owns a managed resource. Combined with
 	// LabelParentType, this uniquely identifies the parent within its scope.
-	LabelParentName = "tailscale.com/parent-resource"
+	LabelParentName = "lanhc.com/parent-resource"
 
-	// LabelParentNamespace identifies the namespace of the owning Tailscale CRD. It is only stamped when the parent
+	// LabelParentNamespace identifies the namespace of the owning Lanhc CRD. It is only stamped when the parent
 	// CRD is namespaced; cluster-scoped parents omit it.
-	LabelParentNamespace = "tailscale.com/parent-resource-ns"
+	LabelParentNamespace = "lanhc.com/parent-resource-ns"
 )
 
 // SetFinalizer adds the finalizer to the resource if not already present.
@@ -56,8 +56,8 @@ func RemoveFinalizer(obj client.Object) {
 	obj.SetFinalizers(append(finalizers[:idx], finalizers[idx+1:]...))
 }
 
-// Labels returns the standard ownership labels stamped on every resource a Tailscale CRD reconciler creates:
-// tailscale.com/managed=true, plus LabelParentType and LabelParentName. If parentNamespace is non-empty (i.e. the
+// Labels returns the standard ownership labels stamped on every resource a Lanhc CRD reconciler creates:
+// lanhc.com/managed=true, plus LabelParentType and LabelParentName. If parentNamespace is non-empty (i.e. the
 // parent CRD is namespaced) it is stamped as LabelParentNamespace; cluster-scoped parents pass "".
 func Labels(parentType, parentName, parentNamespace string) map[string]string {
 	labels := map[string]string{
@@ -72,7 +72,7 @@ func Labels(parentType, parentName, parentNamespace string) map[string]string {
 }
 
 // EnqueueForChild returns a handler.MapFunc that enqueues a reconcile.Request for the parent CRD of a managed child
-// resource. It filters by tailscale.com/managed=true and LabelParentType, and derives the request's NamespacedName
+// resource. It filters by lanhc.com/managed=true and LabelParentType, and derives the request's NamespacedName
 // from LabelParentName plus LabelParentNamespace (blank namespace for cluster-scoped parents). Use it on Watches of
 // child resources so drift or cloud-controller updates propagate to the owning CRD's reconciler.
 func EnqueueForChild(parentType string) handler.MapFunc {

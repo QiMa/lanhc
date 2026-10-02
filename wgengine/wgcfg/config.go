@@ -8,17 +8,17 @@ import (
 	"net/netip"
 	"slices"
 
-	"tailscale.com/types/key"
+	"lanhc.com/types/key"
 )
 
-//go:generate go run tailscale.com/cmd/cloner -type=Config
+//go:generate go run lanhc.com/cmd/cloner -type=Config
 
 // Config is a WireGuard configuration.
-// It only supports the set of things Tailscale uses.
+// It only supports the set of things Lanhc uses.
 //
 // Peers are not part of the config: wireguard-go learns the peer set
 // and each peer's allowed IPs from the live per-peer config source
-// installed via [tailscale.com/wgengine.Engine.SetPeerConfigFunc].
+// installed via [lanhc.com/wgengine.Engine.SetPeerConfigFunc].
 type Config struct {
 	PrivateKey key.NodePrivate
 	Addresses  []netip.Prefix

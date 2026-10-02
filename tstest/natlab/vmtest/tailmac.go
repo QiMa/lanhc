@@ -129,14 +129,14 @@ func snapshotCacheKey(tartDir string) (string, error) {
 	return fmt.Sprintf("snap-tahoe-%s-v%d", digest, macOSSnapshotCodeVersion), nil
 }
 
-// macosVMBaseDir returns ~/.cache/tailscale/vmtest/macos/, the directory
+// macosVMBaseDir returns ~/.cache/lanhc/vmtest/macos/, the directory
 // where Host.app expects to find VM directories by ID.
 func macosVMBaseDir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, ".cache", "tailscale", "vmtest", "macos"), nil
+	return filepath.Join(home, ".cache", "lanhc", "vmtest", "macos"), nil
 }
 
 // cleanOldSnapshots removes any snapshot directories for the given image
@@ -212,7 +212,7 @@ func prepareSnapshot(t testing.TB, tartDir, snapDir string) error {
 		return fmt.Errorf("Host.app not found at %s; run 'make all' in tstest/tailmac/", hostBin)
 	}
 
-	// Host.app reads VM files from ~/.cache/tailscale/vmtest/macos/<id>/.
+	// Host.app reads VM files from ~/.cache/lanhc/vmtest/macos/<id>/.
 	// Our snapDir is already under that tree, and the config.json vmID matches.
 	cmd := exec.Command(hostBin, "run", "--id", snapID, "--headless", "--nat-nic")
 	cmd.Env = append(os.Environ(), "NSUnbufferedIO=YES")
@@ -329,7 +329,7 @@ func installTTA(t testing.TB, sc *ssh.Client) error {
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.tailscale.tta</string>
+	<string>com.lanhc.tta</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/usr/local/bin/tta</string>
@@ -345,15 +345,15 @@ func installTTA(t testing.TB, sc *ssh.Client) error {
 </dict>
 </plist>
 `
-	if err := scpFile(sc, []byte(plist), "/tmp/com.tailscale.tta.plist", 0644); err != nil {
+	if err := scpFile(sc, []byte(plist), "/tmp/com.lanhc.tta.plist", 0644); err != nil {
 		return fmt.Errorf("uploading plist: %w", err)
 	}
-	if err := runSSHCmd(sc, "echo admin | sudo -S mv /tmp/com.tailscale.tta.plist /Library/LaunchDaemons/ && echo admin | sudo -S chown root:wheel /Library/LaunchDaemons/com.tailscale.tta.plist"); err != nil {
+	if err := runSSHCmd(sc, "echo admin | sudo -S mv /tmp/com.lanhc.tta.plist /Library/LaunchDaemons/ && echo admin | sudo -S chown root:wheel /Library/LaunchDaemons/com.lanhc.tta.plist"); err != nil {
 		return fmt.Errorf("installing plist: %w", err)
 	}
 
 	// Load the LaunchDaemon.
-	if err := runSSHCmd(sc, "echo admin | sudo -S launchctl load /Library/LaunchDaemons/com.tailscale.tta.plist"); err != nil {
+	if err := runSSHCmd(sc, "echo admin | sudo -S launchctl load /Library/LaunchDaemons/com.lanhc.tta.plist"); err != nil {
 		return fmt.Errorf("loading LaunchDaemon: %w", err)
 	}
 
@@ -553,12 +553,12 @@ func (e *Env) startTailMacVM(n *Node) error {
 
 	testID := fmt.Sprintf("vmtest-%s-%d", n.name, os.Getpid())
 
-	// Host.app expects VM files under ~/.cache/tailscale/vmtest/macos/<id>/
+	// Host.app expects VM files under ~/.cache/lanhc/vmtest/macos/<id>/
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return fmt.Errorf("UserHomeDir: %w", err)
 	}
-	vmBase := filepath.Join(home, ".cache", "tailscale", "vmtest", "macos")
+	vmBase := filepath.Join(home, ".cache", "lanhc", "vmtest", "macos")
 	os.MkdirAll(vmBase, 0755)
 	cloneDir := filepath.Join(vmBase, testID)
 

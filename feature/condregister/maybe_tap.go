@@ -5,4 +5,4 @@
 
 package condregister
 
-import _ "tailscale.com/feature/tap"
+import _ "lanhc.com/feature/tap"

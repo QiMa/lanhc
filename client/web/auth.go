@@ -15,10 +15,10 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/internal/lanhc"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/tailcfg"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/internal/lanhc"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/tailcfg"
 )
 
 const (
@@ -74,7 +74,7 @@ func (s *browserSession) expires() time.Time {
 
 var (
 	errNoSession          = errors.New("no-browser-session")
-	errNotUsingTailscale  = errors.New("not-using-tailscale")
+	errNotUsingLanhc  = errors.New("not-using-lanhc")
 	errTaggedRemoteSource = errors.New("tagged-remote-source")
 	errTaggedLocalSource  = errors.New("tagged-local-source")
 	errNotOwner           = errors.New("not-owner")
@@ -85,7 +85,7 @@ var (
 //
 // An error is returned in any of the following cases:
 //
-//   - (errNotUsingTailscale) The request was not made over tailscale.
+//   - (errNotUsingLanhc) The request was not made over lanhc.
 //
 //   - (errNoSession) The request does not have a session.
 //
@@ -102,21 +102,21 @@ var (
 //     node via the web client.
 //
 // If no error is returned, the browserSession is always non-nil.
-// getTailscaleBrowserSession does not check whether the session has been
+// getLanhcBrowserSession does not check whether the session has been
 // authorized by the user. Callers can use browserSession.isAuthorized.
 //
 // The WhoIsResponse is always populated, with a non-nil Node and UserProfile,
-// unless getTailscaleBrowserSession reports errNotUsingTailscale.
+// unless getLanhcBrowserSession reports errNotUsingLanhc.
 func (s *Server) getSession(r *http.Request) (*browserSession, *apitype.WhoIsResponse, *ipnstate.Status, error) {
 	whoIs, whoIsErr := s.lc.WhoIs(r.Context(), r.RemoteAddr)
 	status, statusErr := s.lc.StatusWithoutPeers(r.Context())
 	switch {
 	case whoIsErr != nil:
-		return nil, nil, status, errNotUsingTailscale
+		return nil, nil, status, errNotUsingLanhc
 	case statusErr != nil:
 		return nil, whoIs, nil, statusErr
 	case status.Self == nil:
-		return nil, whoIs, status, errors.New("missing self node in tailscale status")
+		return nil, whoIs, status, errors.New("missing self node in lanhc status")
 	case whoIs.Node.IsTagged() && whoIs.Node.StableID == status.Self.ID:
 		return nil, whoIs, status, errTaggedLocalSource
 	case whoIs.Node.IsTagged():
@@ -139,7 +139,7 @@ func (s *Server) getSession(r *http.Request) (*browserSession, *apitype.WhoIsRes
 	}
 	session := v.(*browserSession)
 	if session.SrcNode != srcNode || session.SrcUser != srcUser {
-		// In this case the browser cookie is associated with another tailscale node.
+		// In this case the browser cookie is associated with another lanhc node.
 		// Maybe the source browser's machine was logged out and then back in as a different node.
 		// Return errNoSession because there is no session for this user.
 		return nil, whoIs, status, errNoSession
@@ -186,7 +186,7 @@ func (s *Server) newSession(ctx context.Context, src *apitype.WhoIsResponse) (*b
 }
 
 // controlSupportsCheckMode returns whether the current control server supports web client check mode, to verify a user's identity.
-// We assume that only "tailscale.com" control servers support check mode.
+// We assume that only "lanhc.com" control servers support check mode.
 // This allows the web client to be used with non-standard control servers.
 // If an error occurs getting the control URL, this method returns true to fail closed.
 //
@@ -201,11 +201,11 @@ func (s *Server) controlSupportsCheckMode(ctx context.Context) bool {
 		return true
 	}
 	if lanhc.Isolated {
-		// lanhc downstream build: the console is on lanhc.com, not tailscale.com.
+		// lanhc downstream build: the console is on lanhc.com, not lanhc.com.
 		return controlURL.Host == "console.lanhc.com"
 	}
-	return strings.HasSuffix(controlURL.Host, ".tailscale.com") ||
-		controlURL.Host == "control.tailscale" // for natlab tests
+	return strings.HasSuffix(controlURL.Host, ".lanhc.com") ||
+		controlURL.Host == "control.lanhc" // for natlab tests
 }
 
 // awaitUserAuth blocks until the given session auth has been completed

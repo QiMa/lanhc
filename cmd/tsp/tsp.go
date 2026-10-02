@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Program tsp is a low-level Tailscale protocol tool for performing
+// Program tsp is a low-level Lanhc protocol tool for performing
 // composable building block operations like generating keys and
 // registering nodes.
 package main
@@ -20,10 +20,10 @@ import (
 	"strings"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
-	"tailscale.com/control/tsp"
-	"tailscale.com/hostinfo"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
+	"lanhc.com/control/tsp"
+	"lanhc.com/hostinfo"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
 )
 
 var globalArgs struct {
@@ -56,7 +56,7 @@ func main() {
 var rootCmd = &ffcli.Command{
 	Name:       "tsp",
 	ShortUsage: "tsp [-s url] <subcommand> [flags]",
-	ShortHelp:  "Low-level Tailscale protocol tool.",
+	ShortHelp:  "Low-level Lanhc protocol tool.",
 	FlagSet: (func() *flag.FlagSet {
 		fs := flag.NewFlagSet("tsp", flag.ExitOnError)
 		fs.StringVar(&globalArgs.serverURL, "s", "", "base URL of coordination server (default: "+tsp.DefaultServerURL+")")

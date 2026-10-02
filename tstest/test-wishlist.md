@@ -8,7 +8,7 @@ wishlist in the same PR that adds something that could be better
 tested) and then use this list to inform the order we build out our
 future testing machinery.
 
-For each item, try to include a `#nnn` or `tailscale/corp#nnn`
+For each item, try to include a `#nnn` or `lanhc/corp#nnn`
 reference to an issue or PR about the feature.
 
 # The list

@@ -7,8 +7,8 @@ package policy
 import (
 	"time"
 
-	"tailscale.com/internal/lanhc"
-	"tailscale.com/util/winutil"
+	"lanhc.com/internal/lanhc"
+	"lanhc.com/util/winutil"
 )
 
 // PreferenceOptionPolicy is a policy that governs whether a boolean variable
@@ -119,13 +119,13 @@ func GetDurationPolicy(name string, defaultValue time.Duration) time.Duration {
 // prefs.conf). If both are empty, it returns a default value. (It
 // always return a non-empty value)
 //
-// See https://github.com/tailscale/tailscale/issues/2798 for some background.
+// See https://github.com/lanhc/lanhc/issues/2798 for some background.
 func SelectControlURL(reg, disk string) string {
 	var def = ""
 	if !lanhc.Isolated {
-		def = "https://controlplane.tailscale.com"
+		def = "https://controlplane.lanhc.com"
 	}
-	oldRegDef := "https://login.tailscale.com"
+	oldRegDef := "https://login.lanhc.com"
 	if lanhc.Isolated {
 		oldRegDef = ""
 	}
@@ -145,7 +145,7 @@ func SelectControlURL(reg, disk string) string {
 		}
 		if disk != def && disk != oldRegDef {
 			// The value in the registry is the old
-			// default (login.tailscale.com) but the value
+			// default (login.lanhc.com) but the value
 			// on disk is neither our old nor new default
 			// value, so it must be some custom thing that
 			// the user cares about. Prefer the disk value.

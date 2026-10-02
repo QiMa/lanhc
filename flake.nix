@@ -1,7 +1,7 @@
 # flake.nix describes a Nix source repository that provides
-# development builds of Tailscale and the fork of the Go compiler
-# toolchain that Tailscale maintains. It also provides a development
-# environment for working on tailscale, for use with "nix develop".
+# development builds of Lanhc and the fork of the Go compiler
+# toolchain that Lanhc maintains. It also provides a development
+# environment for working on lanhc, for use with "nix develop".
 #
 # For more information about this and why this file is useful, see:
 # https://wiki.nixos.org/wiki/Flakes
@@ -14,20 +14,20 @@
 # and importing this flake into your own Nix configs is likely to
 # leave you with broken builds periodically.
 #
-# The issue is that building Tailscale binaries uses the buildGoModule
+# The issue is that building Lanhc binaries uses the buildGoModule
 # helper from nixpkgs. This helper demands to know the content hash of
 # all of the Go dependencies of this repo, in the form of a Nix SRI
 # hash. This hash isn't automatically kept in sync with changes made
 # to go.mod yet, and so every time we update go.mod while hacking on
-# Tailscale, this flake ends up with a broken build due to hash
+# Lanhc, this flake ends up with a broken build due to hash
 # mismatches.
 #
-# Right now, this flake is intended for use by Tailscale developers,
+# Right now, this flake is intended for use by Lanhc developers,
 # who are aware of this mismatch and willing to live with it. At some
 # point, we'll add automation to keep the hashes more in sync, at
 # which point this caveat should go away.
 #
-# See https://github.com/tailscale/tailscale/issues/6845 for tracking
+# See https://github.com/lanhc/lanhc/issues/6845 for tracking
 # how to fix this mismatch.
 {
   inputs = {
@@ -59,58 +59,58 @@
               go_1_26 = prev.go_1_26.overrideAttrs (old: {
                 version = goVersion;
                 src = prev.fetchFromGitHub {
-                  owner = "tailscale";
+                  owner = "lanhc";
                   repo = "go";
                   rev = toolChainRev;
                   sha256 = gitHash;
                 };
-                # The Tailscale Go fork carries a placeholder in
+                # The Lanhc Go fork carries a placeholder in
                 # src/runtime/debug/mod.go that must be replaced with
                 # the actual toolchain git rev at build time. Without
-                # this, binaries report an empty tailscale.toolchain.rev
+                # this, binaries report an empty lanhc.toolchain.rev
                 # and the runtime assertion in
                 # assert_ts_toolchain_match.go panics.
                 postPatch =
                   (old.postPatch or "")
                   + ''
                     substituteInPlace src/runtime/debug/mod.go \
-                      --replace-fail "TAILSCALE_GIT_REV_TO_BE_REPLACED_AT_BUILD_TIME" "${toolChainRev}"
+                      --replace-fail "LANHC_GIT_REV_TO_BE_REPLACED_AT_BUILD_TIME" "${toolChainRev}"
                   '';
               });
             })
           ];
         }));
-    tailscaleRev = self.rev or "";
+    lanhcRev = self.rev or "";
   in {
-    # tailscale takes a nixpkgs package set, and builds Tailscale from
-    # the same commit as this flake. IOW, it provides "tailscale built
+    # lanhc takes a nixpkgs package set, and builds Lanhc from
+    # the same commit as this flake. IOW, it provides "lanhc built
     # from HEAD", where HEAD is "whatever commit you imported the
     # flake at".
     #
     # This is currently unfortunately brittle, because we have to
     # specify vendorHash, and that sha changes any time we alter
     # go.mod. We don't want to force a nix dependency on everyone
-    # hacking on Tailscale, so this flake is likely to have broken
+    # hacking on Lanhc, so this flake is likely to have broken
     # builds periodically until someone comes through and manually
     # fixes them up. I sure wish there was a way to express "please
     # just trust the local go.mod, vendorHash has no benefit here",
     # but alas.
     #
-    # So really, this flake is for tailscale devs to dogfood with, if
+    # So really, this flake is for lanhc devs to dogfood with, if
     # you're an end user you should be prepared for this flake to not
     # build periodically.
     packages = eachSystem (pkgs: rec {
       default = pkgs.buildGo126Module {
-        name = "tailscale";
-        pname = "tailscale";
+        name = "lanhc";
+        pname = "lanhc";
         src = ./.;
         vendorHash = flakeHashes.vendor.sri;
         nativeBuildInputs = [pkgs.makeWrapper pkgs.installShellFiles];
-        ldflags = ["-X tailscale.com/version.gitCommitStamp=${tailscaleRev}"];
+        ldflags = ["-X lanhc.com/version.gitCommitStamp=${lanhcRev}"];
         env.CGO_ENABLED = 0;
         subPackages = [
-          "cmd/tailscale"
-          "cmd/tailscaled"
+          "cmd/lanhc"
+          "cmd/lanhcd"
           "cmd/tsidp"
         ];
         doCheck = false;
@@ -119,29 +119,29 @@
         # environment and cause issues (specifically the unset PORT). At some
         # point, there should be a NixOS module that allows configuration of these
         # things, but for now, we hardcode the default of port 41641 (taken from
-        # ./cmd/tailscaled/tailscaled.defaults).
+        # ./cmd/lanhcd/lanhcd.defaults).
         postInstall =
           pkgs.lib.optionalString pkgs.stdenv.isLinux ''
-            wrapProgram $out/bin/tailscaled --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.iproute2 pkgs.iptables pkgs.getent pkgs.shadow]}
-            wrapProgram $out/bin/tailscale --suffix PATH : ${pkgs.lib.makeBinPath [pkgs.procps]}
+            wrapProgram $out/bin/lanhcd --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.iproute2 pkgs.iptables pkgs.getent pkgs.shadow]}
+            wrapProgram $out/bin/lanhc --suffix PATH : ${pkgs.lib.makeBinPath [pkgs.procps]}
 
             sed -i \
               -e "s#/usr/sbin#$out/bin#" \
               -e "/^EnvironmentFile/d" \
               -e 's/''${PORT}/41641/' \
               -e 's/$FLAGS//' \
-              ./cmd/tailscaled/tailscaled.service
+              ./cmd/lanhcd/lanhcd.service
 
-            install -D -m0444 -t $out/lib/systemd/system ./cmd/tailscaled/tailscaled.service
+            install -D -m0444 -t $out/lib/systemd/system ./cmd/lanhcd/lanhcd.service
           ''
           + pkgs.lib.optionalString (pkgs.stdenv.buildPlatform.canExecute pkgs.stdenv.hostPlatform) ''
-            installShellCompletion --cmd tailscale \
-              --bash <($out/bin/tailscale completion bash) \
-              --fish <($out/bin/tailscale completion fish) \
-              --zsh <($out/bin/tailscale completion zsh)
+            installShellCompletion --cmd lanhc \
+              --bash <($out/bin/lanhc completion bash) \
+              --fish <($out/bin/lanhc completion fish) \
+              --zsh <($out/bin/lanhc completion zsh)
           '';
       };
-      tailscale = default;
+      lanhc = default;
     });
 
     devShells = eachSystem (pkgs: {
@@ -161,12 +161,12 @@
           e2fsprogs
 
           # mtools (mcopy) and dtc are needed by the `tsapp-qemu-pi`
-          # Makefile target that boots the Tailscale appliance under qemu.
+          # Makefile target that boots the Lanhc appliance under qemu.
           mtools
           dtc
 
           # awscli2 is used by gokrazy/build.go to import and register the
-          # Tailscale appliance AMI.
+          # Lanhc appliance AMI.
           awscli2.out
         ];
       };

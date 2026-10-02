@@ -15,15 +15,15 @@ import (
 	"time"
 
 	"go4.org/mem"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/types/key"
-	"tailscale.com/types/opt"
-	"tailscale.com/types/persist"
-	"tailscale.com/types/preftype"
-	"tailscale.com/util/syspolicy/policyclient"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/types/key"
+	"lanhc.com/types/opt"
+	"lanhc.com/types/persist"
+	"lanhc.com/types/preftype"
+	"lanhc.com/util/syspolicy/policyclient"
 )
 
 func fieldsOf(t reflect.Type) (fields []string) {
@@ -122,13 +122,13 @@ func TestPrefsEqual(t *testing.T) {
 		},
 
 		{
-			&Prefs{ControlURL: "https://controlplane.tailscale.com"},
+			&Prefs{ControlURL: "https://controlplane.lanhc.com"},
 			&Prefs{ControlURL: "https://login.private.co"},
 			false,
 		},
 		{
-			&Prefs{ControlURL: "https://controlplane.tailscale.com"},
-			&Prefs{ControlURL: "https://controlplane.tailscale.com"},
+			&Prefs{ControlURL: "https://controlplane.lanhc.com"},
+			&Prefs{ControlURL: "https://controlplane.lanhc.com"},
 			true,
 		},
 
@@ -482,7 +482,7 @@ func TestBasicPrefs(t *testing.T) {
 	tstest.PanicOnLog()
 
 	p := Prefs{
-		ControlURL: "https://controlplane.tailscale.com",
+		ControlURL: "https://controlplane.lanhc.com",
 	}
 	checkPrefs(t, p)
 }
@@ -496,7 +496,7 @@ func TestPrefsPersist(t *testing.T) {
 		},
 	}
 	p := Prefs{
-		ControlURL: "https://controlplane.tailscale.com",
+		ControlURL: "https://controlplane.lanhc.com",
 		CorpDNS:    true,
 		Persist:    &c,
 	}
@@ -970,7 +970,7 @@ func TestExitNodeIPOfArg(t *testing.T) {
 			name: "ip_is_self",
 			arg:  "1.2.3.4",
 			st: &ipnstate.Status{
-				TailscaleIPs: []netip.Addr{mustIP("1.2.3.4")},
+				LanhcIPs: []netip.Addr{mustIP("1.2.3.4")},
 			},
 			wantErr: "cannot use 1.2.3.4 as an exit node as it is a local IP address to this machine",
 		},
@@ -979,7 +979,7 @@ func TestExitNodeIPOfArg(t *testing.T) {
 			arg:  "1.2.3.4",
 			st: &ipnstate.Status{
 				BackendState: "Running",
-				TailscaleIPs: []netip.Addr{mustIP("1.2.3.4")},
+				LanhcIPs: []netip.Addr{mustIP("1.2.3.4")},
 			},
 			wantErr: "cannot use 1.2.3.4 as an exit node as it is a local IP address to this machine",
 		},
@@ -990,7 +990,7 @@ func TestExitNodeIPOfArg(t *testing.T) {
 				BackendState: "Running",
 				Peer: map[key.NodePublic]*ipnstate.PeerStatus{
 					key.NewNode().Public(): {
-						TailscaleIPs: []netip.Addr{mustIP("1.2.3.4")},
+						LanhcIPs: []netip.Addr{mustIP("1.2.3.4")},
 					},
 				},
 			},
@@ -1003,7 +1003,7 @@ func TestExitNodeIPOfArg(t *testing.T) {
 				BackendState: "Running",
 				Peer: map[key.NodePublic]*ipnstate.PeerStatus{
 					key.NewNode().Public(): {
-						TailscaleIPs:   []netip.Addr{mustIP("1.2.3.4")},
+						LanhcIPs:   []netip.Addr{mustIP("1.2.3.4")},
 						ExitNodeOption: true,
 					},
 				},
@@ -1018,7 +1018,7 @@ func TestExitNodeIPOfArg(t *testing.T) {
 				Peer: map[key.NodePublic]*ipnstate.PeerStatus{
 					key.NewNode().Public(): {
 						DNSName:        "skippy.foo.",
-						TailscaleIPs:   []netip.Addr{mustIP("1.0.0.2")},
+						LanhcIPs:   []netip.Addr{mustIP("1.0.0.2")},
 						ExitNodeOption: true,
 					},
 				},
@@ -1033,7 +1033,7 @@ func TestExitNodeIPOfArg(t *testing.T) {
 				Peer: map[key.NodePublic]*ipnstate.PeerStatus{
 					key.NewNode().Public(): {
 						DNSName:        "skippy.foo.",
-						TailscaleIPs:   []netip.Addr{mustIP("1.0.0.2")},
+						LanhcIPs:   []netip.Addr{mustIP("1.0.0.2")},
 						ExitNodeOption: true,
 					},
 				},
@@ -1048,7 +1048,7 @@ func TestExitNodeIPOfArg(t *testing.T) {
 				Peer: map[key.NodePublic]*ipnstate.PeerStatus{
 					key.NewNode().Public(): {
 						DNSName:        "skippy.foo.",
-						TailscaleIPs:   []netip.Addr{mustIP("1.0.0.2")},
+						LanhcIPs:   []netip.Addr{mustIP("1.0.0.2")},
 						ExitNodeOption: true,
 					},
 				},
@@ -1063,7 +1063,7 @@ func TestExitNodeIPOfArg(t *testing.T) {
 				Peer: map[key.NodePublic]*ipnstate.PeerStatus{
 					key.NewNode().Public(): {
 						DNSName:        "skippy.foo.",
-						TailscaleIPs:   []netip.Addr{mustIP("1.0.0.2")},
+						LanhcIPs:   []netip.Addr{mustIP("1.0.0.2")},
 						ExitNodeOption: true,
 					},
 				},
@@ -1074,7 +1074,7 @@ func TestExitNodeIPOfArg(t *testing.T) {
 			name:    "hostname_no_peer",
 			arg:     "skippy.foo",
 			st:      &ipnstate.Status{},
-			wantErr: `cannot resolve exit node by hostname while Tailscale is starting up; please use its Tailscale IP address instead`,
+			wantErr: `cannot resolve exit node by hostname while Lanhc is starting up; please use its Lanhc IP address instead`,
 		},
 		{
 			name: "name_not_exit",
@@ -1084,7 +1084,7 @@ func TestExitNodeIPOfArg(t *testing.T) {
 				Peer: map[key.NodePublic]*ipnstate.PeerStatus{
 					key.NewNode().Public(): {
 						DNSName:      "skippy.foo.",
-						TailscaleIPs: []netip.Addr{mustIP("1.0.0.2")},
+						LanhcIPs: []netip.Addr{mustIP("1.0.0.2")},
 					},
 				},
 			},
@@ -1098,7 +1098,7 @@ func TestExitNodeIPOfArg(t *testing.T) {
 				Peer: map[key.NodePublic]*ipnstate.PeerStatus{
 					key.NewNode().Public(): {
 						DNSName:      "skippy.foo.",
-						TailscaleIPs: []netip.Addr{mustIP("1.0.0.2")},
+						LanhcIPs: []netip.Addr{mustIP("1.0.0.2")},
 					},
 				},
 			},
@@ -1112,12 +1112,12 @@ func TestExitNodeIPOfArg(t *testing.T) {
 				Peer: map[key.NodePublic]*ipnstate.PeerStatus{
 					key.NewNode().Public(): {
 						DNSName:        "skippy.foo.",
-						TailscaleIPs:   []netip.Addr{mustIP("1.0.0.2")},
+						LanhcIPs:   []netip.Addr{mustIP("1.0.0.2")},
 						ExitNodeOption: true,
 					},
 					key.NewNode().Public(): {
 						DNSName:        "SKIPPY.foo.",
-						TailscaleIPs:   []netip.Addr{mustIP("1.0.0.2")},
+						LanhcIPs:   []netip.Addr{mustIP("1.0.0.2")},
 						ExitNodeOption: true,
 					},
 				},
@@ -1157,7 +1157,7 @@ func TestControlURLOrDefault(t *testing.T) {
 	if got, want := p.ControlURLOrDefault(polc), "http://foo.bar"; got != want {
 		t.Errorf("got %q; want %q", got, want)
 	}
-	p.ControlURL = "https://login.tailscale.com"
+	p.ControlURL = "https://login.lanhc.com"
 	if got, want := p.ControlURLOrDefault(polc), DefaultControlURL; got != want {
 		t.Errorf("got %q; want %q", got, want)
 	}

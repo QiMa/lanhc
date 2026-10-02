@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/client/local"
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/tailcfg"
+	"lanhc.com/client/local"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/tailcfg"
 )
 
 //go:embed hello.tmpl.html
@@ -90,7 +90,7 @@ type tmplData struct {
 	IP            string // "100.2.3.4"
 }
 
-func tailscaleIP(who *apitype.WhoIsResponse) string {
+func lanhcIP(who *apitype.WhoIsResponse) string {
 	if who == nil {
 		return ""
 	}
@@ -135,7 +135,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	who, err := s.localClient().WhoIs(r.Context(), r.RemoteAddr)
 	if err != nil {
 		log.Printf("whois(%q) error: %v", r.RemoteAddr, err)
-		http.Error(w, "Your Tailscale works, but we failed to look you up.", 500)
+		http.Error(w, "Your Lanhc works, but we failed to look you up.", 500)
 		return
 	}
 	data := tmplData{
@@ -144,7 +144,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ProfilePicURL: who.UserProfile.ProfilePicURL,
 		MachineName:   firstLabel(who.Node.ComputedName),
 		MachineOS:     who.Node.Hostinfo.OS(),
-		IP:            tailscaleIP(who),
+		IP:            lanhcIP(who),
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	tmpl.Execute(w, data)

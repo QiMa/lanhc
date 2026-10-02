@@ -5,4 +5,4 @@
 
 package condregister
 
-import _ "tailscale.com/feature/c2n"
+import _ "lanhc.com/feature/c2n"

@@ -13,14 +13,14 @@ import (
 	"strings"
 
 	"go4.org/mem"
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/health"
-	"tailscale.com/net/dns/resolvconffile"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/syspolicy/policyclient"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/health"
+	"lanhc.com/net/dns/resolvconffile"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/syspolicy/policyclient"
 )
 
 // NewOSConfigurator creates a new OS configurator.
@@ -36,7 +36,7 @@ func NewOSConfigurator(logf logger.Logf, _ *health.Tracker, _ *eventbus.Bus, _ p
 	}, nil
 }
 
-// darwinConfigurator is the tailscaled-on-macOS DNS OS configurator that
+// darwinConfigurator is the lanhcd-on-macOS DNS OS configurator that
 // maintains the Split DNS nameserver entries pointing MagicDNS DNS suffixes
 // to 100.100.100.100 using the macOS /etc/resolver/$SUFFIX files.
 type darwinConfigurator struct {
@@ -92,7 +92,7 @@ func (c *darwinConfigurator) SetDNS(cfg OSConfig) error {
 	// Add a dummy file to /etc/resolver with a "search ..." directive if we have
 	// search suffixes to add.
 	if len(cfg.SearchDomains) > 0 {
-		const searchFile = "search.tailscale" // fake DNS suffix+TLD to put our search
+		const searchFile = "search.lanhc" // fake DNS suffix+TLD to put our search
 		mak.Set(&keep, searchFile, true)
 		var sbuf bytes.Buffer
 		sbuf.WriteString(macResolverFileHeader)
@@ -124,8 +124,8 @@ func (c *darwinConfigurator) SetDNS(cfg OSConfig) error {
 }
 
 // macOSGlobalDNSKey is a stable synthetic SystemConfiguration service key for
-// tailscaled's global DNS resolver. The UUID does not identify a real network
-// service; it just gives tailscaled one well-known dynamic-store location to
+// lanhcd's global DNS resolver. The UUID does not identify a real network
+// service; it just gives lanhcd one well-known dynamic-store location to
 // set and later remove.
 const macOSGlobalDNSKey = "State:/Network/Service/FF457792-79C0-4A25-8392-D875BBEACCA6/DNS"
 
@@ -236,7 +236,7 @@ func (c *darwinConfigurator) GetBaseConfig() (OSConfig, error) {
 	}
 
 	for _, ns := range resolvConf.Nameservers {
-		if ns == tsaddr.TailscaleServiceIP() || ns == tsaddr.TailscaleServiceIPv6() {
+		if ns == tsaddr.LanhcServiceIP() || ns == tsaddr.LanhcServiceIPv6() {
 			// If we find Quad100 in /etc/resolv.conf, we should ignore it
 			c.logf("ignoring 100.100.100.100 resolver IP found in /etc/resolv.conf")
 			continue
@@ -253,7 +253,7 @@ func (c *darwinConfigurator) GetBaseConfig() (OSConfig, error) {
 	return cfg, nil
 }
 
-const macResolverFileHeader = "# Added by tailscaled\n"
+const macResolverFileHeader = "# Added by lanhcd\n"
 
 // removeResolverFiles deletes all files in /etc/resolver for which the shouldDelete
 // func returns true.

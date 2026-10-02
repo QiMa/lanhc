@@ -8,8 +8,8 @@ import (
 	"errors"
 
 	"golang.org/x/sys/windows"
-	"tailscale.com/ipn"
-	"tailscale.com/types/lazy"
+	"lanhc.com/ipn"
+	"lanhc.com/types/lazy"
 )
 
 // WindowsActor implements [Actor].
@@ -73,7 +73,7 @@ func (a *WindowsActor) CheckProfileAccess(profile ipn.LoginProfileView, _ Profil
 // IsLocalSystem implements [Actor].
 //
 // Deprecated: this method exists for compatibility with the current (as of 2025-02-06)
-// permission model and will be removed as we progress on tailscale/corp#18342.
+// permission model and will be removed as we progress on lanhc/corp#18342.
 func (a *WindowsActor) IsLocalSystem() bool {
 	// https://web.archive.org/web/2024/https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/understand-security-identifiers
 	const systemUID = ipn.WindowsUserID("S-1-5-18")
@@ -83,7 +83,7 @@ func (a *WindowsActor) IsLocalSystem() bool {
 // IsLocalAdmin implements [Actor].
 //
 // Deprecated: this method exists for compatibility with the current (as of 2025-02-06)
-// permission model and will be removed as we progress on tailscale/corp#18342.
+// permission model and will be removed as we progress on lanhc/corp#18342.
 func (a *WindowsActor) IsLocalAdmin(operatorUID string) bool {
 	return a.token.IsElevated()
 }

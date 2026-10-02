@@ -9,13 +9,13 @@ import (
 	"fmt"
 	"sync"
 
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnext"
-	"tailscale.com/net/routecheck"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/set"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnext"
+	"lanhc.com/net/routecheck"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/set"
 )
 
 var ErrRouteCheckNotEnabled = errors.New("routecheck not enabled")
@@ -164,7 +164,7 @@ func (rt *RouterTracker) stopWatcherLocked() {
 //
 // When routers are added, removed, or change their routes,
 // it fires the [RouterTracker.OnRoutersChange] hook.
-// See tailscale/tailscale#12542.
+// See lanhc/lanhc#12542.
 //
 // When the client gets the initial netmap after connecting to the control plane,
 // it fires the [RouterTracker.OnNetMapAvailable] hook.

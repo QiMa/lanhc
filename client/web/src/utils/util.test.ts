@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-import { isTailscaleIPv6, pluralize } from "src/utils/util"
+import { isLanhcIPv6, pluralize } from "src/utils/util"
 import { describe, expect, it } from "vitest"
 
 describe("pluralize", () => {
@@ -11,11 +11,11 @@ describe("pluralize", () => {
   })
 })
 
-describe("isTailscaleIPv6", () => {
+describe("isLanhcIPv6", () => {
   it("test ips", () => {
-    expect(isTailscaleIPv6("100.101.102.103")).toBeFalsy()
+    expect(isLanhcIPv6("100.101.102.103")).toBeFalsy()
     expect(
-      isTailscaleIPv6("fd7a:115c:a1e0:ab11:1111:cd11:111e:f11g")
+      isLanhcIPv6("fd7a:115c:a1e0:ab11:1111:cd11:111e:f11g")
     ).toBeTruthy()
   })
 })

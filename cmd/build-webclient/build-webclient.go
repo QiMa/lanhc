@@ -6,7 +6,7 @@
 //
 // # Running
 //
-// Meant to be invoked from the tailscale/web-client-prebuilt repo when
+// Meant to be invoked from the lanhc/web-client-prebuilt repo when
 // updating the production built web client assets. To run it manually,
 // you can use `./tool/go run ./misc/build-webclient`
 package main
@@ -19,7 +19,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"tailscale.com/util/precompress"
+	"lanhc.com/util/precompress"
 )
 
 var (

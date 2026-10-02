@@ -7,7 +7,7 @@ import (
 	"context"
 	"testing"
 
-	"tailscale.com/ipn"
+	"lanhc.com/ipn"
 )
 
 func TestClientServer(t *testing.T) {

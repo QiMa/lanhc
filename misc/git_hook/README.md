@@ -1,9 +1,9 @@
 # git_hook
 
-Tailscale's git hooks.
+Lanhc's git hooks.
 
 The shared logic lives in the `githook/` package and is also imported by
-`tailscale/corp`.
+`lanhc/corp`.
 
 ## Install
 
@@ -29,7 +29,7 @@ the concatenation of two files:
 
 * `githook/HOOK_VERSION` (shared): bump when changing anything under
   `githook/` or `git-hook.go`. Downstream repos pick it up after
-  bumping their `tailscale.com` dependency.
+  bumping their `lanhc.com` dependency.
 * `misc/git_hook/HOOK_VERSION` (repo-local, optional): bump to force a
   rebuild for repo-specific config changes without touching the shared
   version. This repo does not use one.

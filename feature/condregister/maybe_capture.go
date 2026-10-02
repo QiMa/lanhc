@@ -5,4 +5,4 @@
 
 package condregister
 
-import _ "tailscale.com/feature/capture"
+import _ "lanhc.com/feature/capture"

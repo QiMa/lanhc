@@ -34,12 +34,12 @@ import (
 	gliderssh "github.com/tailscale/gliderssh"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/netmap"
-	"tailscale.com/util/set"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/netmap"
+	"lanhc.com/util/set"
 )
 
 // This file contains integration tests of the SSH functionality. These tests
@@ -49,11 +49,11 @@ import (
 //
 // - OS is one of MacOS or Linux
 // - Test is being run as root (e.g. go test -tags integrationtest -c . && sudo ./tailssh.test -test.run TestIntegration)
-// - TAILSCALED_PATH environment variable points at tailscaled binary
+// - LANHCD_PATH environment variable points at lanhcd binary
 // - User "testuser" exists
 // - "testuser" is in groups "groupone" and "grouptwo"
 
-// testVarRoot is a temp directory used as the TailscaleVarRoot for
+// testVarRoot is a temp directory used as the LanhcVarRoot for
 // host key generation during integration tests. The test containers
 // don't have system host keys (/etc/ssh/ssh_host_*_key) since they
 // only install openssh-client, so getHostKeys needs a valid var root
@@ -64,7 +64,7 @@ func TestMain(m *testing.M) {
 	debugTest.Store(true)
 
 	// Create our log file.
-	if err := os.WriteFile("/tmp/tailscalessh.log", nil, 0666); err != nil {
+	if err := os.WriteFile("/tmp/lanhcssh.log", nil, 0666); err != nil {
 		log.Fatal(err)
 	}
 
@@ -80,7 +80,7 @@ func TestMain(m *testing.M) {
 	os.RemoveAll(testVarRoot)
 
 	// Print any log output from the incubator subprocesses.
-	if b, err := os.ReadFile("/tmp/tailscalessh.log"); err == nil && len(b) > 0 {
+	if b, err := os.ReadFile("/tmp/lanhcssh.log"); err == nil && len(b) > 0 {
 		log.Print(string(b))
 	}
 
@@ -244,7 +244,7 @@ func TestIntegrationAcceptEnvSecretNotLogged(t *testing.T) {
 			}
 
 			// The incubator child writes its debug log in debugTest mode
-			if b, err := os.ReadFile("/tmp/tailscalessh.log"); err == nil && bytes.Contains(b, []byte(canary)) {
+			if b, err := os.ReadFile("/tmp/lanhcssh.log"); err == nil && bytes.Contains(b, []byte(canary)) {
 				t.Errorf("secret value present in incubator debug log")
 			}
 		})
@@ -400,10 +400,10 @@ func TestSSHAgentForwarding(t *testing.T) {
 	}
 	go gs.Serve(l)
 
-	// Run tailscale SSH server and connect to it
+	// Run lanhc SSH server and connect to it
 	username := "testuser"
-	tailscaleAddr := testServer(t, username, false, false)
-	tcl, err := ssh.Dial("tcp", tailscaleAddr, &ssh.ClientConfig{
+	lanhcAddr := testServer(t, username, false, false)
+	tcl, err := ssh.Dial("tcp", lanhcAddr, &ssh.ClientConfig{
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	})
 	if err != nil {
@@ -444,9 +444,9 @@ func TestSSHAgentForwarding(t *testing.T) {
 	}
 }
 
-// TestIntegrationParamiko attempts to connect to Tailscale SSH using the
+// TestIntegrationParamiko attempts to connect to Lanhc SSH using the
 // paramiko Python library. This library does not request 'none' auth. This
-// test ensures that Tailscale SSH can correctly handle clients that don't
+// test ensures that Lanhc SSH can correctly handle clients that don't
 // request 'none' auth and instead immediately authenticate with a public key
 // or password.
 func TestIntegrationParamiko(t *testing.T) {
@@ -520,13 +520,13 @@ func TestLocalUnixForwarding(t *testing.T) {
 		}
 	}()
 
-	// Start Tailscale SSH server with local port forwarding enabled.
+	// Start Lanhc SSH server with local port forwarding enabled.
 	addr := testServerWithOpts(t, testServerOpts{
 		username:                 "testuser",
 		allowLocalPortForwarding: true,
 	})
 
-	// Connect to the Tailscale SSH server.
+	// Connect to the Lanhc SSH server.
 	cl, err := ssh.Dial("tcp", addr, &ssh.ClientConfig{
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	})
@@ -569,13 +569,13 @@ func TestReverseUnixForwarding(t *testing.T) {
 		debugTest.Store(false)
 	})
 
-	// Start Tailscale SSH server with remote port forwarding enabled.
+	// Start Lanhc SSH server with remote port forwarding enabled.
 	addr := testServerWithOpts(t, testServerOpts{
 		username:                  "testuser",
 		allowRemotePortForwarding: true,
 	})
 
-	// Connect to the Tailscale SSH server.
+	// Connect to the Lanhc SSH server.
 	cl, err := ssh.Dial("tcp", addr, &ssh.ClientConfig{
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	})
@@ -842,7 +842,7 @@ func testServer(t *testing.T, username string, forceV1Behavior bool, allowSendEn
 	srv := &server{
 		lb:             &testBackend{localUser: username, forceV1Behavior: forceV1Behavior, allowSendEnv: allowSendEnv},
 		logf:           log.Printf,
-		tailscaledPath: os.Getenv("TAILSCALED_PATH"),
+		lanhcdPath: os.Getenv("LANHCD_PATH"),
 		timeNow:        time.Now,
 	}
 
@@ -888,7 +888,7 @@ func testServerWithOpts(t *testing.T, opts testServerOpts) string {
 			allowRemotePortForwarding: opts.allowRemotePortForwarding,
 		},
 		logf:           logf,
-		tailscaledPath: os.Getenv("TAILSCALED_PATH"),
+		lanhcdPath: os.Getenv("LANHCD_PATH"),
 		timeNow:        time.Now,
 	}
 
@@ -1022,7 +1022,7 @@ func (tb *testBackend) Dialer() *tsdial.Dialer {
 	return nil
 }
 
-func (tb *testBackend) TailscaleVarRoot() string {
+func (tb *testBackend) LanhcVarRoot() string {
 	return testVarRoot
 }
 

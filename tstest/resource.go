@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/util/testenv"
+	"lanhc.com/util/testenv"
 )
 
 // ResourceCheck takes a snapshot of the current goroutines and registers a
@@ -55,7 +55,7 @@ func ResourceCheck(tb testenv.TB) {
 		}
 
 		// Print goroutine diff, omitting tstest.ResourceCheck goroutines.
-		self := func(g goroutine) bool { return bytes.Contains(g.stack, []byte("\ttailscale.com/tstest.goroutines+")) }
+		self := func(g goroutine) bool { return bytes.Contains(g.stack, []byte("\tlanhc.com/tstest.goroutines+")) }
 		start.goroutines = slices.DeleteFunc(start.goroutines, self)
 		end.goroutines = slices.DeleteFunc(end.goroutines, self)
 		tb.Logf("goroutine diff (-start +end):\n%s", diffGoroutines(start, end))

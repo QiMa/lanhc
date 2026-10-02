@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package ace implements a Dialer that dials via a Tailscale ACE (CONNECT)
+// Package ace implements a Dialer that dials via a Lanhc ACE (CONNECT)
 // proxy.
 //
 // TODO: document this more, when it's more done. As of 2025-09-17, it's in
@@ -96,7 +96,7 @@ func (d *Dialer) Dial(ctx context.Context, network, address string) (_ net.Conn,
 		return nil, err
 	}
 
-	// TODO(tailscale/corp#32484): send proxy-auth header
+	// TODO(lanhc/corp#32484): send proxy-auth header
 	if _, err := fmt.Fprintf(tc, "CONNECT %s HTTP/1.1\r\nHost: %s\r\n\r\n", address, d.ACEHost); err != nil {
 		return nil, err
 	}

@@ -9,7 +9,7 @@ import (
 	"net/netip"
 
 	"go4.org/netipx"
-	"tailscale.com/util/set"
+	"lanhc.com/util/set"
 )
 
 // errPoolExhausted is returned when there are no more addresses to iterate over.

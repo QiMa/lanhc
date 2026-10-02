@@ -5,4 +5,4 @@
 
 package portmapper
 
-import _ "tailscale.com/feature/portmapper"
+import _ "lanhc.com/feature/portmapper"

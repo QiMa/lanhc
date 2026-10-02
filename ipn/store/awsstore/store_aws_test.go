@@ -13,8 +13,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmTypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
-	"tailscale.com/ipn"
-	"tailscale.com/tstest"
+	"lanhc.com/ipn"
+	"lanhc.com/tstest"
 )
 
 type mockedAWSSSMClient struct {
@@ -176,25 +176,25 @@ func TestParseARNAndOpts(t *testing.T) {
 	}{
 		{
 			name:    "no-key",
-			arg:     "arn:aws:ssm:us-east-1:123456789012:parameter/myTailscaleParam",
-			wantARN: "arn:aws:ssm:us-east-1:123456789012:parameter/myTailscaleParam",
+			arg:     "arn:aws:ssm:us-east-1:123456789012:parameter/myLanhcParam",
+			wantARN: "arn:aws:ssm:us-east-1:123456789012:parameter/myLanhcParam",
 		},
 		{
 			name:    "custom-key",
-			arg:     "arn:aws:ssm:us-east-1:123456789012:parameter/myTailscaleParam?kmsKey=alias/MyCustomKey",
-			wantARN: "arn:aws:ssm:us-east-1:123456789012:parameter/myTailscaleParam",
+			arg:     "arn:aws:ssm:us-east-1:123456789012:parameter/myLanhcParam?kmsKey=alias/MyCustomKey",
+			wantARN: "arn:aws:ssm:us-east-1:123456789012:parameter/myLanhcParam",
 			wantKey: "alias/MyCustomKey",
 		},
 		{
 			name:    "bare-name",
-			arg:     "arn:aws:ssm:us-east-1:123456789012:parameter/myTailscaleParam?kmsKey=Bare",
-			wantARN: "arn:aws:ssm:us-east-1:123456789012:parameter/myTailscaleParam",
+			arg:     "arn:aws:ssm:us-east-1:123456789012:parameter/myLanhcParam?kmsKey=Bare",
+			wantARN: "arn:aws:ssm:us-east-1:123456789012:parameter/myLanhcParam",
 			wantKey: "alias/Bare",
 		},
 		{
 			name:    "arn-arg",
-			arg:     "arn:aws:ssm:us-east-1:123456789012:parameter/myTailscaleParam?kmsKey=arn:foo",
-			wantARN: "arn:aws:ssm:us-east-1:123456789012:parameter/myTailscaleParam",
+			arg:     "arn:aws:ssm:us-east-1:123456789012:parameter/myLanhcParam?kmsKey=arn:foo",
+			wantARN: "arn:aws:ssm:us-east-1:123456789012:parameter/myLanhcParam",
 			wantKey: "arn:foo",
 		},
 	}

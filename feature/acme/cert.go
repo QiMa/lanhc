@@ -22,17 +22,17 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/envknob"
-	"tailscale.com/health"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/tailcfg"
-	xacme "tailscale.com/tempfork/acme"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
-	"tailscale.com/util/slicesx"
-	"tailscale.com/util/testenv"
+	"lanhc.com/envknob"
+	"lanhc.com/health"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/tailcfg"
+	xacme "lanhc.com/tempfork/acme"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
+	"lanhc.com/util/slicesx"
+	"lanhc.com/util/testenv"
 )
 
 type acmeChallengeType string
@@ -92,7 +92,7 @@ func (e *extension) getCertPEMWithValidity(ctx context.Context, b *ipnlocal.Loca
 	// "host.ts.net.") before lookup. Per RFC 6066 §3 the SNI HostName has
 	// no trailing dot, but some clients send a fully-qualified name with
 	// one, and cert store names have no trailing dot. See
-	// https://github.com/tailscale/tailscale/issues/10233.
+	// https://github.com/lanhc/lanhc/issues/10233.
 	domain = strings.TrimSuffix(domain, ".")
 
 	if !validLookingCertDomain(domain) {
@@ -241,7 +241,7 @@ func domainRenewalTimeByExpiry(pair *ipnlocal.TLSCertKeyPair) (time.Time, error)
 		return time.Time{}, fmt.Errorf("negative certificate lifetime %v", certLifetime)
 	}
 
-	// Per https://github.com/tailscale/tailscale/issues/8204, check
+	// Per https://github.com/lanhc/lanhc/issues/8204, check
 	// whether we're more than 2/3 of the way through the certificate's
 	// lifetime, which is the officially-recommended best practice by Let's
 	// Encrypt.
@@ -396,7 +396,7 @@ var getCertPEM = func(ctx context.Context, e *extension, b *ipnlocal.LocalBacken
 	// limits.
 	// Note that this order extension will fail renewals if the ACME account key has changed
 	// since the last issuance, see
-	// https://github.com/tailscale/tailscale/issues/18251
+	// https://github.com/lanhc/lanhc/issues/18251
 	var opts []xacme.OrderOption
 	if previous != nil && !envknob.Bool("TS_DEBUG_ACME_FORCE_RENEWAL") {
 		prevCrt, err := parseCertificate(previous)
@@ -685,7 +685,7 @@ func (e *extension) resolveCertDomain(b *ipnlocal.LocalBackend, domain string) (
 	}
 	certDomains := nm.DNS.CertDomains
 	if len(certDomains) == 0 && !e.isBYOFunnelDomain(b, domain) {
-		return "", errors.New("your Tailscale account does not support getting TLS certs")
+		return "", errors.New("your Lanhc account does not support getting TLS certs")
 	}
 
 	// Wildcard request like "*.node.ts.net".

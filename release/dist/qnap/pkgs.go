@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package qnap contains dist Targets for building QNAP Tailscale packages.
+// Package qnap contains dist Targets for building QNAP Lanhc packages.
 //
 // QNAP dev docs over at https://www.qnap.com/en/how-to/tutorial/article/qpkg-development-guidelines.
 package qnap
@@ -17,7 +17,7 @@ import (
 	"slices"
 	"sync"
 
-	"tailscale.com/release/dist"
+	"lanhc.com/release/dist"
 )
 
 type target struct {
@@ -67,7 +67,7 @@ func (t *target) buildQPKG(b *dist.Build, qnapBuilds *qnapBuilds, inner *innerPk
 		return nil, fmt.Errorf("makeDockerImage: %w", err)
 	}
 
-	filename := fmt.Sprintf("Tailscale_%s-%s_%s.qpkg", b.Version.Short, qnapTag, t.arch)
+	filename := fmt.Sprintf("Lanhc_%s-%s_%s.qpkg", b.Version.Short, qnapTag, t.arch)
 	filePath := filepath.Join(b.Out, filename)
 
 	args := []string{"run", "--rm",
@@ -75,10 +75,10 @@ func (t *target) buildQPKG(b *dist.Build, qnapBuilds *qnapBuilds, inner *innerPk
 		"-e", fmt.Sprintf("ARCH=%s", t.arch),
 		"-e", fmt.Sprintf("TSTAG=%s", b.Version.Short),
 		"-e", fmt.Sprintf("QNAPTAG=%s", qnapTag),
-		"-v", fmt.Sprintf("%s:/tailscale", inner.tailscalePath),
-		"-v", fmt.Sprintf("%s:/tailscaled", inner.tailscaledPath),
-		// Tailscale folder has QNAP package setup files needed for building.
-		"-v", fmt.Sprintf("%s:/Tailscale", filepath.Join(qnapBuilds.tmpDir, "files/Tailscale")),
+		"-v", fmt.Sprintf("%s:/lanhc", inner.lanhcPath),
+		"-v", fmt.Sprintf("%s:/lanhcd", inner.lanhcdPath),
+		// Lanhc folder has QNAP package setup files needed for building.
+		"-v", fmt.Sprintf("%s:/Lanhc", filepath.Join(qnapBuilds.tmpDir, "files/Lanhc")),
 		"-v", fmt.Sprintf("%s:/build-qpkg.sh", filepath.Join(qnapBuilds.tmpDir, "files/scripts/build-qpkg.sh")),
 		"-v", fmt.Sprintf("%s:/out", b.Out),
 	}
@@ -98,7 +98,7 @@ func (t *target) buildQPKG(b *dist.Build, qnapBuilds *qnapBuilds, inner *innerPk
 	}
 
 	args = append(args,
-		"build.tailscale.io/qdk:latest",
+		"build.lanhc.io/qdk:latest",
 		"/build-qpkg.sh",
 	)
 
@@ -133,8 +133,8 @@ func (t *target) buildQPKG(b *dist.Build, qnapBuilds *qnapBuilds, inner *innerPk
 type qnapBuildsMemoizeKey struct{}
 
 type innerPkg struct {
-	tailscalePath  string
-	tailscaledPath string
+	lanhcPath  string
+	lanhcdPath string
 }
 
 // qnapBuilds holds extra build context shared by all qnap builds.
@@ -168,7 +168,7 @@ var buildFiles embed.FS
 // The qnapBuilds.tmpDir is filled with the contents of the buildFiles embedded
 // FS for building.
 //
-// We do this to allow for this tailscale.com/release/dist/qnap package to be
+// We do this to allow for this lanhc.com/release/dist/qnap package to be
 // used from both the corp and OSS repos. When built from OSS source directly,
 // this is a superfluous extra step, but when imported as a go module to another
 // repo (such as corp), we must do this to allow for the module's build files
@@ -213,18 +213,18 @@ func newQNAPBuilds(b *dist.Build, signer *signer) (*qnapBuilds, error) {
 }
 
 // buildInnerPackage builds the go binaries used for qnap packages.
-// These binaries get embedded with Tailscale package metadata to form qnap
+// These binaries get embedded with Lanhc package metadata to form qnap
 // releases.
 func (m *qnapBuilds) buildInnerPackage(b *dist.Build, goenv map[string]string) (*innerPkg, error) {
 	return m.innerPkgs.Do(goenv, func() (*innerPkg, error) {
 		if err := b.BuildWebClientAssets(); err != nil {
 			return nil, err
 		}
-		ts, err := b.BuildGoBinary("tailscale.com/cmd/tailscale", goenv)
+		ts, err := b.BuildGoBinary("lanhc.com/cmd/lanhc", goenv)
 		if err != nil {
 			return nil, err
 		}
-		tsd, err := b.BuildGoBinary("tailscale.com/cmd/tailscaled", goenv)
+		tsd, err := b.BuildGoBinary("lanhc.com/cmd/lanhcd", goenv)
 		if err != nil {
 			return nil, err
 		}
@@ -255,16 +255,16 @@ func (m *qnapBuilds) buildInnerPackage(b *dist.Build, goenv map[string]string) (
 			return nil, err
 		}
 
-		tsPath := filepath.Join(tmpDir, "tailscale")
+		tsPath := filepath.Join(tmpDir, "lanhc")
 		if err := os.WriteFile(tsPath, tsBytes, 0755); err != nil {
 			return nil, err
 		}
-		tsdPath := filepath.Join(tmpDir, "tailscaled")
+		tsdPath := filepath.Join(tmpDir, "lanhcd")
 		if err := os.WriteFile(tsdPath, tsdBytes, 0755); err != nil {
 			return nil, err
 		}
 
-		return &innerPkg{tailscalePath: tsPath, tailscaledPath: tsdPath}, nil
+		return &innerPkg{lanhcPath: tsPath, lanhcdPath: tsdPath}, nil
 	})
 }
 
@@ -274,7 +274,7 @@ func (m *qnapBuilds) makeDockerImage(b *dist.Build) error {
 
 		cmd := b.Command(b.Repo, "docker", "build",
 			"-f", filepath.Join(m.tmpDir, "files/scripts/Dockerfile.qpkg"),
-			"-t", "build.tailscale.io/qdk:latest",
+			"-t", "build.lanhc.io/qdk:latest",
 			filepath.Join(m.tmpDir, "files/scripts"),
 		)
 		out, err := cmd.CombinedOutput()

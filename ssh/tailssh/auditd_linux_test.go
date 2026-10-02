@@ -44,7 +44,7 @@ func TestBuildAuditNetlinkMessage(t *testing.T) {
 		{
 			name:     "message-with-quoted-fields",
 			msgType:  auditUserLogin,
-			message:  `op=login hostname="test-host" exe="/usr/bin/tailscaled" ts_user="user@example.com" ts_node="node.tail-scale.ts.net"`,
+			message:  `op=login hostname="test-host" exe="/usr/bin/lanhcd" ts_user="user@example.com" ts_node="node.tail-scale.ts.net"`,
 			wantType: auditUserLogin,
 		},
 		{
@@ -135,7 +135,7 @@ func TestAuditIntegration(t *testing.T) {
 		t.Skip("skipping: journald not configured for audit messages, try: systemctl enable systemd-journald-audit.socket && systemctl restart systemd-journald")
 	}
 
-	testID := fmt.Sprintf("tailscale-test-%d", time.Now().UnixNano())
+	testID := fmt.Sprintf("lanhc-test-%d", time.Now().UnixNano())
 	testMsg := fmt.Sprintf("op=test-audit test_id=%s res=success", testID)
 
 	followCmd := maybeWithSudo(ctx, "journalctl", "-f", "_TRANSPORT=audit", "--no-pager")

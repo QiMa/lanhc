@@ -44,27 +44,27 @@ import (
 	"github.com/tailscale/wireguard-go/tun"
 	"golang.org/x/net/proxy"
 
-	"tailscale.com/client/local"
-	"tailscale.com/cmd/testwrapper/flakytest"
-	"tailscale.com/internal/client/tailscale"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/net/netns"
-	"tailscale.com/net/packet"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/tstest/deptest"
-	"tailscale.com/tstest/integration"
-	"tailscale.com/tstest/integration/testcontrol"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/views"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/must"
-	"tailscale.com/wgengine/filter"
+	"lanhc.com/client/local"
+	"lanhc.com/cmd/testwrapper/flakytest"
+	"lanhc.com/internal/client/lanhc"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/net/netns"
+	"lanhc.com/net/packet"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/tstest/deptest"
+	"lanhc.com/tstest/integration"
+	"lanhc.com/tstest/integration/testcontrol"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/views"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/must"
+	"lanhc.com/wgengine/filter"
 )
 
 // pingTimeout returns a per-ping budget for use within the larger test ctx:
@@ -352,7 +352,7 @@ func startServer(t *testing.T, ctx context.Context, controlURL, hostname string)
 	// in a dropped request with PeerGoneNotHere.
 	waitForHomeDERPConnected(t, ctx, s)
 
-	return s, status.TailscaleIPs[0], status.Self.PublicKey
+	return s, status.LanhcIPs[0], status.Self.PublicKey
 }
 
 // waitForHomeDERPConnected blocks until s has selected a home DERP region
@@ -540,7 +540,7 @@ func TestConn(t *testing.T) {
 	//
 	// The RegisterFallbackTCPHandler on s1 above handles sending a RST when the
 	// TCP SYN arrives from s2. But we bound it to 5 seconds lest a regression
-	// like tailscale/tailscale#17805 recur.
+	// like lanhc/lanhc#17805 recur.
 	s2dialer := s2.Sys().Dialer.Get()
 	s2dialer.SetSystemDialerForTest(func(ctx context.Context, netw, addr string) (net.Conn, error) {
 		t.Logf("s2: unexpected system dial called for %s %s", netw, addr)
@@ -558,7 +558,7 @@ func TestConn(t *testing.T) {
 }
 
 func TestLoopbackLocalAPI(t *testing.T) {
-	flakytest.Mark(t, "https://github.com/tailscale/tailscale/issues/8557")
+	flakytest.Mark(t, "https://github.com/lanhc/lanhc/issues/8557")
 	tstest.ResourceCheck(t)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -592,7 +592,7 @@ func TestLoopbackLocalAPI(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	req.Header.Set("Sec-Tailscale", "localapi")
+	req.Header.Set("Sec-Lanhc", "localapi")
 	res, err = http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatal(err)
@@ -620,7 +620,7 @@ func TestLoopbackLocalAPI(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	req.Header.Set("Sec-Tailscale", "localapi")
+	req.Header.Set("Sec-Lanhc", "localapi")
 	req.SetBasicAuth("", localAPICred)
 	res, err = http.DefaultClient.Do(req)
 	if err != nil {
@@ -633,7 +633,7 @@ func TestLoopbackLocalAPI(t *testing.T) {
 }
 
 func TestLoopbackSOCKS5(t *testing.T) {
-	flakytest.Mark(t, "https://github.com/tailscale/tailscale/issues/8198")
+	flakytest.Mark(t, "https://github.com/lanhc/lanhc/issues/8198")
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -683,7 +683,7 @@ func TestLoopbackSOCKS5(t *testing.T) {
 	}
 }
 
-func TestTailscaleIPs(t *testing.T) {
+func TestLanhcIPs(t *testing.T) {
 	controlURL, _ := startControl(t)
 
 	tmp := t.TempDir()
@@ -707,7 +707,7 @@ func TestTailscaleIPs(t *testing.T) {
 	}
 
 	var upIp4, upIp6 netip.Addr
-	for _, ip := range s1status.TailscaleIPs {
+	for _, ip := range s1status.LanhcIPs {
 		if ip.Is6() {
 			upIp6 = ip
 		}
@@ -716,9 +716,9 @@ func TestTailscaleIPs(t *testing.T) {
 		}
 	}
 
-	sIp4, sIp6 := s1.TailscaleIPs()
+	sIp4, sIp6 := s1.LanhcIPs()
 	if !(upIp4 == sIp4 && upIp6 == sIp6) {
-		t.Errorf("s1.TailscaleIPs returned a different result than S1.Up, (%s, %s) != (%s, %s)",
+		t.Errorf("s1.LanhcIPs returned a different result than S1.Up, (%s, %s) != (%s, %s)",
 			sIp4, upIp4, sIp6, upIp6)
 	}
 }
@@ -765,7 +765,7 @@ func (wc *closeTrackConn) Close() error {
 	return nil
 }
 
-// tests https://github.com/tailscale/tailscale/issues/6973 -- that we can start a tsnet server,
+// tests https://github.com/lanhc/lanhc/issues/6973 -- that we can start a tsnet server,
 // stop it, and restart it, even on Windows.
 func TestStartStopStartGetsSameIP(t *testing.T) {
 	controlURL, _ := startControl(t)
@@ -793,7 +793,7 @@ func TestStartStopStartGetsSameIP(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	firstIPs := s1status.TailscaleIPs
+	firstIPs := s1status.LanhcIPs
 	t.Logf("IPs: %v", firstIPs)
 
 	if err := s1.Close(); err != nil {
@@ -808,7 +808,7 @@ func TestStartStopStartGetsSameIP(t *testing.T) {
 		t.Fatalf("second Up: %v", err)
 	}
 
-	secondIPs := s2status.TailscaleIPs
+	secondIPs := s2status.LanhcIPs
 	t.Logf("IPs: %v", secondIPs)
 
 	if !reflect.DeepEqual(firstIPs, secondIPs) {
@@ -994,7 +994,7 @@ func TestFunnelClose(t *testing.T) {
 }
 
 // setUpServiceState performs all necessary state setup for testing with a
-// Tailscale Service. When this function returns, the host will be able to
+// Lanhc Service. When this function returns, the host will be able to
 // advertise a Service (via [Server.ListenService]) and the client will be able
 // to dial the Service via the Service name.
 //
@@ -1217,7 +1217,7 @@ func TestListenService(t *testing.T) {
 				},
 			},
 			run: func(t *testing.T, listeners []*ServiceListener, peer *Server) {
-				expectHeader := "Tailscale-User-Name"
+				expectHeader := "Lanhc-User-Name"
 				go checkAndEcho(t, listeners[0], func(r *http.Request) {
 					if _, ok := r.Header[expectHeader]; !ok {
 						t.Error("did not see expected header:", expectHeader)
@@ -1235,7 +1235,7 @@ func TestListenService(t *testing.T) {
 				},
 			},
 			run: func(t *testing.T, listeners []*ServiceListener, peer *Server) {
-				expectHeader := "Tailscale-User-Name"
+				expectHeader := "Lanhc-User-Name"
 				go checkAndEcho(t, listeners[0], func(r *http.Request) {
 					if _, ok := r.Header[expectHeader]; !ok {
 						t.Error("did not see expected header:", expectHeader)
@@ -1277,7 +1277,7 @@ func TestListenService(t *testing.T) {
 				allPathsCap := "example.com/cap/all-paths"
 				fooCap := "example.com/cap/foo"
 				checkCaps := func(r *http.Request) {
-					rawCaps, ok := r.Header["Tailscale-App-Capabilities"]
+					rawCaps, ok := r.Header["Lanhc-App-Capabilities"]
 					if !ok {
 						t.Error("no app capabilities header")
 						return
@@ -1574,7 +1574,7 @@ func TestListenServiceClose(t *testing.T) {
 			},
 		},
 		{
-			// Regression test for https://github.com/tailscale/tailscale/issues/19169,
+			// Regression test for https://github.com/lanhc/lanhc/issues/19169,
 			// in which concurrent ServiceListener.Close calls (by different
 			// listeners) would fail.
 			name: "concurrent_close",
@@ -1686,8 +1686,8 @@ func dialIngressConn(from, to *Server, target string) (net.Conn, error) {
 		return nil, err
 	}
 	req.Host = toPeerAPI
-	req.Header.Set("Tailscale-Ingress-Src", "127.0.0.1:1234")
-	req.Header.Set("Tailscale-Ingress-Target", target)
+	req.Header.Set("Lanhc-Ingress-Src", "127.0.0.1:1234")
+	req.Header.Set("Lanhc-Ingress-Target", target)
 	if err := req.Write(outConn); err != nil {
 		return nil, err
 	}
@@ -1757,7 +1757,7 @@ func TestFallbackTCPHandler(t *testing.T) {
 	}
 }
 
-// TestPingPeerLearnedViaDelta verifies that `tailscale ping` works
+// TestPingPeerLearnedViaDelta verifies that `lanhc ping` works
 // for a peer that the local node learned about only via a
 // [tailcfg.MapResponse.PeersChanged] delta, never via a full
 // [tailcfg.MapResponse.Peers] list.
@@ -1790,7 +1790,7 @@ func TestFallbackTCPHandler(t *testing.T) {
 //     right NodePublic wgdev couldn't lazily create the peer for
 //     outbound encryption.
 //
-// See tailscale/corp#43394.
+// See lanhc/corp#43394.
 func TestPingPeerLearnedViaDelta(t *testing.T) {
 	for _, pt := range []tailcfg.PingType{tailcfg.PingDisco, tailcfg.PingTSMP} {
 		t.Run(string(pt), func(t *testing.T) {
@@ -1801,7 +1801,7 @@ func TestPingPeerLearnedViaDelta(t *testing.T) {
 
 func testPingPeerLearnedViaDelta(t *testing.T, pt tailcfg.PingType) {
 	if runtime.GOARCH == "386" {
-		t.Skip("skipping on 386: see https://github.com/tailscale/tailscale/issues/20146")
+		t.Skip("skipping on 386: see https://github.com/lanhc/lanhc/issues/20146")
 	}
 	tstest.ResourceCheck(t)
 	ctx, cancel := context.WithTimeout(t.Context(), 120*time.Second)
@@ -1877,10 +1877,10 @@ func testPingPeerLearnedViaDelta(t *testing.T, pt tailcfg.PingType) {
 // PeerLookupFunc closure didn't have the new peer's noise key for
 // outbound encryption.
 //
-// See tailscale/corp#43394.
+// See lanhc/corp#43394.
 func TestPingSubnetRouteOfDeltaPeer(t *testing.T) {
 	if runtime.GOARCH == "386" {
-		t.Skip("skipping on 386: see https://github.com/tailscale/tailscale/issues/20146")
+		t.Skip("skipping on 386: see https://github.com/lanhc/lanhc/issues/20146")
 	}
 	tstest.ResourceCheck(t)
 	ctx, cancel := context.WithTimeout(t.Context(), 120*time.Second)
@@ -1959,7 +1959,7 @@ func TestPingSubnetRouteOfDeltaPeer(t *testing.T) {
 }
 
 // TestPingSelfReturnsIsLocalIP verifies that pinging one's own
-// Tailscale IP takes the IsSelf early-out in [wgengine.Engine.Ping]
+// Lanhc IP takes the IsSelf early-out in [wgengine.Engine.Ping]
 // instead of trying to ping self via magicsock. Lives here as a
 // regression guard against future refactors of the PeerForIP self
 // path; the original userspaceEngine.PeerForIP handles self via a
@@ -1988,7 +1988,7 @@ func TestPingSelfReturnsIsLocalIP(t *testing.T) {
 		t.Errorf("IsLocalIP = false, want true (pr=%+v)", pr)
 	}
 	if pr.Err == "" {
-		t.Errorf("Err = %q, want a 'local Tailscale IP' message", pr.Err)
+		t.Errorf("Err = %q, want a 'local Lanhc IP' message", pr.Err)
 	}
 }
 
@@ -2179,8 +2179,8 @@ func parseMetrics(m []byte) (map[string]float64, error) {
 
 	// prometheus/common v0.67 made the validation scheme mandatory;
 	// the zero-value parser now panics. LegacyValidation matches the
-	// classic ASCII metric/label name rules that the tailscaled exporter
-	// uses (e.g. tailscaled_inbound_bytes_total).
+	// classic ASCII metric/label name rules that the lanhcd exporter
+	// uses (e.g. lanhcd_inbound_bytes_total).
 	parser := expfmt.NewTextParser(model.LegacyValidation)
 	mf, err := parser.TextToMetricFamilies(bytes.NewReader(m))
 	if err != nil {
@@ -2381,14 +2381,14 @@ func TestUserMetricsByteCounters(t *testing.T) {
 	t.Logf("Metrics1:\n%s\n", metrics1)
 
 	// Verify that the amount of data recorded in bytes is higher or equal to the data sent
-	inboundBytes1 := parsedMetrics1[`tailscaled_inbound_bytes_total{path="direct_ipv4"}`]
+	inboundBytes1 := parsedMetrics1[`lanhcd_inbound_bytes_total{path="direct_ipv4"}`]
 	if inboundBytes1 < float64(bytesToSend) {
-		t.Errorf(`metrics1, tailscaled_inbound_bytes_total{path="direct_ipv4"}: expected higher (or equal) than %d, got: %f`, bytesToSend, inboundBytes1)
+		t.Errorf(`metrics1, lanhcd_inbound_bytes_total{path="direct_ipv4"}: expected higher (or equal) than %d, got: %f`, bytesToSend, inboundBytes1)
 	}
 
 	// But ensure that it is not too much higher than the data sent.
 	if inboundBytes1 > float64(bytesToSend)*bytesSentTolerance {
-		t.Errorf(`metrics1, tailscaled_inbound_bytes_total{path="direct_ipv4"}: expected lower than %f, got: %f`, float64(bytesToSend)*bytesSentTolerance, inboundBytes1)
+		t.Errorf(`metrics1, lanhcd_inbound_bytes_total{path="direct_ipv4"}: expected lower than %f, got: %f`, float64(bytesToSend)*bytesSentTolerance, inboundBytes1)
 	}
 
 	metrics2, err := lc2.UserMetrics(ctx)
@@ -2404,14 +2404,14 @@ func TestUserMetricsByteCounters(t *testing.T) {
 	t.Logf("Metrics2:\n%s\n", metrics2)
 
 	// Verify that the amount of data recorded in bytes is higher or equal than the data sent.
-	outboundBytes2 := parsedMetrics2[`tailscaled_outbound_bytes_total{path="direct_ipv4"}`]
+	outboundBytes2 := parsedMetrics2[`lanhcd_outbound_bytes_total{path="direct_ipv4"}`]
 	if outboundBytes2 < float64(bytesToSend) {
-		t.Errorf(`metrics2, tailscaled_outbound_bytes_total{path="direct_ipv4"}: expected higher (or equal) than %d, got: %f`, bytesToSend, outboundBytes2)
+		t.Errorf(`metrics2, lanhcd_outbound_bytes_total{path="direct_ipv4"}: expected higher (or equal) than %d, got: %f`, bytesToSend, outboundBytes2)
 	}
 
 	// But ensure that it is not too much higher than the data sent.
 	if outboundBytes2 > float64(bytesToSend)*bytesSentTolerance {
-		t.Errorf(`metrics2, tailscaled_outbound_bytes_total{path="direct_ipv4"}: expected lower than %f, got: %f`, float64(bytesToSend)*bytesSentTolerance, outboundBytes2)
+		t.Errorf(`metrics2, lanhcd_outbound_bytes_total{path="direct_ipv4"}: expected lower than %f, got: %f`, float64(bytesToSend)*bytesSentTolerance, outboundBytes2)
 	}
 }
 
@@ -2497,15 +2497,15 @@ func TestUserMetricsRouteGauges(t *testing.T) {
 	// - 192.0.2.0/24
 	// - 192.0.3.0/24
 	// - 192.0.5.1/32
-	if got, want := parsedMetrics1["tailscaled_advertised_routes"], 3.0; got != want {
-		t.Errorf("metrics1, tailscaled_advertised_routes: got %v, want %v", got, want)
+	if got, want := parsedMetrics1["lanhcd_advertised_routes"], 3.0; got != want {
+		t.Errorf("metrics1, lanhcd_advertised_routes: got %v, want %v", got, want)
 	}
 
 	// The control has approved 2 routes:
 	// - 192.0.2.0/24
 	// - 192.0.5.1/32
-	if got, want := parsedMetrics1["tailscaled_approved_routes"], wantRoutes; got != want {
-		t.Errorf("metrics1, tailscaled_approved_routes: got %v, want %v", got, want)
+	if got, want := parsedMetrics1["lanhcd_approved_routes"], wantRoutes; got != want {
+		t.Errorf("metrics1, lanhcd_approved_routes: got %v, want %v", got, want)
 	}
 
 	metrics2, err := lc2.UserMetrics(ctx)
@@ -2521,13 +2521,13 @@ func TestUserMetricsRouteGauges(t *testing.T) {
 	t.Logf("Metrics2:\n%s\n", metrics2)
 
 	// The node is advertising 0 routes
-	if got, want := parsedMetrics2["tailscaled_advertised_routes"], 0.0; got != want {
-		t.Errorf("metrics2, tailscaled_advertised_routes: got %v, want %v", got, want)
+	if got, want := parsedMetrics2["lanhcd_advertised_routes"], 0.0; got != want {
+		t.Errorf("metrics2, lanhcd_advertised_routes: got %v, want %v", got, want)
 	}
 
 	// The control has approved 0 routes
-	if got, want := parsedMetrics2["tailscaled_approved_routes"], 0.0; got != want {
-		t.Errorf("metrics2, tailscaled_approved_routes: got %v, want %v", got, want)
+	if got, want := parsedMetrics2["lanhcd_approved_routes"], 0.0; got != want {
+		t.Errorf("metrics2, lanhcd_approved_routes: got %v, want %v", got, want)
 	}
 }
 
@@ -2545,8 +2545,8 @@ func waitForCondition(t *testing.T, msg string, waitTime time.Duration, f func()
 func mustDirect(t *testing.T, logf logger.Logf, lc1, lc2 *local.Client) {
 	t.Helper()
 	lastLog := time.Now().Add(-time.Minute)
-	// See https://github.com/tailscale/tailscale/issues/654
-	// and https://github.com/tailscale/tailscale/issues/3247 for discussions of this deadline.
+	// See https://github.com/lanhc/lanhc/issues/654
+	// and https://github.com/lanhc/lanhc/issues/3247 for discussions of this deadline.
 	for deadline := time.Now().Add(30 * time.Second); time.Now().Before(deadline); time.Sleep(10 * time.Millisecond) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -2725,11 +2725,11 @@ func setupTwoClientTest(t *testing.T, useTUN bool) *listenTest {
 	}
 	s2.lb.ForTest().ConfigureCerts(testCertRoot.getCert)
 
-	s1ip4, s1ip6 := s1.TailscaleIPs()
-	s2ip4 := s2status.TailscaleIPs[0]
+	s1ip4, s1ip6 := s1.LanhcIPs()
+	s2ip4 := s2status.LanhcIPs[0]
 	var s2ip6 netip.Addr
-	if len(s2status.TailscaleIPs) > 1 {
-		s2ip6 = s2status.TailscaleIPs[1]
+	if len(s2status.LanhcIPs) > 1 {
+		s2ip6 = s2status.LanhcIPs[1]
 	}
 
 	waitForPeerReachable(t, s1, s2.lb.NodeKey())
@@ -3254,7 +3254,7 @@ func TestDialUDP(t *testing.T) {
 	})
 }
 
-// TestDialUDPInjectedReadRecordsFlowState reproduces tailscale/tailscale#14229
+// TestDialUDPInjectedReadRecordsFlowState reproduces lanhc/lanhc#14229
 // and #20064: a tsnet/netstack client dialing UDP must record reverse-flow
 // state in its inbound filter for the outbound packet it injects via
 // [netstack.Impl] → [tstun.Wrapper.InjectOutboundPacketBuffer]. If it doesn't,
@@ -3392,7 +3392,7 @@ func runDialUDPEcho(t *testing.T, lt *listenTest) {
 }
 
 // buildDNSQuery builds a UDP/IP packet containing a DNS query for name to the
-// Tailscale service IP (100.100.100.100 for IPv4, fd7a:115c:a1e0::53 for IPv6).
+// Lanhc service IP (100.100.100.100 for IPv4, fd7a:115c:a1e0::53 for IPv6).
 func buildDNSQuery(name string, srcIP netip.Addr) []byte {
 	qtype := byte(0x01) // Type A for IPv4
 	if srcIP.Is6() {
@@ -3439,15 +3439,15 @@ func TestDeps(t *testing.T) {
 		BadDeps: map[string]string{
 			"golang.org/x/crypto/ssh":                       "tsnet should not depend on SSH",
 			"golang.org/x/crypto/ssh/internal/bcrypt_pbkdf": "tsnet should not depend on SSH",
-			"tailscale.com/chirp":                           "tsnet should not depend on BIRD integration",
-			"tailscale.com/feature/bird":                    "tsnet should not depend on BIRD integration",
-			"tailscale.com/feature/captiveportal":           "tsnet apps don't need captive portal detection; import it explicitly if desired",
-			"tailscale.com/feature/clientupdate":            "tsnet should not depend on feature/clientupdate",
-			"tailscale.com/feature/remoteconfig":            "tsnet should not depend on feature/remoteconfig",
-			"tailscale.com/feature/syspolicy":               "tsnet should not depend on syspolicy",
-			"tailscale.com/ipn/store/awsstore":              "tsnet callers wanting AWS state storage should import awsstore themselves",
-			"tailscale.com/ipn/store/kubestore":             "tsnet callers wanting Kubernetes state storage should import kubestore themselves",
-			"tailscale.com/wif":                             "tsnet callers wanting workload identity federation should import tailscale.com/feature/identityfederation themselves",
+			"lanhc.com/chirp":                           "tsnet should not depend on BIRD integration",
+			"lanhc.com/feature/bird":                    "tsnet should not depend on BIRD integration",
+			"lanhc.com/feature/captiveportal":           "tsnet apps don't need captive portal detection; import it explicitly if desired",
+			"lanhc.com/feature/clientupdate":            "tsnet should not depend on feature/clientupdate",
+			"lanhc.com/feature/remoteconfig":            "tsnet should not depend on feature/remoteconfig",
+			"lanhc.com/feature/syspolicy":               "tsnet should not depend on syspolicy",
+			"lanhc.com/ipn/store/awsstore":              "tsnet callers wanting AWS state storage should import awsstore themselves",
+			"lanhc.com/ipn/store/kubestore":             "tsnet callers wanting Kubernetes state storage should import kubestore themselves",
+			"lanhc.com/wif":                             "tsnet callers wanting workload identity federation should import lanhc.com/feature/identityfederation themselves",
 		},
 		OnDep: func(dep string) {
 			if strings.Contains(dep, "portlist") ||
@@ -3469,8 +3469,8 @@ func TestResolveAuthKey(t *testing.T) {
 		audience        string
 		oauthAvailable  bool
 		wifAvailable    bool
-		resolveViaOAuth func(ctx context.Context, args tailscale.ResolveAuthKeyArgs) (string, error)
-		resolveViaWIF   func(ctx context.Context, args tailscale.ResolveAuthKeyWIFArgs) (string, error)
+		resolveViaOAuth func(ctx context.Context, args lanhc.ResolveAuthKeyArgs) (string, error)
+		resolveViaWIF   func(ctx context.Context, args lanhc.ResolveAuthKeyWIFArgs) (string, error)
 		wantAuthKey     string
 		wantErr         bool
 		wantErrContains string
@@ -3479,7 +3479,7 @@ func TestResolveAuthKey(t *testing.T) {
 			name:           "success-oauth-client-secret",
 			clientSecret:   "tskey-client-secret-123",
 			oauthAvailable: true,
-			resolveViaOAuth: func(ctx context.Context, args tailscale.ResolveAuthKeyArgs) (string, error) {
+			resolveViaOAuth: func(ctx context.Context, args lanhc.ResolveAuthKeyArgs) (string, error) {
 				if args.AuthKey != "tskey-client-secret-123" {
 					return "", fmt.Errorf("unexpected client secret: %s", args.AuthKey)
 				}
@@ -3492,7 +3492,7 @@ func TestResolveAuthKey(t *testing.T) {
 			name:           "fail-oauth-client-secret",
 			clientSecret:   "tskey-client-secret-123",
 			oauthAvailable: true,
-			resolveViaOAuth: func(ctx context.Context, args tailscale.ResolveAuthKeyArgs) (string, error) {
+			resolveViaOAuth: func(ctx context.Context, args lanhc.ResolveAuthKeyArgs) (string, error) {
 				return "", fmt.Errorf("resolution failed")
 			},
 			wantErrContains: "resolution failed",
@@ -3502,7 +3502,7 @@ func TestResolveAuthKey(t *testing.T) {
 			clientID:     "client-id-123",
 			idToken:      "id-token-456",
 			wifAvailable: true,
-			resolveViaWIF: func(ctx context.Context, args tailscale.ResolveAuthKeyWIFArgs) (string, error) {
+			resolveViaWIF: func(ctx context.Context, args lanhc.ResolveAuthKeyWIFArgs) (string, error) {
 				if args.ClientID != "client-id-123" {
 					return "", fmt.Errorf("unexpected client ID: %s", args.ClientID)
 				}
@@ -3517,13 +3517,13 @@ func TestResolveAuthKey(t *testing.T) {
 		{
 			name:         "success-federated-audience",
 			clientID:     "client-id-123",
-			audience:     "api.tailscale.com",
+			audience:     "api.lanhc.com",
 			wifAvailable: true,
-			resolveViaWIF: func(ctx context.Context, args tailscale.ResolveAuthKeyWIFArgs) (string, error) {
+			resolveViaWIF: func(ctx context.Context, args lanhc.ResolveAuthKeyWIFArgs) (string, error) {
 				if args.ClientID != "client-id-123" {
 					return "", fmt.Errorf("unexpected client ID: %s", args.ClientID)
 				}
-				if args.Audience != "api.tailscale.com" {
+				if args.Audience != "api.lanhc.com" {
 					return "", fmt.Errorf("unexpected audience: %s", args.Audience)
 				}
 				return "tskey-auth-via-wif", nil
@@ -3536,7 +3536,7 @@ func TestResolveAuthKey(t *testing.T) {
 			clientID:     "client-id-123",
 			idToken:      "id-token-456",
 			wifAvailable: true,
-			resolveViaWIF: func(ctx context.Context, args tailscale.ResolveAuthKeyWIFArgs) (string, error) {
+			resolveViaWIF: func(ctx context.Context, args lanhc.ResolveAuthKeyWIFArgs) (string, error) {
 				return "", fmt.Errorf("resolution failed")
 			},
 			wantErrContains: "resolution failed",
@@ -3546,7 +3546,7 @@ func TestResolveAuthKey(t *testing.T) {
 			clientID:     "",
 			idToken:      "id-token-456",
 			wifAvailable: true,
-			resolveViaWIF: func(ctx context.Context, args tailscale.ResolveAuthKeyWIFArgs) (string, error) {
+			resolveViaWIF: func(ctx context.Context, args lanhc.ResolveAuthKeyWIFArgs) (string, error) {
 				return "", fmt.Errorf("should not be called")
 			},
 			wantErrContains: "empty",
@@ -3554,9 +3554,9 @@ func TestResolveAuthKey(t *testing.T) {
 		{
 			name:         "empty-client-id-with-audience",
 			clientID:     "",
-			audience:     "api.tailscale.com",
+			audience:     "api.lanhc.com",
 			wifAvailable: true,
-			resolveViaWIF: func(ctx context.Context, args tailscale.ResolveAuthKeyWIFArgs) (string, error) {
+			resolveViaWIF: func(ctx context.Context, args lanhc.ResolveAuthKeyWIFArgs) (string, error) {
 				return "", fmt.Errorf("should not be called")
 			},
 			wantErrContains: "empty",
@@ -3566,7 +3566,7 @@ func TestResolveAuthKey(t *testing.T) {
 			clientID:     "client-id-123",
 			idToken:      "",
 			wifAvailable: true,
-			resolveViaWIF: func(ctx context.Context, args tailscale.ResolveAuthKeyWIFArgs) (string, error) {
+			resolveViaWIF: func(ctx context.Context, args lanhc.ResolveAuthKeyWIFArgs) (string, error) {
 				return "", fmt.Errorf("should not be called")
 			},
 			wantErrContains: "empty",
@@ -3575,9 +3575,9 @@ func TestResolveAuthKey(t *testing.T) {
 			name:         "audience-with-id-token",
 			clientID:     "client-id-123",
 			idToken:      "id-token-456",
-			audience:     "api.tailscale.com",
+			audience:     "api.lanhc.com",
 			wifAvailable: true,
-			resolveViaWIF: func(ctx context.Context, args tailscale.ResolveAuthKeyWIFArgs) (string, error) {
+			resolveViaWIF: func(ctx context.Context, args lanhc.ResolveAuthKeyWIFArgs) (string, error) {
 				return "", fmt.Errorf("should not be called")
 			},
 			wantErrContains: "only one of ID token and audience",
@@ -3586,14 +3586,14 @@ func TestResolveAuthKey(t *testing.T) {
 			name:           "wif-skipped-oauth-succeeds",
 			clientSecret:   "tskey-client-secret-123",
 			oauthAvailable: true,
-			resolveViaOAuth: func(ctx context.Context, args tailscale.ResolveAuthKeyArgs) (string, error) {
+			resolveViaOAuth: func(ctx context.Context, args lanhc.ResolveAuthKeyArgs) (string, error) {
 				if args.AuthKey != "tskey-client-secret-123" {
 					return "", fmt.Errorf("unexpected client secret: %s", args.AuthKey)
 				}
 				return "tskey-auth-via-oauth", nil
 			},
 			wifAvailable: true,
-			resolveViaWIF: func(ctx context.Context, args tailscale.ResolveAuthKeyWIFArgs) (string, error) {
+			resolveViaWIF: func(ctx context.Context, args lanhc.ResolveAuthKeyWIFArgs) (string, error) {
 				return "", fmt.Errorf("should not be called")
 			},
 			wantAuthKey:     "tskey-auth-via-oauth",
@@ -3604,11 +3604,11 @@ func TestResolveAuthKey(t *testing.T) {
 			clientID:       "tskey-client-id-123",
 			idToken:        "",
 			oauthAvailable: true,
-			resolveViaOAuth: func(ctx context.Context, args tailscale.ResolveAuthKeyArgs) (string, error) {
+			resolveViaOAuth: func(ctx context.Context, args lanhc.ResolveAuthKeyArgs) (string, error) {
 				return "", fmt.Errorf("resolution failed")
 			},
 			wifAvailable: true,
-			resolveViaWIF: func(ctx context.Context, args tailscale.ResolveAuthKeyWIFArgs) (string, error) {
+			resolveViaWIF: func(ctx context.Context, args lanhc.ResolveAuthKeyWIFArgs) (string, error) {
 				return "", fmt.Errorf("should not be called")
 			},
 			wantErrContains: "failed",
@@ -3632,7 +3632,7 @@ func TestResolveAuthKey(t *testing.T) {
 			name:           "authkey-client-secret-oauth-succeeds",
 			authKey:        "tskey-client-secret-123",
 			oauthAvailable: true,
-			resolveViaOAuth: func(ctx context.Context, args tailscale.ResolveAuthKeyArgs) (string, error) {
+			resolveViaOAuth: func(ctx context.Context, args lanhc.ResolveAuthKeyArgs) (string, error) {
 				if args.AuthKey != "tskey-client-secret-123" {
 					return "", fmt.Errorf("unexpected client secret: %s", args.AuthKey)
 				}
@@ -3645,7 +3645,7 @@ func TestResolveAuthKey(t *testing.T) {
 			name:           "authkey-client-secret-oauth-fails",
 			authKey:        "tskey-client-secret-123",
 			oauthAvailable: true,
-			resolveViaOAuth: func(ctx context.Context, args tailscale.ResolveAuthKeyArgs) (string, error) {
+			resolveViaOAuth: func(ctx context.Context, args lanhc.ResolveAuthKeyArgs) (string, error) {
 				return "", fmt.Errorf("resolution failed")
 			},
 			wantErrContains: "resolution failed",
@@ -3655,11 +3655,11 @@ func TestResolveAuthKey(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.oauthAvailable {
-				t.Cleanup(tailscale.HookResolveAuthKey.SetForTest(tt.resolveViaOAuth))
+				t.Cleanup(lanhc.HookResolveAuthKey.SetForTest(tt.resolveViaOAuth))
 			}
 
 			if tt.wifAvailable {
-				t.Cleanup(tailscale.HookResolveAuthKeyViaWIF.SetForTest(tt.resolveViaWIF))
+				t.Cleanup(lanhc.HookResolveAuthKeyViaWIF.SetForTest(tt.resolveViaWIF))
 			}
 
 			s := &Server{
@@ -3726,7 +3726,7 @@ func TestSelfDial(t *testing.T) {
 		connc <- c
 	}()
 
-	// Self-dial: the same server dials its own Tailscale IP.
+	// Self-dial: the same server dials its own Lanhc IP.
 	w, err := s1.Dial(ctx, "tcp", fmt.Sprintf("%s:8081", s1ip))
 	if err != nil {
 		t.Fatalf("self-dial failed: %v", err)
@@ -3771,7 +3771,7 @@ func TestSelfDial(t *testing.T) {
 
 // TestListenUnspecifiedAddr verifies that listening on 0.0.0.0 or [::] works
 // the same as listening on an empty host (":port"), accepting connections
-// destined to the node's Tailscale IPs.
+// destined to the node's Lanhc IPs.
 func TestListenUnspecifiedAddr(t *testing.T) {
 	testUnspec := func(t *testing.T, lt *listenTest, addr, dialPort string) {
 		ln, err := lt.s2.Listen("tcp", addr)

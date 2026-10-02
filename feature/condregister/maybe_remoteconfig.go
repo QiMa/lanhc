@@ -5,4 +5,4 @@
 
 package condregister
 
-import _ "tailscale.com/feature/remoteconfig"
+import _ "lanhc.com/feature/remoteconfig"

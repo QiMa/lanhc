@@ -22,15 +22,15 @@ import (
 	"time"
 
 	dns "golang.org/x/net/dns/dnsmessage"
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/health"
-	"tailscale.com/net/dns/publicdns"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/tstest"
-	"tailscale.com/types/dnstype"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/eventbus/eventbustest"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/health"
+	"lanhc.com/net/dns/publicdns"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/tstest"
+	"lanhc.com/types/dnstype"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/eventbus/eventbustest"
 )
 
 func (rr resolverAndDelay) String() string {
@@ -338,8 +338,8 @@ func BenchmarkNameFromQuery(b *testing.B) {
 	}
 }
 
-// Reproduces https://github.com/tailscale/tailscale/issues/2533
-// Fixed by https://github.com/tailscale/tailscale/commit/f414a9cc01f3264912513d07c0244ff4f3e4ba54
+// Reproduces https://github.com/lanhc/lanhc/issues/2533
+// Fixed by https://github.com/lanhc/lanhc/commit/f414a9cc01f3264912513d07c0244ff4f3e4ba54
 //
 // NOTE: fuzz tests act like unit tests when run without `-fuzz`
 func FuzzClampEDNSSize(f *testing.F) {
@@ -1036,7 +1036,7 @@ func TestCheckResponseSizeAndSetTC(t *testing.T) {
 }
 
 func TestForwarderTCPFallback(t *testing.T) {
-	const domain = "large-dns-response.tailscale.com."
+	const domain = "large-dns-response.lanhc.com."
 
 	// Make a response that's very large, containing a bunch of localhost addresses.
 	request, largeResponse := makeLargeResponse(t, domain)
@@ -1074,7 +1074,7 @@ func TestForwarderTCPFallback(t *testing.T) {
 // Test to ensure that if the UDP listener is unresponsive, we always make a
 // TCP request even if we never get a response.
 func TestForwarderTCPFallbackTimeout(t *testing.T) {
-	const domain = "large-dns-response.tailscale.com."
+	const domain = "large-dns-response.lanhc.com."
 
 	// Make a response that's very large, containing a bunch of localhost addresses.
 	request, largeResponse := makeLargeResponse(t, domain)
@@ -1104,7 +1104,7 @@ func TestForwarderTCPFallbackTimeout(t *testing.T) {
 }
 
 func TestForwarderTCPFallbackDisabled(t *testing.T) {
-	const domain = "large-dns-response.tailscale.com."
+	const domain = "large-dns-response.lanhc.com."
 
 	// Make a response that's very large, containing a bunch of localhost addresses.
 	request, largeResponse := makeLargeResponse(t, domain)
@@ -1143,7 +1143,7 @@ func TestForwarderTCPFallbackDisabled(t *testing.T) {
 
 // Test to ensure that we propagate DNS errors
 func TestForwarderTCPFallbackError(t *testing.T) {
-	const domain = "error-response.tailscale.com."
+	const domain = "error-response.lanhc.com."
 
 	// Our response is a SERVFAIL
 	response := makeTestResponse(t, domain, dns.RCodeServerFailure)
@@ -1358,7 +1358,7 @@ func TestNXDOMAINIncludesQuestion(t *testing.T) {
 }
 
 func TestForwarderVerboseLogs(t *testing.T) {
-	const domain = "test.tailscale.com."
+	const domain = "test.lanhc.com."
 	response := makeTestResponse(t, domain, dns.RCodeServerFailure)
 	request := makeTestRequest(t, domain, dns.TypeA, 0)
 
@@ -1474,7 +1474,7 @@ func TestForwarderHealthOnContextExpiry(t *testing.T) {
 // TestForwarderHealthNoUpstreamResolvers verifies that a query with no upstream
 // resolver never raises dnsForwarderFailing, regardless of acceptDNS; that
 // warning is reserved for resolvers we found but couldn't reach (see
-// TestForwarderHealthOnContextExpiry). See tailscale/tailscale#19931.
+// TestForwarderHealthOnContextExpiry). See lanhc/lanhc#19931.
 func TestForwarderHealthNoUpstreamResolvers(t *testing.T) {
 	const domain = "no-resolver.example.com."
 

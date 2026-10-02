@@ -6,8 +6,8 @@ package udprelay
 import (
 	"expvar"
 
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/usermetric"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/usermetric"
 )
 
 var (
@@ -75,19 +75,19 @@ func registerMetrics(reg *usermetric.Registry) *metrics {
 	var (
 		uMetricForwardedPackets = usermetric.NewMultiLabelMapWithRegistry[forwardedLabel](
 			reg,
-			"tailscaled_peer_relay_forwarded_packets_total",
+			"lanhcd_peer_relay_forwarded_packets_total",
 			"counter",
 			"Number of packets forwarded via Peer Relay",
 		)
 		uMetricForwardedBytes = usermetric.NewMultiLabelMapWithRegistry[forwardedLabel](
 			reg,
-			"tailscaled_peer_relay_forwarded_bytes_total",
+			"lanhcd_peer_relay_forwarded_bytes_total",
 			"counter",
 			"Number of bytes forwarded via Peer Relay",
 		)
 		uMetricEndpoints = usermetric.NewMultiLabelMapWithRegistry[endpointLabel](
 			reg,
-			"tailscaled_peer_relay_endpoints",
+			"lanhcd_peer_relay_endpoints",
 			"gauge",
 			"Number of allocated Peer Relay endpoints",
 		)

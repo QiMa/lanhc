@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// The genreadme tool generates/updates README.md files in the tailscale repo.
+// The genreadme tool generates/updates README.md files in the lanhc repo.
 //
 // # Running
 //
@@ -26,7 +26,7 @@ import (
 	"strings"
 
 	"github.com/creachadair/taskgroup"
-	"tailscale.com/tempfork/pkgdoc"
+	"lanhc.com/tempfork/pkgdoc"
 )
 
 // modulePath is the current module's import path, read from go.mod at startup.
@@ -199,7 +199,7 @@ func genGoDoc(dir string) ([]byte, error) {
 			fmt.Fprint(&buf, "\n## Deploying\n\n")
 			if hasBuildkite(dir) {
 				fmt.Fprintf(&buf,
-					"To deploy, run the https://buildkite.com/tailscale/deploy-%s workflow in Buildkite.\n",
+					"To deploy, run the https://buildkite.com/lanhc/deploy-%s workflow in Buildkite.\n",
 					filepath.Base(dir),
 				)
 			}

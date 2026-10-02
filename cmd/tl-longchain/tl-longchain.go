@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Program tl-longchain prints commands to re-sign Tailscale nodes that have
+// Program tl-longchain prints commands to re-sign Lanhc nodes that have
 // long rotation signature chains.
 //
 // There is an implicit limit on the number of rotation signatures that can
@@ -10,9 +10,9 @@
 // prints commands to re-sign those node keys with a fresh direct signature.
 // Commands are printed to stdout, while log messages are printed to stderr.
 //
-// Note that the Tailscale client this command is executed on must have
+// Note that the Lanhc client this command is executed on must have
 // ACL visibility to all other nodes to be able to see their signatures.
-// https://tailscale.com/kb/1087/device-visibility
+// https://lanhc.com/kb/1087/device-visibility
 package main
 
 import (
@@ -22,14 +22,14 @@ import (
 	"log"
 	"time"
 
-	"tailscale.com/client/local"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/tka"
-	"tailscale.com/types/key"
+	"lanhc.com/client/local"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/tka"
+	"lanhc.com/types/key"
 )
 
 var (
-	flagSocket   = flag.String("socket", "", "custom path to tailscaled socket")
+	flagSocket   = flag.String("socket", "", "custom path to lanhcd socket")
 	maxRotations = flag.Int("rotations", 10, "number of rotation signatures before re-signing (max 16)")
 	showFiltered = flag.Bool("show-filtered", false, "include nodes with invalid signatures")
 )
@@ -70,7 +70,7 @@ func main() {
 
 // peerInfo returns a string with information about a peer.
 func peerInfo(peer *ipnstate.TKAPeer) string {
-	return fmt.Sprintf("Peer %s (%s) nodeid=%s, current signature kind=%v", peer.Name, peer.TailscaleIPs[0], peer.StableID, peer.NodeKeySignature.SigKind)
+	return fmt.Sprintf("Peer %s (%s) nodeid=%s, current signature kind=%v", peer.Name, peer.LanhcIPs[0], peer.StableID, peer.NodeKeySignature.SigKind)
 }
 
 // print prints a message about a node key signature and a re-signing command if needed.
@@ -78,7 +78,7 @@ func print(info string, nodeKey key.NodePublic, sig tka.NodeKeySignature) {
 	if ln := chainLength(sig); ln > *maxRotations {
 		log.Printf("%s: chain length %d, printing command to re-sign", info, ln)
 		wrapping, _ := sig.UnverifiedWrappingPublic()
-		fmt.Printf("tailscale lock sign %s %s\n", nodeKey, key.NLPublicFromEd25519Unsafe(wrapping).CLIString())
+		fmt.Printf("lanhc lock sign %s %s\n", nodeKey, key.NLPublicFromEd25519Unsafe(wrapping).CLIString())
 	} else {
 		log.Printf("%s: does not need re-signing", info)
 	}

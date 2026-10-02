@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/tstest/natlab/vnet"
+	"lanhc.com/tstest/natlab/vnet"
 )
 
 var (
@@ -24,8 +24,8 @@ var (
 // throughput, opt-in via --run-perf-tests (in addition to
 // --run-vm-tests). It boots a single FreeBSD VM on one vnet network and
 // waits only for its TTA agent to connect, which requires the VM to have
-// downloaded tailscaled, tailscale, and tta from the vnet's
-// files.tailscale VIP. The elapsed time is dominated by that download,
+// downloaded lanhcd, lanhc, and tta from the vnet's
+// files.lanhc VIP. The elapsed time is dominated by that download,
 // so the test duration is the benchmark metric.
 func TestVnetPerfFreeBSDDownload(t *testing.T) {
 	if !*runPerfTests {

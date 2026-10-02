@@ -14,7 +14,7 @@ import (
 // Verify that the files tempfork/acme/*.go (other than this test file) match the
 // files in "github.com/tailscale/golang-x-crypto/acme" which is where we develop
 // our fork of golang.org/x/crypto/acme and merge with upstream, but then we vendor
-// just its acme package into tailscale.com/tempfork/acme.
+// just its acme package into lanhc.com/tempfork/acme.
 //
 // Development workflow:
 //
@@ -22,12 +22,12 @@ import (
 //   - merge it (ideally with golang.org/x/crypto/acme too)
 //   - rebase github.com/tailscale/golang-x-crypto/acme with upstream x/crypto/acme
 //     as needed
-//   - in the tailscale.com repo, run "go get github.com/tailscale/golang-x-crypto/acme@main"
+//   - in the lanhc.com repo, run "go get github.com/tailscale/golang-x-crypto/acme@main"
 //   - run go test ./tempfork/acme to watch it fail; the failure includes
-//     a shell command you should run to copy the *.go files from tailscale/golang-x-crypto
-//     to tailscale.com.
+//     a shell command you should run to copy the *.go files from lanhc/golang-x-crypto
+//     to lanhc.com.
 //   - watch tests pass. git add it all.
-//   - send PR to tailscale.com
+//   - send PR to lanhc.com
 func TestSyncedToUpstream(t *testing.T) {
 	const pkg = "github.com/tailscale/golang-x-crypto/acme"
 	out, err := exec.Command("go", "list", "-f", "{{.Dir}}", pkg).Output()

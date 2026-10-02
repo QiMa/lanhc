@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// gocross is a wrapper around the `go` tool that invokes `go` from Tailscale's
+// gocross is a wrapper around the `go` tool that invokes `go` from Lanhc's
 // custom toolchain, with the right build parameters injected based on the
 // native+target GOOS/GOARCH.
 //
@@ -18,13 +18,13 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"tailscale.com/atomicfile"
+	"lanhc.com/atomicfile"
 )
 
 func main() {
 	if len(os.Args) > 1 {
 		// These additional subcommands are various support commands to handle
-		// integration with Tailscale's existing build system. Unless otherwise
+		// integration with Lanhc's existing build system. Unless otherwise
 		// specified, these are not stable APIs, and may change or go away at
 		// any time.
 		switch os.Args[1] {

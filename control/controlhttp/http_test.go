@@ -23,21 +23,21 @@ import (
 	"testing/synctest"
 	"time"
 
-	"tailscale.com/control/controlbase"
-	"tailscale.com/control/controlhttp/controlhttpcommon"
-	"tailscale.com/control/controlhttp/controlhttpserver"
-	"tailscale.com/health"
-	"tailscale.com/net/memnet"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/socks5"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/tstime"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/eventbus/eventbustest"
-	"tailscale.com/util/must"
+	"lanhc.com/control/controlbase"
+	"lanhc.com/control/controlhttp/controlhttpcommon"
+	"lanhc.com/control/controlhttp/controlhttpserver"
+	"lanhc.com/health"
+	"lanhc.com/net/memnet"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/socks5"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/tstime"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/eventbus/eventbustest"
+	"lanhc.com/util/must"
 )
 
 type httpTestParam struct {
@@ -624,7 +624,7 @@ func TestDialPlan(t *testing.T) {
 			allowFallback: true,
 		},
 		{
-			// In tailscale/corp#32534 we discovered that a prior implementation
+			// In lanhc/corp#32534 we discovered that a prior implementation
 			// of the dial race was waiting for all dials to complete when the
 			// top priority dial was failing. This delay was long enough that in
 			// real scenarios the server will close the connection due to

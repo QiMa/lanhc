@@ -17,12 +17,12 @@ import (
 	"strings"
 	"unicode"
 
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/health"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/set"
-	"tailscale.com/util/syspolicy/policyclient"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/health"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/set"
+	"lanhc.com/util/syspolicy/policyclient"
 )
 
 func NewOSConfigurator(logf logger.Logf, ht *health.Tracker, _ *eventbus.Bus, _ policyclient.Client, knobs *controlknobs.Knobs, interfaceName string) (OSConfigurator, error) {
@@ -39,15 +39,15 @@ type plan9DNSManager struct {
 	knobs *controlknobs.Knobs
 }
 
-// netNDBBytesWithoutTailscale returns raw (the contents of /net/ndb) with any
-// Tailscale bits removed.
-func netNDBBytesWithoutTailscale(raw []byte) ([]byte, error) {
+// netNDBBytesWithoutLanhc returns raw (the contents of /net/ndb) with any
+// Lanhc bits removed.
+func netNDBBytesWithoutLanhc(raw []byte) ([]byte, error) {
 	var ret bytes.Buffer
 	bs := bufio.NewScanner(bytes.NewReader(raw))
 	removeLine := set.Set[string]{}
 	for bs.Scan() {
 		t := bs.Text()
-		if rest, ok := strings.CutPrefix(t, "#tailscaled-added-line:"); ok {
+		if rest, ok := strings.CutPrefix(t, "#lanhcd-added-line:"); ok {
 			removeLine.Add(strings.TrimSpace(rest))
 			continue
 		}
@@ -58,8 +58,8 @@ func netNDBBytesWithoutTailscale(raw []byte) ([]byte, error) {
 		}
 
 		// Also remove any DNS line referencing *.ts.net. This is
-		// Tailscale-specific (and won't work with, say, Headscale), but
-		// the Headscale case will be covered by the #tailscaled-added-line
+		// Lanhc-specific (and won't work with, say, Headscale), but
+		// the Headscale case will be covered by the #lanhcd-added-line
 		// logic above, assuming the user didn't delete those comments.
 		if (strings.HasPrefix(trimmed, "dns=") || strings.Contains(trimmed, "dnsdomain=")) &&
 			strings.HasSuffix(trimmed, ".ts.net") {
@@ -73,7 +73,7 @@ func netNDBBytesWithoutTailscale(raw []byte) ([]byte, error) {
 }
 
 // setNDBSuffix adds lines to tsFree (the contents of /net/ndb already cleaned
-// of Tailscale-added lines) to add the optional DNS search domain (e.g.
+// of Lanhc-added lines) to add the optional DNS search domain (e.g.
 // "foo.ts.net") and DNS server to it.
 func setNDBSuffix(tsFree []byte, suffix string) []byte {
 	suffix = strings.TrimSuffix(suffix, ".")
@@ -103,7 +103,7 @@ func setNDBSuffix(tsFree []byte, suffix string) []byte {
 	}
 	var ret bytes.Buffer
 	for _, s := range added {
-		ret.WriteString("#tailscaled-added-line: ")
+		ret.WriteString("#lanhcd-added-line: ")
 		ret.WriteString(s)
 		ret.WriteString("\n")
 	}
@@ -118,7 +118,7 @@ func (m *plan9DNSManager) SetDNS(c OSConfig) error {
 		return err
 	}
 
-	tsFree, err := netNDBBytesWithoutTailscale(ndbOnDisk)
+	tsFree, err := netNDBBytesWithoutLanhc(ndbOnDisk)
 	if err != nil {
 		return err
 	}
@@ -150,7 +150,7 @@ func (m *plan9DNSManager) SetDNS(c OSConfig) error {
 func (m *plan9DNSManager) SupportsSplitDNS() bool { return false }
 
 func (m *plan9DNSManager) Close() error {
-	// TODO(bradfitz): remove the Tailscale bits from /net/ndb ideally
+	// TODO(bradfitz): remove the Lanhc bits from /net/ndb ideally
 	return nil
 }
 

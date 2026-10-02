@@ -23,17 +23,17 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 
-	"tailscale.com/client/local"
-	"tailscale.com/kube/egressservices"
-	"tailscale.com/kube/kubeclient"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/types/views"
-	"tailscale.com/util/httpm"
-	"tailscale.com/util/linuxfw"
-	"tailscale.com/util/mak"
+	"lanhc.com/client/local"
+	"lanhc.com/kube/egressservices"
+	"lanhc.com/kube/kubeclient"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/types/views"
+	"lanhc.com/util/httpm"
+	"lanhc.com/util/linuxfw"
+	"lanhc.com/util/mak"
 )
 
-const tailscaleTunInterface = "tailscale0"
+const lanhcTunInterface = "lanhc0"
 
 // Modified using a build flag to speed up tests.
 var testSleepDuration string
@@ -252,7 +252,7 @@ func (ep *egressProxy) syncEgressConfigs(cfgs egressservices.Configs, status *eg
 				if err := ep.nfr.EnsureSNATForDst(local, t); err != nil {
 					return nil, fmt.Errorf("error setting up SNAT rule: %w", err)
 				}
-				if err := ep.nfr.ClampMSSToPMTU(tailscaleTunInterface, t); err != nil {
+				if err := ep.nfr.ClampMSSToPMTU(lanhcTunInterface, t); err != nil {
 					return nil, fmt.Errorf("error clamping MSS to PMTU: %w", err)
 				}
 			}
@@ -549,7 +549,7 @@ func ensureServiceDeleted(svcName string, svc *egressservices.ServiceStatus, nfr
 		pms = append(pms, linuxfw.PortMap{MatchPort: pm.MatchPort, TargetPort: pm.TargetPort, Protocol: pm.Protocol})
 	}
 
-	if err := nfr.DeleteSvc(svcName, tailscaleTunInterface, svc.TailnetTargetIPs, pms); err != nil {
+	if err := nfr.DeleteSvc(svcName, lanhcTunInterface, svc.TailnetTargetIPs, pms); err != nil {
 		return fmt.Errorf("error deleting service %s: %w", svcName, err)
 	}
 	return nil
@@ -564,7 +564,7 @@ func ensureRulesAdded(rulesPerSvc map[string][]rule, nfr linuxfw.NetfilterRunner
 	for svc, rules := range rulesPerSvc {
 		for _, rule := range rules {
 			log.Printf("ensureRulesAdded svc %s tailnetTarget %s container port %d tailnet port %d protocol %s", svc, rule.tailnetIP, rule.containerPort, rule.tailnetPort, rule.protocol)
-			if err := nfr.EnsurePortMapRuleForSvc(svc, tailscaleTunInterface, rule.tailnetIP, linuxfw.PortMap{MatchPort: rule.containerPort, TargetPort: rule.tailnetPort, Protocol: rule.protocol}); err != nil {
+			if err := nfr.EnsurePortMapRuleForSvc(svc, lanhcTunInterface, rule.tailnetIP, linuxfw.PortMap{MatchPort: rule.containerPort, TargetPort: rule.tailnetPort, Protocol: rule.protocol}); err != nil {
 				return fmt.Errorf("error ensuring rule: %w", err)
 			}
 		}
@@ -579,7 +579,7 @@ func ensureRulesDeleted(rulesPerSvc map[string][]rule, nfr linuxfw.NetfilterRunn
 	for svc, rules := range rulesPerSvc {
 		for _, rule := range rules {
 			log.Printf("ensureRulesDeleted svc %s tailnetTarget %s container port %d tailnet port %d protocol %s", svc, rule.tailnetIP, rule.containerPort, rule.tailnetPort, rule.protocol)
-			if err := nfr.DeletePortMapRuleForSvc(svc, tailscaleTunInterface, rule.tailnetIP, linuxfw.PortMap{MatchPort: rule.containerPort, TargetPort: rule.tailnetPort, Protocol: rule.protocol}); err != nil {
+			if err := nfr.DeletePortMapRuleForSvc(svc, lanhcTunInterface, rule.tailnetIP, linuxfw.PortMap{MatchPort: rule.containerPort, TargetPort: rule.tailnetPort, Protocol: rule.protocol}); err != nil {
 				return fmt.Errorf("error deleting rule: %w", err)
 			}
 		}

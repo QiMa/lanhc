@@ -3,7 +3,7 @@
 
 // This file's built on iOS and on two of three macOS build variants:
 // the two GUI variants that both use Extensions (Network Extension
-// and System Extension). It's not used on tailscaled-on-macOS.
+// and System Extension). It's not used on lanhcd-on-macOS.
 
 //go:build ts_macext && (darwin || ios)
 
@@ -14,7 +14,7 @@ import (
 	"net"
 	"syscall"
 
-	"tailscale.com/net/netns"
+	"lanhc.com/net/netns"
 )
 
 func init() {

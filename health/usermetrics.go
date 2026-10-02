@@ -8,8 +8,8 @@ package health
 import (
 	"expvar"
 
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/util/usermetric"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/util/usermetric"
 )
 
 const MetricLabelWarning = "warning"
@@ -32,7 +32,7 @@ func (t *Tracker) SetMetricsRegistry(reg *usermetric.Registry) {
 
 	m := usermetric.NewMultiLabelMapWithRegistry[metricHealthMessageLabel](
 		reg,
-		"tailscaled_health_messages",
+		"lanhcd_health_messages",
 		"gauge",
 		"Number of health messages broken down by type.",
 	)

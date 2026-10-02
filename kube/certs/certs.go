@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // Package certs implements logic to help multiple Kubernetes replicas share TLS
-// certs for a common Tailscale Service.
+// certs for a common Lanhc Service.
 package certs
 
 import (
@@ -15,12 +15,12 @@ import (
 	"syscall"
 	"time"
 
-	"tailscale.com/client/local"
-	"tailscale.com/ipn"
-	"tailscale.com/kube/localclient"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/goroutines"
-	"tailscale.com/util/mak"
+	"lanhc.com/client/local"
+	"lanhc.com/ipn"
+	"lanhc.com/kube/localclient"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/goroutines"
+	"lanhc.com/util/mak"
 )
 
 // CertManager is responsible for issuing certificates for known domains and for
@@ -190,7 +190,7 @@ func (cm *CertManager) runCertLoop(ctx context.Context, domain string) {
 			// so we should not run into redundant issuances during concurrent
 			// renewal checks.
 			//
-			// Long enough to cover queue contention behind tailscaled's
+			// Long enough to cover queue contention behind lanhcd's
 			// shared cert mutex; if it fires, something is wedged.
 			ctxT, cancel := context.WithTimeout(ctx, 30*time.Minute)
 			_, _, err := cm.lc.CertPair(ctxT, domain)

@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package ipnstate captures the entire state of the Tailscale network.
+// Package ipnstate captures the entire state of the Lanhc network.
 //
 // It's a leaf package so ipn, wgengine, and magicsock can all depend on it.
 package ipnstate
@@ -17,15 +17,15 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/tailcfg"
-	"tailscale.com/tka"
-	"tailscale.com/types/key"
-	"tailscale.com/types/views"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/version"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tka"
+	"lanhc.com/types/key"
+	"lanhc.com/types/views"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/version"
 )
 
-//go:generate go run tailscale.com/cmd/cloner  -clonefunc=false -type=TKAPeer
+//go:generate go run lanhc.com/cmd/cloner  -clonefunc=false -type=TKAPeer
 
 // Status represents the entire state of the IPN network.
 type Status struct {
@@ -45,7 +45,7 @@ type Status struct {
 	HaveNodeKey bool `json:",omitempty"`
 
 	AuthURL      string       // current URL provided by control to authorize client
-	TailscaleIPs []netip.Addr // Tailscale IP(s) assigned to this node
+	LanhcIPs []netip.Addr // Lanhc IP(s) assigned to this node
 	Self         *PeerStatus
 
 	// ExitNodeStatus describes the current exit node.
@@ -84,7 +84,7 @@ type Status struct {
 	User map[tailcfg.UserID]tailcfg.UserProfile
 
 	// ClientVersion, when non-nil, contains information about the latest
-	// version of the Tailscale client that's available. Depending on
+	// version of the Lanhc client that's available. Depending on
 	// the platform and client settings, it may not be available.
 	ClientVersion *tailcfg.ClientVersion
 }
@@ -102,7 +102,7 @@ type TKAPeer struct {
 	Name             string // DNS
 	ID               tailcfg.NodeID
 	StableID         tailcfg.StableNodeID
-	TailscaleIPs     []netip.Addr // Tailscale IP(s) assigned to this node
+	LanhcIPs     []netip.Addr // Lanhc IP(s) assigned to this node
 	NodeKey          key.NodePublic
 	NodeKeySignature tka.NodeKeySignature
 }
@@ -167,13 +167,13 @@ type TailnetLockUpdate struct {
 // Deprecated: use [TailnetLockUpdate] instead.
 type NetworkLockUpdate = TailnetLockUpdate
 
-// TailnetStatus is information about a Tailscale network ("tailnet").
+// TailnetStatus is information about a Lanhc network ("tailnet").
 type TailnetStatus struct {
 	// Name is the name of the network that's currently in use.
 	Name string
 
 	// MagicDNSSuffix is the network's MagicDNS suffix for nodes
-	// in the network such as "userfoo.tailscale.net".
+	// in the network such as "userfoo.lanhc.net".
 	// There are no surrounding dots.
 	// MagicDNSSuffix should be populated regardless of whether a domain
 	// has MagicDNS enabled.
@@ -193,8 +193,8 @@ type ExitNodeStatus struct {
 	// Online is whether the exit node is alive.
 	Online bool
 
-	// TailscaleIPs are the exit node's IP addresses assigned to the node.
-	TailscaleIPs []netip.Prefix
+	// LanhcIPs are the exit node's IP addresses assigned to the node.
+	LanhcIPs []netip.Prefix
 }
 
 func (s *Status) Peers() []key.NodePublic {
@@ -219,7 +219,7 @@ type PeerStatusLite struct {
 	// approximately the same thing.)
 	//
 	// The time.Time zero value means that no handshake has succeeded, at least
-	// since this peer was last known to WireGuard. (Tailscale removes peers
+	// since this peer was last known to WireGuard. (Lanhc removes peers
 	// from the wireguard peer that are idle.)
 	LastHandshake time.Time
 }
@@ -246,18 +246,18 @@ type PeerStatus struct {
 	// if it's different than UserID. Otherwise it's zero.
 	AltSharerUserID tailcfg.UserID `json:",omitempty"`
 
-	// TailscaleIPs are the IP addresses assigned to the node.
-	TailscaleIPs []netip.Addr
+	// LanhcIPs are the IP addresses assigned to the node.
+	LanhcIPs []netip.Addr
 	// AllowedIPs are IP addresses allowed to route to this node.
 	AllowedIPs *views.Slice[netip.Prefix] `json:",omitempty"`
 
 	// Tags are the list of ACL tags applied to this node.
-	// See tailscale.com/tailcfg#Node.Tags for more information.
+	// See lanhc.com/tailcfg#Node.Tags for more information.
 	Tags *views.Slice[string] `json:",omitempty"`
 
 	// PrimaryRoutes are the routes this node is currently the primary
 	// subnet router for, as determined by the control plane. It does
-	// not include the IPs in TailscaleIPs.
+	// not include the IPs in LanhcIPs.
 	PrimaryRoutes *views.Slice[netip.Prefix] `json:",omitempty"`
 
 	// Endpoints:
@@ -299,7 +299,7 @@ type PeerStatus struct {
 	//    "https://tailscale.com/cap/file-sharing"
 	//    "funnel"
 	//
-	// Deprecated: use CapMap instead. See https://github.com/tailscale/tailscale/issues/11508
+	// Deprecated: use CapMap instead. See https://github.com/lanhc/lanhc/issues/11508
 	// Every value is Capabilities is also a key in CapMap, even if it
 	// has no values in that map.
 	Capabilities []tailcfg.NodeCapability `json:",omitempty"`
@@ -312,7 +312,7 @@ type PeerStatus struct {
 
 	// ShareeNode indicates this node exists in the netmap because
 	// it's owned by a shared-to user and that node might connect
-	// to us. These nodes should be hidden by "tailscale status"
+	// to us. These nodes should be hidden by "lanhc status"
 	// etc by default.
 	ShareeNode bool `json:",omitempty"`
 
@@ -371,7 +371,7 @@ func (ps *PeerStatus) IsRouter() bool {
 	}
 
 	for _, r := range ps.AllowedIPs.All() {
-		if !r.IsSingleIP() || !slices.Contains(ps.TailscaleIPs, r.Addr()) {
+		if !r.IsSingleIP() || !slices.Contains(ps.LanhcIPs, r.Addr()) {
 			return true
 		}
 	}
@@ -435,14 +435,14 @@ func (sb *StatusBuilder) AddUser(id tailcfg.UserID, up tailcfg.UserProfileView) 
 	sb.st.User[id] = *up.AsStruct()
 }
 
-// AddIP adds a Tailscale IP address to the status.
-func (sb *StatusBuilder) AddTailscaleIP(ip netip.Addr) {
+// AddIP adds a Lanhc IP address to the status.
+func (sb *StatusBuilder) AddLanhcIP(ip netip.Addr) {
 	if sb.locked {
 		log.Printf("[unexpected] ipnstate: AddIP after Locked")
 		return
 	}
 
-	sb.st.TailscaleIPs = append(sb.st.TailscaleIPs, ip)
+	sb.st.LanhcIPs = append(sb.st.LanhcIPs, ip)
 }
 
 // AddPeer adds a peer node to the status.
@@ -492,8 +492,8 @@ func (sb *StatusBuilder) AddPeer(peer key.NodePublic, st *PeerStatus) {
 	if v := st.AltSharerUserID; v != 0 {
 		e.AltSharerUserID = v
 	}
-	if v := st.TailscaleIPs; v != nil {
-		e.TailscaleIPs = v
+	if v := st.LanhcIPs; v != nil {
+		e.LanhcIPs = v
 	}
 	if v := st.PrimaryRoutes; v != nil && !v.IsNil() {
 		e.PrimaryRoutes = v
@@ -590,7 +590,7 @@ func (st *Status) WriteHTML(w io.Writer) {
 <html lang="en">
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Tailscale State</title>
+<title>Lanhc State</title>
 <style>
 body { font-family: monospace; }
 .owner { text-decoration: underline; }
@@ -605,17 +605,17 @@ table tbody tr:nth-child(even) td { background-color: #f5f5f5; }
 </style>
 </head>
 <body>
-<h1>Tailscale State</h1>
+<h1>Lanhc State</h1>
 `)
 
 	//f("<p><b>logid:</b> %s</p>\n", logid)
 	//f("<p><b>opts:</b> <code>%s</code></p>\n", html.EscapeString(fmt.Sprintf("%+v", opts)))
 
-	ips := make([]string, 0, len(st.TailscaleIPs))
-	for _, ip := range st.TailscaleIPs {
+	ips := make([]string, 0, len(st.LanhcIPs))
+	for _, ip := range st.LanhcIPs {
 		ips = append(ips, ip.String())
 	}
-	f("<p>Tailscale IP: %s", strings.Join(ips, ", "))
+	f("<p>Lanhc IP: %s", strings.Join(ips, ", "))
 
 	f("<table>\n<thead>\n")
 	f("<tr><th>Peer</th><th>OS</th><th>Node</th><th>Owner</th><th>Rx</th><th>Tx</th><th>Activity</th><th>Connection</th></tr>\n")
@@ -661,8 +661,8 @@ table tbody tr:nth-child(even) td { background-color: #f5f5f5; }
 		}
 
 		var tailAddr string
-		if len(ps.TailscaleIPs) > 0 {
-			tailAddr = ps.TailscaleIPs[0].String()
+		if len(ps.LanhcIPs) > 0 {
+			tailAddr = ps.LanhcIPs[0].String()
 		}
 		f("<tr><td>%s</td><td class=acenter>%s</td>"+
 			"<td><b>%s</b>%s<div class=\"tailaddr\">%s</div></td><td class=\"acenter owner\">%s</td><td class=\"aright\">%v</td><td class=\"aright\">%v</td><td class=\"aright\">%v</td>",
@@ -720,13 +720,13 @@ func osEmoji(os string) string {
 	return "👽"
 }
 
-// PingResult contains response information for the "tailscale ping" subcommand,
-// saying how Tailscale can reach a Tailscale IP or subnet-routed IP.
+// PingResult contains response information for the "lanhc ping" subcommand,
+// saying how Lanhc can reach a Lanhc IP or subnet-routed IP.
 // See tailcfg.PingResponse for a related response that is sent back to control
 // for remote diagnostic pings.
 type PingResult struct {
 	IP       string // ping destination
-	NodeIP   string // Tailscale IP of node handling IP (different for subnet routers)
+	NodeIP   string // Lanhc IP of node handling IP (different for subnet routers)
 	NodeName string // DNS name base or (possibly not unique) hostname
 
 	Err            string
@@ -785,7 +785,7 @@ func (pr *PingResult) ToPingResponse(pingType tailcfg.PingType) *tailcfg.PingRes
 	}
 }
 
-// SortPeers sorts peers by either their DNS name, hostname, Tailscale IP,
+// SortPeers sorts peers by either their DNS name, hostname, Lanhc IP,
 // or ultimately their current public key.
 func SortPeers(peers []*PeerStatus) {
 	slices.SortStableFunc(peers, (*PeerStatus).compare)
@@ -802,15 +802,15 @@ func (a *PeerStatus) compare(b *PeerStatus) int {
 			return v
 		}
 	}
-	if len(a.TailscaleIPs) > 0 && len(b.TailscaleIPs) > 0 {
-		if v := a.TailscaleIPs[0].Compare(b.TailscaleIPs[0]); v != 0 {
+	if len(a.LanhcIPs) > 0 && len(b.LanhcIPs) > 0 {
+		if v := a.LanhcIPs[0].Compare(b.LanhcIPs[0]); v != 0 {
 			return v
 		}
 	}
 	return a.PublicKey.Compare(b.PublicKey)
 }
 
-// DebugDERPRegionReport is the result of a "tailscale debug derp" command,
+// DebugDERPRegionReport is the result of a "lanhc debug derp" command,
 // to let people debug a custom DERP setup.
 type DebugDERPRegionReport struct {
 	Info     []string

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/tailcfg"
+	"lanhc.com/tailcfg"
 )
 
 type userProfileUpdateObserver struct{}

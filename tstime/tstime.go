@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package tstime defines Tailscale-specific time utilities.
+// Package tstime defines Lanhc-specific time utilities.
 package tstime
 
 import (

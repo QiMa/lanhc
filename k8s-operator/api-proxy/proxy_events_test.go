@@ -18,11 +18,11 @@ import (
 	"testing"
 
 	"go.uber.org/zap"
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/net/netx"
-	"tailscale.com/sessionrecording"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsnet"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/net/netx"
+	"lanhc.com/sessionrecording"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsnet"
 )
 
 type fakeSender struct {

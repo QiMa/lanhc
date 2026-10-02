@@ -7,7 +7,7 @@ package dnsname
 import (
 	"strings"
 
-	"tailscale.com/util/vizerror"
+	"lanhc.com/util/vizerror"
 )
 
 const (
@@ -52,7 +52,7 @@ func ToFQDN(s string) (FQDN, error) {
 		// byte sequence, even though in practice a more restricted
 		// set is used.
 		//
-		// See https://github.com/tailscale/tailscale/issues/2024 for more.
+		// See https://github.com/lanhc/lanhc/issues/2024 for more.
 		if len(label) == 0 || len(label) > maxLabelLength {
 			return "", vizerror.Errorf("%q is not a valid DNS label", label)
 		}

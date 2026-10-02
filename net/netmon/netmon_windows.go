@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"golang.zx2c4.com/wireguard/windows/tunnel/winipcfg"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/eventbus"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/eventbus"
 )
 
 var (
@@ -39,7 +39,7 @@ type winMon struct {
 	lastLog time.Time // time we last logged about any windows change event
 
 	// noDeadlockTicker exists just to have something scheduled as
-	// far as the Go runtime is concerned. Otherwise "tailscaled
+	// far as the Go runtime is concerned. Otherwise "lanhcd
 	// debug --monitor" thinks it's deadlocked with nothing to do,
 	// as Go's runtime doesn't know about callbacks registered with
 	// Windows.
@@ -116,7 +116,7 @@ func (m *winMon) Receive() (message, error) {
 		m.mu.Unlock()
 		// If it's either been awhile since we last logged
 		// anything, or if this some route/addr that's not
-		// about a Tailscale IP ("ts" prefix), then log. This
+		// about a Lanhc IP ("ts" prefix), then log. This
 		// is mainly limited to suppress the flood about our own
 		// route updates after connecting to a large tailnet
 		// and all the IPv4 /32 routes.
@@ -142,7 +142,7 @@ func (m *winMon) unicastAddressChanged(_ winipcfg.MibNotificationType, row *wini
 	}
 
 	what := "addr"
-	if ip := row.Address.Addr(); ip.IsValid() && tsaddr.IsTailscaleIP(ip.Unmap()) {
+	if ip := row.Address.Addr(); ip.IsValid() && tsaddr.IsLanhcIP(ip.Unmap()) {
 		what = "tsaddr"
 	}
 
@@ -164,7 +164,7 @@ func (m *winMon) routeChanged(_ winipcfg.MibNotificationType, row *winipcfg.MibI
 
 	what := "route"
 	ip := row.DestinationPrefix.Prefix().Addr().Unmap()
-	if ip.IsValid() && tsaddr.IsTailscaleIP(ip) {
+	if ip.IsValid() && tsaddr.IsLanhcIP(ip) {
 		what = "tsroute"
 	}
 	// start a goroutine to finish our work, to return to Windows out of this callback

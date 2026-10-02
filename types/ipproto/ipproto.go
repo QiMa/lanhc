@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"tailscale.com/util/nocasemaps"
-	"tailscale.com/util/vizerror"
+	"lanhc.com/util/nocasemaps"
+	"lanhc.com/util/vizerror"
 )
 
 // Version describes the IP address version.
@@ -55,8 +55,8 @@ const (
 	GRE    Proto = 0x2f
 	SCTP   Proto = 0x84
 
-	// TSMP is the Tailscale Message Protocol (our ICMP-ish
-	// thing), an IP protocol used only between Tailscale nodes
+	// TSMP is the Lanhc Message Protocol (our ICMP-ish
+	// thing), an IP protocol used only between Lanhc nodes
 	// (still encrypted by WireGuard) that communicates why things
 	// failed, etc.
 	//

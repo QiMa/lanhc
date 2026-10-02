@@ -24,10 +24,10 @@ import (
 	"unicode/utf8"
 
 	"golang.org/x/exp/constraints"
-	"tailscale.com/metrics"
-	"tailscale.com/syncs"
-	"tailscale.com/types/logger"
-	"tailscale.com/version"
+	"lanhc.com/metrics"
+	"lanhc.com/syncs"
+	"lanhc.com/types/logger"
+	"lanhc.com/version"
 )
 
 // StaticStringVar returns a new expvar.Var that always returns s.
@@ -319,7 +319,7 @@ type sortedKVs struct {
 // It makes the following assumptions:
 //
 //   - *expvar.Int are counters (unless marked as a gauge_; see below)
-//   - a *tailscale/metrics.Set is descended into, joining keys with
+//   - a *lanhc/metrics.Set is descended into, joining keys with
 //     underscores. So use underscores as your metric names.
 //   - an expvar named starting with "gauge_" or "counter_" is of that
 //     Prometheus type, and has that prefix stripped.

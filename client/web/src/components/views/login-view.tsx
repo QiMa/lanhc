@@ -3,7 +3,7 @@
 
 import React from "react"
 import { useAPI } from "src/api"
-import TailscaleIcon from "src/assets/icons/tailscale-icon.svg?react"
+import LanhcIcon from "src/assets/icons/lanhc-icon.svg?react"
 import { NodeData } from "src/types"
 import Button from "src/ui/button"
 
@@ -16,13 +16,13 @@ export default function LoginView({ data }: { data: NodeData }) {
 
   return (
     <div className="mb-8 py-6 px-8 bg-white rounded-md shadow-2xl">
-      <TailscaleIcon className="my-2 mb-8" />
+      <LanhcIcon className="my-2 mb-8" />
       {data.Status === "Stopped" ? (
         <>
           <div className="mb-6">
             <h3 className="text-3xl font-semibold mb-3">Connect</h3>
             <p className="text-gray-700">
-              Your device is disconnected from Tailscale.
+              Your device is disconnected from Lanhc.
             </p>
           </div>
           <Button
@@ -30,7 +30,7 @@ export default function LoginView({ data }: { data: NodeData }) {
             className="w-full mb-4"
             intent="primary"
           >
-            Connect to Tailscale
+            Connect to Lanhc
           </Button>
         </>
       ) : data.IPv4 ? (
@@ -40,7 +40,7 @@ export default function LoginView({ data }: { data: NodeData }) {
               Your device’s key has expired. Reauthenticate this device by
               logging in again, or{" "}
               <a
-                href="https://tailscale.com/kb/1028/key-expiry"
+                href="https://lanhc.com/kb/1028/key-expiry"
                 className="link"
                 target="_blank"
                 rel="noreferrer"
@@ -65,15 +65,15 @@ export default function LoginView({ data }: { data: NodeData }) {
           <div className="mb-6">
             <h3 className="text-3xl font-semibold mb-3">Log in</h3>
             <p className="text-gray-700">
-              Get started by logging in to your Tailscale network.
+              Get started by logging in to your Lanhc network.
               Or,&nbsp;learn&nbsp;more at{" "}
               <a
-                href="https://tailscale.com/"
+                href="https://lanhc.com/"
                 className="link"
                 target="_blank"
                 rel="noreferrer"
               >
-                tailscale.com
+                lanhc.com
               </a>
               .
             </p>

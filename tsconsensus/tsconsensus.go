@@ -9,9 +9,9 @@
 // tsconsensus uses the hashicorp/raft library to implement leader elections and log application.
 //
 // tsconsensus provides:
-//   - cluster peer discovery based on tailscale tags
+//   - cluster peer discovery based on lanhc tags
 //   - executing a command on the leader
-//   - communication between cluster peers over tailscale using tsnet
+//   - communication between cluster peers over lanhc using tsnet
 //
 // Users implement a state machine that satisfies the raft.FSM interface, with the business logic they desire.
 // When changes to state are needed any node may
@@ -37,9 +37,9 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/raft"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/tsnet"
-	"tailscale.com/types/views"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/tsnet"
+	"lanhc.com/types/views"
 )
 
 func raftAddr(host netip.Addr, cfg Config) string {
@@ -94,7 +94,7 @@ func DefaultConfig() Config {
 }
 
 // StreamLayer implements an interface asked for by raft.NetworkTransport.
-// It does the raft interprocess communication via tailscale.
+// It does the raft interprocess communication via lanhc.
 type StreamLayer struct {
 	net.Listener
 	s           *tsnet.Server
@@ -176,7 +176,7 @@ func Start(ctx context.Context, ts *tsnet.Server, fsm raft.FSM, bootstrapOpts Bo
 		port:       cfg.CommandPort,
 		httpClient: ts.HTTPClient(),
 	}
-	v4, _ := ts.TailscaleIPs()
+	v4, _ := ts.LanhcIPs()
 	// TODO(fran) support tailnets that have ipv4 disabled
 	self := selfRaftNode{
 		id:       v4.String(),
@@ -312,19 +312,19 @@ func (c *Consensus) bootstrapTryToJoinAnyTarget(targets views.Slice[*ipnstate.Pe
 	log.Printf("Bootstrap: Trying to find cluster: num targets to try: %d", targets.Len())
 	for _, p := range targets.All() {
 		if !p.Online {
-			log.Printf("Bootstrap: Trying to find cluster: tailscale reports not online: %s", p.TailscaleIPs[0])
+			log.Printf("Bootstrap: Trying to find cluster: lanhc reports not online: %s", p.LanhcIPs[0])
 			continue
 		}
-		log.Printf("Bootstrap: Trying to find cluster: trying %s", p.TailscaleIPs[0])
-		err := c.commandClient.join(p.TailscaleIPs[0].String(), joinRequest{
+		log.Printf("Bootstrap: Trying to find cluster: trying %s", p.LanhcIPs[0])
+		err := c.commandClient.join(p.LanhcIPs[0].String(), joinRequest{
 			RemoteHost: c.self.hostAddr.String(),
 			RemoteID:   c.self.id,
 		})
 		if err != nil {
-			log.Printf("Bootstrap: Trying to find cluster: could not join %s: %v", p.TailscaleIPs[0], err)
+			log.Printf("Bootstrap: Trying to find cluster: could not join %s: %v", p.LanhcIPs[0], err)
 			continue
 		}
-		log.Printf("Bootstrap: Trying to find cluster: joined %s", p.TailscaleIPs[0])
+		log.Printf("Bootstrap: Trying to find cluster: joined %s", p.LanhcIPs[0])
 		return true
 	}
 	return false
@@ -366,7 +366,7 @@ func (c *Consensus) retryFollow(ctx context.Context, auth *authorization) bool {
 // so we could do the initial configuration with all servers specified.
 // Choose to start with just this machine in the raft configuration instead, as:
 //   - We want to handle machines joining after start anyway.
-//   - Not all tagged nodes tailscale believes are active are necessarily actually responsive right now,
+//   - Not all tagged nodes lanhc believes are active are necessarily actually responsive right now,
 //     so let each node opt in when able.
 func (c *Consensus) bootstrap(ctx context.Context, auth *authorization, opts BootstrapOpts) error {
 	if opts.FollowOnly {

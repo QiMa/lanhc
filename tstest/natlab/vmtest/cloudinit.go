@@ -18,7 +18,7 @@ import (
 	"github.com/creachadair/mds/shell"
 	"github.com/kdomanski/iso9660"
 	"golang.org/x/crypto/ssh"
-	"tailscale.com/tstest/natlab/vnet"
+	"lanhc.com/tstest/natlab/vnet"
 )
 
 // createCloudInitISO creates a cidata seed ISO for the given cloud VM node.
@@ -122,20 +122,20 @@ func (e *Env) generateLinuxUserData(n *Node) string {
 	// The debug NIC is only for SSH access from the host.
 	ud.WriteString("  - [\"/bin/sh\", \"-c\", \"ip route del default via 10.0.2.2 dev enp0s4 2>/dev/null || true\"]\n")
 
-	// Download binaries from the files.tailscale VIP (52.52.0.6).
+	// Download binaries from the files.lanhc VIP (52.52.0.6).
 	// Use the IP directly to avoid DNS resolution issues during early boot.
 	binDir := n.os.GOOS() + "_" + n.os.GOARCH()
-	for _, bin := range []string{"tailscaled", "tailscale", "tta"} {
+	for _, bin := range []string{"lanhcd", "lanhc", "tta"} {
 		fmt.Fprintf(&ud, "  - [\"/bin/sh\", \"-c\", \"curl -v --retry 10 --retry-delay 2 --retry-all-errors -o /usr/local/bin/%s http://52.52.0.6/%s/%s 2>&1\"]\n", bin, binDir, bin)
 	}
-	ud.WriteString("  - [\"chmod\", \"+x\", \"/usr/local/bin/tailscaled\", \"/usr/local/bin/tailscale\", \"/usr/local/bin/tta\"]\n")
+	ud.WriteString("  - [\"chmod\", \"+x\", \"/usr/local/bin/lanhcd\", \"/usr/local/bin/lanhc\", \"/usr/local/bin/tta\"]\n")
 
 	// Apply the bin_t label for SELinux enforcement: we curl the binaries in
 	// rather than installing a package, so nothing else labels them, and
 	// enforcing mode would deny exec. No-op on non-SELinux systems, but only
 	// RHEL-family images ship restorecon.
 	if n.os.Family == LinuxRHEL {
-		ud.WriteString("  - [\"/bin/sh\", \"-c\", \"restorecon -v /usr/local/bin/tailscaled /usr/local/bin/tailscale /usr/local/bin/tta 2>&1 || true\"]\n")
+		ud.WriteString("  - [\"/bin/sh\", \"-c\", \"restorecon -v /usr/local/bin/lanhcd /usr/local/bin/lanhc /usr/local/bin/tta 2>&1 || true\"]\n")
 	}
 
 	// Enable IP forwarding for subnet routers.
@@ -144,34 +144,34 @@ func (e *Env) generateLinuxUserData(n *Node) string {
 		ud.WriteString("  - [\"sysctl\", \"-w\", \"net.ipv6.conf.all.forwarding=1\"]\n")
 	}
 
-	// Provision the requested DNS backend before tailscaled starts.
+	// Provision the requested DNS backend before lanhcd starts.
 	writeLinuxDNSModeSetup(&ud, n.dnsMode)
 
-	// Start tailscaled, either via the stock systemd unit or directly in
+	// Start lanhcd, either via the stock systemd unit or directly in
 	// the background. --statedir provides a VarRoot so features like
 	// Taildrop (which needs a place to stash incoming files) have a
 	// directory to work with.
 	if n.systemdUnit {
-		// The unit's ExecStart runs /usr/sbin/tailscaled.
-		ud.WriteString("  - [\"cp\", \"/usr/local/bin/tailscaled\", \"/usr/sbin/tailscaled\"]\n")
+		// The unit's ExecStart runs /usr/sbin/lanhcd.
+		ud.WriteString("  - [\"cp\", \"/usr/local/bin/lanhcd\", \"/usr/sbin/lanhcd\"]\n")
 		ud.WriteString("  - [\"systemctl\", \"daemon-reload\"]\n")
-		// Type=notify makes this block until tailscaled reports readiness.
-		ud.WriteString("  - [\"systemctl\", \"start\", \"tailscaled.service\"]\n")
+		// Type=notify makes this block until lanhcd reports readiness.
+		ud.WriteString("  - [\"systemctl\", \"start\", \"lanhcd.service\"]\n")
 	} else {
-		ud.WriteString("  - [\"mkdir\", \"-p\", \"/var/lib/tailscale\"]\n")
-		fmt.Fprintf(&ud, "  - [\"/bin/sh\", \"-c\", \"%s/usr/local/bin/tailscaled --state=mem: --statedir=/var/lib/tailscale &\"]\n", tailscaledEnvPrefix(n))
+		ud.WriteString("  - [\"mkdir\", \"-p\", \"/var/lib/lanhc\"]\n")
+		fmt.Fprintf(&ud, "  - [\"/bin/sh\", \"-c\", \"%s/usr/local/bin/lanhcd --state=mem: --statedir=/var/lib/lanhc &\"]\n", lanhcdEnvPrefix(n))
 		ud.WriteString("  - [\"sleep\", \"2\"]\n")
 	}
 
-	// Start tta (Tailscale Test Agent).
+	// Start tta (Lanhc Test Agent).
 	ud.WriteString("  - [\"/bin/sh\", \"-c\", \"/usr/local/bin/tta &\"]\n")
 
 	return ud.String()
 }
 
 // writeLinuxDNSModeSetup appends cloud-init runcmd entries that provision the
-// guest so tailscaled selects the requested DNS backend. Must run before the
-// tailscaled launch entries. The zero value (DNSDefault) is a no-op. mode is
+// guest so lanhcd selects the requested DNS backend. Must run before the
+// lanhcd launch entries. The zero value (DNSDefault) is a no-op. mode is
 // validated in AddNode, so any other unknown value is a bug and panics.
 func writeLinuxDNSModeSetup(ud *strings.Builder, mode DNSMode) {
 	switch mode {
@@ -180,13 +180,13 @@ func writeLinuxDNSModeSetup(ud *strings.Builder, mode DNSMode) {
 		panic(fmt.Sprintf("unhandled DNSMode %q", mode))
 	case DNSDefault:
 		// The empty/zero value: leave the image's DNS config alone, so
-		// systemd-resolved stays enabled and tailscaled selects it (or
+		// systemd-resolved stays enabled and lanhcd selects it (or
 		// whatever the image runs by default). No-op.
 	case DNSDirect:
 		// Mask systemd-resolved and drop a plain resolv.conf so dnsMode() in
 		// net/dns/manager_linux.go falls through to "direct". Point it at
 		// natlab's fake DNS VIP (not a public resolver): it's the only resolver
-		// reachable in vnet and it serves the internal *.tailscale names.
+		// reachable in vnet and it serves the internal *.lanhc names.
 		fmt.Fprintf(ud, "  - [\"/bin/sh\", \"-c\", \"systemctl disable --now systemd-resolved 2>/dev/null || true\"]\n")
 		fmt.Fprintf(ud, "  - [\"/bin/sh\", \"-c\", \"systemctl mask systemd-resolved 2>/dev/null || true\"]\n")
 		fmt.Fprintf(ud, "  - [\"/bin/sh\", \"-c\", \"rm -f /etc/resolv.conf && printf 'nameserver %s\\\\n' >/etc/resolv.conf\"]\n", vnet.FakeDNSIPv4())
@@ -238,60 +238,60 @@ func (e *Env) generateFreeBSDUserData(n *Node) string {
 	ud.WriteString("  - \"sysctl net.inet.tcp.recvbuf_max=16777216\"\n")
 	ud.WriteString("  - \"sysctl net.inet.tcp.sendbuf_max=16777216\"\n")
 
-	// Download binaries from the files.tailscale VIP (52.52.0.6).
+	// Download binaries from the files.lanhc VIP (52.52.0.6).
 	// FreeBSD's fetch(1) is part of the base system (no curl needed).
 	// Retry in a loop since the file server may not be ready immediately.
 	binDir := n.os.GOOS() + "_" + n.os.GOARCH()
-	for _, bin := range []string{"tailscaled", "tailscale", "tta"} {
+	for _, bin := range []string{"lanhcd", "lanhc", "tta"} {
 		fmt.Fprintf(&ud, "  - \"n=0; while [ $n -lt 10 ]; do fetch -o /usr/local/bin/%s http://52.52.0.6/%s/%s && break; n=$((n+1)); sleep 2; done\"\n", bin, binDir, bin)
 	}
-	ud.WriteString("  - \"chmod +x /usr/local/bin/tailscaled /usr/local/bin/tailscale /usr/local/bin/tta\"\n")
+	ud.WriteString("  - \"chmod +x /usr/local/bin/lanhcd /usr/local/bin/lanhc /usr/local/bin/tta\"\n")
 
 	// Enable IP forwarding for subnet routers.
 	// This is currently a noop as of 2026-04-08 because FreeBSD uses
 	// gvisor netstack for subnet routing until
-	// https://github.com/tailscale/tailscale/issues/5573 etc are fixed.
+	// https://github.com/lanhc/lanhc/issues/5573 etc are fixed.
 	if n.advertiseRoutes != "" {
 		ud.WriteString("  - \"sysctl net.inet.ip.forwarding=1\"\n")
 		ud.WriteString("  - \"sysctl net.inet6.ip6.forwarding=1\"\n")
 	}
 
-	// Start tailscaled and tta in the background. Redirect stdio to log
+	// Start lanhcd and tta in the background. Redirect stdio to log
 	// files and away from /dev/null on stdin; otherwise nuageinit's runcmd
 	// executor keeps the backgrounded child's stdout/stderr pipes open and
 	// blocks waiting for them, so subsequent runcmd entries (including the
 	// tta launch below) never run. Linux cloud-init doesn't have this
 	// gotcha. Set PATH to include /usr/local/bin so that tta can find
-	// "tailscale" (TTA uses exec.Command("tailscale", ...) without a full
+	// "lanhc" (TTA uses exec.Command("lanhc", ...) without a full
 	// path). --statedir provides a VarRoot so features like Taildrop have a
 	// directory.
-	ud.WriteString("  - \"mkdir -p /var/lib/tailscale\"\n")
-	fmt.Fprintf(&ud, "  - \"export PATH=/usr/local/bin:$PATH && %s/usr/local/bin/tailscaled --state=mem: --statedir=/var/lib/tailscale </dev/null >/var/log/tailscaled.log 2>&1 &\"\n", tailscaledEnvPrefix(n))
+	ud.WriteString("  - \"mkdir -p /var/lib/lanhc\"\n")
+	fmt.Fprintf(&ud, "  - \"export PATH=/usr/local/bin:$PATH && %s/usr/local/bin/lanhcd --state=mem: --statedir=/var/lib/lanhc </dev/null >/var/log/lanhcd.log 2>&1 &\"\n", lanhcdEnvPrefix(n))
 	ud.WriteString("  - \"sleep 2\"\n")
 
-	// Start tta (Tailscale Test Agent), with the same stdio redirection.
+	// Start tta (Lanhc Test Agent), with the same stdio redirection.
 	ud.WriteString("  - \"export PATH=/usr/local/bin:$PATH && /usr/local/bin/tta </dev/null >/var/log/tta.log 2>&1 &\"\n")
 
 	return ud.String()
 }
 
 // writeSystemdUnitFiles appends a cloud-init write_files section that
-// installs the stock tailscaled systemd unit from the source tree, along
-// with the packaging's /etc/default/tailscaled EnvironmentFile (plus any
-// per-node TailscaledEnv variables). File contents are base64-encoded to
+// installs the stock lanhcd systemd unit from the source tree, along
+// with the packaging's /etc/default/lanhcd EnvironmentFile (plus any
+// per-node LanhcdEnv variables). File contents are base64-encoded to
 // sidestep YAML quoting.
 func (e *Env) writeSystemdUnitFiles(ud *strings.Builder, n *Node) {
 	modRoot, err := findModRoot()
 	if err != nil {
-		e.t.Fatalf("finding module root for tailscaled.service: %v", err)
+		e.t.Fatalf("finding module root for lanhcd.service: %v", err)
 	}
-	unit, err := os.ReadFile(filepath.Join(modRoot, "cmd/tailscaled/tailscaled.service"))
+	unit, err := os.ReadFile(filepath.Join(modRoot, "cmd/lanhcd/lanhcd.service"))
 	if err != nil {
-		e.t.Fatalf("reading tailscaled.service: %v", err)
+		e.t.Fatalf("reading lanhcd.service: %v", err)
 	}
-	defaults, err := os.ReadFile(filepath.Join(modRoot, "cmd/tailscaled/tailscaled.defaults"))
+	defaults, err := os.ReadFile(filepath.Join(modRoot, "cmd/lanhcd/lanhcd.defaults"))
 	if err != nil {
-		e.t.Fatalf("reading tailscaled.defaults: %v", err)
+		e.t.Fatalf("reading lanhcd.defaults: %v", err)
 	}
 	var envFile strings.Builder
 	envFile.Write(defaults)
@@ -305,11 +305,11 @@ func (e *Env) writeSystemdUnitFiles(ud *strings.Builder, n *Node) {
 		fmt.Fprintf(ud, "    encoding: b64\n")
 		fmt.Fprintf(ud, "    content: %s\n", base64.StdEncoding.EncodeToString(content))
 	}
-	writeFile("/etc/systemd/system/tailscaled.service", unit)
-	writeFile("/etc/default/tailscaled", []byte(envFile.String()))
+	writeFile("/etc/systemd/system/lanhcd.service", unit)
+	writeFile("/etc/default/lanhcd", []byte(envFile.String()))
 }
 
-func tailscaledEnvPrefix(n *Node) string {
+func lanhcdEnvPrefix(n *Node) string {
 	env := n.vnetNode.Env()
 	if len(env) == 0 {
 		return ""

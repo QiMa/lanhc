@@ -3,7 +3,7 @@
 
 //go:build (linux && !android) || (darwin && !ios) || freebsd || openbsd || plan9
 
-// Package tailssh is an SSH server integrated into Tailscale.
+// Package tailssh is an SSH server integrated into Lanhc.
 package tailssh
 
 import (
@@ -32,22 +32,22 @@ import (
 
 	gliderssh "github.com/tailscale/gliderssh"
 	"golang.org/x/crypto/ssh"
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/sessionrecording"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/netmap"
-	"tailscale.com/util/backoff"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/httpm"
-	"tailscale.com/util/mak"
-	"tailscale.com/version/distro"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/sessionrecording"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/netmap"
+	"lanhc.com/util/backoff"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/httpm"
+	"lanhc.com/util/mak"
+	"lanhc.com/version/distro"
 )
 
 var (
@@ -68,7 +68,7 @@ var (
 
 const (
 	// forcePasswordSuffix is the suffix at the end of a username that forces
-	// Tailscale SSH into password authentication mode to work around buggy SSH
+	// Lanhc SSH into password authentication mode to work around buggy SSH
 	// clients that get confused by successful replies to auth type "none".
 	forcePasswordSuffix = "+password"
 )
@@ -82,14 +82,14 @@ type ipnLocalBackend interface {
 	WhoIs(proto string, ipp netip.AddrPort) (n tailcfg.NodeView, u tailcfg.UserProfile, ok bool)
 	DoNoiseRequest(req *http.Request) (*http.Response, error)
 	Dialer() *tsdial.Dialer
-	TailscaleVarRoot() string
+	LanhcVarRoot() string
 	NodeKey() key.NodePublic
 }
 
 type server struct {
 	lb             ipnLocalBackend
 	logf           logger.Logf
-	tailscaledPath string
+	lanhcdPath string
 
 	timeNow func() time.Time // or nil for time.Now
 
@@ -119,7 +119,7 @@ func init() {
 		srv := &server{
 			lb:             lb,
 			logf:           logf,
-			tailscaledPath: tsd,
+			lanhcdPath: tsd,
 			timeNow: func() time.Time {
 				return lb.ControlNow(time.Now())
 			},
@@ -161,7 +161,7 @@ func (srv *server) NumActiveConns() int {
 	return len(srv.activeConns)
 }
 
-// HandleSSHConn handles a Tailscale SSH connection from c.
+// HandleSSHConn handles a Lanhc SSH connection from c.
 // This is the entry point for all SSH connections.
 // When this returns, the connection is closed.
 func (srv *server) HandleSSHConn(nc net.Conn) error {
@@ -228,7 +228,7 @@ type conn struct {
 	*gliderssh.Server
 	srv *server
 
-	insecureSkipTailscaleAuth bool // used by tests.
+	insecureSkipLanhcAuth bool // used by tests.
 
 	// idH is the RFC4253 sec8 hash H. It is used to identify the connection,
 	// and is shared among all sessions. It should not be shared outside
@@ -287,7 +287,7 @@ func (c *conn) vlogf(format string, args ...any) {
 // attempts and immediately disconnect the client.
 func (c *conn) errDenied(message string) error {
 	if message == "" {
-		message = "tailscale: access denied"
+		message = "lanhc: access denied"
 	}
 	if err := c.spac.SendAuthBanner(message); err != nil {
 		c.logf("failed to send auth banner: %s", err)
@@ -303,7 +303,7 @@ func (c *conn) errBanner(message string, err error) error {
 	if err != nil {
 		c.logf("%s: %s", message, err)
 	}
-	if err := c.spac.SendAuthBanner("tailscale: " + message + "\n"); err != nil {
+	if err := c.spac.SendAuthBanner("lanhc: " + message + "\n"); err != nil {
 		c.logf("failed to send auth banner: %s", err)
 	}
 	return errTerminal
@@ -338,7 +338,7 @@ func (c *conn) clientAuth(cm ssh.ConnMetadata) (perms *ssh.Permissions, retErr e
 		}
 	}()
 
-	if c.insecureSkipTailscaleAuth {
+	if c.insecureSkipLanhcAuth {
 		return &ssh.Permissions{}, nil
 	}
 
@@ -430,7 +430,7 @@ func (c *conn) ServerConfig(ctx gliderssh.Context) *ssh.ServerConfig {
 		NoClientAuthCallback: func(cm ssh.ConnMetadata) (*ssh.Permissions, error) {
 			// First perform client authentication, which can potentially
 			// involve multiple steps (for example prompting user to log in to
-			// Tailscale admin panel to confirm identity).
+			// Lanhc admin panel to confirm identity).
 			perms, err := c.clientAuth(cm)
 			if err != nil {
 				return nil, err
@@ -485,7 +485,7 @@ func (srv *server) newConn() (*conn, error) {
 	fwdHandler := &gliderssh.ForwardedTCPHandler{}
 	streamLocalFwdHandler := &gliderssh.ForwardedUnixHandler{}
 	c.Server = &gliderssh.Server{
-		Version:              "Tailscale",
+		Version:              "Lanhc",
 		ServerConfigCallback: c.ServerConfig,
 
 		Handler:                       c.handleSessionPostSSHAuth,
@@ -513,7 +513,7 @@ func (srv *server) newConn() (*conn, error) {
 	maps.Copy(ss.RequestHandlers, gliderssh.DefaultRequestHandlers)
 	maps.Copy(ss.ChannelHandlers, gliderssh.DefaultChannelHandlers)
 	maps.Copy(ss.SubsystemHandlers, gliderssh.DefaultSubsystemHandlers)
-	keys, err := getHostKeys(srv.lb.TailscaleVarRoot(), srv.logf)
+	keys, err := getHostKeys(srv.lb.LanhcVarRoot(), srv.logf)
 	if err != nil {
 		return nil, err
 	}
@@ -639,7 +639,7 @@ func toIPPort(a net.Addr) (ipp netip.AddrPort) {
 }
 
 // connInfo populates the sshConnInfo from the provided arguments,
-// validating only that they represent a known Tailscale identity.
+// validating only that they represent a known Lanhc identity.
 func (c *conn) setInfo(cm ssh.ConnMetadata) error {
 	if c.info != nil {
 		return nil
@@ -649,15 +649,15 @@ func (c *conn) setInfo(cm ssh.ConnMetadata) error {
 		src:     toIPPort(cm.RemoteAddr()),
 		dst:     toIPPort(cm.LocalAddr()),
 	}
-	if !tsaddr.IsTailscaleIP(ci.dst.Addr()) {
-		return fmt.Errorf("tailssh: rejecting non-Tailscale local address %v", ci.dst)
+	if !tsaddr.IsLanhcIP(ci.dst.Addr()) {
+		return fmt.Errorf("tailssh: rejecting non-Lanhc local address %v", ci.dst)
 	}
-	if !tsaddr.IsTailscaleIP(ci.src.Addr()) {
-		return fmt.Errorf("tailssh: rejecting non-Tailscale remote address %v", ci.src)
+	if !tsaddr.IsLanhcIP(ci.src.Addr()) {
+		return fmt.Errorf("tailssh: rejecting non-Lanhc remote address %v", ci.src)
 	}
 	node, uprof, ok := c.srv.lb.WhoIs("tcp", ci.src)
 	if !ok {
-		return fmt.Errorf("unknown Tailscale identity from src %v", ci.src)
+		return fmt.Errorf("unknown Lanhc identity from src %v", ci.src)
 	}
 	ci.node = node
 	ci.uprof = uprof
@@ -688,7 +688,7 @@ func (c *conn) evaluatePolicy() (_ *tailcfg.SSHAction, localUser string, acceptE
 }
 
 // handleSessionPostSSHAuth runs an SSH session after the SSH-level authentication,
-// but not necessarily before all the Tailscale-level extra verification has
+// but not necessarily before all the Lanhc-level extra verification has
 // completed. It also handles SFTP requests.
 func (c *conn) handleSessionPostSSHAuth(s gliderssh.Session) {
 	// Do this check after auth, but before starting the session.
@@ -737,7 +737,7 @@ func (c *conn) expandDelegateURLLocked(actionURL string) string {
 	).Replace(actionURL)
 }
 
-// sshSession is an accepted Tailscale SSH session.
+// sshSession is an accepted Lanhc SSH session.
 type sshSession struct {
 	gliderssh.Session
 	sharedID string // ID that's shared with control
@@ -1001,7 +1001,7 @@ func (ss *sshSession) run() {
 	defer ss.cancelCtx(errSessionDone)
 
 	if attached := ss.conn.srv.attachSessionToConnIfNotShutdown(ss); !attached {
-		fmt.Fprintf(ss, "Tailscale SSH is shutting down\r\n")
+		fmt.Fprintf(ss, "Lanhc SSH is shutting down\r\n")
 		ss.Exit(1)
 		return
 	}
@@ -1030,7 +1030,7 @@ func (ss *sshSession) run() {
 	}
 
 	// Take control of the PTY so that we can configure it below.
-	// See https://github.com/tailscale/tailscale/issues/4146
+	// See https://github.com/lanhc/lanhc/issues/4146
 	ss.DisablePTYEmulation()
 
 	var rec *recording // or nil if disabled
@@ -1193,10 +1193,10 @@ type sshConnInfo struct {
 	// sshUser is the requested local SSH username ("root", "alice", etc).
 	sshUser string
 
-	// src is the Tailscale IP and port that the connection came from.
+	// src is the Lanhc IP and port that the connection came from.
 	src netip.AddrPort
 
-	// dst is the Tailscale IP and port that the connection came for.
+	// dst is the Lanhc IP and port that the connection came for.
 	dst netip.AddrPort
 
 	// node is srcIP's node.
@@ -1311,16 +1311,16 @@ func (c *conn) anyPrincipalMatches(ps []*tailcfg.SSHPrincipal) bool {
 		if p == nil {
 			continue
 		}
-		if c.principalMatchesTailscaleIdentity(p) {
+		if c.principalMatchesLanhcIdentity(p) {
 			return true
 		}
 	}
 	return false
 }
 
-// principalMatchesTailscaleIdentity reports whether one of p's four fields
-// that match the Tailscale identity match (Node, NodeIP, UserLogin, Any).
-func (c *conn) principalMatchesTailscaleIdentity(p *tailcfg.SSHPrincipal) bool {
+// principalMatchesLanhcIdentity reports whether one of p's four fields
+// that match the Lanhc identity match (Node, NodeIP, UserLogin, Any).
+func (c *conn) principalMatchesLanhcIdentity(p *tailcfg.SSHPrincipal) bool {
 	ci := c.info
 	if p.Any {
 		return true
@@ -1348,7 +1348,7 @@ func randBytes(n int) []byte {
 }
 
 func (ss *sshSession) openFileForRecording(now time.Time) (_ io.WriteCloser, err error) {
-	varRoot := ss.conn.srv.lb.TailscaleVarRoot()
+	varRoot := ss.conn.srv.lb.LanhcVarRoot()
 	if varRoot == "" {
 		return nil, errors.New("no var root for recording storage")
 	}

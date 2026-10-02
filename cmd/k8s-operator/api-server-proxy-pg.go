@@ -23,19 +23,19 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"tailscale.com/client/tailscale/v2"
+	lanhcclient "tailscale.com/client/tailscale/v2"
 
-	tsoperator "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/k8s-operator/tsclient"
-	"tailscale.com/kube/k8s-proxy/conf"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
+	tsoperator "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/k8s-operator/tsclient"
+	"lanhc.com/kube/k8s-proxy/conf"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
 )
 
 const (
-	proxyPGFinalizerName = "tailscale.com/kube-apiserver-finalizer"
+	proxyPGFinalizerName = "lanhc.com/kube-apiserver-finalizer"
 
 	// Reasons for KubeAPIServerProxyValid condition.
 	reasonKubeAPIServerProxyInvalid = "KubeAPIServerProxyInvalid"
@@ -46,7 +46,7 @@ const (
 	reasonKubeAPIServerProxyNoBackends = "KubeAPIServerProxyNoBackends"
 )
 
-// KubeAPIServerTSServiceReconciler reconciles the Tailscale Services required for an
+// KubeAPIServerTSServiceReconciler reconciles the Lanhc Services required for an
 // HA deployment of the API Server Proxy.
 type KubeAPIServerTSServiceReconciler struct {
 	client.Client
@@ -55,7 +55,7 @@ type KubeAPIServerTSServiceReconciler struct {
 	clients     ClientProvider
 	tsNamespace string
 	defaultTags []string
-	operatorID  string // stableID of the operator's Tailscale device
+	operatorID  string // stableID of the operator's Lanhc device
 
 	clock tstime.Clock
 }
@@ -77,10 +77,10 @@ func (r *KubeAPIServerTSServiceReconciler) Reconcile(ctx context.Context, req re
 	}
 
 	serviceName := serviceNameForAPIServerProxy(pg)
-	logger = logger.With("Tailscale Service", serviceName)
+	logger = logger.With("Lanhc Service", serviceName)
 	tsClient, err := r.clients.For(pg.Spec.Tailnet)
 	if err != nil {
-		return res, fmt.Errorf("failed to get tailscale client: %w", err)
+		return res, fmt.Errorf("failed to get lanhc client: %w", err)
 	}
 
 	if markedForDeletion(pg) {
@@ -105,10 +105,10 @@ func (r *KubeAPIServerTSServiceReconciler) Reconcile(ctx context.Context, req re
 	return reconcile.Result{}, nil
 }
 
-// maybeProvision ensures that a Tailscale Service for this ProxyGroup exists
+// maybeProvision ensures that a Lanhc Service for this ProxyGroup exists
 // and is up to date.
 //
-// Returns true if the operation resulted in a Tailscale Service update.
+// Returns true if the operation resulted in a Lanhc Service update.
 func (r *KubeAPIServerTSServiceReconciler) maybeProvision(ctx context.Context, serviceName tailcfg.ServiceName, pg *tsapi.ProxyGroup, logger *zap.SugaredLogger, tsClient tsclient.Client) (err error) {
 	var dnsName string
 	oldPGStatus := pg.Status.DeepCopy()
@@ -119,7 +119,7 @@ func (r *KubeAPIServerTSServiceReconciler) maybeProvision(ctx context.Context, s
 			// Continue, updating the status with the best available information.
 		}
 
-		// Update the ProxyGroup status with the Tailscale Service information
+		// Update the ProxyGroup status with the Lanhc Service information
 		// Update the condition based on how many pods are advertising the service
 		conditionStatus := metav1.ConditionFalse
 		conditionReason := reasonKubeAPIServerProxyNoBackends
@@ -152,31 +152,31 @@ func (r *KubeAPIServerTSServiceReconciler) maybeProvision(ctx context.Context, s
 		// because once the finalizer is in place this block gets skipped. So,
 		// this is a nice place to tell the operator that the high level,
 		// multi-reconcile operation is underway.
-		logger.Info("provisioning Tailscale Service for ProxyGroup")
+		logger.Info("provisioning Lanhc Service for ProxyGroup")
 		pg.Finalizers = append(pg.Finalizers, proxyPGFinalizerName)
 		if err := r.Update(ctx, pg); err != nil {
 			return fmt.Errorf("failed to add finalizer: %w", err)
 		}
 	}
 
-	// 1. Check there isn't a Tailscale Service with the same hostname
+	// 1. Check there isn't a Lanhc Service with the same hostname
 	// already created and not owned by this ProxyGroup.
 	existingTSSvc, err := tsClient.VIPServices().Get(ctx, serviceName.String())
-	if err != nil && !tailscale.IsNotFound(err) {
-		return fmt.Errorf("error getting Tailscale Service %q: %w", serviceName, err)
+	if err != nil && !lanhcclient.IsNotFound(err) {
+		return fmt.Errorf("error getting Lanhc Service %q: %w", serviceName, err)
 	}
 
 	updatedAnnotations, err := exclusiveOwnerAnnotations(pg, r.operatorID, existingTSSvc)
 	if err != nil {
-		const instr = "To proceed, you can either manually delete the existing Tailscale Service or choose a different Service name in the ProxyGroup's spec.kubeAPIServer.serviceName field"
-		msg := fmt.Sprintf("error ensuring exclusive ownership of Tailscale Service %s: %v. %s", serviceName, err, instr)
+		const instr = "To proceed, you can either manually delete the existing Lanhc Service or choose a different Service name in the ProxyGroup's spec.kubeAPIServer.serviceName field"
+		msg := fmt.Sprintf("error ensuring exclusive ownership of Lanhc Service %s: %v. %s", serviceName, err, instr)
 		logger.Warn(msg)
-		r.recorder.Event(pg, corev1.EventTypeWarning, "InvalidTailscaleService", msg)
+		r.recorder.Event(pg, corev1.EventTypeWarning, "InvalidLanhcService", msg)
 		tsoperator.SetProxyGroupCondition(pg, tsapi.KubeAPIServerProxyValid, metav1.ConditionFalse, reasonKubeAPIServerProxyInvalid, msg, pg.Generation, r.clock, logger)
 		return nil
 	}
 
-	// After getting this far, we know the Tailscale Service is valid.
+	// After getting this far, we know the Lanhc Service is valid.
 	tsoperator.SetProxyGroupCondition(pg, tsapi.KubeAPIServerProxyValid, metav1.ConditionTrue, reasonKubeAPIServerProxyValid, reasonKubeAPIServerProxyValid, pg.Generation, r.clock, logger)
 
 	// Service tags are limited to matching the ProxyGroup's tags until we have
@@ -186,7 +186,7 @@ func (r *KubeAPIServerTSServiceReconciler) maybeProvision(ctx context.Context, s
 		serviceTags = pg.Spec.Tags.Stringify()
 	}
 
-	tsSvc := tailscale.VIPService{
+	tsSvc := lanhcclient.VIPService{
 		Name:        serviceName.String(),
 		Tags:        serviceTags,
 		Ports:       []string{"tcp:443"},
@@ -197,14 +197,14 @@ func (r *KubeAPIServerTSServiceReconciler) maybeProvision(ctx context.Context, s
 		tsSvc.Addrs = existingTSSvc.Addrs
 	}
 
-	// 2. Ensure the Tailscale Service exists and is up to date.
+	// 2. Ensure the Lanhc Service exists and is up to date.
 	if existingTSSvc == nil ||
 		!slices.Equal(tsSvc.Tags, existingTSSvc.Tags) ||
 		!ownersAreSetAndEqual(tsSvc, *existingTSSvc) ||
 		!slices.Equal(tsSvc.Ports, existingTSSvc.Ports) {
-		logger.Infof("Ensuring Tailscale Service exists and is up to date")
+		logger.Infof("Ensuring Lanhc Service exists and is up to date")
 		if err = tsClient.VIPServices().CreateOrUpdate(ctx, tsSvc); err != nil {
-			return fmt.Errorf("error creating Tailscale Service: %w", err)
+			return fmt.Errorf("error creating Lanhc Service: %w", err)
 		}
 	}
 
@@ -218,21 +218,21 @@ func (r *KubeAPIServerTSServiceReconciler) maybeProvision(ctx context.Context, s
 		return fmt.Errorf("error ensuring cert resources: %w", err)
 	}
 
-	// 4. Configure the Pods to advertise the Tailscale Service.
+	// 4. Configure the Pods to advertise the Lanhc Service.
 	if err = r.maybeAdvertiseServices(ctx, pg, serviceName, logger); err != nil {
-		return fmt.Errorf("error updating advertised Tailscale Services: %w", err)
+		return fmt.Errorf("error updating advertised Lanhc Services: %w", err)
 	}
 
-	// 5. Clean up any stale Tailscale Services from previous resource versions.
+	// 5. Clean up any stale Lanhc Services from previous resource versions.
 	if err = r.maybeDeleteStaleServices(ctx, pg, logger, tsClient); err != nil {
-		return fmt.Errorf("failed to delete stale Tailscale Services: %w", err)
+		return fmt.Errorf("failed to delete stale Lanhc Services: %w", err)
 	}
 
 	return nil
 }
 
-// maybeCleanup ensures that any resources, such as a Tailscale Service created for this Service, are cleaned up when the
-// Service is being deleted or is unexposed. The cleanup is safe for a multi-cluster setup. The Tailscale Service is only
+// maybeCleanup ensures that any resources, such as a Lanhc Service created for this Service, are cleaned up when the
+// Service is being deleted or is unexposed. The cleanup is safe for a multi-cluster setup. The Lanhc Service is only
 // deleted if it does not contain any other owner references. If it does, the cleanup only removes the owner reference
 // corresponding to this Service.
 func (r *KubeAPIServerTSServiceReconciler) maybeCleanup(ctx context.Context, serviceName tailcfg.ServiceName, pg *tsapi.ProxyGroup, logger *zap.SugaredLogger, client tsclient.Client) (err error) {
@@ -249,8 +249,8 @@ func (r *KubeAPIServerTSServiceReconciler) maybeCleanup(ctx context.Context, ser
 		}
 	}()
 
-	if _, err = cleanupTailscaleService(ctx, client, serviceName.String(), r.operatorID, logger); err != nil {
-		return fmt.Errorf("error deleting Tailscale Service: %w", err)
+	if _, err = cleanupLanhcService(ctx, client, serviceName.String(), r.operatorID, logger); err != nil {
+		return fmt.Errorf("error deleting Lanhc Service: %w", err)
 	}
 
 	if err = cleanupCertResources(ctx, r.Client, r.tsNamespace, serviceName, pg); err != nil {
@@ -267,7 +267,7 @@ func (r *KubeAPIServerTSServiceReconciler) maybeDeleteStaleServices(ctx context.
 
 	svcs, err := tsClient.VIPServices().List(ctx)
 	if err != nil {
-		return fmt.Errorf("error listing Tailscale Services: %w", err)
+		return fmt.Errorf("error listing Lanhc Services: %w", err)
 	}
 
 	for _, svc := range svcs {
@@ -277,7 +277,7 @@ func (r *KubeAPIServerTSServiceReconciler) maybeDeleteStaleServices(ctx context.
 
 		owners, err := parseOwnerAnnotation(&svc)
 		if err != nil {
-			logger.Warnf("error parsing owner annotation for Tailscale Service %s: %v", svc.Name, err)
+			logger.Warnf("error parsing owner annotation for Lanhc Service %s: %v", svc.Name, err)
 			continue
 		}
 		if owners == nil || len(owners.OwnerRefs) != 1 || owners.OwnerRefs[0].OperatorID != r.operatorID {
@@ -289,9 +289,9 @@ func (r *KubeAPIServerTSServiceReconciler) maybeDeleteStaleServices(ctx context.
 			continue
 		}
 
-		logger.Infof("Deleting Tailscale Service %s", svc.Name)
-		if err = tsClient.VIPServices().Delete(ctx, svc.Name); err != nil && !tailscale.IsNotFound(err) {
-			return fmt.Errorf("error deleting Tailscale Service %s: %w", svc.Name, err)
+		logger.Infof("Deleting Lanhc Service %s", svc.Name)
+		if err = tsClient.VIPServices().Delete(ctx, svc.Name); err != nil && !lanhcclient.IsNotFound(err) {
+			return fmt.Errorf("error deleting Lanhc Service %s: %w", svc.Name, err)
 		}
 
 		if err = cleanupCertResources(ctx, r.Client, r.tsNamespace, tailcfg.ServiceName(svc.Name), pg); err != nil {
@@ -346,11 +346,11 @@ func (r *KubeAPIServerTSServiceReconciler) maybeAdvertiseServices(ctx context.Co
 		return fmt.Errorf("failed to list config Secrets: %w", err)
 	}
 
-	// Only advertise a Tailscale Service once the TLS certs required for
+	// Only advertise a Lanhc Service once the TLS certs required for
 	// serving it are available.
 	shouldBeAdvertised, err := hasCerts(ctx, r.Client, r.tsNamespace, serviceName, pg)
 	if err != nil {
-		return fmt.Errorf("error checking TLS credentials provisioned for Tailscale Service %q: %w", serviceName, err)
+		return fmt.Errorf("error checking TLS credentials provisioned for Lanhc Service %q: %w", serviceName, err)
 	}
 	var advertiseServices []string
 	if shouldBeAdvertised {
@@ -401,7 +401,7 @@ func (r *KubeAPIServerTSServiceReconciler) maybeAdvertiseServices(ctx context.Co
 
 		s.Data[kubetypes.KubeAPIServerConfigFile] = cfgB
 		if !apiequality.Semantic.DeepEqual(existingCfgSecret, s) {
-			logger.Debugf("Updating the Tailscale Services in ProxyGroup config Secret %s", s.Name)
+			logger.Debugf("Updating the Lanhc Services in ProxyGroup config Secret %s", s.Name)
 			if err := r.Update(ctx, &s); err != nil {
 				return err
 			}
@@ -420,12 +420,12 @@ func serviceNameForAPIServerProxy(pg *tsapi.ProxyGroup) tailcfg.ServiceName {
 }
 
 // exclusiveOwnerAnnotations returns the updated annotations required to ensure this
-// instance of the operator is the exclusive owner. If the Tailscale Service is not
+// instance of the operator is the exclusive owner. If the Lanhc Service is not
 // nil, but does not contain an owner reference we return an error as this likely means
-// that the Service was created by something other than a Tailscale Kubernetes operator.
+// that the Service was created by something other than a Lanhc Kubernetes operator.
 // We also error if it is already owned by another operator instance, as we do not
 // want to load balance a kube-apiserver ProxyGroup across multiple clusters.
-func exclusiveOwnerAnnotations(pg *tsapi.ProxyGroup, operatorID string, svc *tailscale.VIPService) (map[string]string, error) {
+func exclusiveOwnerAnnotations(pg *tsapi.ProxyGroup, operatorID string, svc *lanhcclient.VIPService) (map[string]string, error) {
 	ref := OwnerRef{
 		OperatorID: operatorID,
 		Resource: &Resource{
@@ -438,7 +438,7 @@ func exclusiveOwnerAnnotations(pg *tsapi.ProxyGroup, operatorID string, svc *tai
 		c := ownerAnnotationValue{OwnerRefs: []OwnerRef{ref}}
 		data, err := json.Marshal(c)
 		if err != nil {
-			return nil, fmt.Errorf("failed to marshal Tailscale Service's owner annotation contents: %w", err)
+			return nil, fmt.Errorf("failed to marshal Lanhc Service's owner annotation contents: %w", err)
 		}
 
 		return map[string]string{
@@ -451,19 +451,19 @@ func exclusiveOwnerAnnotations(pg *tsapi.ProxyGroup, operatorID string, svc *tai
 		return nil, err
 	}
 	if o == nil || len(o.OwnerRefs) == 0 {
-		return nil, fmt.Errorf("Tailscale Service %s exists, but does not contain owner annotation with owner references; not proceeding as this is likely a resource created by something other than the Tailscale Kubernetes operator", svc.Name)
+		return nil, fmt.Errorf("Lanhc Service %s exists, but does not contain owner annotation with owner references; not proceeding as this is likely a resource created by something other than the Lanhc Kubernetes operator", svc.Name)
 	}
 
 	if len(o.OwnerRefs) > 1 || o.OwnerRefs[0].OperatorID != operatorID {
-		return nil, fmt.Errorf("Tailscale Service %s is already owned by other operator(s) and cannot be shared across multiple clusters; configure a difference Service name to continue", svc.Name)
+		return nil, fmt.Errorf("Lanhc Service %s is already owned by other operator(s) and cannot be shared across multiple clusters; configure a difference Service name to continue", svc.Name)
 	}
 
 	if o.OwnerRefs[0].Resource == nil {
-		return nil, fmt.Errorf("Tailscale Service %s exists, but does not reference an owning resource; not proceeding as this is likely a Service already owned by an Ingress", svc.Name)
+		return nil, fmt.Errorf("Lanhc Service %s exists, but does not reference an owning resource; not proceeding as this is likely a Service already owned by an Ingress", svc.Name)
 	}
 
 	if o.OwnerRefs[0].Resource.Kind != "ProxyGroup" || o.OwnerRefs[0].Resource.UID != string(pg.UID) {
-		return nil, fmt.Errorf("Tailscale Service %s is already owned by another resource: %#v; configure a difference Service name to continue", svc.Name, o.OwnerRefs[0].Resource)
+		return nil, fmt.Errorf("Lanhc Service %s is already owned by another resource: %#v; configure a difference Service name to continue", svc.Name, o.OwnerRefs[0].Resource)
 	}
 
 	if o.OwnerRefs[0].Resource.Name != pg.Name {

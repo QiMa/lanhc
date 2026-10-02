@@ -1,11 +1,11 @@
 # gitops-pusher
 
 This is a small tool to help people achieve a
-[GitOps](https://about.gitlab.com/topics/gitops/) workflow with Tailscale ACL
+[GitOps](https://about.gitlab.com/topics/gitops/) workflow with Lanhc ACL
 changes. This tool is intended to be used in a CI flow that looks like this:
 
 ```yaml
-name: Tailscale ACL syncing
+name: Lanhc ACL syncing
 
 on:
   push:
@@ -24,7 +24,7 @@ jobs:
         uses: actions/setup-go@v3.2.0
         
       - name: Install gitops-pusher
-        run: go install tailscale.com/cmd/gitops-pusher@latest
+        run: go install lanhc.com/cmd/gitops-pusher@latest
               
       - name: Deploy ACL
         if: github.event_name == 'push'

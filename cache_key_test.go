@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-package tailscaleroot
+package lanhcroot
 
 import (
 	"os"
@@ -9,20 +9,20 @@ import (
 	"strings"
 	"testing"
 
-	"tailscale.com/util/cibuild"
+	"lanhc.com/util/cibuild"
 )
 
-// TestTsgoRevInCacheKey verifies that the Tailscale Go toolchain's git
+// TestTsgoRevInCacheKey verifies that the Lanhc Go toolchain's git
 // revision (from go.toolchain.rev) is blended into Go build cache keys.
 // Without this, bumping the toolchain to a new commit that doesn't change
 // the Go version number would silently reuse stale cached build artifacts.
 //
-// See https://github.com/tailscale/tailscale/issues/36589.
+// See https://github.com/lanhc/lanhc/issues/36589.
 func TestTsgoRevInCacheKey(t *testing.T) {
 	goRoot := goEnv(t, "GOROOT")
 	isTsgo := strings.Contains(goRoot, "/.cache/tsgo/")
-	if !cibuild.OnTailscaleCI() && !isTsgo {
-		t.Skip("skipping; not in Tailscale CI and not using the Tailscale Go toolchain")
+	if !cibuild.OnLanhcCI() && !isTsgo {
+		t.Skip("skipping; not in Lanhc CI and not using the Lanhc Go toolchain")
 	}
 
 	rev := strings.TrimSpace(GoToolchainRev)

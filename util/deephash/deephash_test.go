@@ -22,11 +22,11 @@ import (
 	qt "github.com/frankban/quicktest"
 	"go4.org/mem"
 	"go4.org/netipx"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
-	"tailscale.com/util/deephash/testtype"
-	"tailscale.com/util/hashx"
-	"tailscale.com/version"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
+	"lanhc.com/util/deephash/testtype"
+	"lanhc.com/util/hashx"
+	"lanhc.com/version"
 )
 
 type appendBytes []byte

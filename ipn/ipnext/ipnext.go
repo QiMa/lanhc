@@ -12,20 +12,20 @@ import (
 	"iter"
 	"net/netip"
 
-	"tailscale.com/control/controlclient"
-	"tailscale.com/feature"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnauth"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsd"
-	"tailscale.com/tstime"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/mapx"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/views"
-	"tailscale.com/wgengine/filter"
+	"lanhc.com/control/controlclient"
+	"lanhc.com/feature"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnauth"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsd"
+	"lanhc.com/tstime"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/mapx"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/views"
+	"lanhc.com/wgengine/filter"
 )
 
 // Extension augments LocalBackend with additional functionality.
@@ -196,7 +196,7 @@ type Host interface {
 	AuditLogger() ipnauth.AuditLogFunc
 
 	// Hooks returns a non-nil pointer to a [Hooks] struct.
-	// Hooks must not be modified concurrently or after Tailscale has started.
+	// Hooks must not be modified concurrently or after Lanhc has started.
 	Hooks() *Hooks
 
 	// SendNotifyAsync sends a notification to the IPN bus,
@@ -224,11 +224,11 @@ type Host interface {
 type SafeBackend interface {
 	Sys() *tsd.System
 	Clock() tstime.Clock
-	TailscaleVarRoot() string
+	LanhcVarRoot() string
 }
 
-// NotifyWatcher is a subset of [tailscale.com/ipn/ipnlocal.LocalBackend]
-// for extensions that subscribe to the IPN notification bus from within tailscaled.
+// NotifyWatcher is a subset of [lanhc.com/ipn/ipnlocal.LocalBackend]
+// for extensions that subscribe to the IPN notification bus from within lanhcd.
 //
 // Unlike [SafeBackend], its methods acquire LocalBackend’s internal mutex
 // and must not be called from extension hooks,
@@ -313,7 +313,7 @@ type ProfileStore interface {
 	// Windows where we have a multi-user system.
 	//
 	// Deprecated: this method exists for compatibility with the current (as of 2024-08-27)
-	// permission model and will be removed as we progress on tailscale/corp#18342.
+	// permission model and will be removed as we progress on lanhc/corp#18342.
 	CurrentUserID() ipn.WindowsUserID
 
 	// CurrentProfile returns a read-only [ipn.LoginProfileView] of the current profile.

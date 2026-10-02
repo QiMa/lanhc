@@ -7,7 +7,7 @@
   # The GitHub Actions self-hosted runner service.
   services.github-runner = {
     enable = true;
-    url = "https://github.com/tailscale/tailscale";
+    url = "https://github.com/lanhc/lanhc";
     replace = true;
     extraLabels = [ "vm_integration_test" ];
 

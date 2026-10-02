@@ -27,19 +27,19 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"tailscale.com/health"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/ipnlocal/ipnlocaltest"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/tailcfg"
-	xacme "tailscale.com/tempfork/acme"
-	"tailscale.com/tsconst"
-	"tailscale.com/tstest"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/netmap"
-	"tailscale.com/util/must"
-	"tailscale.com/util/set"
+	"lanhc.com/health"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/ipnlocal/ipnlocaltest"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/tailcfg"
+	xacme "lanhc.com/tempfork/acme"
+	"lanhc.com/tsconst"
+	"lanhc.com/tstest"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/netmap"
+	"lanhc.com/util/must"
+	"lanhc.com/util/set"
 )
 
 //go:embed testdata/*
@@ -158,13 +158,13 @@ func TestResolveCertDomain(t *testing.T) {
 			domain:      "node.ts.net",
 			certDomains: nil,
 			hasCap:      true,
-			wantErr:     "your Tailscale account does not support getting TLS certs",
+			wantErr:     "your Lanhc account does not support getting TLS certs",
 		},
 		{
 			name:        "no_cert_domains_without_cap",
 			domain:      "node.ts.net",
 			certDomains: nil,
-			wantErr:     "your Tailscale account does not support getting TLS certs",
+			wantErr:     "your Lanhc account does not support getting TLS certs",
 		},
 		{
 			name:        "subdomain_request_rejected_without_cap",
@@ -580,7 +580,7 @@ func TestShouldStartDomainRenewal(t *testing.T) {
 
 	now := time.Unix(1685714838, 0)
 	subject := pkix.Name{
-		Organization:  []string{"Tailscale, Inc."},
+		Organization:  []string{"Lanhc, Inc."},
 		Country:       []string{"CA"},
 		Province:      []string{"ON"},
 		Locality:      []string{"Toronto"},
@@ -808,7 +808,7 @@ func TestGetCertPEMWithValidity(t *testing.T) {
 // same cached certificate as the dotless form. Per RFC 6066 §3 the SNI
 // HostName carries no trailing dot, but some clients send an FQDN with
 // one; the cert store keys certs by the dotless domain, so the trailing
-// dot must be trimmed before lookup. See tailscale/tailscale#10233.
+// dot must be trimmed before lookup. See lanhc/lanhc#10233.
 func TestGetCertPEMWithValidityTrimsTrailingDot(t *testing.T) {
 	tstest.AssertNotParallel(t)
 

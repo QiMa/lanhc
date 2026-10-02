@@ -14,19 +14,19 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	_ "tailscale.com/clientupdate" // for feature registration side effects
-	"tailscale.com/feature"
-	"tailscale.com/health"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/tstime"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/persist"
-	"tailscale.com/util/eventbus/eventbustest"
-	"tailscale.com/util/must"
+	_ "lanhc.com/clientupdate" // for feature registration side effects
+	"lanhc.com/feature"
+	"lanhc.com/health"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/tstime"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/persist"
+	"lanhc.com/util/eventbus/eventbustest"
+	"lanhc.com/util/must"
 )
 
 func TestProfileCurrentUserSwitch(t *testing.T) {

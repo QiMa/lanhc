@@ -13,10 +13,10 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/bools"
-	"tailscale.com/types/netlogtype"
-	"tailscale.com/util/set"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/bools"
+	"lanhc.com/types/netlogtype"
+	"lanhc.com/util/set"
 )
 
 // maxLogSize is the maximum number of bytes for a log message.
@@ -101,10 +101,10 @@ func (r record) toMessage(excludeNodeInfo, anonymizeExitTraffic bool) netlogtype
 					Dst: netip.AddrPortFrom(conn.Dst.Addr(), 0), // scrub the port number
 				}
 				if !r.seenNodes[conn.Src.Addr()].Valid() {
-					conn.Src = netip.AddrPort{} // not a Tailscale node, so scrub the address
+					conn.Src = netip.AddrPort{} // not a Lanhc node, so scrub the address
 				}
 				if !r.seenNodes[conn.Dst.Addr()].Valid() {
-					conn.Dst = netip.AddrPort{} // not a Tailscale node, so scrub the address
+					conn.Dst = netip.AddrPort{} // not a Lanhc node, so scrub the address
 				}
 				anonymizedExitTraffic[conn] = anonymizedExitTraffic[conn].Add(cnts.Counts)
 				continue

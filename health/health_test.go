@@ -17,16 +17,16 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"tailscale.com/metrics"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsconst"
-	"tailscale.com/tstest"
-	"tailscale.com/tstime"
-	"tailscale.com/types/opt"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/eventbus/eventbustest"
-	"tailscale.com/util/usermetric"
-	"tailscale.com/version"
+	"lanhc.com/metrics"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsconst"
+	"lanhc.com/tstest"
+	"lanhc.com/tstime"
+	"lanhc.com/types/opt"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/eventbus/eventbustest"
+	"lanhc.com/util/usermetric"
+	"lanhc.com/version"
 )
 
 var doDebug = flag.Bool("debug", false, "Enable debug logging")
@@ -564,7 +564,7 @@ func TestHealthMetric(t *testing.T) {
 // complain about no DERP home if we're not in a
 // map poll.
 func TestNoDERPHomeWarnable(t *testing.T) {
-	t.Skip("TODO: fix https://github.com/tailscale/tailscale/issues/14798 to make this test not deadlock")
+	t.Skip("TODO: fix https://github.com/lanhc/lanhc/issues/14798 to make this test not deadlock")
 	clock := tstest.NewClock(tstest.ClockOpts{
 		Start:          time.Unix(123, 0),
 		FollowRealTime: false,
@@ -588,7 +588,7 @@ func TestNoDERPHomeWarnable(t *testing.T) {
 
 // TestNoDERPHomeWarnableManual is like TestNoDERPHomeWarnable
 // but doesn't use tstest.Clock so avoids the deadlock
-// I hit: https://github.com/tailscale/tailscale/issues/14798
+// I hit: https://github.com/lanhc/lanhc/issues/14798
 func TestNoDERPHomeWarnableManual(t *testing.T) {
 	ht := NewTracker(eventbustest.NewBus(t))
 	ht.SetIPNState("NeedsLogin", true)
@@ -683,7 +683,7 @@ func TestControlHealth(t *testing.T) {
 		}
 	})
 
-	t.Run("tailscaled_health_messages", func(t *testing.T) {
+	t.Run("lanhcd_health_messages", func(t *testing.T) {
 		var r usermetric.Registry
 		ht.SetMetricsRegistry(&r)
 

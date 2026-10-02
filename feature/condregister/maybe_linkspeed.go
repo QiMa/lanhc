@@ -5,4 +5,4 @@
 
 package condregister
 
-import _ "tailscale.com/feature/linkspeed"
+import _ "lanhc.com/feature/linkspeed"

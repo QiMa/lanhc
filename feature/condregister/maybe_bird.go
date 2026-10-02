@@ -5,4 +5,4 @@
 
 package condregister
 
-import _ "tailscale.com/feature/bird"
+import _ "lanhc.com/feature/bird"

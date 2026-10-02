@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package tsdial provides a Dialer type that can dial out of tailscaled.
+// Package tsdial provides a Dialer type that can dial out of lanhcd.
 package tsdial
 
 import (
@@ -20,26 +20,26 @@ import (
 	"time"
 
 	"github.com/gaissmai/bart"
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/net/dnscache"
-	"tailscale.com/net/netknob"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/netns"
-	"tailscale.com/net/netutil"
-	"tailscale.com/net/netx"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/syncs"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/testenv"
-	"tailscale.com/version"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/net/dnscache"
+	"lanhc.com/net/netknob"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/netns"
+	"lanhc.com/net/netutil"
+	"lanhc.com/net/netx"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/syncs"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/testenv"
+	"lanhc.com/version"
 )
 
-// NewDialer returns a new Dialer that can dial out of tailscaled.
+// NewDialer returns a new Dialer that can dial out of lanhcd.
 // Its exported fields should be set before use, if any.
 func NewDialer(netMon *netmon.Monitor) *Dialer {
 	if netMon == nil {
@@ -51,13 +51,13 @@ func NewDialer(netMon *netmon.Monitor) *Dialer {
 }
 
 // NewFromFuncForDebug is like NewDialer but takes a netx.DialFunc
-// and no netMon. It's meant exclusively for the "tailscale debug ts2021"
+// and no netMon. It's meant exclusively for the "lanhc debug ts2021"
 // debug command, and perhaps tests.
 func NewFromFuncForDebug(logf logger.Logf, dial netx.DialFunc) *Dialer {
 	return &Dialer{sysDialForTest: dial, Logf: logf}
 }
 
-// Dialer dials out of tailscaled, while taking care of details while
+// Dialer dials out of lanhcd, while taking care of details while
 // handling the dozens of edge cases depending on the server mode
 // (TUN, netstack), the OS network sandboxing style (macOS/iOS
 // Extension, none), user-selected route acceptance prefs, etc.
@@ -87,7 +87,7 @@ type Dialer struct {
 	netnsDialer     netns.Dialer
 	sysDialForTest  netx.DialFunc // or nil
 
-	routes atomic.Pointer[bart.Table[bool]] // or nil if UserDial should not use routes. `true` indicates routes that point into the Tailscale interface
+	routes atomic.Pointer[bart.Table[bool]] // or nil if UserDial should not use routes. `true` indicates routes that point into the Lanhc interface
 
 	// resolveMagicDNS, if non-nil, resolves a MagicDNS hostname (short
 	// name or FQDN, without trailing dot, lowercased) to an IP address.
@@ -125,7 +125,7 @@ func (c sysConn) Close() error {
 	return nil
 }
 
-// SetTUNName sets the name of the tun device in use ("tailscale0", "utun6",
+// SetTUNName sets the name of the tun device in use ("lanhc0", "utun6",
 // etc). This is needed on some platforms to set sockopts to bind
 // to the same interface index.
 func (d *Dialer) SetTUNName(name string) {
@@ -135,7 +135,7 @@ func (d *Dialer) SetTUNName(name string) {
 }
 
 // TUNName returns the name of the tun device in use, if any.
-// Example format ("tailscale0", "utun6").
+// Example format ("lanhc0", "utun6").
 func (d *Dialer) TUNName() string {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -171,7 +171,7 @@ func (d *Dialer) SetExitDNSDoH(doh string) {
 	}
 }
 
-// SetRoutes configures the dialer to dial the specified routes via Tailscale,
+// SetRoutes configures the dialer to dial the specified routes via Lanhc,
 // and the specified localRoutes using the default interface.
 func (d *Dialer) SetRoutes(routes, localRoutes []netip.Prefix) {
 	var rt *bart.Table[bool]
@@ -319,7 +319,7 @@ func changeAffectsConn(delta *netmon.ChangeDelta, conn net.Conn) bool {
 	}
 
 	// In a few cases, we don't have a new DefaultRouteInterface (e.g. on
-	// Android and macOS/iOS; see tailscale/corp#19124); if so, pessimistically assume
+	// Android and macOS/iOS; see lanhc/corp#19124); if so, pessimistically assume
 	// that all connections are affected.
 	if delta.DefaultRouteInterface == "" && runtime.GOOS != "plan9" {
 		return true
@@ -512,7 +512,7 @@ func (d *Dialer) SetSystemDialerForTest(fn netx.DialFunc) {
 }
 
 // SystemDial connects to the provided network address without going over
-// Tailscale. It prefers going over the default interface and closes existing
+// Lanhc. It prefers going over the default interface and closes existing
 // connections if the default interface changes. It is used to connect to
 // Control and (in the future, as of 2022-04-27) DERPs..
 func (d *Dialer) SystemDial(ctx context.Context, network, addr string) (net.Conn, error) {
@@ -596,19 +596,19 @@ func (d *Dialer) dialOneUser(ctx context.Context, network string, ipp netip.Addr
 	}
 
 	if routes := d.routes.Load(); routes != nil {
-		if isTailscaleRoute, _ := routes.Lookup(ipp.Addr()); isTailscaleRoute {
+		if isLanhcRoute, _ := routes.Lookup(ipp.Addr()); isLanhcRoute {
 			return d.getPeerDialer().DialContext(ctx, network, ipp.String())
 		}
 
 		return d.SystemDial(ctx, network, ipp.String())
 	}
 
-	// Workaround for macOS for now: dial Tailscale IPs with peer dialer.
+	// Workaround for macOS for now: dial Lanhc IPs with peer dialer.
 	// TODO(bradfitz): fix dialing subnet routers, public IPs via exit nodes,
 	// etc. This is a temporary partial for macOS. We need to plumb ART tables &
 	// prefs & host routing table updates around in more places. We just don't
 	// know from the limited context here how to dial properly.
-	if version.IsMacGUIVariant() && tsaddr.IsTailscaleIP(ipp.Addr()) {
+	if version.IsMacGUIVariant() && tsaddr.IsLanhcIP(ipp.Addr()) {
 		return d.getPeerDialer().DialContext(ctx, network, ipp.String())
 	}
 	// TODO(bradfitz): netns, etc
@@ -635,15 +635,15 @@ func (d *Dialer) raceDialUser(ctx context.Context, ipps []netip.AddrPort) (net.C
 }
 
 // UserDialPlan resolves addr and reports whether the dialer would
-// handle it via Tailscale. If viaTailscale is false, the resolved
-// address is not a Tailscale route and the caller may dial it directly.
+// handle it via Lanhc. If viaLanhc is false, the resolved
+// address is not a Lanhc route and the caller may dial it directly.
 //
 // Warning: there is a TOCTOU race if addr contains a DNS name and the
 // caller subsequently passes the same DNS name to [Dialer.UserDial], as DNS
 // may resolve differently the second time. Callers who want to only
-// dial over Tailscale should call [Dialer.UserDial] with the returned
+// dial over Lanhc should call [Dialer.UserDial] with the returned
 // ipp.String() (an IP:port) rather than the original DNS name.
-func (d *Dialer) UserDialPlan(ctx context.Context, network, addr string) (ipp netip.AddrPort, viaTailscale bool, err error) {
+func (d *Dialer) UserDialPlan(ctx context.Context, network, addr string) (ipp netip.AddrPort, viaLanhc bool, err error) {
 	ipp, err = d.userDialResolve(ctx, network, addr)
 	if err != nil {
 		return netip.AddrPort{}, false, err
@@ -652,16 +652,16 @@ func (d *Dialer) UserDialPlan(ctx context.Context, network, addr string) (ipp ne
 		return ipp, true, nil
 	}
 	if routes := d.routes.Load(); routes != nil {
-		isTailscaleRoute, _ := routes.Lookup(ipp.Addr())
-		return ipp, isTailscaleRoute, nil
+		isLanhcRoute, _ := routes.Lookup(ipp.Addr())
+		return ipp, isLanhcRoute, nil
 	}
-	if version.IsMacGUIVariant() && tsaddr.IsTailscaleIP(ipp.Addr()) {
+	if version.IsMacGUIVariant() && tsaddr.IsLanhcIP(ipp.Addr()) {
 		return ipp, true, nil
 	}
 	return ipp, false, nil
 }
 
-// dialPeerAPI connects to a Tailscale peer's peerapi over TCP.
+// dialPeerAPI connects to a Lanhc peer's peerapi over TCP.
 //
 // network must a "tcp" type, and addr must be an ip:port. Name resolution
 // is not supported.
@@ -688,7 +688,7 @@ func (d *Dialer) dialPeerAPI(ctx context.Context, network, addr string) (net.Con
 }
 
 // getPeerDialer returns the *net.Dialer to use to dial peers (e.g. for peerapi,
-// "tailscale nc", or querying internal DNS servers over Tailscale)
+// "lanhc nc", or querying internal DNS servers over Lanhc)
 //
 // This is not used in netstack mode.
 //

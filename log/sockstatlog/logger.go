@@ -17,17 +17,17 @@ import (
 	"sync/atomic"
 	"time"
 
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/health"
-	"tailscale.com/logpolicy"
-	"tailscale.com/logtail"
-	"tailscale.com/logtail/filch"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/sockstats"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/logid"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/mak"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/health"
+	"lanhc.com/logpolicy"
+	"lanhc.com/logtail"
+	"lanhc.com/logtail/filch"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/sockstats"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/logid"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/mak"
 )
 
 // pollInterval specifies how often to poll for socket stats.
@@ -97,7 +97,7 @@ func SockstatLogID(logID logid.PublicID) logid.PrivateID {
 // Logs will be uploaded to the log server using a new log ID derived from the provided backend logID.
 //
 // The netMon parameter is optional. It should be specified in environments where
-// Tailscaled is manipulating the routing table.
+// Lanhcd is manipulating the routing table.
 func NewLogger(logdir string, logf logger.Logf, logID logid.PublicID, netMon *netmon.Monitor, health *health.Tracker, bus *eventbus.Bus) (*Logger, error) {
 	if !sockstats.IsAvailable || !buildfeatures.HasLogTail {
 		return nil, nil
@@ -126,7 +126,7 @@ func NewLogger(logdir string, logf logger.Logf, logID logid.PublicID, netMon *ne
 	logger.logger = logtail.NewLogger(logtail.Config{
 		BaseURL:      logpolicy.LogURL(),
 		PrivateID:    SockstatLogID(logID),
-		Collection:   "sockstats.log.tailscale.io",
+		Collection:   "sockstats.log.lanhc.io",
 		Buffer:       filch,
 		Bus:          bus,
 		CompressLogs: true,

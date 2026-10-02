@@ -24,7 +24,7 @@ usage: addlicense -file FILE <subcommand args...>
 
 	flag.PrintDefaults()
 	fmt.Fprint(os.Stderr, `
-addlicense adds a Tailscale license to the beginning of file.
+addlicense adds a Lanhc license to the beginning of file.
 
 It is intended for use with 'go generate', so it also runs a subcommand,
 which presumably creates the file.

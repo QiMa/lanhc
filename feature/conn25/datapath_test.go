@@ -12,14 +12,14 @@ import (
 
 	"github.com/tailscale/wireguard-go/tun/tuntest"
 	"go4.org/netipx"
-	"tailscale.com/net/packet"
-	"tailscale.com/net/tstun"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/views"
-	"tailscale.com/util/eventbus/eventbustest"
-	"tailscale.com/util/usermetric"
-	"tailscale.com/wgengine/filter"
-	"tailscale.com/wgengine/filter/filtertype"
+	"lanhc.com/net/packet"
+	"lanhc.com/net/tstun"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/views"
+	"lanhc.com/util/eventbus/eventbustest"
+	"lanhc.com/util/usermetric"
+	"lanhc.com/wgengine/filter"
+	"lanhc.com/wgengine/filter/filtertype"
 )
 
 type testConn25 struct {
@@ -338,7 +338,7 @@ func TestHandlePacketFromWireGuard(t *testing.T) {
 			expectedSrc:            netip.AddrPortFrom(unknownSrcIP, clientPort),
 			expectedDst:            netip.AddrPortFrom(transitIP, serverPort),
 			expectedFilterResponse: filter.Drop,
-			expectedInjectedPkt: packet.Generate(packet.TailscaleRejectedHeader{
+			expectedInjectedPkt: packet.Generate(packet.LanhcRejectedHeader{
 				IPSrc:  transitIP,
 				IPDst:  unknownSrcIP,
 				Proto:  ipproto.UDP,

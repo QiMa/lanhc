@@ -26,17 +26,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"tailscale.com/client/tailscale/v2"
+	lanhcclient "tailscale.com/client/tailscale/v2"
 
-	"tailscale.com/ipn"
-	operatorutils "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/k8s-operator/reconciler"
-	"tailscale.com/k8s-operator/tsclient"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tstime"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/set"
+	"lanhc.com/ipn"
+	operatorutils "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/k8s-operator/reconciler"
+	"lanhc.com/k8s-operator/tsclient"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tstime"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/set"
 )
 
 type (
@@ -45,7 +45,7 @@ type (
 	Reconciler struct {
 		client.Client
 
-		tailscaleNamespace string
+		lanhcNamespace string
 		operatorSAName     string
 		clock              tstime.Clock
 		logger             *zap.SugaredLogger
@@ -63,8 +63,8 @@ type (
 		Client client.Client
 		// The namespace the operator is installed in. This reconciler expects Tailnet credentials to be stored
 		// in Secret resources within this namespace.
-		TailscaleNamespace string
-		// The name of the ServiceAccount the operator runs as, in TailscaleNamespace. This is used as the target
+		LanhcNamespace string
+		// The name of the ServiceAccount the operator runs as, in LanhcNamespace. This is used as the target
 		// ServiceAccount when minting tokens via the Kubernetes TokenRequest API for Tailnets that authenticate
 		// using workload identity federation.
 		OperatorSAName string
@@ -73,14 +73,14 @@ type (
 		Clock tstime.Clock
 		// The logger to use for this Reconciler.
 		Logger *zap.SugaredLogger
-		// ClientFunc is a function that takes tailscale credentials and returns an implementation for the Tailscale
+		// ClientFunc is a function that takes lanhc credentials and returns an implementation for the Lanhc
 		// HTTP API. This should generally be nil unless needed for testing.
 		ClientFunc func(*tsapi.Tailnet, *corev1.Secret) tsclient.Client
-		// Registry is used to store and share initialized tailscale clients for use by other reconcilers.
+		// Registry is used to store and share initialized lanhc clients for use by other reconcilers.
 		Registry ClientRegistry
 	}
 
-	// The ClientRegistry interface describes types that can store initialized tailscale clients for use by other
+	// The ClientRegistry interface describes types that can store initialized lanhc clients for use by other
 	// reconcilers.
 	ClientRegistry interface {
 		// Add should store the given tsclient.Client implementation for a specified tailnet.
@@ -97,7 +97,7 @@ const reconcilerName = "tailnet-reconciler"
 func NewReconciler(options ReconcilerOptions) *Reconciler {
 	return &Reconciler{
 		Client:             options.Client,
-		tailscaleNamespace: options.TailscaleNamespace,
+		lanhcNamespace: options.LanhcNamespace,
 		operatorSAName:     options.OperatorSAName,
 		clock:              options.Clock,
 		logger:             options.Logger.Named(reconcilerName),
@@ -168,12 +168,12 @@ func (r *Reconciler) createOrUpdate(ctx context.Context, tailnet *tsapi.Tailnet)
 	r.mu.Unlock()
 	gaugeTailnetResources.Set(int64(r.tailnets.Len()))
 
-	name := types.NamespacedName{Name: tailnet.Spec.Credentials.SecretName, Namespace: r.tailscaleNamespace}
+	name := types.NamespacedName{Name: tailnet.Spec.Credentials.SecretName, Namespace: r.lanhcNamespace}
 
 	var secret corev1.Secret
 	err := r.Get(ctx, name, &secret)
 
-	// The referenced Secret does not exist within the tailscale namespace, so we'll mark the Tailnet as not ready
+	// The referenced Secret does not exist within the lanhc namespace, so we'll mark the Tailnet as not ready
 	// for use.
 	if apierrors.IsNotFound(err) {
 		operatorutils.SetTailnetCondition(
@@ -181,7 +181,7 @@ func (r *Reconciler) createOrUpdate(ctx context.Context, tailnet *tsapi.Tailnet)
 			tsapi.TailnetReady,
 			metav1.ConditionFalse,
 			ReasonInvalidSecret,
-			fmt.Sprintf("referenced secret %q does not exist in namespace %q", name.Name, r.tailscaleNamespace),
+			fmt.Sprintf("referenced secret %q does not exist in namespace %q", name.Name, r.lanhcNamespace),
 			r.clock,
 			r.logger,
 		)
@@ -272,7 +272,7 @@ func (r *Reconciler) createClient(tailnet *tsapi.Tailnet, secret *corev1.Secret)
 		return nil, fmt.Errorf("failed to parse base URL %q: %w", baseURL, err)
 	}
 
-	var auth tailscale.Auth
+	var auth lanhcclient.Auth
 
 	clientID := string(secret.Data[clientIDKey])
 	audience := string(secret.Data[audienceKey])
@@ -281,13 +281,13 @@ func (r *Reconciler) createClient(tailnet *tsapi.Tailnet, secret *corev1.Secret)
 	switch {
 	case audience != "":
 		// If the audience field is present, we assume workload identity as the authentication method.
-		auth = &tailscale.IdentityFederation{
+		auth = &lanhcclient.IdentityFederation{
 			ClientID:    clientID,
 			IDTokenFunc: r.createToken(audience),
 		}
 	case clientSecret != "":
 		// For a client secret, we assume oauth.
-		auth = &tailscale.OAuth{
+		auth = &lanhcclient.OAuth{
 			ClientID:     clientID,
 			ClientSecret: clientSecret,
 		}
@@ -297,9 +297,9 @@ func (r *Reconciler) createClient(tailnet *tsapi.Tailnet, secret *corev1.Secret)
 		return nil, errors.New("unable to determine authentication method")
 	}
 
-	return tsclient.Wrap(&tailscale.Client{
+	return tsclient.Wrap(&lanhcclient.Client{
 		BaseURL:   base,
-		UserAgent: "tailscale-k8s-operator",
+		UserAgent: "lanhc-k8s-operator",
 		Auth:      auth,
 	}), nil
 }
@@ -309,7 +309,7 @@ func (r *Reconciler) createToken(audience string) func() (string, error) {
 		serviceAccount := &corev1.ServiceAccount{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      r.operatorSAName,
-				Namespace: r.tailscaleNamespace,
+				Namespace: r.lanhcNamespace,
 			},
 		}
 
@@ -320,7 +320,7 @@ func (r *Reconciler) createToken(audience string) func() (string, error) {
 		}
 
 		if err := r.SubResource("token").Create(context.Background(), serviceAccount, tokenRequest); err != nil {
-			return "", fmt.Errorf("failed to mint service account token for %q in namespace %q: %w", r.operatorSAName, r.tailscaleNamespace, err)
+			return "", fmt.Errorf("failed to mint service account token for %q in namespace %q: %w", r.operatorSAName, r.lanhcNamespace, err)
 		}
 
 		return tokenRequest.Status.Token, nil
@@ -342,7 +342,7 @@ func (r *Reconciler) ensurePermissions(ctx context.Context, tsClient tsclient.Cl
 	}
 
 	if _, err := tsClient.VIPServices().List(ctx); err != nil {
-		errs = errors.Join(errs, fmt.Errorf("failed to list tailscale services: %w (client may be missing the services scope)", err))
+		errs = errors.Join(errs, fmt.Errorf("failed to list lanhc services: %w (client may be missing the services scope)", err))
 	}
 
 	if errs != nil {

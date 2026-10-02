@@ -6,12 +6,12 @@
 package portmapper
 
 import (
-	"tailscale.com/feature"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/portmapper"
-	"tailscale.com/net/portmapper/portmappertype"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/eventbus"
+	"lanhc.com/feature"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/portmapper"
+	"lanhc.com/net/portmapper/portmappertype"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/eventbus"
 )
 
 func init() {

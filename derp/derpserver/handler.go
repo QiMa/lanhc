@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	"tailscale.com/derp"
+	"lanhc.com/derp"
 )
 
 // Handler returns an http.Handler to be mounted at /derp, serving s.
@@ -81,7 +81,7 @@ func ProbeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ServeNoContent generates the /generate_204 response used by Tailscale's
+// ServeNoContent generates the /generate_204 response used by Lanhc's
 // captive portal detection.
 func ServeNoContent(w http.ResponseWriter, r *http.Request) {
 	if challenge := r.Header.Get(NoContentChallengeHeader); challenge != "" {
@@ -104,6 +104,6 @@ func isChallengeChar(c rune) bool {
 }
 
 const (
-	NoContentChallengeHeader = "X-Tailscale-Challenge"
-	NoContentResponseHeader  = "X-Tailscale-Response"
+	NoContentChallengeHeader = "X-Lanhc-Challenge"
+	NoContentResponseHeader  = "X-Lanhc-Response"
 )

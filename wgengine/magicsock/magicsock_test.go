@@ -43,45 +43,45 @@ import (
 	extwgconn "golang.zx2c4.com/wireguard/conn"
 	extwgdevice "golang.zx2c4.com/wireguard/device"
 	extwgtest "golang.zx2c4.com/wireguard/tun/tuntest"
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/derp/derpserver"
-	"tailscale.com/disco"
-	"tailscale.com/envknob"
-	"tailscale.com/health"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/net/netcheck"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/packet"
-	"tailscale.com/net/ping"
-	"tailscale.com/net/routemanager"
-	"tailscale.com/net/stun"
-	"tailscale.com/net/stun/stuntest"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/net/tstun"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/tstest/natlab"
-	"tailscale.com/tstime/mono"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/netlogtype"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/nettype"
-	"tailscale.com/util/cibuild"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/eventbus/eventbustest"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/must"
-	"tailscale.com/util/racebuild"
-	"tailscale.com/util/set"
-	"tailscale.com/util/slicesx"
-	"tailscale.com/util/usermetric"
-	"tailscale.com/wgengine/filter"
-	"tailscale.com/wgengine/filter/filtertype"
-	"tailscale.com/wgengine/wgcfg"
-	"tailscale.com/wgengine/wglog"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/derp/derpserver"
+	"lanhc.com/disco"
+	"lanhc.com/envknob"
+	"lanhc.com/health"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/net/netcheck"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/packet"
+	"lanhc.com/net/ping"
+	"lanhc.com/net/routemanager"
+	"lanhc.com/net/stun"
+	"lanhc.com/net/stun/stuntest"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/net/tstun"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/tstest/natlab"
+	"lanhc.com/tstime/mono"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/netlogtype"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/nettype"
+	"lanhc.com/util/cibuild"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/eventbus/eventbustest"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/must"
+	"lanhc.com/util/racebuild"
+	"lanhc.com/util/set"
+	"lanhc.com/util/slicesx"
+	"lanhc.com/util/usermetric"
+	"lanhc.com/wgengine/filter"
+	"lanhc.com/wgengine/filter/filtertype"
+	"lanhc.com/wgengine/wgcfg"
+	"lanhc.com/wgengine/wglog"
 )
 
 func init() {
@@ -258,7 +258,7 @@ func wgCfgOf(pk key.NodePrivate, nm *netmap.NetworkMap) *wgcfg.Config {
 
 // Reconfig applies cfg and peers to the stack's WireGuard device and
 // tun-layer data plane. In production these flow from LocalBackend
-// (via [tailscale.com/wgengine.Engine.Reconfig] and the live per-peer
+// (via [lanhc.com/wgengine.Engine.Reconfig] and the live per-peer
 // config source installed with Engine.SetPeerConfigFunc); tests that
 // bypass LocalBackend replicate that wiring here, deriving everything
 // from a real [routemanager.RouteManager] fed the given peers,
@@ -290,7 +290,7 @@ func (s *magicStack) Reconfig(cfg *wgcfg.Config, peers []tailcfg.NodeView) error
 	}
 
 	// The tun-layer per-peer route attributes (masquerade, jailed).
-	native4, native6 := tsaddr.FirstTailscaleAddrs(slices.All(cfg.Addresses))
+	native4, native6 := tsaddr.FirstLanhcAddrs(slices.All(cfg.Addresses))
 	s.tsTun.SetPeerRoutes(native4, native6, rm.Outbound())
 
 	// Outbound packet routing, as LocalBackend's lookupPeerByIP does
@@ -347,7 +347,7 @@ func (s *magicStack) Status() *ipnstate.Status {
 	return sb.Status()
 }
 
-// IP returns the Tailscale IP address assigned to this magicStack.
+// IP returns the Lanhc IP address assigned to this magicStack.
 //
 // Something external needs to provide a NetworkMap and WireGuard
 // configs to the magicStack in order for it to acquire an IP
@@ -370,7 +370,7 @@ func (s *magicStack) IP() netip.Addr {
 // meshStacks monitors epCh on all given ms, and plumbs network maps
 // and WireGuard configs into everyone to form a full mesh that has up
 // to date endpoint info. Think of it as an extremely stripped down
-// and purpose-built Tailscale control plane.
+// and purpose-built Lanhc control plane.
 func meshStacks(logf logger.Logf, mutateNetmap func(idx int, nm *netmap.NetworkMap), ms ...*magicStack) (cleanup func()) {
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -1177,8 +1177,8 @@ func testActiveDiscovery(t *testing.T, d *devices) {
 
 func mustDirect(t *testing.T, logf logger.Logf, m1, m2 *magicStack) {
 	lastLog := time.Now().Add(-time.Minute)
-	// See https://github.com/tailscale/tailscale/issues/654
-	// and https://github.com/tailscale/tailscale/issues/3247 for discussions of this deadline.
+	// See https://github.com/lanhc/lanhc/issues/654
+	// and https://github.com/lanhc/lanhc/issues/3247 for discussions of this deadline.
 	for deadline := time.Now().Add(30 * time.Second); time.Now().Before(deadline); time.Sleep(10 * time.Millisecond) {
 		pst := m1.Status().Peer[m2.Public()]
 		if pst.CurAddr != "" {
@@ -1698,7 +1698,7 @@ func setUpReceiveFrom(tb testing.TB) (roundTrip func()) {
 	}
 }
 
-// goMajorVersion reports the major Go version and whether it is a Tailscale fork.
+// goMajorVersion reports the major Go version and whether it is a Lanhc fork.
 // If parsing fails, goMajorVersion returns 0, false.
 func goMajorVersion(s string) (version int, isTS bool) {
 	if !strings.HasPrefix(s, "go1.") {
@@ -1760,7 +1760,7 @@ func TestReceiveFromAllocs(t *testing.T) {
 	}
 	// Go 1.16 and before: allow 3 allocs.
 	// Go 1.17: allow 2 allocs.
-	// Go 1.17, Tailscale fork: allow 1 alloc.
+	// Go 1.17, Lanhc fork: allow 1 alloc.
 	// Go 1.18+: allow 0 allocs.
 	// Go 2.0: allow -1 allocs (projected).
 	major, ts := goMajorVersion(runtime.Version())
@@ -1831,7 +1831,7 @@ func nodeViews(v []*tailcfg.Node) []tailcfg.NodeView {
 // Test that a node views update where node changes its node key but
 // doesn't change its disco key doesn't result in a broken state.
 //
-// https://github.com/tailscale/tailscale/issues/1391
+// https://github.com/lanhc/lanhc/issues/1391
 func TestSetNetworkMapChangingNodeKey(t *testing.T) {
 	conn := newTestConn(t)
 	t.Cleanup(func() { conn.Close() })
@@ -2357,7 +2357,7 @@ func TestRebindingUDPConn(t *testing.T) {
 	c.setConnLocked(newBlockForeverConn(), "", 1, nil)
 }
 
-// https://github.com/tailscale/tailscale/issues/6680: don't ignore
+// https://github.com/lanhc/lanhc/issues/6680: don't ignore
 // SetNetworkMap calls when there are no peers. (A too aggressive fast path was
 // previously bailing out early, thinking there were no changes since all zero
 // peers didn't change, but the node views has non-peer info in it too we shouldn't discard)
@@ -2491,7 +2491,7 @@ func TestPeerDERPStateCleanup(t *testing.T) {
 // returns the device, tun and endpoint port. To add peers call device.IpcSet
 // with UAPI instructions.
 //
-// This uses stock wireguard-go to simulate a non-Tailscale peer.
+// This uses stock wireguard-go to simulate a non-Lanhc peer.
 func newWireguard(t *testing.T, uapi string, aips []netip.Prefix) (*extwgdevice.Device, *extwgtest.ChannelTUN, uint16) {
 	wgtun := extwgtest.NewChannelTUN()
 	wglogf := func(f string, args ...any) {
@@ -2667,16 +2667,16 @@ func applyNetworkMap(t *testing.T, m *magicStack, nm *netmap.NetworkMap) {
 	// Make sure we can't use v6 to avoid test failures.
 	m.conn.noV6.Store(true)
 
-	// Turn the network map into a wireguard config (for the tailscale internal wireguard device).
+	// Turn the network map into a wireguard config (for the lanhc internal wireguard device).
 	cfg := wgCfgOf(m.privateKey, nm)
-	// Apply the wireguard config to the tailscale internal wireguard device.
+	// Apply the wireguard config to the lanhc internal wireguard device.
 	if err := m.Reconfig(cfg, nm.Peers); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestIsWireGuardOnlyPickEndpointByPing(t *testing.T) {
-	t.Skip("This test is flaky; see https://github.com/tailscale/tailscale/issues/8037")
+	t.Skip("This test is flaky; see https://github.com/lanhc/lanhc/issues/8037")
 
 	clock := &tstest.Clock{}
 	derpMap, cleanup := runDERPAndStun(t, t.Logf, localhostListener{}, netaddr.IPv4(127, 0, 0, 1))
@@ -3560,7 +3560,7 @@ func TestNetworkSendErrors(t *testing.T) {
 		}
 		resp := httptest.NewRecorder()
 		reg.Handler(resp, new(http.Request))
-		if !strings.Contains(resp.Body.String(), `tailscaled_outbound_dropped_packets_total{reason="error"} 1`) {
+		if !strings.Contains(resp.Body.String(), `lanhcd_outbound_dropped_packets_total{reason="error"} 1`) {
 			t.Errorf("expected NetworkDown to increment packet dropped metric; got %q", resp.Body.String())
 		}
 	})
@@ -3575,7 +3575,7 @@ func TestNetworkSendErrors(t *testing.T) {
 		}
 		resp := httptest.NewRecorder()
 		reg.Handler(resp, new(http.Request))
-		if !strings.Contains(resp.Body.String(), `tailscaled_outbound_dropped_packets_total{reason="error"} 1`) {
+		if !strings.Contains(resp.Body.String(), `lanhcd_outbound_dropped_packets_total{reason="error"} 1`) {
 			t.Errorf("expected invalid payload to increment packet dropped metric; got %q", resp.Body.String())
 		}
 	})

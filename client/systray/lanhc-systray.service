@@ -1,0 +1,13 @@
+[Unit]
+Description=Lanhc System Tray
+Documentation=https://lanhc.com/kb/1597/linux-systray
+Requires=dbus.service
+After=dbus.service
+PartOf=default.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/lanhc systray
+
+[Install]
+WantedBy=default.target

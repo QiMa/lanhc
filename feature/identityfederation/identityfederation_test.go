@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"tailscale.com/internal/client/tailscale"
+	"lanhc.com/internal/client/lanhc"
 )
 
 func TestResolveAuthKey(t *testing.T) {
@@ -27,7 +27,7 @@ func TestResolveAuthKey(t *testing.T) {
 			name:        "success",
 			clientID:    "client-123",
 			idToken:     "token",
-			audience:    "api://tailscale-wif",
+			audience:    "api://lanhc-wif",
 			tags:        []string{"tag:test"},
 			wantAuthKey: "tskey-auth-xyz",
 			wantErr:     "",
@@ -36,7 +36,7 @@ func TestResolveAuthKey(t *testing.T) {
 			name:        "missing-client-id-noop",
 			clientID:    "",
 			idToken:     "token",
-			audience:    "api://tailscale-wif",
+			audience:    "api://lanhc-wif",
 			tags:        []string{"tag:test"},
 			wantAuthKey: "",
 			wantErr:     "",
@@ -53,7 +53,7 @@ func TestResolveAuthKey(t *testing.T) {
 			name:     "missing-tags",
 			clientID: "client-123",
 			idToken:  "token",
-			audience: "api://tailscale-wif",
+			audience: "api://lanhc-wif",
 			tags:     []string{},
 			wantErr:  "federated identity authkeys require --advertise-tags",
 		},
@@ -61,7 +61,7 @@ func TestResolveAuthKey(t *testing.T) {
 			name:     "invalid-client-id-attrs",
 			clientID: "client-123?invalid=value",
 			idToken:  "token",
-			audience: "api://tailscale-wif",
+			audience: "api://lanhc-wif",
 			tags:     []string{"tag:test"},
 			wantErr:  `failed to parse optional config attributes: unknown optional config attribute "invalid"`,
 		},
@@ -72,7 +72,7 @@ func TestResolveAuthKey(t *testing.T) {
 			srv := mockedControlServer(t)
 			defer srv.Close()
 
-			authKey, err := resolveAuthKey(context.Background(), tailscale.ResolveAuthKeyWIFArgs{
+			authKey, err := resolveAuthKey(context.Background(), lanhc.ResolveAuthKeyWIFArgs{
 				BaseURL:  srv.URL,
 				ClientID: tt.clientID,
 				IDToken:  tt.idToken,
@@ -180,7 +180,7 @@ func mockedControlServer(t *testing.T) *httptest.Server {
 			w.Header().Set("Content-Type", "application/json")
 			w.Write([]byte(`{"access_token":"access-123","token_type":"Bearer","expires_in":3600}`))
 		case strings.Contains(r.URL.Path, "/api/v2/tailnet") && strings.Contains(r.URL.Path, "/keys"):
-			// Tailscale client creates the authkey
+			// Lanhc client creates the authkey
 			w.Write([]byte(`{"key":"tskey-auth-xyz","created":"2024-01-01T00:00:00Z"}`))
 		default:
 			w.WriteHeader(http.StatusNotFound)

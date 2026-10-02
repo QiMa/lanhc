@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/tstest/natlab/vnet"
+	"lanhc.com/tstest/natlab/vnet"
 )
 
 // qemuAccelArgs returns QEMU command-line flags for hardware-accelerated
@@ -125,7 +125,7 @@ func (e *Env) startGokrazyQEMU(n *Node) error {
 
 	var envBuf bytes.Buffer
 	for _, env := range n.vnetNode.Env() {
-		fmt.Fprintf(&envBuf, " tailscaled.env=%s=%s", env.Key, env.Value)
+		fmt.Fprintf(&envBuf, " lanhcd.env=%s=%s", env.Key, env.Value)
 	}
 	sysLogAddr := net.JoinHostPort(vnet.FakeSyslogIPv4().String(), "995")
 	if n.vnetNode.IsV6Only() {
@@ -140,7 +140,7 @@ func (e *Env) startGokrazyQEMU(n *Node) error {
 		"-m", fmt.Sprintf("%dM", n.os.MemoryMB),
 		"-nodefaults", "-no-user-config", "-nographic",
 		"-kernel", e.gokrazyKernel,
-		"-append", "console=hvc0 root=PARTUUID=60c24cc1-f3f9-427a-8199-76baa2d60001/PARTNROFF=1 ro init=/gokrazy/init panic=10 oops=panic pci=off nousb tsc=unstable clocksource=hpet gokrazy.remote_syslog.target=" + sysLogAddr + " tailscale-tta=1" + envBuf.String(),
+		"-append", "console=hvc0 root=PARTUUID=60c24cc1-f3f9-427a-8199-76baa2d60001/PARTNROFF=1 ro init=/gokrazy/init panic=10 oops=panic pci=off nousb tsc=unstable clocksource=hpet gokrazy.remote_syslog.target=" + sysLogAddr + " lanhc-tta=1" + envBuf.String(),
 		"-drive", "id=blk0,file=" + disk + ",format=qcow2",
 		"-device", "virtio-blk-device,drive=blk0",
 		"-device", "virtio-serial-device",

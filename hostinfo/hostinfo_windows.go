@@ -11,8 +11,8 @@ import (
 
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
-	"tailscale.com/util/winutil"
-	"tailscale.com/util/winutil/winenv"
+	"lanhc.com/util/winutil"
+	"lanhc.com/util/winutil/winenv"
 )
 
 func init() {
@@ -68,7 +68,7 @@ func getUBR() (uint32, error) {
 }
 
 func packageTypeWindows() string {
-	if _, err := os.Stat(`C:\ProgramData\chocolatey\lib\tailscale`); err == nil {
+	if _, err := os.Stat(`C:\ProgramData\chocolatey\lib\lanhc`); err == nil {
 		return "choco"
 	}
 	exe, err := os.Executable()
@@ -76,13 +76,13 @@ func packageTypeWindows() string {
 		return ""
 	}
 	home, _ := os.UserHomeDir()
-	if strings.HasPrefix(exe, filepath.Join(home, "scoop", "apps", "tailscale")) {
+	if strings.HasPrefix(exe, filepath.Join(home, "scoop", "apps", "lanhc")) {
 		return "scoop"
 	}
 	msiSentinel, _ := winutil.GetRegInteger("MSI")
 	if msiSentinel != 1 {
 		// Atypical. Not worth trying to detect. Likely open
-		// source tailscaled or a developer running by hand.
+		// source lanhcd or a developer running by hand.
 		return ""
 	}
 	result := "msi"

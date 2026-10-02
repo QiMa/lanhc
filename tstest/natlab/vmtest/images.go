@@ -78,7 +78,7 @@ func (img OSImage) isLinuxCloudImage() bool {
 }
 
 var (
-	// Gokrazy is a minimal Tailscale appliance image built from the gokrazy/natlabapp directory.
+	// Gokrazy is a minimal Lanhc appliance image built from the gokrazy/natlabapp directory.
 	Gokrazy = OSImage{
 		Name:      "gokrazy",
 		IsGokrazy: true,
@@ -150,7 +150,7 @@ func imageCacheDir() string {
 		return d
 	}
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".cache", "tailscale", "vmtest", "images")
+	return filepath.Join(home, ".cache", "lanhc", "vmtest", "images")
 }
 
 // ensureImage downloads and caches the OS image if not already present.

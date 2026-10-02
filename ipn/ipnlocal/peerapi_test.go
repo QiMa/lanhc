@@ -15,22 +15,22 @@ import (
 
 	"go4.org/netipx"
 	"golang.org/x/net/dns/dnsmessage"
-	"tailscale.com/appc"
-	"tailscale.com/appc/appctest"
-	"tailscale.com/health"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsd"
-	"tailscale.com/tstest"
-	"tailscale.com/types/appctype"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/netmap"
-	"tailscale.com/util/eventbus/eventbustest"
-	"tailscale.com/util/must"
-	"tailscale.com/util/usermetric"
-	"tailscale.com/wgengine"
-	"tailscale.com/wgengine/filter"
+	"lanhc.com/appc"
+	"lanhc.com/appc/appctest"
+	"lanhc.com/health"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsd"
+	"lanhc.com/tstest"
+	"lanhc.com/types/appctype"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/netmap"
+	"lanhc.com/util/eventbus/eventbustest"
+	"lanhc.com/util/must"
+	"lanhc.com/util/usermetric"
+	"lanhc.com/wgengine"
+	"lanhc.com/wgengine/filter"
 )
 
 type peerAPITestEnv struct {
@@ -81,7 +81,7 @@ func TestHandlePeerAPI(t *testing.T) {
 			reqs:   []*http.Request{httptest.NewRequest("GET", "/", nil)},
 			checks: checks(
 				httpStatus(200),
-				bodyContains("This is my Tailscale device."),
+				bodyContains("This is my Lanhc device."),
 				bodyContains("You are the owner of this node."),
 			),
 		},
@@ -91,7 +91,7 @@ func TestHandlePeerAPI(t *testing.T) {
 			reqs:   []*http.Request{httptest.NewRequest("GET", "/", nil)},
 			checks: checks(
 				httpStatus(200),
-				bodyContains("This is my Tailscale device."),
+				bodyContains("This is my Lanhc device."),
 				bodyNotContains("You are the owner of this node."),
 			),
 		},

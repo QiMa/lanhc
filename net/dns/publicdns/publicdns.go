@@ -15,8 +15,8 @@ import (
 	"strings"
 	"sync"
 
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/util/testenv"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/util/testenv"
 )
 
 // dohOfIP maps from public DNS IPs to their DoH base URL.
@@ -308,7 +308,7 @@ var (
 	// don't do BGP and can get results for querying them over DoH to find the
 	// IPv4 address of "dns.mynextdns.io" and find an even better result.
 	//
-	// Note that the Tailscale DNS client does not do any of the "IP address
+	// Note that the Lanhc DNS client does not do any of the "IP address
 	// linking" that NextDNS can do with its IPv4 addresses. These addresses
 	// are only used for DoH.
 	nextDNSv4RangeA = netip.MustParsePrefix("45.90.28.0/24")

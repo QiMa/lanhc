@@ -15,12 +15,12 @@ import (
 	"unicode"
 
 	"github.com/kortschak/wol"
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/hostinfo"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/tailcfg"
-	"tailscale.com/util/clientmetric"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/hostinfo"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/tailcfg"
+	"lanhc.com/util/clientmetric"
 )
 
 func init() {
@@ -157,7 +157,7 @@ func handlePeerAPIWakeOnLAN(h ipnlocal.PeerAPIHandler, w http.ResponseWriter, r 
 // have any media. We should only report the one that's actually connected.
 // But it works for now (2023-10-05) for fleshing out the rest.
 
-var wakeMAC = envknob.RegisterString("TS_WAKE_MAC") // mac address, "false" or "auto". for https://github.com/tailscale/tailscale/issues/306
+var wakeMAC = envknob.RegisterString("TS_WAKE_MAC") // mac address, "false" or "auto". for https://github.com/lanhc/lanhc/issues/306
 
 // getWoLMACs returns up to 10 MAC address of the local machine to send
 // wake-on-LAN packets to in order to wake it up. The returned MACs are in

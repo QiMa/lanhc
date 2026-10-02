@@ -13,17 +13,17 @@ import (
 	"sync"
 	"testing"
 
-	"tailscale.com/client/local"
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/envknob"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnauth"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/ipnserver"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/logid"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/rands"
+	"lanhc.com/client/local"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/envknob"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnauth"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/ipnserver"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/logid"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/rands"
 )
 
 // A Server is an in-process LocalAPI server that can be used in end-to-end tests.
@@ -184,7 +184,7 @@ func (s *Server) BlockWhileInUseByOther(ctx context.Context, actor ipnauth.Actor
 }
 
 // CheckCurrentUser fails the test if the current user does not match the expected user.
-// It is only used on Windows and will be removed as we progress on tailscale/corp#18342.
+// It is only used on Windows and will be removed as we progress on lanhc/corp#18342.
 func (s *Server) CheckCurrentUser(want ipnauth.Actor) {
 	s.tb.Helper()
 	var wantUID ipn.WindowsUserID

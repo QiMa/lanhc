@@ -13,10 +13,10 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/feature"
-	"tailscale.com/ipn/localapi"
-	"tailscale.com/net/packet"
-	"tailscale.com/util/set"
+	"lanhc.com/feature"
+	"lanhc.com/ipn/localapi"
+	"lanhc.com/net/packet"
+	"lanhc.com/util/set"
 )
 
 func init() {
@@ -195,7 +195,7 @@ func (s *Sink) LogPacket(path packet.CapturePath, when time.Time, data []byte, m
 
 	writePktHeader(b, when, len(data)+extraLen)
 
-	// Custom tailscale debugging data
+	// Custom lanhc debugging data
 	binary.Write(b, binary.LittleEndian, uint16(path))
 	if meta.DidSNAT {
 		binary.Write(b, binary.LittleEndian, uint8(meta.OriginalSrc.Addr().BitLen()/8))

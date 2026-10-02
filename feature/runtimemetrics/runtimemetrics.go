@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package runtimemetrics exports select runtime/metrics as [tailscale.com/util/clientmetric]'s.
+// Package runtimemetrics exports select runtime/metrics as [lanhc.com/util/clientmetric]'s.
 package runtimemetrics
 
 import (
@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/feature"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/util/clientmetric"
+	"lanhc.com/feature"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/util/clientmetric"
 )
 
 func init() {
@@ -64,7 +64,7 @@ func (p *poller) close() {
 
 const (
 	// pollInterval is how frequently [poller] polls Go runtime metrics. Its
-	// value mirrors [tailscale.com/util/clientmetric.minMetricEncodeInterval],
+	// value mirrors [lanhc.com/util/clientmetric.minMetricEncodeInterval],
 	// which is the minimum interval between clientmetrics emissions.
 	pollInterval = 15 * time.Second
 )

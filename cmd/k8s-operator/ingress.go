@@ -24,16 +24,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"tailscale.com/ipn"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/types/opt"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
+	"lanhc.com/ipn"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/types/opt"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
 )
 
 const (
-	tailscaleIngressControllerName = "tailscale.com/ts-ingress"                    // ingressClass.spec.controllerName for tailscale IngressClass resource
+	lanhcIngressControllerName = "lanhc.com/ts-ingress"                    // ingressClass.spec.controllerName for lanhc IngressClass resource
 	ingressClassDefaultAnnotation  = "ingressclass.kubernetes.io/is-default-class" // we do not support this https://kubernetes.io/docs/concepts/services-networking/ingress/#default-ingress-class
 	indexIngressProxyClass         = ".metadata.annotations.ingress-proxy-class"
 )
@@ -42,7 +42,7 @@ type IngressReconciler struct {
 	client.Client
 
 	recorder record.EventRecorder
-	ssr      *tailscaleSTSReconciler
+	ssr      *lanhcSTSReconciler
 	logger   *zap.SugaredLogger
 
 	mu sync.Mutex // protects following
@@ -117,7 +117,7 @@ func (a *IngressReconciler) maybeCleanup(ctx context.Context, logger *zap.Sugare
 
 	// Unlike most log entries in the reconcile loop, this will get printed
 	// exactly once at the very end of cleanup, because the final step of
-	// cleanup removes the tailscale finalizer, which will make all future
+	// cleanup removes the lanhc finalizer, which will make all future
 	// reconciles exit early.
 	logger.Infof("unexposed ingress from tailnet")
 	a.mu.Lock()
@@ -127,21 +127,21 @@ func (a *IngressReconciler) maybeCleanup(ctx context.Context, logger *zap.Sugare
 	return nil
 }
 
-// maybeProvision ensures that ing is exposed over tailscale, taking any actions
+// maybeProvision ensures that ing is exposed over lanhc, taking any actions
 // necessary to reach that state.
 //
 // This function adds a finalizer to ing, ensuring that we can handle orderly
 // deprovisioning later.
 func (a *IngressReconciler) maybeProvision(ctx context.Context, logger *zap.SugaredLogger, ing *networkingv1.Ingress) error {
 	if err := validateIngressClass(ctx, a.Client, a.ingressClassName); err != nil {
-		logger.Warnf("error validating tailscale IngressClass: %v. In future this might be a terminal error.", err)
+		logger.Warnf("error validating lanhc IngressClass: %v. In future this might be a terminal error.", err)
 	}
 	if !slices.Contains(ing.Finalizers, FinalizerName) {
 		// This log line is printed exactly once during initial provisioning,
 		// because once the finalizer is in place this block gets skipped. So,
 		// this is a nice place to tell the operator that the high level,
 		// multi-reconcile operation is underway.
-		logger.Infof("exposing ingress over tailscale")
+		logger.Infof("exposing ingress over lanhc")
 		ing.Finalizers = append(ing.Finalizers, FinalizerName)
 		if err := a.Update(ctx, ing); err != nil {
 			return fmt.Errorf("failed to add finalizer: %w", err)
@@ -233,7 +233,7 @@ func (a *IngressReconciler) maybeProvision(ctx context.Context, logger *zap.Suga
 	}
 	hostname := hostnameForIngress(ing)
 
-	sts := &tailscaleSTSConfig{
+	sts := &lanhcSTSConfig{
 		Replicas:            1,
 		Hostname:            hostname,
 		ParentResourceName:  ing.Name,
@@ -298,8 +298,8 @@ func (a *IngressReconciler) shouldExpose(ing *networkingv1.Ingress) bool {
 		ing.Annotations[AnnotationProxyGroup] == ""
 }
 
-// validateIngressClass attempts to validate that 'tailscale' IngressClass
-// included in Tailscale installation manifests exists and has not been modified
+// validateIngressClass attempts to validate that 'lanhc' IngressClass
+// included in Lanhc installation manifests exists and has not been modified
 // to attempt to enable features that we do not support.
 func validateIngressClass(ctx context.Context, cl client.Client, ingressClassName string) error {
 	ic := &networkingv1.IngressClass{
@@ -308,15 +308,15 @@ func validateIngressClass(ctx context.Context, cl client.Client, ingressClassNam
 		},
 	}
 	if err := cl.Get(ctx, client.ObjectKeyFromObject(ic), ic); apierrors.IsNotFound(err) {
-		return errors.New("'tailscale' IngressClass not found in cluster.")
+		return errors.New("'lanhc' IngressClass not found in cluster.")
 	} else if err != nil {
-		return fmt.Errorf("error retrieving 'tailscale' IngressClass: %w", err)
+		return fmt.Errorf("error retrieving 'lanhc' IngressClass: %w", err)
 	}
-	if ic.Spec.Controller != tailscaleIngressControllerName {
-		return fmt.Errorf("'tailscale' Ingress class controller name %s does not match tailscale Ingress controller name %s. Ensure that you are using 'tailscale' IngressClass from latest Tailscale installation manifests", ic.Spec.Controller, tailscaleIngressControllerName)
+	if ic.Spec.Controller != lanhcIngressControllerName {
+		return fmt.Errorf("'lanhc' Ingress class controller name %s does not match lanhc Ingress controller name %s. Ensure that you are using 'lanhc' IngressClass from latest Lanhc installation manifests", ic.Spec.Controller, lanhcIngressControllerName)
 	}
 	if ic.GetAnnotations()[ingressClassDefaultAnnotation] != "" {
-		return fmt.Errorf("%s annotation is set on 'tailscale' IngressClass, but Tailscale Ingress controller does not support default Ingress class. Ensure that you are using 'tailscale' IngressClass from latest Tailscale installation manifests", ingressClassDefaultAnnotation)
+		return fmt.Errorf("%s annotation is set on 'lanhc' IngressClass, but Lanhc Ingress controller does not support default Ingress class. Ensure that you are using 'lanhc' IngressClass from latest Lanhc installation manifests", ingressClassDefaultAnnotation)
 	}
 	return nil
 }
@@ -393,7 +393,7 @@ func handlersForIngress(ctx context.Context, ing *networkingv1.Ingress, cl clien
 }
 
 // isHTTPRedirectEnabled returns true if HTTP redirect is enabled for the Ingress.
-// The annotation is tailscale.com/http-redirect and it should be set to "true".
+// The annotation is lanhc.com/http-redirect and it should be set to "true".
 func isHTTPRedirectEnabled(ing *networkingv1.Ingress) bool {
 	return ing.Annotations != nil && opt.Bool(ing.Annotations[AnnotationHTTPRedirect]).EqualBool(true)
 }

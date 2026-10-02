@@ -19,10 +19,10 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/store"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/mak"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/store"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/mak"
 )
 
 func TestPropToString(t *testing.T) {

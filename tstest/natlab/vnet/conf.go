@@ -15,10 +15,10 @@ import (
 
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcapgo"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/must"
-	"tailscale.com/util/set"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/must"
+	"lanhc.com/util/set"
 )
 
 // Note: the exported Node and Network are the configuration types;
@@ -49,7 +49,7 @@ func (c *Config) NumNodes() int {
 	return len(c.nodes)
 }
 
-// SetBlendReality sets whether to blend the real controlplane.tailscale.com and
+// SetBlendReality sets whether to blend the real controlplane.lanhc.com and
 // DERP servers into the virtual network. This is mostly useful for interactive
 // testing when working on natlab.
 func (c *Config) SetBlendReality(v bool) {
@@ -117,7 +117,7 @@ func (c *Config) AddNode(opts ...any) *Node {
 				o.nodes = append(o.nodes, n)
 			}
 			n.nets = append(n.nets, o)
-		case TailscaledEnv:
+		case LanhcdEnv:
 			n.env = append(n.env, o)
 		case NodeOption:
 			switch o {
@@ -160,9 +160,9 @@ const (
 	VerboseSyslog   NodeOption = "VerboseSyslog"
 )
 
-// TailscaledEnv is а option that can be passed to Config.AddNode
-// to set an environment variable for tailscaled.
-type TailscaledEnv struct {
+// LanhcdEnv is а option that can be passed to Config.AddNode
+// to set an environment variable for lanhcd.
+type LanhcdEnv struct {
 	Key, Value string
 }
 
@@ -222,7 +222,7 @@ type Node struct {
 	n      *node // nil until NewServer called
 	client *NodeAgentClient
 
-	env             []TailscaledEnv
+	env             []LanhcdEnv
 	hostFW          bool
 	rotateDisco     bool
 	preICMPPing     bool
@@ -272,7 +272,7 @@ func (n *Node) Networks() []*Network {
 	return n.nets
 }
 
-func (n *Node) Env() []TailscaledEnv {
+func (n *Node) Env() []LanhcdEnv {
 	return n.env
 }
 
@@ -317,7 +317,7 @@ func (n *Node) PreICMPPing() bool {
 
 // ShouldJoinTailnet reports whether node should join the test tailnet. Machines in
 // the virtual universe that aren't on the tailnet are useful for testing that
-// Tailscale does not break connectivity to resources outside the tailnet.
+// Lanhc does not break connectivity to resources outside the tailnet.
 func (n *Node) ShouldJoinTailnet() bool {
 	return !n.dontJoinTailnet
 }

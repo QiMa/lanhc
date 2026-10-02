@@ -14,15 +14,15 @@ import (
 
 	"github.com/tailscale/wireguard-go/tun"
 
-	"tailscale.com/net/dns"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsd"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/wgengine"
-	"tailscale.com/wgengine/filter"
-	"tailscale.com/wgengine/router"
-	"tailscale.com/wgengine/wgcfg"
+	"lanhc.com/net/dns"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsd"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/wgengine"
+	"lanhc.com/wgengine/filter"
+	"lanhc.com/wgengine/router"
+	"lanhc.com/wgengine/wgcfg"
 )
 
 func setupWGTest(b *testing.B, logf logger.Logf, traf *TrafficGen, a1, a2 netip.Prefix) {

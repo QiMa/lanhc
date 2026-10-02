@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package omit provides consts to access Tailscale ts_omit_FOO build tags.
+// Package omit provides consts to access Lanhc ts_omit_FOO build tags.
 // They're often more convenient to eliminate some away locally with a const
 // rather than using build tags.
 package omit

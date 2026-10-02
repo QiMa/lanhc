@@ -19,13 +19,13 @@ import (
 	"sync/atomic"
 	"time"
 
-	"tailscale.com/envknob"
-	"tailscale.com/net/netx"
-	"tailscale.com/syncs"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/cloudenv"
-	"tailscale.com/util/singleflight"
-	"tailscale.com/util/testenv"
+	"lanhc.com/envknob"
+	"lanhc.com/net/netx"
+	"lanhc.com/syncs"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/cloudenv"
+	"lanhc.com/util/singleflight"
+	"lanhc.com/util/testenv"
 )
 
 var zaddr netip.Addr
@@ -275,7 +275,7 @@ func (r *Resolver) lookupTimeoutForHost(host string) time.Duration {
 			// don't give this DNS lookup much time. If we're in a
 			// situation where the user's DNS server is unreachable
 			// (e.g. their corp DNS server is behind a subnet router
-			// that can't come up due to Tailscale needing to
+			// that can't come up due to Lanhc needing to
 			// connect to itself), then we want to fail fast and let
 			// our caller (who set UseLastGood) fall back to using
 			// the last-known-good IP address.

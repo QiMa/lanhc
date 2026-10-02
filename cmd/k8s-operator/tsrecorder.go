@@ -31,16 +31,16 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"tailscale.com/client/tailscale/v2"
+	lanhcclient "tailscale.com/client/tailscale/v2"
 
-	tsoperator "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/k8s-operator/tsclient"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/set"
+	tsoperator "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/k8s-operator/tsclient"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/set"
 )
 
 const (
@@ -85,7 +85,7 @@ func (r *RecorderReconciler) Reconcile(ctx context.Context, req reconcile.Reques
 		logger.Debugf("Recorder not found, assuming it was deleted")
 		return reconcile.Result{}, nil
 	} else if err != nil {
-		return reconcile.Result{}, fmt.Errorf("failed to get tailscale.com Recorder: %w", err)
+		return reconcile.Result{}, fmt.Errorf("failed to get lanhc.com Recorder: %w", err)
 	}
 
 	oldTSRStatus := tsr.Status.DeepCopy()
@@ -270,7 +270,7 @@ func (r *RecorderReconciler) maybeProvision(ctx context.Context, tsClient tsclie
 		case err != nil:
 			return fmt.Errorf("failed to get device info: %w", err)
 		case !ok:
-			logger.Debugf("no Tailscale hostname known yet, waiting for Recorder pod to finish auth")
+			logger.Debugf("no Lanhc hostname known yet, waiting for Recorder pod to finish auth")
 			continue
 		}
 
@@ -372,7 +372,7 @@ func (r *RecorderReconciler) maybeCleanupSecrets(ctx context.Context, tsClient t
 			r.log.Debugf("deleting device %s", devicePrefs.Config.NodeID)
 			err = tsClient.Devices().Delete(ctx, string(devicePrefs.Config.NodeID))
 			switch {
-			case tailscale.IsNotFound(err):
+			case lanhcclient.IsNotFound(err):
 			// This device has possibly already been deleted in the admin console. So we can ignore this
 			// and move on to removing the secret.
 			case err != nil:
@@ -417,7 +417,7 @@ func (r *RecorderReconciler) maybeCleanup(ctx context.Context, tsr *tsapi.Record
 		logger.Debugf("deleting device %s from control", nodeID)
 		err = tsClient.Devices().Delete(ctx, nodeID)
 		switch {
-		case tailscale.IsNotFound(err):
+		case lanhcclient.IsNotFound(err):
 			logger.Debugf("device %s not found, likely because it has already been deleted from control", nodeID)
 			continue
 		case err != nil:
@@ -429,7 +429,7 @@ func (r *RecorderReconciler) maybeCleanup(ctx context.Context, tsr *tsapi.Record
 
 	// Unlike most log entries in the reconcile loop, this will get printed
 	// exactly once at the very end of cleanup, because the final step of
-	// cleanup removes the tailscale finalizer, which will make all future
+	// cleanup removes the lanhc finalizer, which will make all future
 	// reconciles exit early.
 	logger.Infof("cleaned up Recorder resources")
 	r.mu.Lock()
@@ -569,7 +569,7 @@ func (r *RecorderReconciler) ensureDeviceDeleted(ctx context.Context, tsClient t
 	logger.Debugf("deleting device %s from control", string(id))
 	err := tsClient.Devices().Delete(ctx, string(id))
 	switch {
-	case tailscale.IsNotFound(err):
+	case lanhcclient.IsNotFound(err):
 		logger.Debugf("device %s not found, likely because it has already been deleted from control", string(id))
 	case err != nil:
 		return fmt.Errorf("error deleting device: %w", err)
@@ -699,7 +699,7 @@ func (r *RecorderReconciler) getDeviceInfo(ctx context.Context, tsClient tsclien
 }
 
 // [prefs] is a subset of the ipn.Prefs struct used for extracting information
-// from the state Secret of Tailscale devices.
+// from the state Secret of Lanhc devices.
 type prefs struct {
 	Config struct {
 		NodeID      tailcfg.StableNodeID `json:"NodeID"`

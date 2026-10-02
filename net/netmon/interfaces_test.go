@@ -9,7 +9,7 @@ import (
 	"net/netip"
 	"testing"
 
-	"tailscale.com/tstest"
+	"lanhc.com/tstest"
 )
 
 func TestGetState(t *testing.T) {
@@ -125,7 +125,7 @@ func TestLikelyHomeRouterIP(t *testing.T) {
 	})
 }
 
-// https://github.com/tailscale/tailscale/issues/10466
+// https://github.com/lanhc/lanhc/issues/10466
 func TestLikelyHomeRouterIP_Prefix(t *testing.T) {
 	ipnet := func(s string) net.Addr {
 		ip, ipnet, err := net.ParseCIDR(s)
@@ -209,7 +209,7 @@ func TestIsUsableV6(t *testing.T) {
 		want bool
 	}{
 		{"first ULA", "fc00::1", true},
-		{"Tailscale", "fd7a:115c:a1e0::1", false},
+		{"Lanhc", "fd7a:115c:a1e0::1", false},
 		{"Cloud Run", "fddf:3978:feb1:d745::1", true},
 		{"zeros", "0::0", false},
 		{"Link Local", "fe80::1", false},
@@ -370,7 +370,7 @@ func TestEqual(t *testing.T) {
 			want: false,
 		},
 
-		// See tailscale/corp#19124
+		// See lanhc/corp#19124
 		{
 			name: "interface-removed",
 			s1: &State{

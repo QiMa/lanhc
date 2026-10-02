@@ -4,9 +4,9 @@
 package routecheck
 
 import (
-	"tailscale.com/ipn/ipnext"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/net/routecheck"
+	"lanhc.com/ipn/ipnext"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/net/routecheck"
 )
 
 // ClientFor returns the [routecheck.Client] for a given backend,

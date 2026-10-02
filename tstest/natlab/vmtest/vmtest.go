@@ -44,21 +44,21 @@ import (
 	"github.com/prometheus/common/model"
 	"go4.org/mem"
 	"golang.org/x/sync/errgroup"
-	"tailscale.com/client/local"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/tstest/integration/testcontrol"
-	"tailscale.com/tstest/natlab/vnet"
-	"tailscale.com/types/key"
-	"tailscale.com/util/mak"
+	"lanhc.com/client/local"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/tstest/integration/testcontrol"
+	"lanhc.com/tstest/natlab/vnet"
+	"lanhc.com/types/key"
+	"lanhc.com/util/mak"
 )
 
 var (
 	runVMTests     = flag.Bool("run-vm-tests", false, "run tests that require QEMU VMs")
 	verboseVMDebug = flag.Bool("verbose-vm-debug", false, "enable verbose debug logging for VM tests")
-	testVersion    = flag.String("test-version", "", `if non-empty, download tailscale & tailscaled at the given release version (e.g. "1.97.255", "unstable", or "stable") instead of building from the source tree`)
+	testVersion    = flag.String("test-version", "", `if non-empty, download lanhc & lanhcd at the given release version (e.g. "1.97.255", "unstable", or "stable") instead of building from the source tree`)
 )
 
 // Env is a test environment that manages virtual networks and QEMU VMs.
@@ -75,9 +75,9 @@ type Env struct {
 	dgramSockAddr string // Unix dgram socket path for macOS VMs (tailmac)
 	binDir        string // directory for compiled binaries
 
-	// testVersion is the resolved Tailscale release version to use (empty if
-	// building from source). When non-empty, tailscale and tailscaled binaries
-	// are downloaded from pkgs.tailscale.com instead of compiled from the tree.
+	// testVersion is the resolved Lanhc release version to use (empty if
+	// building from source). When non-empty, lanhc and lanhcd binaries
+	// are downloaded from pkgs.lanhc.com instead of compiled from the tree.
 	testVersion string
 
 	// gokrazy-specific paths
@@ -95,7 +95,7 @@ type Env struct {
 	allOnline                 bool // mark every peer as Online=true in MapResponses
 	peerRelayGrants           bool // grant peer-relay capabilities on the wildcard packet filter
 	selfSignedDERPCertPinning bool // serve test DERP map with sha256-raw cert pins
-	fakeACME                  bool // point tailscaled at vnet's fake ACME server
+	fakeACME                  bool // point lanhcd at vnet's fake ACME server
 
 	controlDNSDomain string             // MagicDNS domain for the test control server (see ControlDNS)
 	controlDNS       *tailcfg.DNSConfig // DNS config for the test control server (see ControlDNS)
@@ -218,7 +218,7 @@ func (e *Env) initNodeStatus() {
 			OS:           n.os.Name,
 			NICs:         nics,
 			JoinsTailnet: n.joinTailnet,
-			Tailscale:    "--",
+			Lanhc:    "--",
 		}
 	}
 }
@@ -241,7 +241,7 @@ func (e *Env) getNodeStatus(name string) NodeStatus {
 	defer e.nodeStatusMu.Unlock()
 	ns := e.nodeStatus[name]
 	if ns == nil {
-		return NodeStatus{Name: name, Tailscale: "--"}
+		return NodeStatus{Name: name, Lanhc: "--"}
 	}
 	return *ns
 }
@@ -256,19 +256,19 @@ func (e *Env) setNodeDHCP(name string, nicIdx int, status string) {
 	e.nodeStatusMu.Unlock()
 }
 
-// setNodeTailscale updates the Tailscale status for a node and publishes
+// setNodeLanhc updates the Lanhc status for a node and publishes
 // an event so the web UI updates via WebSocket.
-func (e *Env) setNodeTailscale(name, status string) {
+func (e *Env) setNodeLanhc(name, status string) {
 	e.nodeStatusMu.Lock()
 	ns := e.nodeStatus[name]
 	if ns != nil {
-		ns.Tailscale = status
+		ns.Lanhc = status
 	}
 	e.nodeStatusMu.Unlock()
 	e.eventBus.Publish(VMEvent{
 		NodeName: name,
-		Type:     EventTailscale,
-		Message:  "Tailscale: " + status,
+		Type:     EventLanhc,
+		Message:  "Lanhc: " + status,
 		Detail:   status,
 	})
 }
@@ -394,8 +394,8 @@ func PeerRelayGrants() EnvOption {
 // SelfSignedDERPCertPinning returns an [EnvOption] that makes the test control
 // server advertise a DERP map whose nodes use CertName="sha256-raw:<hex>"
 // pinning against the self-signed certs vnet's fake DERP servers serve. This
-// exercises the sha256-raw verification path end-to-end (in tailscaled and in
-// `tailscale debug derp`) without involving a real CA.
+// exercises the sha256-raw verification path end-to-end (in lanhcd and in
+// `lanhc debug derp`) without involving a real CA.
 func SelfSignedDERPCertPinning() EnvOption {
 	return envOptFunc(func(e *Env) { e.selfSignedDERPCertPinning = true })
 }
@@ -423,7 +423,7 @@ func (e *Env) AddNetwork(opts ...any) *vnet.Network {
 }
 
 // RegisterFile registers a file with the vnet fileserver.
-// It is served at http://files.tailscale/<path>.
+// It is served at http://files.lanhc/<path>.
 func (e *Env) RegisterFile(path string, data []byte) {
 	if e.server == nil {
 		e.t.Fatalf("RegisterFile called before Start")
@@ -441,9 +441,9 @@ type Node struct {
 	vnetNode         *vnet.Node // primary vnet node (set during Start)
 	agent            *vnet.NodeAgentClient
 	joinTailnet      bool
-	runSSH           bool // true to enable the node's Tailscale SSH server
+	runSSH           bool // true to enable the node's Lanhc SSH server
 	noAgent          bool // true to skip TTA agent setup (e.g. macOS VMs without TTA)
-	systemdUnit      bool // true to run tailscaled via the stock systemd unit (Linux cloud VMs only)
+	systemdUnit      bool // true to run lanhcd via the stock systemd unit (Linux cloud VMs only)
 	advertiseRoutes  string
 	snatSubnetRoutes *bool // nil means default (true)
 	webServerPort    int
@@ -453,7 +453,7 @@ type Node struct {
 
 // AddNode creates a new VM node. The name is used for identification and as the
 // webserver greeting. Options can be *vnet.Network (for network attachment),
-// NodeOption values, or vnet node options (like vnet.TailscaledEnv).
+// NodeOption values, or vnet node options (like vnet.LanhcdEnv).
 func (e *Env) AddNode(name string, opts ...any) *Node {
 	n := &Node{
 		name:        name,
@@ -471,10 +471,10 @@ func (e *Env) AddNode(name string, opts ...any) *Node {
 			vnetOpts = append(vnetOpts, o)
 		case nodeOptOS:
 			n.os = OSImage(o)
-		case nodeOptNoTailscale:
+		case nodeOptNoLanhc:
 			n.joinTailnet = false
 			vnetOpts = append(vnetOpts, vnet.DontJoinTailnet)
-		case nodeOptTailscaleSSH:
+		case nodeOptLanhcSSH:
 			n.runSSH = true
 		case nodeOptNoAgent:
 			n.noAgent = true
@@ -495,12 +495,12 @@ func (e *Env) AddNode(name string, opts ...any) *Node {
 			}
 			n.dnsMode = DNSMode(o)
 		default:
-			// Pass through to vnet (TailscaledEnv, NodeOption, MAC, etc.)
+			// Pass through to vnet (LanhcdEnv, NodeOption, MAC, etc.)
 			vnetOpts = append(vnetOpts, o)
 		}
 	}
 	if e.fakeACME {
-		vnetOpts = append(vnetOpts, vnet.TailscaledEnv{
+		vnetOpts = append(vnetOpts, vnet.LanhcdEnv{
 			Key:   "TS_DEBUG_ACME_DIRECTORY_URL",
 			Value: "http://acme.example/directory",
 		})
@@ -551,8 +551,8 @@ func (n *Node) DropControlTraffic() {
 // NodeOption types for configuring nodes.
 
 type nodeOptOS OSImage
-type nodeOptNoTailscale struct{}
-type nodeOptTailscaleSSH struct{}
+type nodeOptNoLanhc struct{}
+type nodeOptLanhcSSH struct{}
 type nodeOptNoAgent struct{}
 type nodeOptSystemdUnit struct{}
 type nodeOptAdvertiseRoutes string
@@ -561,7 +561,7 @@ type nodeOptWebServer int
 type nodeOptDNSMode DNSMode
 
 // DNSMode is a provisioning directive, not a DNS-backend name: it says what, if
-// anything, to do to the guest's DNS before tailscaled starts, letting one
+// anything, to do to the guest's DNS before lanhcd starts, letting one
 // distro image cover multiple backends. DNSDefault leaves DNS untouched (the
 // resulting backend is image-dependent); the other modes provision the guest to
 // force a specific backend, and are named to match the mode strings in
@@ -577,32 +577,32 @@ const (
 	DNSDefault DNSMode = ""
 
 	// DNSDirect masks systemd-resolved and installs a plain /etc/resolv.conf
-	// so tailscaled selects the "direct" manager (rewrites resolv.conf itself).
+	// so lanhcd selects the "direct" manager (rewrites resolv.conf itself).
 	DNSDirect DNSMode = "direct"
 )
 
 // OS returns a NodeOption that sets the node's operating system image.
 func OS(img OSImage) nodeOptOS { return nodeOptOS(img) }
 
-// DontJoinTailnet returns a NodeOption that prevents the node from running tailscale up.
-func DontJoinTailnet() nodeOptNoTailscale { return nodeOptNoTailscale{} }
+// DontJoinTailnet returns a NodeOption that prevents the node from running lanhc up.
+func DontJoinTailnet() nodeOptNoLanhc { return nodeOptNoLanhc{} }
 
-// TailscaleSSH returns a NodeOption that enables the node's Tailscale SSH
-// server by passing --ssh to tailscale up. If any node has this option, the
+// LanhcSSH returns a NodeOption that enables the node's Lanhc SSH
+// server by passing --ssh to lanhc up. If any node has this option, the
 // test control server is configured with a permissive SSH policy that lets
 // any tailnet node connect as any SSH user, mapped to the same-named local
 // user.
-func TailscaleSSH() nodeOptTailscaleSSH { return nodeOptTailscaleSSH{} }
+func LanhcSSH() nodeOptLanhcSSH { return nodeOptLanhcSSH{} }
 
 // NoAgent returns a NodeOption that skips TTA agent setup. The node will not
 // have a test agent, so agent-dependent operations (Status, ExecOnNode, etc.)
 // won't work. Useful for VMs that just need to boot and respond to ICMP.
 func NoAgent() nodeOptNoAgent { return nodeOptNoAgent{} }
 
-// SystemdUnit returns a NodeOption that makes the node run tailscaled via the
-// stock systemd unit that Linux packages ship (cmd/tailscaled/tailscaled.service
-// with cmd/tailscaled/tailscaled.defaults as its EnvironmentFile), instead of
-// launching tailscaled directly as a background process. This exercises the
+// SystemdUnit returns a NodeOption that makes the node run lanhcd via the
+// stock systemd unit that Linux packages ship (cmd/lanhcd/lanhcd.service
+// with cmd/lanhcd/lanhcd.defaults as its EnvironmentFile), instead of
+// launching lanhcd directly as a background process. This exercises the
 // unit's sandboxing directives and its Type=notify readiness handshake.
 // It is only supported on Linux cloud VMs (e.g. Ubuntu, Debian).
 func SystemdUnit() nodeOptSystemdUnit { return nodeOptSystemdUnit{} }
@@ -624,7 +624,7 @@ func SNATSubnetRoutes(v bool) nodeOptSNATSubnetRoutes { return nodeOptSNATSubnet
 func WebServer(port int) nodeOptWebServer { return nodeOptWebServer(port) }
 
 // WithDNSMode returns a NodeOption that provisions the (Linux) node so
-// tailscaled selects the given DNS backend. Only meaningful for Linux cloud
+// lanhcd selects the given DNS backend. Only meaningful for Linux cloud
 // images; ignored for gokrazy/macOS. See [DNSMode].
 func WithDNSMode(m DNSMode) nodeOptDNSMode { return nodeOptDNSMode(m) }
 
@@ -656,7 +656,7 @@ func (e *Env) Start() {
 			t.Fatalf("resolving --test-version=%q: %v", *testVersion, err)
 		}
 		e.testVersion = v
-		t.Logf("using Tailscale release version %s (from --test-version=%q)", v, *testVersion)
+		t.Logf("using Lanhc release version %s (from --test-version=%q)", v, *testVersion)
 	}
 
 	// Dry-run: let each platform register its steps with the web UI.
@@ -670,7 +670,7 @@ func (e *Env) Start() {
 			e.Step("Wait for agent: " + n.name)
 		}
 		if n.joinTailnet {
-			e.Step("Tailscale up: " + n.name)
+			e.Step("Lanhc up: " + n.name)
 		}
 	}
 	for _, s := range userSteps {
@@ -727,7 +727,7 @@ func (e *Env) Start() {
 				if err := e.waitForAgentConn(ctx, n); err != nil {
 					return fmt.Errorf("[%s] agent connect: %w", n.name, err)
 				}
-				t.Logf("[%s] agent connected (no tailscale)", n.name)
+				t.Logf("[%s] agent connected (no lanhc)", n.name)
 			}
 			aStep.End(nil)
 
@@ -738,10 +738,10 @@ func (e *Env) Start() {
 			}
 
 			if n.joinTailnet {
-				tsStep := e.Step("Tailscale up: " + n.name)
+				tsStep := e.Step("Lanhc up: " + n.name)
 				tsStep.Begin()
-				if err := e.tailscaleUp(ctx, n); err != nil {
-					return fmt.Errorf("[%s] tailscale up: %w", n.name, err)
+				if err := e.lanhcUp(ctx, n); err != nil {
+					return fmt.Errorf("[%s] lanhc up: %w", n.name, err)
 				}
 				st2, err := n.agent.Status(ctx)
 				if err != nil {
@@ -775,9 +775,9 @@ func (e *Env) Start() {
 					}
 				}
 
-				ips := fmt.Sprintf("%v", st2.Self.TailscaleIPs)
-				e.setNodeTailscale(n.name, "Running "+ips)
-				t.Logf("[%s] up with %v", n.name, st2.Self.TailscaleIPs)
+				ips := fmt.Sprintf("%v", st2.Self.LanhcIPs)
+				e.setNodeLanhc(n.name, "Running "+ips)
+				t.Logf("[%s] up with %v", n.name, st2.Self.LanhcIPs)
 				tsStep.End(nil)
 			}
 
@@ -798,8 +798,8 @@ func (e *Env) Start() {
 	}
 }
 
-// tailscaleUp runs "tailscale up" on the node via TTA.
-func (e *Env) tailscaleUp(ctx context.Context, n *Node) error {
+// lanhcUp runs "lanhc up" on the node via TTA.
+func (e *Env) lanhcUp(ctx context.Context, n *Node) error {
 	url := "http://unused/up?accept-routes=true"
 	if n.advertiseRoutes != "" {
 		url += "&advertise-routes=" + n.advertiseRoutes
@@ -825,7 +825,7 @@ func (e *Env) tailscaleUp(ctx context.Context, n *Node) error {
 	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
 	if res.StatusCode != 200 {
-		return fmt.Errorf("tailscale up: %s: %s", res.Status, body)
+		return fmt.Errorf("lanhc up: %s: %s", res.Status, body)
 	}
 	return nil
 }
@@ -866,10 +866,10 @@ func (e *Env) SetExitNode(client, exitNode *Node) {
 		if err != nil {
 			e.t.Fatalf("SetExitNode: status for %s: %v", exitNode.name, err)
 		}
-		if len(st.Self.TailscaleIPs) == 0 {
-			e.t.Fatalf("SetExitNode: %s has no Tailscale IPs", exitNode.name)
+		if len(st.Self.LanhcIPs) == 0 {
+			e.t.Fatalf("SetExitNode: %s has no Lanhc IPs", exitNode.name)
 		}
-		ip = st.Self.TailscaleIPs[0]
+		ip = st.Self.LanhcIPs[0]
 	}
 
 	if _, err := client.agent.EditPrefs(ctx, &ipn.MaskedPrefs{
@@ -892,7 +892,7 @@ func (e *Env) SetExitNode(client, exitNode *Node) {
 // SetExitNodeIP sets the client's ExitNodeIP preference directly, by IP.
 // This is the right helper for plain-WireGuard exit nodes (Mullvad-style)
 // that aren't on the tailnet — pass an invalid netip.Addr{} to clear.
-// For tailnet exit nodes whose Tailscale IP is discoverable via TTA, use
+// For tailnet exit nodes whose Lanhc IP is discoverable via TTA, use
 // [Env.SetExitNode] instead.
 func (e *Env) SetExitNodeIP(client *Node, ip netip.Addr) {
 	e.t.Helper()
@@ -986,7 +986,7 @@ func (e *Env) BringUpMullvadWGServer(n *Node, gw netip.Prefix, listenPort uint16
 	return key.NodePublicFromRaw32(mem.B(pubRaw))
 }
 
-// Status returns the tailscale status of the given node, fetched from its
+// Status returns the lanhc status of the given node, fetched from its
 // TTA agent. It fatals the test on error.
 func (e *Env) Status(n *Node) *ipnstate.Status {
 	e.t.Helper()
@@ -1010,7 +1010,7 @@ func (e *Env) ClientMetrics(n *Node) ClientMetrics {
 	// Metrics are reported in Prometheus exposition format.
 	// prometheus/common v0.67 made the validation scheme mandatory;
 	// the zero-value parser now panics. LegacyValidation matches the
-	// classic ASCII metric/label name rules that the tailscaled
+	// classic ASCII metric/label name rules that the lanhcd
 	// client exporter uses.
 	parser := expfmt.NewTextParser(model.LegacyValidation)
 	mfs, err := parser.TextToMetricFamilies(bytes.NewReader(raw))
@@ -1018,7 +1018,7 @@ func (e *Env) ClientMetrics(n *Node) ClientMetrics {
 		e.t.Fatalf("Node %q parse client metrics: %v", n.Name(), err)
 	}
 
-	// Tailscale client metrics are all unlabelled integer-valued counters and
+	// Lanhc client metrics are all unlabelled integer-valued counters and
 	// gauges, so we don't need to handle the full generality of the Prometheus
 	// representation. If we see anything else, we'll log and skip it.
 	out := make(ClientMetrics)
@@ -1055,12 +1055,12 @@ func (e *Env) ClientMetrics(n *Node) ClientMetrics {
 }
 
 // dnsBackendMetricPrefix is the prefix of the clientmetric gauge that
-// tailscaled sets to 1 for the Linux DNS mode it selected. See
+// lanhcd sets to 1 for the Linux DNS mode it selected. See
 // net/dns/manager_linux.go.
 const dnsBackendMetricPrefix = "dns_manager_linux_mode_"
 
-// DNSBackend returns the Linux DNS backend ("mode") the node's tailscaled
-// selected (e.g. "systemd-resolved", "direct"). tailscaled sets a single gauge
+// DNSBackend returns the Linux DNS backend ("mode") the node's lanhcd
+// selected (e.g. "systemd-resolved", "direct"). lanhcd sets a single gauge
 // named dns_manager_linux_mode_<mode> to 1 for its selected mode (see
 // net/dns/manager_linux.go); this finds that gauge and returns <mode>. It fails
 // the test if none is set (non-Linux node, or DNS not yet configured).
@@ -1071,7 +1071,7 @@ func (e *Env) DNSBackend(n *Node) string {
 		if !ok || m.Value != 1 {
 			continue
 		}
-		// tailscaled sanitizes "-" to "_" when forming the metric name;
+		// lanhcd sanitizes "-" to "_" when forming the metric name;
 		// reverse it so we return net/dns's spelling ("systemd-resolved").
 		return strings.ReplaceAll(mode, "_", "-")
 	}
@@ -1139,7 +1139,7 @@ func (e *Env) ApproveRoutes(n *Node, routes ...string) {
 		prefixes = append(prefixes, p)
 	}
 
-	// Enable --accept-routes on all other tailscale nodes BEFORE setting the
+	// Enable --accept-routes on all other lanhc nodes BEFORE setting the
 	// routes on the control server. This way, when the map update arrives with
 	// the new peer routes, peers will immediately install them.
 	for _, other := range e.nodes {
@@ -1181,7 +1181,7 @@ func (e *Env) ApproveRoutes(n *Node, routes ...string) {
 	}
 }
 
-// ping does a disco ping from one node to another's Tailscale IP, retrying
+// ping does a disco ping from one node to another's Lanhc IP, retrying
 // for up to 30 seconds, fataling on failure. It is used internally to wake
 // up magicsock peer state before a test runs; tests that want to assert
 // connectivity should use [Env.Ping] with the appropriate ping type and
@@ -1193,7 +1193,7 @@ func (e *Env) ping(from, to *Node) {
 	}
 }
 
-// Ping pings from one node to another's Tailscale IP using the given ping
+// Ping pings from one node to another's Lanhc IP using the given ping
 // type, retrying until it succeeds or timeout expires. It returns the error
 // from the last attempt if the timeout expires. Unlike the internal ping
 // helper, it does not fatal the test on failure; callers can check the error
@@ -1212,10 +1212,10 @@ func (e *Env) Ping(from, to *Node, ptype tailcfg.PingType, timeout time.Duration
 	if err != nil {
 		return fmt.Errorf("ping: can't get %s status: %w", to.name, err)
 	}
-	if len(toSt.Self.TailscaleIPs) == 0 {
-		return fmt.Errorf("ping: %s has no Tailscale IPs", to.name)
+	if len(toSt.Self.LanhcIPs) == 0 {
+		return fmt.Errorf("ping: %s has no Lanhc IPs", to.name)
 	}
-	targetIP := toSt.Self.TailscaleIPs[0]
+	targetIP := toSt.Self.LanhcIPs[0]
 
 	var lastErr error
 	for {
@@ -1258,7 +1258,7 @@ func deadline(ctx context.Context) time.Time {
 }
 
 // PeerDiscoKey returns n's view of the given peer's disco key. It returns a
-// non-nil error if the LocalAPI request fails (e.g. tailscaled briefly
+// non-nil error if the LocalAPI request fails (e.g. lanhcd briefly
 // unavailable during a restart). It returns (zero, false, nil) if n is
 // reachable but has no record of the given peer in its current netmap.
 //
@@ -1293,9 +1293,9 @@ func (e *Env) PeerDiscoKey(n *Node, peer key.NodePublic) (key.DiscoPublic, bool,
 	return d, ok, nil
 }
 
-// RotateDiscoKey asks tailscaled on n to rotate its discovery (magicsock) key
+// RotateDiscoKey asks lanhcd on n to rotate its discovery (magicsock) key
 // in place via the LocalAPI debug action. The node key, control connection,
-// and other tailscaled state are unaffected. It fatals the test on error.
+// and other lanhcd state are unaffected. It fatals the test on error.
 func (e *Env) RotateDiscoKey(n *Node) {
 	e.t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -1329,7 +1329,7 @@ func (e *Env) ForcePreferredDERP(n *Node, region int) {
 // home-DERP re-report fix guards (see [magicsock.Conn.ResetNetInfoLast]).
 //
 // It switches to an empty profile (the in-process control-client swap the
-// LocalAPI PUT /profiles/ performs) and then logs back in with "tailscale up",
+// LocalAPI PUT /profiles/ performs) and then logs back in with "lanhc up",
 // which both points the new control client at the test control and drives
 // registration to completion. It waits for the node to return to Running and
 // fatals the test on error.
@@ -1347,10 +1347,10 @@ func (e *Env) Relogin(n *Node) {
 	if err := n.agent.SwitchToEmptyProfile(ctx); err != nil {
 		e.t.Fatalf("Relogin(%s): SwitchToEmptyProfile: %v", n.name, err)
 	}
-	// Log back in to the same test control. "tailscale up --login-server" points
+	// Log back in to the same test control. "lanhc up --login-server" points
 	// the new control client at the test control and drives registration to
 	// completion (testcontrol auto-authorizes), the same path Env.Start uses.
-	if err := e.tailscaleUp(ctx, n); err != nil {
+	if err := e.lanhcUp(ctx, n); err != nil {
 		e.t.Fatalf("Relogin(%s): up: %v", n.name, err)
 	}
 	if err := tstest.WaitFor(60*time.Second, func() error {
@@ -1367,35 +1367,35 @@ func (e *Env) Relogin(n *Node) {
 	}
 }
 
-// RestartTailscaled signals tailscaled on n to die so that its supervisor
-// (gokrazy) restarts it. It then waits for tailscaled to come back to the
+// RestartLanhcd signals lanhcd on n to die so that its supervisor
+// (gokrazy) restarts it. It then waits for lanhcd to come back to the
 // "Running" backend state. It fatals the test on error.
 //
-// Restarting tailscaled is currently only supported on gokrazy nodes.
-func (e *Env) RestartTailscaled(n *Node) {
+// Restarting lanhcd is currently only supported on gokrazy nodes.
+func (e *Env) RestartLanhcd(n *Node) {
 	e.t.Helper()
 	if !n.os.IsGokrazy {
-		e.t.Fatalf("RestartTailscaled(%s): only supported on gokrazy nodes (have %q)", n.name, n.os.Name)
+		e.t.Fatalf("RestartLanhcd(%s): only supported on gokrazy nodes (have %q)", n.name, n.os.Name)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, "GET", "http://unused/restart-tailscaled", nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", "http://unused/restart-lanhcd", nil)
 	if err != nil {
-		e.t.Fatalf("RestartTailscaled(%s): %v", n.name, err)
+		e.t.Fatalf("RestartLanhcd(%s): %v", n.name, err)
 	}
 	res, err := n.agent.HTTPClient.Do(req)
 	if err != nil {
-		e.t.Fatalf("RestartTailscaled(%s): %v", n.name, err)
+		e.t.Fatalf("RestartLanhcd(%s): %v", n.name, err)
 	}
 	body, _ := io.ReadAll(res.Body)
 	res.Body.Close()
 	if res.StatusCode != 200 {
-		e.t.Fatalf("RestartTailscaled(%s): %s: %s", n.name, res.Status, body)
+		e.t.Fatalf("RestartLanhcd(%s): %s: %s", n.name, res.Status, body)
 	}
 	e.t.Logf("[%s] %s", n.name, strings.TrimSpace(string(body)))
 
-	// Wait for tailscaled to come back. Status calls will fail while the unix
+	// Wait for lanhcd to come back. Status calls will fail while the unix
 	// socket is gone, then return Starting/NeedsLogin briefly before settling
 	// on Running.
 	if err := tstest.WaitFor(45*time.Second, func() error {
@@ -1408,14 +1408,14 @@ func (e *Env) RestartTailscaled(n *Node) {
 		}
 		return nil
 	}); err != nil {
-		e.t.Fatalf("RestartTailscaled(%s): waiting for Running: %v", n.name, err)
+		e.t.Fatalf("RestartLanhcd(%s): waiting for Running: %v", n.name, err)
 	}
 }
 
 // AddRoute adds a kernel static route on the given node, pointing prefix at
 // via. It uses TTA's /add-route handler, so it works on any node where TTA
 // is running (which is all of them — DontJoinTailnet only skips
-// `tailscale up`; the agent runs regardless). Currently Linux-only in TTA.
+// `lanhc up`; the agent runs regardless). Currently Linux-only in TTA.
 //
 // It fatals the test on error.
 func (e *Env) AddRoute(n *Node, prefix, via string) {
@@ -1444,7 +1444,7 @@ func (e *Env) AddRoute(n *Node, prefix, via string) {
 //
 // SSH transport-level errors (exit code 255: connection refused, auth
 // failure, etc.) are retried for up to ~30s to absorb the race window
-// between Env.Start() returning (when tta reports the tailscale backend
+// between Env.Start() returning (when tta reports the lanhc backend
 // as Running) and cloud-init finishing the user/SSH-key setup. The remote
 // command's own non-zero exit codes are returned to the caller without
 // retry.
@@ -1479,7 +1479,7 @@ func (e *Env) SSHExec(n *Node, cmd string) (string, error) {
 	}
 }
 
-// DumpStatus logs the tailscale status of a node, including its peers and their
+// DumpStatus logs the lanhc status of a node, including its peers and their
 // AllowedIPs. Useful for debugging routing issues.
 func (e *Env) DumpStatus(n *Node) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -1502,7 +1502,7 @@ func (e *Env) DumpStatus(n *Node) {
 			selfPrimary = append(selfPrimary, st.Self.PrimaryRoutes.At(i).String())
 		}
 	}
-	e.t.Logf("[%s] self: %v, backend=%s, AllowedIPs=%v, PrimaryRoutes=%v", n.name, st.Self.TailscaleIPs, st.BackendState, selfAllowed, selfPrimary)
+	e.t.Logf("[%s] self: %v, backend=%s, AllowedIPs=%v, PrimaryRoutes=%v", n.name, st.Self.LanhcIPs, st.BackendState, selfAllowed, selfPrimary)
 	for _, peer := range st.Peer {
 		var aips []string
 		if peer.AllowedIPs != nil {
@@ -1511,7 +1511,7 @@ func (e *Env) DumpStatus(n *Node) {
 			}
 		}
 		e.t.Logf("[%s] peer %s (%s): AllowedIPs=%v, Online=%v, Relay=%q, CurAddr=%q",
-			n.name, peer.HostName, peer.TailscaleIPs,
+			n.name, peer.HostName, peer.LanhcIPs,
 			aips, peer.Online, peer.Relay, peer.CurAddr)
 	}
 }
@@ -1591,7 +1591,7 @@ type HTTPResponse struct {
 // Any sendCookies are sent on the upstream request via the Cookie header.
 //
 // The request is proxied through TTA's /http-get handler, which dials via
-// Tailscale's UserDial; this works on any OS the test agent runs on.
+// Lanhc's UserDial; this works on any OS the test agent runs on.
 //
 // Like [Env.HTTPGet], HTTPGetStatus retries up to 3 times on TTA-level
 // connection failures (502 / 503 from TTA when it cannot reach upstream).
@@ -1647,15 +1647,15 @@ func (e *Env) HTTPGetStatus(from *Node, targetURL string, sendCookies ...*http.C
 	return nil, fmt.Errorf("HTTPGetStatus from %s to %s: gave up: %w", from.name, targetURL, lastErr)
 }
 
-// Tailscale runs the tailscale CLI on the given node via TTA.
-func (e *Env) Tailscale(n *Node, args ...string) (string, error) {
+// Lanhc runs the lanhc CLI on the given node via TTA.
+func (e *Env) Lanhc(n *Node, args ...string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	q := url.Values{}
 	for _, arg := range args {
 		q.Add("arg", arg)
 	}
-	req, err := http.NewRequestWithContext(ctx, "GET", "http://unused/tailscale?"+q.Encode(), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", "http://unused/lanhc?"+q.Encode(), nil)
 	if err != nil {
 		return "", err
 	}
@@ -1666,7 +1666,7 @@ func (e *Env) Tailscale(n *Node, args ...string) (string, error) {
 	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
 	if res.StatusCode != http.StatusOK {
-		return string(body), fmt.Errorf("tailscale %q: %s: %s", args, res.Status, res.Header.Get("Exec-Err"))
+		return string(body), fmt.Errorf("lanhc %q: %s: %s", args, res.Status, res.Header.Get("Exec-Err"))
 	}
 	return string(body), nil
 }
@@ -1913,7 +1913,7 @@ func (e *Env) ensureImage(ctx context.Context, os OSImage) error {
 func (e *Env) registerBinaries(goos, goarch string) {
 	e.initVnet()
 	dir := goos + "_" + goarch
-	for _, name := range []string{"tta", "tailscale", "tailscaled"} {
+	for _, name := range []string{"tta", "lanhc", "lanhcd"} {
 		data, err := os.ReadFile(filepath.Join(e.binDir, dir, name))
 		if err != nil {
 			e.t.Fatalf("reading compiled %s/%s: %v", dir, name, err)
@@ -1923,7 +1923,7 @@ func (e *Env) registerBinaries(goos, goarch string) {
 }
 
 // waitForAgentConn waits for a TTA agent to connect by issuing a simple
-// HTTP GET to the root endpoint, without requiring tailscaled.
+// HTTP GET to the root endpoint, without requiring lanhcd.
 func (e *Env) waitForAgentConn(ctx context.Context, n *Node) error {
 	for {
 		reqCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
@@ -2001,10 +2001,10 @@ func (e *Env) SendTaildropFile(from, to *Node, name string, content []byte) {
 	if err != nil {
 		e.t.Fatalf("SendTaildropFile: status for %s: %v", to.name, err)
 	}
-	if len(st.Self.TailscaleIPs) == 0 {
-		e.t.Fatalf("SendTaildropFile: %s has no Tailscale IPs", to.name)
+	if len(st.Self.LanhcIPs) == 0 {
+		e.t.Fatalf("SendTaildropFile: %s has no Lanhc IPs", to.name)
 	}
-	target := st.Self.TailscaleIPs[0].String()
+	target := st.Self.LanhcIPs[0].String()
 
 	reqURL := fmt.Sprintf("http://unused/taildrop-send?to=%s&name=%s", target, name)
 	req, err := http.NewRequestWithContext(ctx, "POST", reqURL, bytes.NewReader(content))
@@ -2057,7 +2057,7 @@ var buildGokrazy sync.Once
 
 // ensureGokrazy builds the gokrazy base image (once per test process) and
 // locates the kernel. The build is fast (~4s) so we always rebuild to ensure
-// the baked-in binaries (tta, tailscale, tailscaled) match the current source.
+// the baked-in binaries (tta, lanhc, lanhcd) match the current source.
 func (e *Env) ensureGokrazy(ctx context.Context) error {
 	if e.gokrazyBase != "" {
 		return nil // already found
@@ -2093,11 +2093,11 @@ func (e *Env) ensureGokrazy(ctx context.Context) error {
 	return nil
 }
 
-// compileBinariesForOS prepares the tta, tailscale, and tailscaled binaries
+// compileBinariesForOS prepares the tta, lanhc, and lanhcd binaries
 // for the given GOOS/GOARCH and places them in e.binDir/<goos>_<goarch>/.
 //
 // tta is always built from the local source tree (the test agent must match
-// the test framework). When --test-version is set, tailscale and tailscaled
+// the test framework). When --test-version is set, lanhc and lanhcd
 // are taken from the downloaded release tarball instead of being compiled
 // from source.
 func (e *Env) compileBinariesForOS(ctx context.Context, goos, goarch string) error {
@@ -2112,7 +2112,7 @@ func (e *Env) compileBinariesForOS(ctx context.Context, goos, goarch string) err
 		return err
 	}
 
-	// Use downloaded release binaries only on Linux: pkgs.tailscale.com only
+	// Use downloaded release binaries only on Linux: pkgs.lanhc.com only
 	// publishes Linux tarballs, so other GOOS values still build from source.
 	useDownloaded := e.testVersion != "" && goos == "linux"
 
@@ -2120,8 +2120,8 @@ func (e *Env) compileBinariesForOS(ctx context.Context, goos, goarch string) err
 	buildBins := []binary{{"tta", "./cmd/tta"}}
 	if !useDownloaded {
 		buildBins = append(buildBins,
-			binary{"tailscale", "./cmd/tailscale"},
-			binary{"tailscaled", "./cmd/tailscaled"})
+			binary{"lanhc", "./cmd/lanhc"},
+			binary{"lanhcd", "./cmd/lanhcd"})
 	}
 
 	var eg errgroup.Group
@@ -2146,12 +2146,12 @@ func (e *Env) compileBinariesForOS(ctx context.Context, goos, goarch string) err
 			if err != nil {
 				return err
 			}
-			for _, name := range []string{"tailscale", "tailscaled"} {
+			for _, name := range []string{"lanhc", "lanhcd"} {
 				if err := copyFile(filepath.Join(srcDir, name), filepath.Join(outDir, name), 0755); err != nil {
 					return fmt.Errorf("staging %s/%s: %w", dir, name, err)
 				}
 			}
-			e.t.Logf("staged version %s tailscale & tailscaled for %s", e.testVersion, dir)
+			e.t.Logf("staged version %s lanhc & lanhcd for %s", e.testVersion, dir)
 			return nil
 		})
 	}
@@ -2249,10 +2249,10 @@ func (e *Env) PingExpect(from, to *Node, wantRoute PingRoute, timeout time.Durat
 	if err != nil {
 		return fmt.Errorf("ping: can't get %s status: %w", to.name, err)
 	}
-	if len(toSt.Self.TailscaleIPs) == 0 {
-		return fmt.Errorf("ping: %s has no Tailscale IPs", to.name)
+	if len(toSt.Self.LanhcIPs) == 0 {
+		return fmt.Errorf("ping: %s has no Lanhc IPs", to.name)
 	}
-	targetIP := toSt.Self.TailscaleIPs[0]
+	targetIP := toSt.Self.LanhcIPs[0]
 	for ctx.Err() == nil {
 		pingCtx, pingCancel := context.WithTimeout(ctx, 3*time.Second)
 		pr, err := from.agent.PingWithOpts(pingCtx, targetIP, tailcfg.PingDisco, local.PingOpts{})

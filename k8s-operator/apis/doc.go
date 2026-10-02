@@ -3,7 +3,7 @@
 
 //go:build !plan9
 
-// Package apis contains a constant to name the Tailscale Kubernetes Operator's schema group.
+// Package apis contains a constant to name the Lanhc Kubernetes Operator's schema group.
 package apis
 
-const GroupName = "tailscale.com"
+const GroupName = "lanhc.com"

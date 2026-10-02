@@ -7,7 +7,7 @@
 
 package buildfeatures
 
-// HasUseProxy is whether the binary was built with support for modular feature "Support using system proxies as specified by env vars or the system configuration to reach Tailscale servers.".
+// HasUseProxy is whether the binary was built with support for modular feature "Support using system proxies as specified by env vars or the system configuration to reach Lanhc servers.".
 // Specifically, it's whether the binary was NOT built with the "ts_omit_useproxy" build tag.
 // It's a const so it can be used for dead code elimination.
 const HasUseProxy = false

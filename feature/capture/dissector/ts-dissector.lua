@@ -2,7 +2,7 @@ function hasbit(x, p)
   return bit.band(x, p) ~= 0
 end
 
-tsdebug_ll = Proto("tsdebug", "Tailscale debug")
+tsdebug_ll = Proto("tsdebug", "Lanhc debug")
 PATH = ProtoField.string("tsdebug.PATH","PATH", base.ASCII)
 SNAT_IP_4 = ProtoField.ipv4("tsdebug.SNAT_IP_4", "Pre-NAT Source IPv4 address")
 SNAT_IP_6 = ProtoField.ipv6("tsdebug.SNAT_IP_6", "Pre-NAT Source IPv6 address")
@@ -14,7 +14,7 @@ function tsdebug_ll.dissector(buffer, pinfo, tree)
     pinfo.cols.protocol = tsdebug_ll.name
     packet_length = buffer:len()
     local offset = 0
-    local subtree = tree:add(tsdebug_ll, buffer(), "Tailscale packet")
+    local subtree = tree:add(tsdebug_ll, buffer(), "Lanhc packet")
 
     -- -- Get path UINT16
     local path_id = buffer:range(offset, 2):le_uint()
@@ -54,13 +54,13 @@ local eth_table = DissectorTable.get("wtap_encap")
 eth_table:add(wtap.USER0, tsdebug_ll)
 
 
-local ts_dissectors = DissectorTable.new("ts.proto", "Tailscale-specific dissectors", ftypes.STRING, base.NONE)
+local ts_dissectors = DissectorTable.new("ts.proto", "Lanhc-specific dissectors", ftypes.STRING, base.NONE)
 
 
 --
 -- DISCO metadata dissector
 --
-tsdisco_meta = Proto("tsdisco", "Tailscale DISCO metadata")
+tsdisco_meta = Proto("tsdisco", "Lanhc DISCO metadata")
 DISCO_IS_DERP = ProtoField.bool("tsdisco.IS_DERP","From DERP")
 DISCO_SRC_IP_4 = ProtoField.ipv4("tsdisco.SRC_IP_4", "Source IPv4 address")
 DISCO_SRC_IP_6 = ProtoField.ipv6("tsdisco.SRC_IP_6", "Source IPv6 address")
@@ -107,7 +107,7 @@ ts_dissectors:add(1, tsdisco_meta)
 --
 -- DISCO frame dissector
 --
-tsdisco_frame = Proto("disco", "Tailscale DISCO frame")
+tsdisco_frame = Proto("disco", "Lanhc DISCO frame")
 DISCO_TYPE = ProtoField.string("disco.TYPE", "Message type", base.ASCII)
 DISCO_VERSION = ProtoField.uint8("disco.VERSION","Protocol version", base.DEC)
 DISCO_TXID = ProtoField.bytes("disco.TXID", "Transaction ID", base.SPACE)

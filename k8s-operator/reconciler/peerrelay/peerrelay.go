@@ -32,14 +32,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	operatorutils "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/k8s-operator/reconciler"
-	"tailscale.com/k8s-operator/reconciler/tailscaled"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tstime"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/set"
+	operatorutils "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/k8s-operator/reconciler"
+	"lanhc.com/k8s-operator/reconciler/lanhcd"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tstime"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/set"
 )
 
 type (
@@ -48,10 +48,10 @@ type (
 	Reconciler struct {
 		client.Client
 
-		tailscaleNamespace string
+		lanhcNamespace string
 		proxyImage         string
 		defaultTags        []string
-		tsClients          tailscaled.ClientProvider
+		tsClients          lanhcd.ClientProvider
 		resolver           func(ctx context.Context, network, host string) ([]netip.Addr, error)
 		logger             *zap.SugaredLogger
 		clock              tstime.Clock
@@ -67,15 +67,15 @@ type (
 		Client client.Client
 		// The namespace the operator is installed in. PeerRelay-managed resources (Services, StatefulSets, etc.)
 		// are created within this namespace.
-		TailscaleNamespace string
-		// ProxyImage is the container image used for the tailscaled pods that back each peer relay replica.
+		LanhcNamespace string
+		// ProxyImage is the container image used for the lanhcd pods that back each peer relay replica.
 		ProxyImage string
 		// DefaultTags is the tag list applied to freshly minted auth keys when a PeerRelay hasn't set its own
 		// spec.tags. Must be non-empty at construction time.
 		DefaultTags []string
-		// Clients resolves the Tailscale API client for a given tailnet name. Used to mint auth keys for each
+		// Clients resolves the Lanhc API client for a given tailnet name. Used to mint auth keys for each
 		// replica. Blank tailnet returns the operator's default client.
-		Clients tailscaled.ClientProvider
+		Clients lanhcd.ClientProvider
 		// Resolver is used to convert LoadBalancer Service hostnames to concrete IPs when the cloud
 		// controller doesn't populate Ingress[].IP directly (e.g. AWS NLBs). Defaults to a resolver backed by
 		// net.DefaultResolver when unset.
@@ -122,7 +122,7 @@ func NewReconciler(options ReconcilerOptions) *Reconciler {
 
 	return &Reconciler{
 		Client:             options.Client,
-		tailscaleNamespace: options.TailscaleNamespace,
+		lanhcNamespace: options.LanhcNamespace,
 		proxyImage:         options.ProxyImage,
 		defaultTags:        options.DefaultTags,
 		tsClients:          options.Clients,
@@ -315,7 +315,7 @@ func peerRelayReady(pr *tsapi.PeerRelay) bool {
 
 func (r *Reconciler) readEndpoints(ctx context.Context, logger *zap.SugaredLogger, pr *tsapi.PeerRelay) ([]tsapi.PeerRelayEndpoint, error) {
 	var list corev1.ServiceList
-	if err := r.List(ctx, &list, client.InNamespace(r.tailscaleNamespace), client.MatchingLabels(peerRelayLabels(pr.Name))); err != nil {
+	if err := r.List(ctx, &list, client.InNamespace(r.lanhcNamespace), client.MatchingLabels(peerRelayLabels(pr.Name))); err != nil {
 		return nil, fmt.Errorf("failed to list Services: %w", err)
 	}
 
@@ -336,7 +336,7 @@ func (r *Reconciler) readEndpoints(ctx context.Context, logger *zap.SugaredLogge
 	}
 
 	// Sorted by replica then address so the list is stable across reconciles, which keeps status updates and the
-	// resulting tailscaled config free of spurious churn. status.endpoints is keyed on both fields, so the pair
+	// resulting lanhcd config free of spurious churn. status.endpoints is keyed on both fields, so the pair
 	// is unique.
 	slices.SortFunc(endpoints, func(a, b tsapi.PeerRelayEndpoint) int {
 		if c := cmp.Compare(a.Replica, b.Replica); c != 0 {
@@ -427,7 +427,7 @@ func (r *Reconciler) ensureService(ctx context.Context, logger *zap.SugaredLogge
 
 func (r *Reconciler) deleteServicesFrom(ctx context.Context, logger *zap.SugaredLogger, pr *tsapi.PeerRelay, fromIdx int32) error {
 	var list corev1.ServiceList
-	if err := r.List(ctx, &list, client.InNamespace(r.tailscaleNamespace), client.MatchingLabels(peerRelayLabels(pr.Name))); err != nil {
+	if err := r.List(ctx, &list, client.InNamespace(r.lanhcNamespace), client.MatchingLabels(peerRelayLabels(pr.Name))); err != nil {
 		return fmt.Errorf("failed to list Services: %w", err)
 	}
 
@@ -468,7 +468,7 @@ func (r *Reconciler) ensureConfigSecret(ctx context.Context, logger *zap.Sugared
 
 func (r *Reconciler) reuseOrMintAuthKey(ctx context.Context, pr *tsapi.PeerRelay, idx int32) (*string, error) {
 	var existing corev1.Secret
-	err := r.Get(ctx, types.NamespacedName{Namespace: r.tailscaleNamespace, Name: configSecretName(pr.Name, idx)}, &existing)
+	err := r.Get(ctx, types.NamespacedName{Namespace: r.lanhcNamespace, Name: configSecretName(pr.Name, idx)}, &existing)
 	switch {
 	case apierrors.IsNotFound(err):
 		key, err := r.mintAuthKey(ctx, pr)
@@ -480,7 +480,7 @@ func (r *Reconciler) reuseOrMintAuthKey(ctx context.Context, pr *tsapi.PeerRelay
 		return nil, fmt.Errorf("failed to get config Secret: %w", err)
 	}
 
-	if existingKey := tailscaled.AuthKeyFromConfigSecret(&existing); existingKey != nil {
+	if existingKey := lanhcd.AuthKeyFromConfigSecret(&existing); existingKey != nil {
 		return existingKey, nil
 	}
 
@@ -495,16 +495,16 @@ func (r *Reconciler) reuseOrMintAuthKey(ctx context.Context, pr *tsapi.PeerRelay
 func (r *Reconciler) mintAuthKey(ctx context.Context, pr *tsapi.PeerRelay) (string, error) {
 	client, err := r.tsClients.For(pr.Spec.Tailnet)
 	if err != nil {
-		return "", fmt.Errorf("failed to resolve Tailscale API client for tailnet %q: %w", pr.Spec.Tailnet, err)
+		return "", fmt.Errorf("failed to resolve Lanhc API client for tailnet %q: %w", pr.Spec.Tailnet, err)
 	}
 
-	return tailscaled.NewAuthKey(ctx, client, r.peerRelayTags(pr))
+	return lanhcd.NewAuthKey(ctx, client, r.peerRelayTags(pr))
 }
 
 func (r *Reconciler) ensureStateSecret(ctx context.Context, logger *zap.SugaredLogger, pr *tsapi.PeerRelay, idx int32) error {
-	desired := tailscaled.NewStateSecret(tailscaled.StateSecretOptions{
+	desired := lanhcd.NewStateSecret(lanhcd.StateSecretOptions{
 		Name:      replicaName(pr.Name, idx),
-		Namespace: r.tailscaleNamespace,
+		Namespace: r.lanhcNamespace,
 		Labels:    peerRelayServiceLabels(pr.Name, idx),
 	})
 
@@ -521,7 +521,7 @@ func (r *Reconciler) deleteConfigSecretsFrom(ctx context.Context, logger *zap.Su
 	labels[kubetypes.LabelSecretType] = kubetypes.LabelSecretTypeConfig
 
 	var list corev1.SecretList
-	if err := r.List(ctx, &list, client.InNamespace(r.tailscaleNamespace), client.MatchingLabels(labels)); err != nil {
+	if err := r.List(ctx, &list, client.InNamespace(r.lanhcNamespace), client.MatchingLabels(labels)); err != nil {
 		return fmt.Errorf("failed to list config Secrets: %w", err)
 	}
 
@@ -564,7 +564,7 @@ func (r *Reconciler) ensureStatefulSet(ctx context.Context, logger *zap.SugaredL
 
 func (r *Reconciler) deleteStatefulSet(ctx context.Context, logger *zap.SugaredLogger, pr *tsapi.PeerRelay) error {
 	ss := &appsv1.StatefulSet{
-		ObjectMeta: metav1.ObjectMeta{Name: resourceName(pr.Name), Namespace: r.tailscaleNamespace},
+		ObjectMeta: metav1.ObjectMeta{Name: resourceName(pr.Name), Namespace: r.lanhcNamespace},
 	}
 	logger.Debugf("deleting StatefulSet %q", ss.Name)
 	if err := r.Delete(ctx, ss); err != nil && !apierrors.IsNotFound(err) {

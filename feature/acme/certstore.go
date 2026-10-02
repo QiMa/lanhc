@@ -23,19 +23,19 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/atomicfile"
-	"tailscale.com/envknob"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/hostinfo"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/store"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/net/bakedroots"
-	xacme "tailscale.com/tempfork/acme"
-	"tailscale.com/util/testenv"
-	"tailscale.com/version"
-	"tailscale.com/version/distro"
+	"lanhc.com/atomicfile"
+	"lanhc.com/envknob"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/hostinfo"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/store"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/net/bakedroots"
+	xacme "lanhc.com/tempfork/acme"
+	"lanhc.com/util/testenv"
+	"lanhc.com/version"
+	"lanhc.com/version/distro"
 )
 
 // certStore provides a way to perist and retrieve TLS certificates.
@@ -62,16 +62,16 @@ var testX509Roots *x509.CertPool // set non-nil by tests
 // certDir returns (creating if needed) the directory in which cached
 // cert keypairs are stored.
 func certDir(b *ipnlocal.LocalBackend) (string, error) {
-	d := b.TailscaleVarRoot()
+	d := b.LanhcVarRoot()
 
 	// As a workaround for Synology DSM6 not having a "var" directory, use the
 	// app's "etc" directory (on a small partition) to hold certs at least.
-	// See https://github.com/tailscale/tailscale/issues/4060#issuecomment-1186592251
+	// See https://github.com/lanhc/lanhc/issues/4060#issuecomment-1186592251
 	if buildfeatures.HasSynology && d == "" && runtime.GOOS == "linux" && distro.Get() == distro.Synology && distro.DSMVersion() == 6 {
-		d = "/var/packages/Tailscale/etc" // base; we append "certs" below
+		d = "/var/packages/Lanhc/etc" // base; we append "certs" below
 	}
 	if d == "" {
-		return "", errors.New("no TailscaleVarRoot")
+		return "", errors.New("no LanhcVarRoot")
 	}
 	full := filepath.Join(d, "certs")
 	if err := os.MkdirAll(full, 0700); err != nil {
@@ -369,7 +369,7 @@ func (e *extension) acmeClient(cs certStore) (*xacme.Client, error) {
 	// shouldStartDomainRenewalARI).
 	return &xacme.Client{
 		Key:          key,
-		UserAgent:    "tailscaled/" + version.Long(),
+		UserAgent:    "lanhcd/" + version.Long(),
 		DirectoryURL: envknob.String("TS_DEBUG_ACME_DIRECTORY_URL"),
 	}, nil
 }
@@ -421,7 +421,7 @@ func validateLeaf(leaf *x509.Certificate, intermediates *x509.CertPool, domain s
 	if err != nil && roots == nil {
 		// If validation failed and they specified nil for roots (meaning to use
 		// the system roots), then give it another chance to validate using the
-		// binary's baked-in roots (LetsEncrypt). See tailscale/tailscale#14690.
+		// binary's baked-in roots (LetsEncrypt). See lanhc/lanhc#14690.
 		return validateLeaf(leaf, intermediates, domain, now, bakedroots.Get())
 	}
 

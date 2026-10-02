@@ -14,7 +14,7 @@ import (
 	"net/http"
 	"time"
 
-	"tailscale.com/util/httpm"
+	"lanhc.com/util/httpm"
 )
 
 type joinRequest struct {

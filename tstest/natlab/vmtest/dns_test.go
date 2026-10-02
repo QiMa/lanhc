@@ -10,12 +10,12 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/tstest/natlab/vmtest"
-	"tailscale.com/tstest/natlab/vnet"
-	"tailscale.com/types/dnstype"
-	"tailscale.com/types/key"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/tstest/natlab/vmtest"
+	"lanhc.com/tstest/natlab/vnet"
+	"lanhc.com/types/dnstype"
+	"lanhc.com/types/key"
 )
 
 // TestMagicDNS verifies that control-plane DNS config makes it all the
@@ -24,7 +24,7 @@ import (
 // covers several scenarios in sequence:
 //
 //   - DNSConfig.ExtraRecords resolve via libc (getent), and search
-//     domains let bare names resolve, which requires tailscaled to
+//     domains let bare names resolve, which requires lanhcd to
 //     have plumbed MagicDNS routes and search domains into
 //     systemd-resolved.
 //   - A peer added by control resolves by FQDN and by short name,
@@ -36,7 +36,7 @@ import (
 //     entry containing the full updated Node with the new Name, and
 //     notably no new DNSConfig (MagicDNS records are computed
 //     client-side from peer names). This test injects deltas of
-//     exactly that shape. It reproduces tailscale/corp#45631, where
+//     exactly that shape. It reproduces lanhc/corp#45631, where
 //     a renamed node's old name kept resolving.
 //   - A peer removed by control stops resolving.
 func TestMagicDNS(t *testing.T) {
@@ -116,7 +116,7 @@ func TestMagicDNS(t *testing.T) {
 }
 
 // dnsTester asserts DNS state in a guest via libc lookups (getent),
-// retrying for a bit because tailscaled applies netmap and DNS config
+// retrying for a bit because lanhcd applies netmap and DNS config
 // changes asynchronously.
 type dnsTester struct {
 	t    *testing.T
@@ -127,7 +127,7 @@ type dnsTester struct {
 // wantResolves waits until name resolves and its answer contains want.
 // With an IP address as name, getent does a reverse (PTR) lookup and
 // want is the expected hostname. It flushes systemd-resolved's cache
-// before each attempt so it tests tailscaled's resolver rather than a
+// before each attempt so it tests lanhcd's resolver rather than a
 // previously cached answer.
 func (dt *dnsTester) wantResolves(name, want string) {
 	dt.t.Helper()
@@ -149,7 +149,7 @@ func (dt *dnsTester) wantResolves(name, want string) {
 
 // wantNXDOMAIN waits until name no longer resolves. It flushes
 // systemd-resolved's cache before each attempt so it tests
-// tailscaled's resolver rather than a previously cached answer.
+// lanhcd's resolver rather than a previously cached answer.
 func (dt *dnsTester) wantNXDOMAIN(name string) {
 	dt.t.Helper()
 	if err := tstest.WaitFor(30*time.Second, func() error {

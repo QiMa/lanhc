@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // Package metrics contains expvar & Prometheus types and code used by
-// Tailscale for monitoring.
+// Lanhc for monitoring.
 package metrics
 
 import (
@@ -12,7 +12,7 @@ import (
 	"slices"
 	"strings"
 
-	"tailscale.com/syncs"
+	"lanhc.com/syncs"
 )
 
 // Set is a string-to-Var map variable that satisfies the expvar.Var

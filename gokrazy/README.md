@@ -1,16 +1,16 @@
-# Tailscale Appliance Gokrazy Image
+# Lanhc Appliance Gokrazy Image
 
 This is (as of 2024-06-02) a **WORK IN PROGRESS** (pre-alpha) experiment to
-package Tailscale as a [Gokrazy](https://gokrazy.org/) appliance image
+package Lanhc as a [Gokrazy](https://gokrazy.org/) appliance image
 for use on both VMs (AWS, GCP, Azure, Proxmox, ...) and Rasperry Pis.
 
-See https://github.com/tailscale/tailscale/issues/1866
+See https://github.com/lanhc/lanhc/issues/1866
 
 ## Overview
 
 It makes a ~70MB image (about the same size as
-`tailscale-setup-full-1.66.4.exe` and smaller than the combined
-Tailscale Android APK) that combines the Linux kernel and Tailscale
+`lanhc-setup-full-1.66.4.exe` and smaller than the combined
+Lanhc Android APK) that combines the Linux kernel and Lanhc
 and that's it. Nothing written in C. (except optional busybox for
 debugging) So no operating system to maintain. Gokrazy has three
 partitions: two read-only ones (one active at a time, the other for
@@ -83,10 +83,10 @@ $ ssh i-0b4a0eabc43629f13.port0@serial-console.ec2-instance-connect.us-west-2.aw
 
 ### Configuring the appliance
 
-The appliance's `tailscaled` runs with `-config=optional:vm:user-data`, so a
+The appliance's `lanhcd` runs with `-config=optional:vm:user-data`, so a
 single AMI supports two ways of joining a tailnet:
 
-- **Declarative (user-data):** put a Tailscale config (the `alpha0` HuJSON
+- **Declarative (user-data):** put a Lanhc config (the `alpha0` HuJSON
   format) in the instance's user-data and the node configures itself on first
   boot. The minimal config is just an auth key:
 
@@ -97,15 +97,15 @@ single AMI supports two ways of joining a tailnet:
   }
   ```
 
-  A config present in user-data locks the CLI (`tailscale set`/`up` are
+  A config present in user-data locks the CLI (`lanhc set`/`up` are
   rejected) unless it sets `"Locked": false`. Add `"RemoteConfig": true` to
   hand full remote management of the node to the tailnet admin (see
   `Prefs.RemoteConfig`) — appropriate for admin-owned fleet devices.
 
 - **Interactive (serial console):** launch the AMI with *no* user-data. The
-  `optional:` prefix means the missing config is not an error, so `tailscaled`
+  `optional:` prefix means the missing config is not an error, so `lanhcd`
   boots unconfigured and you can enroll it over the serial console (connect as
-  above, then run `tailscale up` and open the printed login URL).
+  above, then run `lanhc up` and open the printed login URL).
 
 To require config instead (fail to boot if none is present), build an image
-whose `tailscaled` uses `-config=vm:user-data` without the `optional:` prefix.
+whose `lanhcd` uses `-config=vm:user-data` without the `optional:` prefix.

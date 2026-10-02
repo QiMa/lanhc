@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"testing"
 
-	"tailscale.com/types/nettype"
+	"lanhc.com/types/nettype"
 )
 
 func TestSetBufferSize(t *testing.T) {

@@ -10,7 +10,7 @@ import (
 	"github.com/akutz/memconn"
 )
 
-const memName = "Tailscale-IPN"
+const memName = "Lanhc-IPN"
 
 func listen(path string) (net.Listener, error) {
 	return memconn.Listen("memu", memName)

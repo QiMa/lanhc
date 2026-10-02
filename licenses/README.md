@@ -1,13 +1,13 @@
 # Licenses
 
-This directory contains a list of dependencies, and their licenses, that are included in the Tailscale clients.
-These lists are generated using the [go-licenses] tool to analyze all Go packages in the Tailscale binaries,
+This directory contains a list of dependencies, and their licenses, that are included in the Lanhc clients.
+These lists are generated using the [go-licenses] tool to analyze all Go packages in the Lanhc binaries,
 as well as a set of custom output templates that includes any additional non-Go dependencies.
 For example, the clients for macOS and iOS include some additional Swift libraries.
 
 These lists are updated roughly every week, so it is possible to see the dependencies in a given release by looking at the release tag.
 For example, the dependences for the 1.80.0 release of the macOS client can be seen at
-<https://github.com/tailscale/tailscale/blob/v1.80.0/licenses/apple.md>.
+<https://github.com/lanhc/lanhc/blob/v1.80.0/licenses/apple.md>.
 
 [go-licenses]: https://github.com/google/go-licenses
 

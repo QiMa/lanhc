@@ -7,7 +7,7 @@
 
 package buildfeatures
 
-// HasDrive is whether the binary was built with support for modular feature "Tailscale Drive (file server) support".
+// HasDrive is whether the binary was built with support for modular feature "Lanhc Drive (file server) support".
 // Specifically, it's whether the binary was NOT built with the "ts_omit_drive" build tag.
 // It's a const so it can be used for dead code elimination.
 const HasDrive = true

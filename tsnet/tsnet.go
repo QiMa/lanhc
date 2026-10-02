@@ -1,25 +1,25 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package tsnet embeds a Tailscale node directly into a Go program,
+// Package tsnet embeds a Lanhc node directly into a Go program,
 // allowing it to join a tailnet and accept or dial connections without
-// running a separate tailscaled daemon or requiring any system-level
+// running a separate lanhcd daemon or requiring any system-level
 // configuration.
 //
 // # Overview
 //
-// Normally, Tailscale runs as a background system service (tailscaled)
+// Normally, Lanhc runs as a background system service (lanhcd)
 // that manages a virtual network interface for the whole machine. tsnet
-// takes a different approach: it runs a fully self-contained Tailscale
+// takes a different approach: it runs a fully self-contained Lanhc
 // node inside your process using a userspace TCP/IP stack (gVisor).
 // This means:
 //
 //   - No root privileges required.
 //   - No system daemons to install or manage.
-//   - Multiple independent Tailscale nodes can run within a single binary.
-//   - The node's [Tailscale identity] and state are stored in a directory you control.
+//   - Multiple independent Lanhc nodes can run within a single binary.
+//   - The node's [Lanhc identity] and state are stored in a directory you control.
 //
-// The core type is [Server], which represents one embedded Tailscale
+// The core type is [Server], which represents one embedded Lanhc
 // node. Calling [Server.Listen] or [Server.Dial] routes traffic
 // exclusively over the tailnet. The standard library's [net.Listener]
 // and [net.Conn] interfaces are returned, so any existing Go HTTP
@@ -28,7 +28,7 @@
 //
 // # Usage
 //
-//	import "tailscale.com/tsnet"
+//	import "lanhc.com/tsnet"
 //
 //	s := &tsnet.Server{
 //		Hostname: "my-service",
@@ -63,7 +63,7 @@
 //     [Server.IDToken] or [Server.Audience]). Available only if the
 //     program imports the feature:
 //
-//     import _ "tailscale.com/feature/identityfederation"
+//     import _ "lanhc.com/feature/identityfederation"
 //
 //     The feature is not linked by default to keep the AWS SDK and
 //     other cloud-provider dependencies out of programs that don't
@@ -89,11 +89,11 @@
 //		fmt.Fprintf(w, "Hello, %s!", who.UserProfile.LoginName)
 //	}))
 //
-// # Tailscale Funnel
+// # Lanhc Funnel
 //
 // [Server.ListenFunnel] exposes your service on the public internet.
-// [Tailscale Funnel] currently supports TCP on ports 443, 8443, and
-// 10000. HTTPS must be enabled in the Tailscale admin console.
+// [Lanhc Funnel] currently supports TCP on ports 443, 8443, and
+// 10000. HTTPS must be enabled in the Lanhc admin console.
 //
 //	ln, err := srv.ListenFunnel("tcp", ":443")
 //	// ln is a TLS listener; connections can come from anywhere on the
@@ -102,10 +102,10 @@
 //	// To restrict to public traffic only:
 //	ln, err = srv.ListenFunnel("tcp", ":443", tsnet.FunnelOnly())
 //
-// # Tailscale Services
+// # Lanhc Services
 //
 // [Server.ListenService] advertises the node as a host for a named
-// [Tailscale Service]. The node must use a tag-based identity. To
+// [Lanhc Service]. The node must use a tag-based identity. To
 // advertise multiple ports, call ListenService once per port.
 //
 //	srv.AdvertiseTags = []string{"tag:myservice"}
@@ -131,9 +131,9 @@
 //		srv.Start()
 //	}
 //
-// [Tailscale identity]: https://tailscale.com/docs/concepts/tailscale-identity
-// [Tailscale Funnel]: https://tailscale.com/docs/features/tailscale-funnel
-// [Tailscale Service]: https://tailscale.com/docs/features/tailscale-services
+// [Lanhc identity]: https://lanhc.com/docs/concepts/lanhc-identity
+// [Lanhc Funnel]: https://lanhc.com/docs/features/lanhc-funnel
+// [Lanhc Service]: https://lanhc.com/docs/features/lanhc-services
 package tsnet
 
 import (
@@ -159,48 +159,48 @@ import (
 	"time"
 
 	"github.com/tailscale/wireguard-go/tun"
-	"tailscale.com/client/local"
-	"tailscale.com/control/controlclient"
-	"tailscale.com/envknob"
-	_ "tailscale.com/feature/c2n"
-	_ "tailscale.com/feature/condregister/netlog"
-	_ "tailscale.com/feature/condregister/oauthkey"
-	_ "tailscale.com/feature/condregister/portmapper"
-	_ "tailscale.com/feature/condregister/useproxy"
-	"tailscale.com/health"
-	"tailscale.com/hostinfo"
-	"tailscale.com/internal/client/tailscale"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnauth"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/ipn/localapi"
-	"tailscale.com/ipn/store"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/logpolicy"
-	"tailscale.com/logtail"
-	"tailscale.com/logtail/filch"
-	"tailscale.com/net/memnet"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/proxymux"
-	"tailscale.com/net/socks5"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsd"
-	"tailscale.com/types/bools"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/logid"
-	"tailscale.com/types/nettype"
-	"tailscale.com/types/views"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
-	"tailscale.com/util/testenv"
-	"tailscale.com/wgengine"
-	"tailscale.com/wgengine/netstack"
+	"lanhc.com/client/local"
+	"lanhc.com/control/controlclient"
+	"lanhc.com/envknob"
+	_ "lanhc.com/feature/c2n"
+	_ "lanhc.com/feature/condregister/netlog"
+	_ "lanhc.com/feature/condregister/oauthkey"
+	_ "lanhc.com/feature/condregister/portmapper"
+	_ "lanhc.com/feature/condregister/useproxy"
+	"lanhc.com/health"
+	"lanhc.com/hostinfo"
+	"lanhc.com/internal/client/lanhc"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnauth"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/ipn/localapi"
+	"lanhc.com/ipn/store"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/logpolicy"
+	"lanhc.com/logtail"
+	"lanhc.com/logtail/filch"
+	"lanhc.com/net/memnet"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/proxymux"
+	"lanhc.com/net/socks5"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsd"
+	"lanhc.com/types/bools"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/logid"
+	"lanhc.com/types/nettype"
+	"lanhc.com/types/views"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
+	"lanhc.com/util/testenv"
+	"lanhc.com/wgengine"
+	"lanhc.com/wgengine/netstack"
 )
 
-// Server is an embedded Tailscale server.
+// Server is an embedded Lanhc server.
 //
 // Its exported fields may be changed until the first method call.
 type Server struct {
@@ -218,12 +218,12 @@ type Server struct {
 
 	// Store specifies the state store to use.
 	//
-	// If nil, a new FileStore is initialized at `Dir/tailscaled.state`.
-	// See tailscale.com/ipn/store for supported stores.
+	// If nil, a new FileStore is initialized at `Dir/lanhcd.state`.
+	// See lanhc.com/ipn/store for supported stores.
 	//
-	// Logs will automatically be uploaded to log.tailscale.com,
+	// Logs will automatically be uploaded to log.lanhc.com,
 	// where the configuration file for logging will be saved at
-	// `Dir/tailscaled.log.conf`.
+	// `Dir/lanhcd.log.conf`.
 	Store ipn.StateStore
 
 	// Hostname is the hostname to present to the control server.
@@ -241,7 +241,7 @@ type Server struct {
 	Logf logger.Logf
 
 	// Ephemeral, if true, specifies that the instance should register
-	// as an Ephemeral node (https://tailscale.com/s/ephemeral-nodes).
+	// as an Ephemeral node (https://lanhc.com/s/ephemeral-nodes).
 	Ephemeral bool
 
 	// AuthKey, if non-empty, is the auth key to create the node
@@ -283,13 +283,13 @@ type Server struct {
 	Audience string
 
 	// ControlURL optionally specifies the coordination server URL.
-	// If empty, the Tailscale default is used.
+	// If empty, the Lanhc default is used.
 	// If empty, it defaults to the TS_CONTROL_URL environment variable.
-	// If that is also empty, the Tailscale default is used.
+	// If that is also empty, the Lanhc default is used.
 	ControlURL string
 
 	// RunWebClient, if true, runs a client for managing this node over
-	// its Tailscale interface on port 5252.
+	// its Lanhc interface on port 5252.
 	RunWebClient bool
 
 	// Port is the UDP port to listen on for WireGuard and peer-to-peer
@@ -392,7 +392,7 @@ func (s *Server) awaitRunning(ctx context.Context) error {
 	}
 }
 
-// HTTPClient returns an HTTP client that is configured to connect over Tailscale.
+// HTTPClient returns an HTTP client that is configured to connect over Lanhc.
 //
 // This is useful if you need to have your tsnet services connect to other devices on
 // your tailnet.
@@ -438,7 +438,7 @@ func (testHooks) LocalBackend(s *Server) *ipnlocal.LocalBackend {
 //
 // The HTTP server also serves out the "LocalAPI" on /localapi.
 // As the LocalAPI is powerful, access to endpoints requires BOTH passing a
-// "Sec-Tailscale: localapi" HTTP header and passing localAPICred as basic auth.
+// "Sec-Lanhc: localapi" HTTP header and passing localAPICred as basic auth.
 //
 // If you only need to use the LocalAPI from Go, then prefer LocalClient
 // as it does not require communication via TCP.
@@ -469,7 +469,7 @@ func (s *Server) Loopback() (addr string, proxyCred, localAPICred string, err er
 		socksLn, httpLn := proxymux.SplitSOCKSAndHTTP(ln)
 
 		// TODO: add HTTP proxy support. Probably requires factoring
-		// out the CONNECT code from tailscaled/proxy.go that uses
+		// out the CONNECT code from lanhcd/proxy.go that uses
 		// httputil.ReverseProxy and adding auth support.
 		go func() {
 			lah := localapi.NewHandler(localapi.HandlerConfig{
@@ -502,7 +502,7 @@ func (s *Server) Loopback() (addr string, proxyCred, localAPICred string, err er
 
 	lbAddr := s.loopbackListener.Addr()
 	if lbAddr == nil {
-		// https://github.com/tailscale/tailscale/issues/7488
+		// https://github.com/lanhc/lanhc/issues/7488
 		panic("loopbackListener has no Addr")
 	}
 	return lbAddr.String(), s.proxyCred, s.localAPICred, nil
@@ -514,9 +514,9 @@ type localSecHandler struct {
 }
 
 func (h *localSecHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get("Sec-Tailscale") != "localapi" {
+	if r.Header.Get("Sec-Lanhc") != "localapi" {
 		w.WriteHeader(403)
-		io.WriteString(w, "missing 'Sec-Tailscale: localapi' header")
+		io.WriteString(w, "missing 'Sec-Lanhc: localapi' header")
 		return
 	}
 	h.h.ServeHTTP(w, r)
@@ -531,7 +531,7 @@ func (s *Server) Start() error {
 }
 
 // Up connects the server to the tailnet and waits until it is running.
-// On success it returns the current status, including a Tailscale IP address.
+// On success it returns the current status, including a Lanhc IP address.
 func (s *Server) Up(ctx context.Context) (*ipnstate.Status, error) {
 	lc, err := s.LocalClient() // calls Start
 	if err != nil {
@@ -558,7 +558,7 @@ func (s *Server) Up(ctx context.Context) (*ipnstate.Status, error) {
 				if err != nil {
 					return nil, fmt.Errorf("tsnet.Up: %w", err)
 				}
-				if len(status.TailscaleIPs) == 0 {
+				if len(status.LanhcIPs) == 0 {
 					return nil, errors.New("tsnet.Up: running, but no ip")
 				}
 
@@ -687,10 +687,10 @@ func (s *Server) CertDomains() []string {
 	return slices.Clone(nm.DNS.CertDomains)
 }
 
-// TailscaleIPs returns IPv4 and IPv6 addresses for this node. If the node
+// LanhcIPs returns IPv4 and IPv6 addresses for this node. If the node
 // has not yet joined a tailnet or is otherwise unaware of its own IP addresses,
 // the returned ip4, ip6 will be !netip.IsValid().
-func (s *Server) TailscaleIPs() (ip4, ip6 netip.Addr) {
+func (s *Server) LanhcIPs() (ip4, ip6 netip.Addr) {
 	nm := s.lb.NetMapNoPeers()
 	if nm == nil {
 		return
@@ -709,7 +709,7 @@ func (s *Server) TailscaleIPs() (ip4, ip6 netip.Addr) {
 	return ip4, ip6
 }
 
-// LogtailWriter returns an [io.Writer] that writes to Tailscale's logging service and will be only visible to Tailscale's
+// LogtailWriter returns an [io.Writer] that writes to Lanhc's logging service and will be only visible to Lanhc's
 // support team. Logs written there cannot be retrieved by the user. This method always returns a non-nil value.
 func (s *Server) LogtailWriter() io.Writer {
 	if s.logtail == nil {
@@ -778,7 +778,7 @@ func (s *Server) start() (reterr error) {
 			// back to "tsnet" as well.
 			exe = "tsnet"
 		case "ios", "darwin":
-			// When compiled as a framework (via TailscaleKit in libtailscale),
+			// When compiled as a framework (via LanhcKit in liblanhc),
 			// os.Executable() returns an error on iOS. The same failure occurs
 			// on macOS (darwin) when the framework is loaded in a process
 			// launched by a debugger or certain host environments (e.g. Xcode),
@@ -894,7 +894,7 @@ func (s *Server) start() (reterr error) {
 		// Note: don't just return ns.DialContextTCP or we'll return
 		// *gonet.TCPConn(nil) instead of a nil interface which trips up
 		// callers.
-		v4, v6 := s.TailscaleIPs()
+		v4, v6 := s.LanhcIPs()
 		src := bools.IfElse(dst.Addr().Is6(), v6, v4)
 		tcpConn, err := ns.DialContextTCPWithBind(ctx, src, dst)
 		if err != nil {
@@ -906,7 +906,7 @@ func (s *Server) start() (reterr error) {
 		// Note: don't just return ns.DialContextUDP or we'll return
 		// *gonet.UDPConn(nil) instead of a nil interface which trips up
 		// callers.
-		v4, v6 := s.TailscaleIPs()
+		v4, v6 := s.LanhcIPs()
 		src := bools.IfElse(dst.Addr().Is6(), v6, v4)
 		udpConn, err := ns.DialContextUDPWithBind(ctx, src, dst)
 		if err != nil {
@@ -916,7 +916,7 @@ func (s *Server) start() (reterr error) {
 	}
 
 	if s.Store == nil {
-		stateFile := filepath.Join(s.rootPath, "tailscaled.state")
+		stateFile := filepath.Join(s.rootPath, "lanhcd.state")
 		s.logf("tsnet running state path %s", stateFile)
 		s.Store, err = store.New(tsLogf, stateFile)
 		if err != nil {
@@ -982,7 +982,7 @@ func (s *Server) start() (reterr error) {
 
 	// Create an in-process listener.
 	// nettest.Listen provides a in-memory pipe based implementation for net.Conn.
-	lal := memnet.Listen("local-tailscaled.sock:80")
+	lal := memnet.Listen("local-lanhcd.sock:80")
 	s.localAPIListener = lal
 	s.localClient = &local.Client{Dial: lal.Dial}
 	s.localAPIServer = &http.Server{Handler: lah}
@@ -1001,13 +1001,13 @@ func (s *Server) resolveAuthKey() (string, error) {
 	var err error
 	// Try to use an OAuth secret to generate an auth key if that functionality
 	// is available.
-	resolveViaOAuth, oauthOk := tailscale.HookResolveAuthKey.GetOk()
+	resolveViaOAuth, oauthOk := lanhc.HookResolveAuthKey.GetOk()
 	if oauthOk {
 		clientSecret := authKey
 		if authKey == "" {
 			clientSecret = s.getClientSecret()
 		}
-		authKey, err = resolveViaOAuth(s.shutdownCtx, tailscale.ResolveAuthKeyArgs{
+		authKey, err = resolveViaOAuth(s.shutdownCtx, lanhc.ResolveAuthKeyArgs{
 			AuthKey: clientSecret,
 			Tags:    s.AdvertiseTags,
 		})
@@ -1017,7 +1017,7 @@ func (s *Server) resolveAuthKey() (string, error) {
 	}
 	// Try to resolve the auth key via workload identity federation if that functionality
 	// is available and no auth key is yet determined.
-	resolveViaWIF, wifOk := tailscale.HookResolveAuthKeyViaWIF.GetOk()
+	resolveViaWIF, wifOk := lanhc.HookResolveAuthKeyViaWIF.GetOk()
 	if wifOk && authKey == "" {
 		clientID := s.getClientID()
 		idToken := s.getIDToken()
@@ -1036,7 +1036,7 @@ func (s *Server) resolveAuthKey() (string, error) {
 				return "", fmt.Errorf("audience for workload identity federation found, but client ID is empty")
 			}
 		}
-		authKey, err = resolveViaWIF(s.shutdownCtx, tailscale.ResolveAuthKeyWIFArgs{
+		authKey, err = resolveViaWIF(s.shutdownCtx, lanhc.ResolveAuthKeyWIFArgs{
 			BaseURL:  s.getControlURL(),
 			ClientID: clientID,
 			IDToken:  idToken,
@@ -1054,7 +1054,7 @@ func (s *Server) startLogger(closePool *closeOnErrorPool, health *health.Tracker
 	if testenv.InTest() {
 		return nil
 	}
-	cfgPath := filepath.Join(s.rootPath, "tailscaled.log.conf")
+	cfgPath := filepath.Join(s.rootPath, "lanhcd.log.conf")
 	lpc, err := logpolicy.ConfigFromFile(cfgPath)
 	switch {
 	case os.IsNotExist(err):
@@ -1070,7 +1070,7 @@ func (s *Server) startLogger(closePool *closeOnErrorPool, health *health.Tracker
 	}
 	s.logid = lpc.PublicID
 
-	s.logbuffer, err = filch.New(filepath.Join(s.rootPath, "tailscaled"), filch.Options{ReplaceStderr: false})
+	s.logbuffer, err = filch.New(filepath.Join(s.rootPath, "lanhcd"), filch.Options{ReplaceStderr: false})
 	if err != nil {
 		return fmt.Errorf("error creating filch: %w", err)
 	}
@@ -1204,7 +1204,7 @@ func (s *Server) listenerForDstAddr(netBase string, dst netip.AddrPort, funnel b
 
 	// Search for a listener without an IP if the destination was
 	// one of the native IPs of the node.
-	if ip4, ip6 := s.TailscaleIPs(); dst.Addr() == ip4 || dst.Addr() == ip6 {
+	if ip4, ip6 := s.LanhcIPs(); dst.Addr() == ip4 || dst.Addr() == ip6 {
 		for _, net := range [2]string{
 			networkForFamily(netBase, dst.Addr().Is6()),
 			netBase,
@@ -1219,7 +1219,7 @@ func (s *Server) listenerForDstAddr(netBase string, dst netip.AddrPort, funnel b
 }
 
 func (s *Server) getTCPHandlerForFunnelFlow(src netip.AddrPort, dstPort uint16) (handler func(net.Conn)) {
-	ipv4, ipv6 := s.TailscaleIPs()
+	ipv4, ipv6 := s.LanhcIPs()
 	var dst netip.AddrPort
 	if src.Addr().Is4() {
 		if !ipv4.IsValid() {
@@ -1263,7 +1263,7 @@ func (s *Server) getUDPHandlerForFlow(src, dst netip.AddrPort) (handler func(net
 	return func(c nettype.ConnPacketConn) { ln.handle(c) }, true
 }
 
-// Listen announces only on the Tailscale network.
+// Listen announces only on the Lanhc network.
 // It will start the server if it has not been started yet.
 //
 // Listeners which do not specify an IP address will match for traffic
@@ -1275,17 +1275,17 @@ func (s *Server) Listen(network, addr string) (net.Listener, error) {
 	return s.listen(network, addr, listenOnTailnet)
 }
 
-// ListenSSH listens on the Tailscale network for SSH connections at the given
+// ListenSSH listens on the Lanhc network for SSH connections at the given
 // addr (e.g. ":2222"). The returned listener's Accept method yields net.Conn
 // values that are actually *tailssh.Session, providing access to the
-// connecting peer's Tailscale identity, PTY information, signals, and more.
+// connecting peer's Lanhc identity, PTY information, signals, and more.
 //
 // Basic applications can use the returned connections as plain net.Conn
 // (Read/Write/Close). Applications that need richer SSH semantics should
 // type-assert to *tailssh.Session.
 //
 // SSH support must be linked into the binary by importing
-// _ "tailscale.com/feature/ssh". Without that import, ListenSSH returns an
+// _ "lanhc.com/feature/ssh". Without that import, ListenSSH returns an
 // error.
 //
 // If s has not been started yet, it will be started.
@@ -1302,7 +1302,7 @@ func (s *Server) ListenSSH(addr string) (net.Listener, error) {
 	return sshLn, nil
 }
 
-// ListenPacket announces on the Tailscale network.
+// ListenPacket announces on the Lanhc network.
 //
 // The network must be "udp", "udp4" or "udp6". The addr must be of the form
 // "ip:port" (or "[ip]:port") where ip is a valid IPv4 or IPv6 address
@@ -1365,7 +1365,7 @@ func (c *udpPacketConn) Close() error {
 	return c.PacketConn.Close()
 }
 
-// ListenTLS announces only on the Tailscale network.
+// ListenTLS announces only on the Lanhc network.
 // It returns a TLS listener wrapping the tsnet listener.
 // It will start the server if it has not been started yet.
 func (s *Server) ListenTLS(network, addr string) (net.Listener, error) {
@@ -1378,10 +1378,10 @@ func (s *Server) ListenTLS(network, addr string) (net.Listener, error) {
 		return nil, err
 	}
 	if !st.CurrentTailnet.MagicDNSEnabled {
-		return nil, errors.New("tsnet: you must enable MagicDNS in the DNS page of the admin panel to proceed. See https://tailscale.com/s/https")
+		return nil, errors.New("tsnet: you must enable MagicDNS in the DNS page of the admin panel to proceed. See https://lanhc.com/s/https")
 	}
 	if len(st.CertDomains) == 0 {
-		return nil, errors.New("tsnet: you must enable HTTPS in the admin panel to proceed. See https://tailscale.com/s/https")
+		return nil, errors.New("tsnet: you must enable HTTPS in the admin panel to proceed. See https://lanhc.com/s/https")
 	}
 
 	ln, err := s.listen(network, addr, listenOnTailnet)
@@ -1432,7 +1432,7 @@ type funnelOnly struct{}
 
 func (funnelOnly) funnelOption() {}
 
-// FunnelOnly configures the listener to only respond to connections from Tailscale Funnel.
+// FunnelOnly configures the listener to only respond to connections from Lanhc Funnel.
 // The local tailnet will not be able to connect to the listener.
 func FunnelOnly() FunnelOption { return funnelOnly{} }
 
@@ -1456,7 +1456,7 @@ func FunnelTLSConfig(conf *tls.Config) FunnelOption {
 	return funnelTLSConfig{conf: conf}
 }
 
-// ListenFunnel announces on the public internet using Tailscale Funnel.
+// ListenFunnel announces on the public internet using Lanhc Funnel.
 //
 // It also by default listens on your local tailnet, so connections can
 // come from either inside or outside your network. To restrict connections
@@ -1512,7 +1512,7 @@ func (s *Server) ListenFunnel(network, addr string, opts ...FunnelOption) (net.L
 	if err != nil {
 		return nil, err
 	}
-	// TODO(sonia,tailscale/corp#10577): We may want to use the interactive enable
+	// TODO(sonia,lanhc/corp#10577): We may want to use the interactive enable
 	// flow here instead of CheckFunnelAccess to allow the user to turn on Funnel
 	// if not already on. Specifically when running from a terminal.
 	// See cli.serveEnv.verifyFunnelEnabled.
@@ -1531,7 +1531,7 @@ func (s *Server) ListenFunnel(network, addr string, opts ...FunnelOption) (net.L
 		srvConfig = &ipn.ServeConfig{}
 	}
 	if len(st.CertDomains) == 0 {
-		return nil, errors.New("Funnel not available; HTTPS must be enabled. See https://tailscale.com/s/https")
+		return nil, errors.New("Funnel not available; HTTPS must be enabled. See https://lanhc.com/s/https")
 	}
 	domain := st.CertDomains[0]
 	hp := ipn.HostPort(domain + ":" + portStr)
@@ -1634,7 +1634,7 @@ type ServiceModeHTTP struct {
 	// example.com/cap/foo only to paths beginning with /foo.
 	//
 	// For more information on app capabilities, see
-	// https://tailscale.com/kb/1537/grants-app-capabilities
+	// https://lanhc.com/kb/1537/grants-app-capabilities
 	AcceptAppCaps map[string][]string
 
 	// PROXYProtocolVersion indicates whether to send a PROXY protocol header
@@ -1662,9 +1662,9 @@ func (m ServiceModeHTTP) capsMap() map[string][]tailcfg.PeerCapability {
 	return capsMap
 }
 
-// A ServiceListener is a network listener for a Tailscale Service. For more
+// A ServiceListener is a network listener for a Lanhc Service. For more
 // information about Services, see
-// https://tailscale.com/kb/1552/tailscale-services
+// https://lanhc.com/kb/1552/lanhc-services
 type ServiceListener struct {
 	net.Listener
 	addr addr
@@ -1749,7 +1749,7 @@ func (sl *ServiceListener) Close() error {
 // ErrUntaggedServiceHost is returned by ListenService when run on a node
 // without any ACL tags. A node must use a tag-based identity to act as a
 // Service host. For more information, see:
-// https://tailscale.com/kb/1552/tailscale-services#prerequisites
+// https://lanhc.com/kb/1552/lanhc-services#prerequisites
 var ErrUntaggedServiceHost = errors.New("service hosts must be tagged nodes")
 
 // advertiseService ensures the Service is advertised by this node.
@@ -1821,7 +1821,7 @@ func (s *Server) decrementServiceAdvertisementLocked(name tailcfg.ServiceName) e
 	return cleanAdvertisement()
 }
 
-// ListenService creates a network listener for a Tailscale Service. This will
+// ListenService creates a network listener for a Lanhc Service. This will
 // advertise this node as hosting the Service. Note that:
 //   - Approval must still be granted by an admin or by ACL auto-approval rules.
 //   - Service hosts must be tagged nodes.
@@ -1829,7 +1829,7 @@ func (s *Server) decrementServiceAdvertisementLocked(name tailcfg.ServiceName) e
 //
 // To advertise a Service with multiple ports, run ListenService multiple times.
 // For more information about Services, see
-// https://tailscale.com/kb/1552/tailscale-services
+// https://lanhc.com/kb/1552/lanhc-services
 //
 // This function will start the server if it is not already started.
 func (s *Server) ListenService(name string, mode ServiceMode) (*ServiceListener, error) {
@@ -1850,7 +1850,7 @@ func (s *Server) ListenService(name string, mode ServiceMode) (*ServiceListener,
 		}
 	}()
 
-	// TODO(hwh33,tailscale/corp#35859): support TUN mode
+	// TODO(hwh33,lanhc/corp#35859): support TUN mode
 
 	ctx := context.Background()
 	_, err := s.Up(ctx)
@@ -2219,7 +2219,7 @@ func (s *Server) GetRootPath() string {
 // Packets will be written to the pcap until the process exits. The pcap needs a Lua dissector
 // to be installed in Wireshark in order to decode properly: wgengine/capture/ts-dissector.lua
 // in this repository.
-// https://tailscale.com/docs/reference/troubleshooting/network-configuration/inspect-unencrypted-packets
+// https://lanhc.com/docs/reference/troubleshooting/network-configuration/inspect-unencrypted-packets
 func (s *Server) CapturePcap(ctx context.Context, pcapFile string) error {
 	stream, err := s.localClient.StreamDebugCapture(ctx)
 	if err != nil {
@@ -2241,7 +2241,7 @@ func (s *Server) CapturePcap(ctx context.Context, pcapFile string) error {
 	return nil
 }
 
-// Sys returns a handle to the Tailscale subsystems of this node.
+// Sys returns a handle to the Lanhc subsystems of this node.
 //
 // This is not a stable API, nor are the APIs of the returned subsystems.
 func (s *Server) Sys() *tsd.System {

@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/derp"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
+	"lanhc.com/derp"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
 )
 
 var retryInterval = 5 * time.Second
@@ -27,7 +27,7 @@ var testHookWatchLookConnectResult func(connectError error, wasSelfConnect bool)
 //
 // Otherwise, the add and remove funcs are called as clients come & go.
 // Note that add is called for every new connection and remove is only
-// called for the final disconnection. See https://github.com/tailscale/tailscale/issues/13566.
+// called for the final disconnection. See https://github.com/lanhc/lanhc/issues/13566.
 // This behavior will likely change. Callers should do their own accounting
 // and dup suppression as needed.
 //

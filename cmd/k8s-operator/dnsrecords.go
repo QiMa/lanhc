@@ -23,15 +23,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	operatorutils "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
+	operatorutils "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
 )
 
 const (
-	dnsRecordsRecocilerFinalizer = "tailscale.com/dns-records-reconciler"
-	annotationTSMagicDNSName     = "tailscale.com/magic-dnsname"
+	dnsRecordsRecocilerFinalizer = "lanhc.com/dns-records-reconciler"
+	annotationTSMagicDNSName     = "lanhc.com/magic-dnsname"
 
 	// Service types for consistent string usage
 	serviceTypeIngress = "ingress"
@@ -41,23 +41,23 @@ const (
 // dnsRecordsReconciler knows how to update dnsrecords ConfigMap with DNS
 // records.
 // The records that it creates are:
-//   - For tailscale Ingress, a mapping of the Ingress's MagicDNSName to the IP addresses
+//   - For lanhc Ingress, a mapping of the Ingress's MagicDNSName to the IP addresses
 //     (both IPv4 and IPv6) of the ingress proxy Pod.
-//   - For egress proxies configured via tailscale.com/tailnet-fqdn annotation, a
+//   - For egress proxies configured via lanhc.com/tailnet-fqdn annotation, a
 //     mapping of the tailnet FQDN to the IP addresses (both IPv4 and IPv6) of the egress proxy Pod.
 //
 // Records will only be created if there is exactly one ready
-// tailscale.com/v1alpha1.DNSConfig instance in the cluster (so that we know
+// lanhc.com/v1alpha1.DNSConfig instance in the cluster (so that we know
 // that there is a ts.net nameserver deployed in the cluster).
 type dnsRecordsReconciler struct {
 	client.Client
-	tsNamespace           string // namespace in which we provision tailscale resources
+	tsNamespace           string // namespace in which we provision lanhc resources
 	logger                *zap.SugaredLogger
 	isDefaultLoadBalancer bool // true if operator is the default ingress controller in this cluster
 }
 
 // Reconcile takes a reconcile.Request for a Service fronting a
-// tailscale proxy and updates DNS Records in dnsrecords ConfigMap for the
+// lanhc proxy and updates DNS Records in dnsrecords ConfigMap for the
 // in-cluster ts.net nameserver if required.
 func (dnsRR *dnsRecordsReconciler) Reconcile(ctx context.Context, req reconcile.Request) (res reconcile.Result, err error) {
 	logger := dnsRR.logger.With("Service", req.NamespacedName)
@@ -74,7 +74,7 @@ func (dnsRR *dnsRecordsReconciler) Reconcile(ctx context.Context, req reconcile.
 		return reconcile.Result{}, fmt.Errorf("failed to get Service: %w", err)
 	}
 	if !(isManagedByType(proxySvc, serviceTypeSvc) || isManagedByType(proxySvc, serviceTypeIngress)) {
-		logger.Debugf("Service is not a proxy Service for a tailscale ingress or egress proxy; do nothing")
+		logger.Debugf("Service is not a proxy Service for a lanhc ingress or egress proxy; do nothing")
 		return reconcile.Result{}, nil
 	}
 
@@ -84,7 +84,7 @@ func (dnsRR *dnsRecordsReconciler) Reconcile(ctx context.Context, req reconcile.
 	}
 
 	// Check that there is a ts.net nameserver deployed to the cluster by
-	// checking that there is tailscale.com/v1alpha1.DNSConfig resource in a
+	// checking that there is lanhc.com/v1alpha1.DNSConfig resource in a
 	// Ready state.
 	dnsCfgLst := new(tsapi.DNSConfigList)
 	if err = dnsRR.List(ctx, dnsCfgLst); err != nil {
@@ -118,25 +118,25 @@ func (dnsRR *dnsRecordsReconciler) Reconcile(ctx context.Context, req reconcile.
 
 // maybeProvision ensures that dnsrecords ConfigMap contains a record for the
 // proxy associated with the Service.
-// The record is only provisioned if the proxy is for a tailscale Ingress or
-// egress configured via tailscale.com/tailnet-fqdn annotation.
+// The record is only provisioned if the proxy is for a lanhc Ingress or
+// egress configured via lanhc.com/tailnet-fqdn annotation.
 //
 // For Ingress, the record is a mapping between the MagicDNSName of the Ingress, retrieved from
 // ingress.status.loadBalancer.ingress.hostname field and the proxy Pod IP addresses
 // retrieved from the EndpointSlice associated with this Service, i.e
 // Records{IP4: {<MagicDNS name>: <[IPv4 addresses]>}, IP6: {<MagicDNS name>: <[IPv6 addresses]>}}
 //
-// For egress, the record is a mapping between tailscale.com/tailnet-fqdn
+// For egress, the record is a mapping between lanhc.com/tailnet-fqdn
 // annotation and the proxy Pod IP addresses, retrieved from the EndpointSlice
 // associated with this Service, i.e
 // Records{IP4: {<tailnet-fqdn>: <[IPv4 addresses]>}, IP6: {<tailnet-fqdn>: <[IPv6 addresses]>}}
 //
-// For ProxyGroup egress, the record is a mapping between tailscale.com/magic-dnsname
+// For ProxyGroup egress, the record is a mapping between lanhc.com/magic-dnsname
 // annotation and the ClusterIP Service IPs (which provides portmapping), i.e
 // Records{IP4: {<magic-dnsname>: <[IPv4 ClusterIPs]>}, IP6: {<magic-dnsname>: <[IPv6 ClusterIPs]>}}
 //
 // If records need to be created for this proxy, maybeProvision will also:
-// - update the Service with a tailscale.com/magic-dnsname annotation
+// - update the Service with a lanhc.com/magic-dnsname annotation
 // - update the Service with a finalizer
 func (dnsRR *dnsRecordsReconciler) maybeProvision(ctx context.Context, proxySvc *corev1.Service, logger *zap.SugaredLogger) error {
 	if !dnsRR.isInterestingService(ctx, proxySvc) {
@@ -162,7 +162,7 @@ func (dnsRR *dnsRecordsReconciler) maybeProvision(ctx context.Context, proxySvc 
 	// name to help with records cleanup when proxy resources are deleted or
 	// MagicDNS name changes.
 	oldFqdn := proxySvc.Annotations[annotationTSMagicDNSName]
-	if oldFqdn != "" && oldFqdn != fqdn { // i.e user has changed the value of tailscale.com/tailnet-fqdn annotation
+	if oldFqdn != "" && oldFqdn != fqdn { // i.e user has changed the value of lanhc.com/tailnet-fqdn annotation
 		logger.Debugf("MagicDNS name has changed, removing record for %s", oldFqdn)
 		updateFunc := func(rec *operatorutils.Records) {
 			delete(rec.IP4, oldFqdn)
@@ -215,10 +215,10 @@ func epIsReady(ep *discoveryv1.Endpoint) bool {
 }
 
 // maybeCleanup ensures that the DNS record for the proxy has been removed from
-// dnsrecords ConfigMap and the tailscale.com/dns-records-reconciler finalizer
+// dnsrecords ConfigMap and the lanhc.com/dns-records-reconciler finalizer
 // has been removed from the Service. If the record is not found in the
 // ConfigMap, the ConfigMap does not exist, or the Service does not have
-// tailscale.com/magic-dnsname annotation, just remove the finalizer.
+// lanhc.com/magic-dnsname annotation, just remove the finalizer.
 func (dnsRR *dnsRecordsReconciler) maybeCleanup(ctx context.Context, proxySvc *corev1.Service, logger *zap.SugaredLogger) error {
 	ix := slices.Index(proxySvc.Finalizers, dnsRecordsRecocilerFinalizer)
 	if ix == -1 {
@@ -270,8 +270,8 @@ func (dnsRR *dnsRecordsReconciler) removeProxySvcFinalizer(ctx context.Context, 
 }
 
 // fqdnForDNSRecord returns MagicDNS name associated with a given proxy Service.
-// If the proxy Service is for a tailscale Ingress proxy, returns ingress.status.loadBalancer.ingress.hostname.
-// If the proxy Service is for an tailscale egress proxy configured via tailscale.com/tailnet-fqdn annotation, returns the annotation value.
+// If the proxy Service is for a lanhc Ingress proxy, returns ingress.status.loadBalancer.ingress.hostname.
+// If the proxy Service is for an lanhc egress proxy configured via lanhc.com/tailnet-fqdn annotation, returns the annotation value.
 // For ProxyGroup egress Services, returns the tailnet-fqdn annotation from the parent Service.
 // This function is not expected to be called with proxy Services for other
 // proxy types, or any other Services, but it just returns an empty string if
@@ -340,8 +340,8 @@ func (dnsRR *dnsRecordsReconciler) updateDNSConfig(ctx context.Context, update f
 }
 
 // isSvcForFQDNEgressProxy returns true if the Service is a headless Service
-// created for a proxy for a tailscale egress Service configured via
-// tailscale.com/tailnet-fqdn annotation.
+// created for a proxy for a lanhc egress Service configured via
+// lanhc.com/tailnet-fqdn annotation.
 func (dnsRR *dnsRecordsReconciler) isSvcForFQDNEgressProxy(ctx context.Context, svc *corev1.Service) (bool, error) {
 	if !isManagedByType(svc, "svc") {
 		return false, nil

@@ -1,2 +1,2 @@
 > [!IMPORTANT]
-> The Tailscale API documentation has moved to https://tailscale.com/api
+> The Lanhc API documentation has moved to https://lanhc.com/api

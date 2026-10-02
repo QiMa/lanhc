@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"net/netip"
 
-	"tailscale.com/types/ipproto"
+	"lanhc.com/types/ipproto"
 )
 
 // MakeTuple makes a Tuple out of netip.AddrPort values.

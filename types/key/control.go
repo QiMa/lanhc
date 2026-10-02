@@ -5,13 +5,13 @@ package key
 
 import "encoding/json"
 
-// ControlPrivate is a Tailscale control plane private key.
+// ControlPrivate is a Lanhc control plane private key.
 //
 // It is functionally equivalent to a MachinePrivate, but serializes
 // to JSON as a byte array rather than a typed string, because our
 // control plane database stores the key that way.
 //
-// Deprecated: this type should only be used in Tailscale's control
+// Deprecated: this type should only be used in Lanhc's control
 // plane, where existing database serializations require this
 // less-good serialization format to persist. Other control plane
 // implementations can use MachinePrivate with no downsides.

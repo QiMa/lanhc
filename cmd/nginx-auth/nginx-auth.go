@@ -3,11 +3,11 @@
 
 //go:build linux
 
-// Command nginx-auth is a tool that allows users to use Tailscale Whois
+// Command nginx-auth is a tool that allows users to use Lanhc Whois
 // authentication with NGINX as a reverse proxy. This allows users that
 // already have a bunch of services hosted on an internal NGINX server
-// to point those domains to the Tailscale IP of the NGINX server and
-// then seamlessly use Tailscale for authentication.
+// to point those domains to the Lanhc IP of the NGINX server and
+// then seamlessly use Lanhc for authentication.
 package main
 
 import (
@@ -21,7 +21,7 @@ import (
 	"strings"
 
 	"github.com/coreos/go-systemd/activation"
-	"tailscale.com/client/tailscale"
+	"lanhc.com/client/lanhc"
 )
 
 var (
@@ -49,7 +49,7 @@ func main() {
 			return
 		}
 
-		info, err := tailscale.WhoIs(r.Context(), remoteAddr.String())
+		info, err := lanhc.WhoIs(r.Context(), remoteAddr.String())
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			log.Printf("can't look up %s: %v", remoteAddr, err)
@@ -74,7 +74,7 @@ func main() {
 				log.Printf("can't extract tailnet name from hostname %q", info.Node.Name)
 				return
 			}
-			tailnet = strings.TrimSuffix(tailnet, ".beta.tailscale.net")
+			tailnet = strings.TrimSuffix(tailnet, ".beta.lanhc.net")
 		}
 
 		if expectedTailnet := r.Header.Get("Expected-Tailnet"); expectedTailnet != "" && expectedTailnet != tailnet {
@@ -84,11 +84,11 @@ func main() {
 		}
 
 		h := w.Header()
-		h.Set("Tailscale-Login", strings.Split(info.UserProfile.LoginName, "@")[0])
-		h.Set("Tailscale-User", info.UserProfile.LoginName)
-		h.Set("Tailscale-Name", info.UserProfile.DisplayName)
-		h.Set("Tailscale-Profile-Picture", info.UserProfile.ProfilePicURL)
-		h.Set("Tailscale-Tailnet", tailnet)
+		h.Set("Lanhc-Login", strings.Split(info.UserProfile.LoginName, "@")[0])
+		h.Set("Lanhc-User", info.UserProfile.LoginName)
+		h.Set("Lanhc-Name", info.UserProfile.DisplayName)
+		h.Set("Lanhc-Profile-Picture", info.UserProfile.ProfilePicURL)
+		h.Set("Lanhc-Tailnet", tailnet)
 		w.WriteHeader(http.StatusNoContent)
 	})
 

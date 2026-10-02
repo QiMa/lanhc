@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // Package wasmbuild contains the shared build flags and manifest layout
-// used to produce the @tailscale/connect NPM package's main.wasm. It is
+// used to produce the @lanhc/connect NPM package's main.wasm. It is
 // imported both by cmd/tsconnect (which does the build) and by tests
 // that verify the produced pkg/main.wasm matches what the current
 // source tree would build (see tstest/integration/jswasmtest).
@@ -17,7 +17,7 @@ import (
 	"slices"
 	"strings"
 
-	"tailscale.com/feature/featuretags"
+	"lanhc.com/feature/featuretags"
 )
 
 // baseTags are the non-featuretag build tags always set for the wasm
@@ -29,7 +29,7 @@ import (
 // bundled implementation. Excluding it leaves the wasm client unable
 // to negotiate with any control plane.
 var baseTags = []string{
-	"tailscale_go",
+	"lanhc_go",
 	"osusergo",
 	"netgo",
 	"omitidna",
@@ -146,7 +146,7 @@ func ProdCommand(goBin, outputPath string) *exec.Cmd {
 		"-trimpath",
 		"-ldflags", ProdLDFlags,
 		"-o", outputPath,
-		"tailscale.com/cmd/tsconnect/wasm",
+		"lanhc.com/cmd/tsconnect/wasm",
 	)
 	cmd.Env = append(os.Environ(), "GOOS=js", "GOARCH=wasm")
 	return cmd

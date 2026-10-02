@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// The omitsize tool prints out how large the Tailscale binaries are with
+// The omitsize tool prints out how large the Lanhc binaries are with
 // different build tags.
 package main
 
@@ -19,8 +19,8 @@ import (
 	"strings"
 	"sync"
 
-	"tailscale.com/feature/featuretags"
-	"tailscale.com/util/set"
+	"lanhc.com/feature/featuretags"
+	"lanhc.com/util/set"
 )
 
 var (
@@ -70,27 +70,27 @@ func main() {
 		}
 	}
 
-	minD := measure("tailscaled", allOmittable()...)
-	minC := measure("tailscale", allOmittable()...)
-	minBoth := measure("tailscaled", append(slices.Clone(allOmittable()), "ts_include_cli")...)
+	minD := measure("lanhcd", allOmittable()...)
+	minC := measure("lanhc", allOmittable()...)
+	minBoth := measure("lanhcd", append(slices.Clone(allOmittable()), "ts_include_cli")...)
 
 	if *showRemovals {
-		baseD := measure("tailscaled")
-		baseC := measure("tailscale")
-		baseBoth := measure("tailscaled", "ts_include_cli")
+		baseD := measure("lanhcd")
+		baseC := measure("lanhc")
+		baseBoth := measure("lanhcd", "ts_include_cli")
 
 		fmt.Printf("Starting with everything and removing a feature...\n\n")
 
-		fmt.Printf("%9s %9s %9s\n", "tailscaled", "tailscale", "combined (linux/amd64)")
+		fmt.Printf("%9s %9s %9s\n", "lanhcd", "lanhc", "combined (linux/amd64)")
 		fmt.Printf("%9d %9d %9d\n", baseD, baseC, baseBoth)
 
 		fmt.Printf("-%8d -%8d -%8d .. remove *\n", baseD-minD, baseC-minC, baseBoth-minBoth)
 
 		for _, s := range rows {
 			title, tags := computeRemove(s)
-			sizeD := measure("tailscaled", tags...)
-			sizeC := measure("tailscale", tags...)
-			sizeBoth := measure("tailscaled", append(slices.Clone(tags), "ts_include_cli")...)
+			sizeD := measure("lanhcd", tags...)
+			sizeC := measure("lanhc", tags...)
+			sizeBoth := measure("lanhcd", append(slices.Clone(tags), "ts_include_cli")...)
 			saveD := max(baseD-sizeD, 0)
 			saveC := max(baseC-sizeC, 0)
 			saveBoth := max(baseBoth-sizeBoth, 0)
@@ -100,13 +100,13 @@ func main() {
 	}
 
 	fmt.Printf("\nStarting at a minimal binary and adding one feature back...\n\n")
-	fmt.Printf("%9s %9s %9s\n", "tailscaled", "tailscale", "combined (linux/amd64)")
+	fmt.Printf("%9s %9s %9s\n", "lanhcd", "lanhc", "combined (linux/amd64)")
 	fmt.Printf("%9d %9d %9d omitting everything\n", minD, minC, minBoth)
 	for _, s := range rows {
 		title, tags := computeAdd(s)
-		sizeD := measure("tailscaled", tags...)
-		sizeC := measure("tailscale", tags...)
-		sizeBoth := measure("tailscaled", append(tags, "ts_include_cli")...)
+		sizeD := measure("lanhcd", tags...)
+		sizeC := measure("lanhc", tags...)
+		sizeBoth := measure("lanhcd", append(tags, "ts_include_cli")...)
 
 		fmt.Printf("+%8d +%8d +%8d .. add %s\n", max(sizeD-minD, 0), max(sizeC-minC, 0), max(sizeBoth-minBoth, 0), title)
 	}

@@ -12,10 +12,10 @@ import (
 	"net/http"
 	"runtime"
 
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/util/httpm"
-	"tailscale.com/version"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/util/httpm"
+	"lanhc.com/version"
 )
 
 func init() {
@@ -83,8 +83,8 @@ func authorizeServeConfigForGOOSAndUserContext(goos string, configIn *ipn.ServeC
 	default:
 		return nil
 	}
-	// Only check for local admin on tailscaled-on-mac (based on "sudo"
-	// permissions). On sandboxed variants (MacSys and AppStore), tailscaled
+	// Only check for local admin on lanhcd-on-mac (based on "sudo"
+	// permissions). On sandboxed variants (MacSys and AppStore), lanhcd
 	// cannot serve files outside of the sandbox and this check is not
 	// relevant.
 	if goos == "darwin" && version.IsSandboxedMacOS() {
@@ -100,7 +100,7 @@ func authorizeServeConfigForGOOSAndUserContext(goos string, configIn *ipn.ServeC
 	case "windows":
 		return errors.New("must be a Windows local admin to serve a path or Unix socket")
 	case "linux", "darwin", "illumos", "solaris":
-		return errors.New("must be root, or be an operator and able to run 'sudo tailscale' to serve a path or Unix socket")
+		return errors.New("must be root, or be an operator and able to run 'sudo lanhc' to serve a path or Unix socket")
 	default:
 		// We filter goos at the start of the func, this default case
 		// should never happen.

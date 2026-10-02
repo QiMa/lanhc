@@ -4,10 +4,10 @@
 package syspolicy
 
 import (
-	"tailscale.com/util/syspolicy/internal"
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/util/syspolicy/setting"
-	"tailscale.com/util/testenv"
+	"lanhc.com/util/syspolicy/internal"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/util/syspolicy/setting"
+	"lanhc.com/util/testenv"
 )
 
 // implicitDefinitions is a list of [setting.Definition] that will be registered
@@ -17,7 +17,7 @@ var implicitDefinitions = []*setting.Definition{
 	// Device policy settings (can only be configured on a per-device basis):
 	setting.NewDefinition(pkey.AllowedSuggestedExitNodes, setting.DeviceSetting, setting.StringListValue),
 	setting.NewDefinition(pkey.AllowExitNodeOverride, setting.DeviceSetting, setting.BooleanValue),
-	setting.NewDefinition(pkey.AllowTailscaledRestart, setting.DeviceSetting, setting.BooleanValue),
+	setting.NewDefinition(pkey.AllowLanhcdRestart, setting.DeviceSetting, setting.BooleanValue),
 	setting.NewDefinition(pkey.AlwaysOn, setting.DeviceSetting, setting.BooleanValue),
 	setting.NewDefinition(pkey.AlwaysOnOverrideWithReason, setting.DeviceSetting, setting.BooleanValue),
 	setting.NewDefinition(pkey.ApplyUpdates, setting.DeviceSetting, setting.PreferenceOptionValue),
@@ -29,8 +29,8 @@ var implicitDefinitions = []*setting.Definition{
 	setting.NewDefinition(pkey.EnableIncomingConnections, setting.DeviceSetting, setting.PreferenceOptionValue),
 	setting.NewDefinition(pkey.EnableRunExitNode, setting.DeviceSetting, setting.PreferenceOptionValue),
 	setting.NewDefinition(pkey.EnableServerMode, setting.DeviceSetting, setting.PreferenceOptionValue),
-	setting.NewDefinition(pkey.EnableTailscaleDNS, setting.DeviceSetting, setting.PreferenceOptionValue),
-	setting.NewDefinition(pkey.EnableTailscaleSubnets, setting.DeviceSetting, setting.PreferenceOptionValue),
+	setting.NewDefinition(pkey.EnableLanhcDNS, setting.DeviceSetting, setting.PreferenceOptionValue),
+	setting.NewDefinition(pkey.EnableLanhcSubnets, setting.DeviceSetting, setting.PreferenceOptionValue),
 	setting.NewDefinition(pkey.ExitNodeAllowLANAccess, setting.DeviceSetting, setting.PreferenceOptionValue),
 	setting.NewDefinition(pkey.ExitNodeID, setting.DeviceSetting, setting.StringValue),
 	setting.NewDefinition(pkey.ExitNodeIP, setting.DeviceSetting, setting.StringValue),

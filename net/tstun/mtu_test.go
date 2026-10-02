@@ -58,7 +58,7 @@ func TestDefaultTunMTU(t *testing.T) {
 	}
 }
 
-// Test the conversion of wire MTU to/from Tailscale TUN MTU corner cases.
+// Test the conversion of wire MTU to/from Lanhc TUN MTU corner cases.
 func TestMTUConversion(t *testing.T) {
 	tests := []struct {
 		w WireMTU

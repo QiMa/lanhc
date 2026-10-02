@@ -17,12 +17,12 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/syncs"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/set"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/syncs"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/set"
 )
 
 // pollWallTimeInterval is how often we check the time to check
@@ -177,9 +177,9 @@ func NewChangeDelta(old, new *State, jumpDuration time.Duration, forceViability 
 	cd.DefaultRouteInterface = new.DefaultRouteInterface
 	defIf := new.Interface[cd.DefaultRouteInterface]
 
-	tsIfName, err := TailscaleInterfaceName()
+	tsIfName, err := LanhcInterfaceName()
 
-	// The default interface is not viable if it is down or it is the Tailscale interface itself.
+	// The default interface is not viable if it is down or it is the Lanhc interface itself.
 	if !forceViability && (!defIf.IsUp() || (err == nil && cd.DefaultRouteInterface == tsIfName)) {
 		cd.DefaultInterfaceMaybeViable = false
 	} else {
@@ -275,11 +275,11 @@ func (cd *ChangeDelta) isInterestingInterfaceChange() bool {
 	}
 
 	// Compare interfaces in both directions.  Old to new and new to old.
-	tsIfName, ifNameErr := TailscaleInterfaceName()
+	tsIfName, ifNameErr := LanhcInterfaceName()
 
 	for iname, oldInterface := range cd.old.Interface {
 		if ifNameErr == nil && iname == tsIfName {
-			// Ignore changes in the Tailscale interface itself
+			// Ignore changes in the Lanhc interface itself
 			continue
 		}
 		oldIps := filterRoutableIPs(cd.old.InterfaceIPs[iname])
@@ -318,7 +318,7 @@ func (cd *ChangeDelta) isInterestingInterfaceChange() bool {
 
 	for iname, newInterface := range cd.new.Interface {
 		if ifNameErr == nil && iname == tsIfName {
-			// Ignore changes in the Tailscale interface itself
+			// Ignore changes in the Lanhc interface itself
 			continue
 		}
 		newIps := filterRoutableIPs(cd.new.InterfaceIPs[iname])

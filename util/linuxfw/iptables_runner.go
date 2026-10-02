@@ -14,8 +14,8 @@ import (
 	"strconv"
 	"strings"
 
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/types/logger"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/types/logger"
 )
 
 // isNotExistError needs to be overridden in tests that rely on distinguishing
@@ -79,7 +79,7 @@ func (i *iptablesRunner) getIPTByAddr(addr netip.Addr) iptablesInterface {
 }
 
 // AddLoopbackRule adds an iptables rule to permit loopback traffic to
-// a local Tailscale IP.
+// a local Lanhc IP.
 func (i *iptablesRunner) AddLoopbackRule(addr netip.Addr) error {
 	if err := i.getIPTByAddr(addr).Insert("filter", "ts-input", 1, "-i", "lo", "-s", addr.String(), "-j", "ACCEPT"); err != nil {
 		return fmt.Errorf("adding loopback allow rule for %q: %w", addr, err)
@@ -88,15 +88,15 @@ func (i *iptablesRunner) AddLoopbackRule(addr netip.Addr) error {
 	return nil
 }
 
-// tsChain returns the name of the tailscale sub-chain corresponding
+// tsChain returns the name of the lanhc sub-chain corresponding
 // to the given "parent" chain (e.g. INPUT, FORWARD, ...).
 func tsChain(chain string) string {
 	return "ts-" + strings.ToLower(chain)
 }
 
 // DelLoopbackRule removes the iptables rule permitting loopback
-// traffic to a Tailscale IP. A missing rule is not an error: an address
-// left on the interface by a previous tailscaled instance never went
+// traffic to a Lanhc IP. A missing rule is not an error: an address
+// left on the interface by a previous lanhcd instance never went
 // through AddLoopbackRule in this one, so removing it must not be
 // blocked by the absence of its loopback rule.
 func (i *iptablesRunner) DelLoopbackRule(addr netip.Addr) error {
@@ -134,11 +134,11 @@ func (i *iptablesRunner) getNATTables() []iptablesInterface {
 	return []iptablesInterface{i.ipt4}
 }
 
-// AddHooks inserts calls to tailscale's netfilter chains in
-// the relevant main netfilter chains. The tailscale chains must
+// AddHooks inserts calls to lanhc's netfilter chains in
+// the relevant main netfilter chains. The lanhc chains must
 // already exist. If they do not, an error is returned.
 func (i *iptablesRunner) AddHooks() error {
-	// divert inserts a jump to the tailscale chain in the given table/chain.
+	// divert inserts a jump to the lanhc chain in the given table/chain.
 	// If the jump already exists, it is a no-op.
 	divert := func(ipt iptablesInterface, table, chain string) error {
 		tsChain := tsChain(chain)
@@ -174,7 +174,7 @@ func (i *iptablesRunner) AddHooks() error {
 	return nil
 }
 
-// AddChains creates custom Tailscale chains in netfilter via iptables
+// AddChains creates custom Lanhc chains in netfilter via iptables
 // if the ts-chain doesn't already exist.
 func (i *iptablesRunner) AddChains() error {
 	// create creates a chain in the given table if it doesn't already exist.
@@ -232,13 +232,13 @@ func (i *iptablesRunner) addBase4(tunname string) error {
 		return fmt.Errorf("adding %v in v4/filter/ts-input: %w", args, err)
 	}
 
-	// Forward all traffic from the Tailscale interface, and drop
-	// traffic to the tailscale interface by default. We use packet
+	// Forward all traffic from the Lanhc interface, and drop
+	// traffic to the lanhc interface by default. We use packet
 	// marks here so both filter/FORWARD and nat/POSTROUTING can match
 	// on these packets of interest.
 	//
 	// In particular, we only want to apply SNAT rules in
-	// nat/POSTROUTING to packets that originated from the Tailscale
+	// nat/POSTROUTING to packets that originated from the Lanhc
 	// interface, but we can't match on the inbound interface in
 	// POSTROUTING. So instead, we match on the inbound interface in
 	// filter/FORWARD, and set a packet mark that nat/POSTROUTING can
@@ -306,7 +306,7 @@ func (i *iptablesRunner) EnsureSNATForDst(src, dst netip.Addr) error {
 	return table.Insert("nat", "POSTROUTING", 1, "-d", dstPrefix.String(), "-j", "SNAT", "--to-source", src.String())
 }
 
-func (i *iptablesRunner) DNATNonTailscaleTraffic(tun string, dst netip.Addr) error {
+func (i *iptablesRunner) DNATNonLanhcTraffic(tun string, dst netip.Addr) error {
 	table := i.getIPTByAddr(dst)
 	return table.Insert("nat", "PREROUTING", 1, "!", "-i", tun, "-j", "DNAT", "--to-destination", dst.String())
 }
@@ -349,8 +349,8 @@ func (i *iptablesRunner) ClampMSSToPMTU(tun string, addr netip.Addr) error {
 // addBase6 adds some basic IPv6 processing rules to be
 // supplemented by later calls to other helpers.
 func (i *iptablesRunner) addBase6(tunname string) error {
-	// TODO: only allow traffic from Tailscale's ULA range to come
-	// from tailscale0.
+	// TODO: only allow traffic from Lanhc's ULA range to come
+	// from lanhc0.
 
 	// Explicitly allow all other inbound traffic to the tun interface
 	args := []string{"-i", tunname, "-j", "ACCEPT"}
@@ -366,7 +366,7 @@ func (i *iptablesRunner) addBase6(tunname string) error {
 	if err := i.ipt6.Append("filter", "ts-forward", args...); err != nil {
 		return fmt.Errorf("adding %v in v6/filter/ts-forward: %w", args, err)
 	}
-	// TODO: drop forwarded traffic to tailscale0 from tailscale's ULA
+	// TODO: drop forwarded traffic to lanhc0 from lanhc's ULA
 	// (see corresponding IPv4 CGNAT rule).
 	args = []string{"-o", tunname, "-j", "ACCEPT"}
 	if err := i.ipt6.Append("filter", "ts-forward", args...); err != nil {
@@ -376,7 +376,7 @@ func (i *iptablesRunner) addBase6(tunname string) error {
 	return nil
 }
 
-// DelChains removes the custom Tailscale chains from netfilter via iptables.
+// DelChains removes the custom Lanhc chains from netfilter via iptables.
 func (i *iptablesRunner) DelChains() error {
 	for _, ipt := range i.getTables() {
 		if err := delChain(ipt, "filter", "ts-input"); err != nil {
@@ -396,7 +396,7 @@ func (i *iptablesRunner) DelChains() error {
 	return nil
 }
 
-// DelBase empties but does not remove custom Tailscale chains from
+// DelBase empties but does not remove custom Lanhc chains from
 // netfilter via iptables.
 func (i *iptablesRunner) DelBase() error {
 	del := func(ipt iptablesInterface, table, chain string) error {
@@ -428,7 +428,7 @@ func (i *iptablesRunner) DelBase() error {
 	return nil
 }
 
-// DelHooks deletes the calls to tailscale's netfilter chains
+// DelHooks deletes the calls to lanhc's netfilter chains
 // in the relevant main netfilter chains.
 func (i *iptablesRunner) DelHooks(logf logger.Logf) error {
 	for _, ipt := range i.getTables() {
@@ -479,10 +479,10 @@ func statefulRuleArgs(tunname string) []string {
 // AddStatefulRule adds a netfilter rule for stateful packet filtering using
 // conntrack.
 func (i *iptablesRunner) AddStatefulRule(tunname string) error {
-	// Drop packets that are destined for the tailscale interface if
+	// Drop packets that are destined for the lanhc interface if
 	// they're a new connection, per conntrack, to prevent hosts on the
 	// same subnet from being able to use this device as a way to forward
-	// packets on to the Tailscale network.
+	// packets on to the Lanhc network.
 	//
 	// The conntrack states are:
 	//    NEW         A packet which creates a new connection.
@@ -498,7 +498,7 @@ func (i *iptablesRunner) AddStatefulRule(tunname string) error {
 	//                dropped.
 	//
 	// We drop NEW packets to prevent connections from coming "into"
-	// Tailscale from other hosts on the same network segment; we drop
+	// Lanhc from other hosts on the same network segment; we drop
 	// INVALID packets as well.
 	args := statefulRuleArgs(tunname)
 	for _, ipt := range i.getTables() {
@@ -557,14 +557,14 @@ func (i *iptablesRunner) AddConnmarkSaveRule() error {
 
 	// mangle/PREROUTING: Restore mark from conntrack for ESTABLISHED/RELATED connections
 	// This runs BEFORE routing decision and rp_filter check
-	// The connmark check ensures we only restore when Tailscale has marked the connection,
+	// The connmark check ensures we only restore when Lanhc has marked the connection,
 	// preventing us from wiping mark bits set by other systems when ct mark is zero.
 	for _, ipt := range i.getTables() {
 		args := []string{
 			"-m", "conntrack",
 			"--ctstate", "ESTABLISHED,RELATED",
 			"-m", "connmark",
-			"!", "--mark", "0x0/" + fwmarkMask, // Only restore if ct mark has Tailscale bits set
+			"!", "--mark", "0x0/" + fwmarkMask, // Only restore if ct mark has Lanhc bits set
 			"-j", "CONNMARK",
 			"--restore-mark",
 			"--nfmask", fwmarkMask,
@@ -695,21 +695,21 @@ func (i *iptablesRunner) DelMagicsockPortRule(port uint16, network string) error
 }
 
 // buildExternalCGNATRules abstracts out logic for constructing firewall rules
-// for handling non-Tailscale CGNAT traffic, since these rules need to be
+// for handling non-Lanhc CGNAT traffic, since these rules need to be
 // identical across [AddExternalCGNATRules] and [DelExternalCGNATRules].
 func buildExternalCGNATRules(mode CGNATMode, tunname string) ([][]string, error) {
 	switch mode {
 	case CGNATModeDrop:
-		// Only allow CGNAT range traffic to come from the Tailscale interface.
+		// Only allow CGNAT range traffic to come from the Lanhc interface.
 		// There is an exception carved out for ranges used by ChromeOS, for
-		// which we fall out of the Tailscale chain.
+		// which we fall out of the Lanhc chain.
 		return [][]string{
 			{"!", "-i", tunname, "-s", tsaddr.ChromeOSVMRange().String(), "-j", "RETURN"},
 			{"!", "-i", tunname, "-s", tsaddr.CGNATRange().String(), "-j", "DROP"},
 		}, nil
 	case CGNATModeReturn:
-		// Fall out of the Tailscale chain for CGNAT traffic that doesn't
-		// originate from the Tailscale interface.
+		// Fall out of the Lanhc chain for CGNAT traffic that doesn't
+		// originate from the Lanhc interface.
 		return [][]string{
 			{"!", "-i", tunname, "-s", tsaddr.CGNATRange().String(), "-j", "RETURN"},
 		}, nil
@@ -719,7 +719,7 @@ func buildExternalCGNATRules(mode CGNATMode, tunname string) ([][]string, error)
 }
 
 // AddExternalCGNATRules adds rules to the ts-input chain to deal with
-// traffic from the CGNAT range that arrives on non-Tailscale network
+// traffic from the CGNAT range that arrives on non-Lanhc network
 // interfaces.
 func (i *iptablesRunner) AddExternalCGNATRules(mode CGNATMode, tunname string) error {
 	rules, err := buildExternalCGNATRules(mode, tunname)

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // The wasm package builds a WebAssembly module that provides a subset of
-// Tailscale APIs to JavaScript.
+// Lanhc APIs to JavaScript.
 //
 // When run in the browser, a newIPN(config) function is added to the global JS
 // namespace. When called it returns an ipn object with the methods
@@ -25,23 +25,23 @@ import (
 	"time"
 
 	"golang.org/x/crypto/ssh"
-	"tailscale.com/control/controlclient"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnauth"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/ipnserver"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/logpolicy"
-	"tailscale.com/logtail"
-	"tailscale.com/net/netns"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/safesocket"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsd"
-	"tailscale.com/types/views"
-	"tailscale.com/wgengine"
-	"tailscale.com/wgengine/netstack"
-	"tailscale.com/words"
+	"lanhc.com/control/controlclient"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnauth"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/ipnserver"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/logpolicy"
+	"lanhc.com/logtail"
+	"lanhc.com/net/netns"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/safesocket"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsd"
+	"lanhc.com/types/views"
+	"lanhc.com/wgengine"
+	"lanhc.com/wgengine/netstack"
+	"lanhc.com/words"
 )
 
 // ControlURL defines the URL to be used for connection to Control.
@@ -259,7 +259,7 @@ func (i *jsIPN) run(jsCallbacks js.Value) {
 
 	i.lb.SetNotifyCallback(func(n ipn.Notify) {
 		// Panics in the notify callback are likely due to be due to bugs in
-		// this bridging module (as opposed to actual bugs in Tailscale) and
+		// this bridging module (as opposed to actual bugs in Lanhc) and
 		// thus may be recoverable. Let the UI know, and allow the user to
 		// choose if they want to reload the page.
 		defer func() {
@@ -306,7 +306,7 @@ func (i *jsIPN) run(jsCallbacks js.Value) {
 								NodeKey:    p.Key().String(),
 							},
 							Online:              p.Online().Clone(),
-							TailscaleSSHEnabled: p.Hostinfo().TailscaleSSHEnabled(),
+							LanhcSSHEnabled: p.Hostinfo().LanhcSSHEnabled(),
 						}
 					}),
 					LockedOut: nm.TKAEnabled && nm.SelfNode.KeySignature().Len() == 0,
@@ -431,7 +431,7 @@ func (s *jsSSHSession) Run() {
 
 	config := &ssh.ClientConfig{
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
-			// Host keys are not used with Tailscale SSH, but we can use this
+			// Host keys are not used with Lanhc SSH, but we can use this
 			// callback to know that the connection has been established.
 			reportProgress("SSH connection established…")
 			return nil
@@ -582,7 +582,7 @@ type jsNetMapSelfNode struct {
 type jsNetMapPeerNode struct {
 	jsNetMapNode
 	Online              *bool `json:"online,omitempty"`
-	TailscaleSSHEnabled bool  `json:"tailscaleSSHEnabled"`
+	LanhcSSHEnabled bool  `json:"lanhcSSHEnabled"`
 }
 
 type jsStateStore struct {

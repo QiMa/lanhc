@@ -7,7 +7,7 @@
 
 package buildfeatures
 
-// HasFlashAppliance is whether the binary was built with support for modular feature "'tailscale configure flash-appliance' and 'pve-appliance' CLI commands for deploying Tailscale appliance images".
+// HasFlashAppliance is whether the binary was built with support for modular feature "'lanhc configure flash-appliance' and 'pve-appliance' CLI commands for deploying Lanhc appliance images".
 // Specifically, it's whether the binary was NOT built with the "ts_omit_flashappliance" build tag.
 // It's a const so it can be used for dead code elimination.
 const HasFlashAppliance = true

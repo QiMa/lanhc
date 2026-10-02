@@ -99,13 +99,13 @@ func TestDebuggerKV(t *testing.T) {
 func TestDebuggerURL(t *testing.T) {
 	mux := http.NewServeMux()
 	dbg := Debugger(mux)
-	dbg.URL("https://www.tailscale.com", "Homepage")
+	dbg.URL("https://www.lanhc.com", "Homepage")
 
 	code, body := get(mux, "/debug/", tsIP)
 	if code != 200 {
 		t.Fatalf("debug access failed, got %v", code)
 	}
-	for _, want := range []string{"https://www.tailscale.com", "Homepage"} {
+	for _, want := range []string{"https://www.lanhc.com", "Homepage"} {
 		if !strings.Contains(body, want) {
 			t.Errorf("want %q in output, not found", want)
 		}
@@ -194,8 +194,8 @@ func ExampleDebugHandler_KVFunc() {
 func ExampleDebugHandler_URL() {
 	mux := http.NewServeMux()
 	dbg := Debugger(mux)
-	// Links to the Tailscale website from /debug/.
-	dbg.URL("https://www.tailscale.com", "Homepage")
+	// Links to the Lanhc website from /debug/.
+	dbg.URL("https://www.lanhc.com", "Homepage")
 }
 
 func ExampleDebugHandler_Section() {

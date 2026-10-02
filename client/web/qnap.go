@@ -57,8 +57,8 @@ func qnapAuthn(r *http.Request) (string, *qnapAuthResponse, error) {
 
 // qnapAuthnURL returns the auth URL to use by inferring where the UI is
 // running based on the request URL. This is necessary because QNAP has so
-// many options, see https://github.com/tailscale/tailscale/issues/7108
-// and https://github.com/tailscale/tailscale/issues/6903
+// many options, see https://github.com/lanhc/lanhc/issues/7108
+// and https://github.com/lanhc/lanhc/issues/6903
 func qnapAuthnURL(requestUrl string, query url.Values) string {
 	in, err := url.Parse(requestUrl)
 	scheme := ""
@@ -102,7 +102,7 @@ func qnapAuthnSid(r *http.Request, user, sid string) (string, *qnapAuthResponse,
 func qnapAuthnFinish(user, url string) (string, *qnapAuthResponse, error) {
 	// QNAP Force HTTPS mode uses a self-signed certificate. Even importing
 	// the QNAP root CA isn't enough, the cert doesn't have a usable CN nor
-	// SAN. See https://github.com/tailscale/tailscale/issues/6903
+	// SAN. See https://github.com/lanhc/lanhc/issues/6903
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}

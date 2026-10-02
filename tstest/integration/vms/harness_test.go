@@ -24,10 +24,10 @@ import (
 
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/proxy"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest/integration"
-	"tailscale.com/tstest/integration/testcontrol"
-	"tailscale.com/types/dnstype"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest/integration"
+	"lanhc.com/tstest/integration/testcontrol"
+	"lanhc.com/types/dnstype"
 )
 
 type Harness struct {
@@ -138,8 +138,8 @@ func newHarness(t *testing.T) *Harness {
 	h := &Harness{
 		pubKey:         string(pubkey),
 		binaryDir:      binaries.Dir,
-		cli:            binaries.Tailscale.Path,
-		daemon:         binaries.Tailscaled.Path,
+		cli:            binaries.Lanhc.Path,
+		daemon:         binaries.Lanhcd.Path,
 		signer:         signer,
 		loginServerURL: loginServer,
 		cs:             cs,
@@ -152,7 +152,7 @@ func newHarness(t *testing.T) *Harness {
 	return h
 }
 
-func (h *Harness) Tailscale(t *testing.T, args ...string) []byte {
+func (h *Harness) Lanhc(t *testing.T, args ...string) []byte {
 	t.Helper()
 
 	args = append([]string{"--socket=" + filepath.Join(h.testerDir, "sock")}, args...)
@@ -166,10 +166,10 @@ func (h *Harness) Tailscale(t *testing.T, args ...string) []byte {
 	return out
 }
 
-// makeTestNode creates a userspace tailscaled running in netstack mode that
-// enables us to make connections to and from the tailscale network being
-// tested. This mutates the Harness to allow tests to dial into the tailscale
-// network as well as control the tester's tailscaled.
+// makeTestNode creates a userspace lanhcd running in netstack mode that
+// enables us to make connections to and from the lanhc network being
+// tested. This mutates the Harness to allow tests to dial into the lanhc
+// network as well as control the tester's lanhcd.
 func (h *Harness) makeTestNode(t *testing.T, controlURL string) {
 	dir := t.TempDir()
 	h.testerDir = dir
@@ -195,7 +195,7 @@ func (h *Harness) makeTestNode(t *testing.T, controlURL string) {
 
 	err = cmd.Start()
 	if err != nil {
-		t.Fatalf("can't start tailscaled: %v", err)
+		t.Fatalf("can't start lanhcd: %v", err)
 	}
 
 	t.Cleanup(func() {
@@ -210,7 +210,7 @@ outer:
 	for {
 		select {
 		case <-ctx.Done():
-			t.Fatal("timed out waiting for tailscaled to come up")
+			t.Fatal("timed out waiting for lanhcd to come up")
 			return
 		case <-ticker.C:
 			conn, err := net.Dial("unix", filepath.Join(dir, "sock"))
@@ -235,7 +235,7 @@ outer:
 		t.Fatalf("can't make netstack proxy dialer: %v", err)
 	}
 	h.testerDialer = dialer
-	h.testerV4 = bytes2Netaddr(h.Tailscale(t, "ip", "-4"))
+	h.testerV4 = bytes2Netaddr(h.Lanhc(t, "ip", "-4"))
 }
 
 func bytes2Netaddr(inp []byte) netip.Addr {

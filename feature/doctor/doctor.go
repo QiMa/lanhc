@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // The doctor package registers the "doctor" problem diagnosis support into the
-// rest of Tailscale.
+// rest of Lanhc.
 package doctor
 
 import (
@@ -12,13 +12,13 @@ import (
 	"net/http"
 	"time"
 
-	"tailscale.com/doctor"
-	"tailscale.com/doctor/ethtool"
-	"tailscale.com/doctor/permissions"
-	"tailscale.com/doctor/routetable"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/types/logger"
+	"lanhc.com/doctor"
+	"lanhc.com/doctor/ethtool"
+	"lanhc.com/doctor/permissions"
+	"lanhc.com/doctor/routetable"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/types/logger"
 )
 
 func init() {
@@ -59,8 +59,8 @@ func visitDoctor(ctx context.Context, b *ipnlocal.LocalBackend, logf logger.Logf
 		ethtool.Check{},
 	)
 
-	// Print a log message if any of the global DNS resolvers are Tailscale
-	// IPs; this can interfere with our ability to connect to the Tailscale
+	// Print a log message if any of the global DNS resolvers are Lanhc
+	// IPs; this can interfere with our ability to connect to the Lanhc
 	// controlplane.
 	checks = append(checks, doctor.CheckFunc("dns-resolvers", func(_ context.Context, logf logger.Logf) error {
 		nm := b.NetMapNoPeers()
@@ -70,14 +70,14 @@ func visitDoctor(ctx context.Context, b *ipnlocal.LocalBackend, logf logger.Logf
 
 		for i, resolver := range nm.DNS.Resolvers {
 			ipp, ok := resolver.IPPort()
-			if ok && tsaddr.IsTailscaleIP(ipp.Addr()) {
-				logf("resolver %d is a Tailscale address: %v", i, resolver)
+			if ok && tsaddr.IsLanhcIP(ipp.Addr()) {
+				logf("resolver %d is a Lanhc address: %v", i, resolver)
 			}
 		}
 		for i, resolver := range nm.DNS.FallbackResolvers {
 			ipp, ok := resolver.IPPort()
-			if ok && tsaddr.IsTailscaleIP(ipp.Addr()) {
-				logf("fallback resolver %d is a Tailscale address: %v", i, resolver)
+			if ok && tsaddr.IsLanhcIP(ipp.Addr()) {
+				logf("fallback resolver %d is a Lanhc address: %v", i, resolver)
 			}
 		}
 		return nil

@@ -1,0 +1,9 @@
+[Unit]
+Description=Lanhc NGINX Authentication socket
+PartOf=lanhc.nginx-auth.service
+
+[Socket]
+ListenStream=/var/run/lanhc.nginx-auth.sock
+
+[Install]
+WantedBy=sockets.target

@@ -13,10 +13,10 @@ import (
 	"unsafe"
 
 	"golang.org/x/sys/windows"
-	"tailscale.com/ipn/ipnauth"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/must"
-	"tailscale.com/util/set"
+	"lanhc.com/ipn/ipnauth"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/must"
+	"lanhc.com/util/set"
 )
 
 // wtsManager is a [SessionManager] implementation for Windows.
@@ -321,11 +321,11 @@ func (m *wtsSession) close() error {
 type sessionEventHandler func(id SessionID, event uint32)
 
 // TODO(nickkhyl): implement a sessionWatcher that does not use the message queue.
-// One possible approach is to have the tailscaled service register a HandlerEx function
-// and stream SERVICE_CONTROL_SESSIONCHANGE events to the tailscaled subprocess
-// (the actual tailscaled backend), exposing these events via [sessionWatcher]/[wtsManager].
+// One possible approach is to have the lanhcd service register a HandlerEx function
+// and stream SERVICE_CONTROL_SESSIONCHANGE events to the lanhcd subprocess
+// (the actual lanhcd backend), exposing these events via [sessionWatcher]/[wtsManager].
 //
-// See tailscale/corp#26477 for details and tracking.
+// See lanhc/corp#26477 for details and tracking.
 type sessionWatcher struct {
 	logf      logger.Logf
 	ctx       context.Context     // canceled to stop the watcher
@@ -401,7 +401,7 @@ func (sw *sessionWatcher) Stop() error {
 	return nil
 }
 
-const watcherWindowClassName = "Tailscale-SessionManager"
+const watcherWindowClassName = "Lanhc-SessionManager"
 
 var watcherWindowClassName16 = sync.OnceValue(func() *uint16 {
 	return must.Get(syscall.UTF16PtrFromString(watcherWindowClassName))

@@ -27,18 +27,18 @@ import (
 	"k8s.io/apiserver/pkg/endpoints/request"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/transport"
-	"tailscale.com/client/local"
-	"tailscale.com/client/tailscale/apitype"
-	ksr "tailscale.com/k8s-operator/sessionrecording"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/net/netutil"
-	"tailscale.com/net/netx"
-	"tailscale.com/sessionrecording"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsnet"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/ctxkey"
-	"tailscale.com/util/set"
+	"lanhc.com/client/local"
+	"lanhc.com/client/lanhc/apitype"
+	ksr "lanhc.com/k8s-operator/sessionrecording"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/net/netutil"
+	"lanhc.com/net/netx"
+	"lanhc.com/sessionrecording"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsnet"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/ctxkey"
+	"lanhc.com/util/set"
 )
 
 var (
@@ -52,7 +52,7 @@ var (
 //
 // authMode controls how the proxy behaves:
 //   - true: the proxy is started and requests are impersonated using the
-//     caller's Tailscale identity and the rules defined in the tailnet ACLs.
+//     caller's Lanhc identity and the rules defined in the tailnet ACLs.
 //   - false: the proxy is started and requests are passed through to the
 //     Kubernetes API without any auth modifications.
 func NewAPIServerProxy(zlog *zap.SugaredLogger, restConfig *rest.Config, ts *tsnet.Server, mode kubetypes.APIServerProxyMode, https bool) (*APIServerProxy, error) {
@@ -110,8 +110,8 @@ func NewAPIServerProxy(zlog *zap.SugaredLogger, restConfig *rest.Config, ts *tsn
 }
 
 // Run starts the HTTP server that authenticates requests using the
-// Tailscale LocalAPI and then proxies them to the Kubernetes API.
-// It listens on :443 and uses the Tailscale HTTPS certificate.
+// Lanhc LocalAPI and then proxies them to the Kubernetes API.
+// It listens on :443 and uses the Lanhc HTTPS certificate.
 //
 // It return when ctx is cancelled or ServeTLS fails.
 func (ap *APIServerProxy) Run(ctx context.Context) error {
@@ -188,7 +188,7 @@ func (ap *APIServerProxy) Run(ctx context.Context) error {
 	return ap.hs.Shutdown(shutdownCtx)
 }
 
-// APIServerProxy is an [net/http.Handler] that authenticates requests using the Tailscale
+// APIServerProxy is an [net/http.Handler] that authenticates requests using the Lanhc
 // LocalAPI and then proxies them to the Kubernetes API.
 type APIServerProxy struct {
 	log *zap.SugaredLogger
@@ -583,7 +583,7 @@ func determineRecorderConfig(who *apitype.WhoIsResponse) (c recorderConfig, _ er
 		if len(rule.RecorderAddrs) != 0 {
 			// TODO (irbekrm): here or later determine if the
 			// recorders behind those addrs are online - else we
-			// spend 30s trying to reach a recorder whose tailscale
+			// spend 30s trying to reach a recorder whose lanhc
 			// status is offline.
 			c.recorderAddresses = append(c.recorderAddresses, rule.RecorderAddrs...)
 		}

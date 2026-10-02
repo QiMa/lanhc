@@ -7,7 +7,7 @@ import (
 	"go/types"
 	"reflect"
 
-	"tailscale.com/util/set"
+	"lanhc.com/util/set"
 )
 
 var _ = reflect.Value.IsZero // refer for hot-linking purposes
@@ -22,28 +22,28 @@ func hasPureIsZeroMethod(t types.Type) bool {
 	return pureIsZeroMethods[path].Contains(name)
 }
 
-// PureIsZeroMethodsInTailscaleModule is a list of known IsZero methods
-// in the "tailscale.com" module that are pure.
-var PureIsZeroMethodsInTailscaleModule = map[string]set.Set[string]{
-	"tailscale.com/net/packet": set.Of(
-		"TailscaleRejectReason",
+// PureIsZeroMethodsInLanhcModule is a list of known IsZero methods
+// in the "lanhc.com" module that are pure.
+var PureIsZeroMethodsInLanhcModule = map[string]set.Set[string]{
+	"lanhc.com/net/packet": set.Of(
+		"LanhcRejectReason",
 	),
-	"tailscale.com/tailcfg": set.Of(
+	"lanhc.com/tailcfg": set.Of(
 		"UserID",
 		"LoginID",
 		"NodeID",
 		"StableNodeID",
 	),
-	"tailscale.com/tka": set.Of(
+	"lanhc.com/tka": set.Of(
 		"AUMHash",
 	),
-	"tailscale.com/types/geo": set.Of(
+	"lanhc.com/types/geo": set.Of(
 		"Point",
 	),
-	"tailscale.com/tstime/mono": set.Of(
+	"lanhc.com/tstime/mono": set.Of(
 		"Time",
 	),
-	"tailscale.com/types/key": set.Of(
+	"lanhc.com/types/key": set.Of(
 		"NLPrivate",
 		"NLPublic",
 		"DERPMesh",
@@ -58,7 +58,7 @@ var PureIsZeroMethodsInTailscaleModule = map[string]set.Set[string]{
 		"NodePrivate",
 		"NodePublic",
 	),
-	"tailscale.com/types/netlogtype": set.Of(
+	"lanhc.com/types/netlogtype": set.Of(
 		"Connection",
 		"Counts",
 	),

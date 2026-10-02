@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Command gitops-pusher allows users to use a GitOps flow for managing Tailscale ACLs.
+// Command gitops-pusher allows users to use a GitOps flow for managing Lanhc ACLs.
 //
 // See README.md for more details.
 package main
@@ -25,10 +25,10 @@ import (
 	"github.com/peterbourgon/ff/v3/ffcli"
 	"github.com/tailscale/hujson"
 	"golang.org/x/oauth2/clientcredentials"
-	tsclient "tailscale.com/client/tailscale"
-	_ "tailscale.com/feature/identityfederation"
-	"tailscale.com/internal/client/tailscale"
-	"tailscale.com/util/httpm"
+	tsclient "lanhc.com/client/lanhc"
+	_ "lanhc.com/feature/identityfederation"
+	"lanhc.com/internal/client/lanhc"
+	"lanhc.com/util/httpm"
 )
 
 var (
@@ -37,7 +37,7 @@ var (
 	cacheFname        = rootFlagSet.String("cache-file", "./version-cache.json", "filename for the previous known version hash")
 	timeout           = rootFlagSet.Duration("timeout", 5*time.Minute, "timeout for the entire CI run")
 	githubSyntax      = rootFlagSet.Bool("github-syntax", true, "use GitHub Action error syntax (https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-error-message)")
-	apiServer         = rootFlagSet.String("api-server", "api.tailscale.com", "API server to contact")
+	apiServer         = rootFlagSet.String("api-server", "api.lanhc.com", "API server to contact")
 	failOnManualEdits = rootFlagSet.Bool("fail-on-manual-edits", false, "fail if manual edits to the ACLs in the admin panel are detected; when set to false (the default) only a warning is printed")
 )
 
@@ -212,7 +212,7 @@ func main() {
 
 	root := &ffcli.Command{
 		ShortUsage:  "gitops-pusher [options] <command>",
-		ShortHelp:   "Push Tailscale ACLs to CONTROL using a GitOps workflow",
+		ShortHelp:   "Push Lanhc ACLs to CONTROL using a GitOps workflow",
 		Subcommands: []*ffcli.Command{applyCmd, cksumCmd, testCmd},
 		FlagSet:     rootFlagSet,
 	}
@@ -238,7 +238,7 @@ func getCredentials() (*http.Client, string) {
 		idToken, idok := os.LookupEnv("TS_ID_TOKEN")
 
 		if !ok && (!oiok || (!osok && !idok)) {
-			log.Fatal("set envvar TS_API_KEY to your Tailscale API key, TS_OAUTH_ID and TS_OAUTH_SECRET to a Tailscale OAuth ID and Secret, or TS_OAUTH_ID and TS_ID_TOKEN to a Tailscale federated identity Client ID and OIDC identity token")
+			log.Fatal("set envvar TS_API_KEY to your Lanhc API key, TS_OAUTH_ID and TS_OAUTH_SECRET to a Lanhc OAuth ID and Secret, or TS_OAUTH_ID and TS_ID_TOKEN to a Lanhc federated identity Client ID and OIDC identity token")
 		}
 		if apiKeyEnv != "" && (oauthId != "" || (oauthSecret != "" && idToken != "")) {
 			log.Fatal("set either the envvar TS_API_KEY, TS_OAUTH_ID and TS_OAUTH_SECRET, or TS_OAUTH_ID and TS_ID_TOKEN")
@@ -253,9 +253,9 @@ func getCredentials() (*http.Client, string) {
 			}
 			client = oauthConfig.Client(context.Background())
 		} else if idok && idToken != "" && oiok && oauthId != "" {
-			if exchangeJWTForToken, ok := tailscale.HookExchangeJWTForTokenViaWIF.GetOk(); ok {
+			if exchangeJWTForToken, ok := lanhc.HookExchangeJWTForTokenViaWIF.GetOk(); ok {
 				var err error
-				apiKeyEnv, err = exchangeJWTForToken(context.Background(), tailscale.ExchangeJWTForTokenWIFArgs{
+				apiKeyEnv, err = exchangeJWTForToken(context.Background(), lanhc.ExchangeJWTForTokenWIFArgs{
 					BaseURL:  fmt.Sprintf("https://%s", *apiServer),
 					ClientID: oauthId,
 					IDToken:  idToken,

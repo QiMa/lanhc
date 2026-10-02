@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // Package udprelay contains a relay server implementation for relaying Disco
-// and WireGuard packets between Tailscale clients over UDP. This relay
-// functionality is also known as Tailscale Peer Relays.
+// and WireGuard packets between Lanhc clients over UDP. This relay
+// functionality is also known as Lanhc Peer Relays.
 package udprelay
 
 import (
@@ -25,29 +25,29 @@ import (
 	"go4.org/mem"
 	"golang.org/x/crypto/blake2s"
 	"golang.org/x/net/ipv6"
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/disco"
-	"tailscale.com/net/batching"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/net/netcheck"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/netns"
-	"tailscale.com/net/packet"
-	"tailscale.com/net/sockopts"
-	"tailscale.com/net/stun"
-	"tailscale.com/net/udprelay/endpoint"
-	"tailscale.com/net/udprelay/status"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
-	"tailscale.com/tstime/mono"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/nettype"
-	"tailscale.com/types/views"
-	"tailscale.com/util/cloudinfo"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/set"
-	"tailscale.com/util/usermetric"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/disco"
+	"lanhc.com/net/batching"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/net/netcheck"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/netns"
+	"lanhc.com/net/packet"
+	"lanhc.com/net/sockopts"
+	"lanhc.com/net/stun"
+	"lanhc.com/net/udprelay/endpoint"
+	"lanhc.com/net/udprelay/status"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
+	"lanhc.com/tstime/mono"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/nettype"
+	"lanhc.com/types/views"
+	"lanhc.com/util/cloudinfo"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/set"
+	"lanhc.com/util/usermetric"
 )
 
 const (
@@ -621,14 +621,14 @@ func trySetUDPSocketOptions(pconn nettype.PacketConn, logf logger.Logf) {
 func trySetSOMark(logf logger.Logf, netMon *netmon.Monitor, network, address string, c syscall.RawConn) {
 	if netns.UseSocketMark() {
 		// Leverage SO_MARK where available to prevent packets from routing
-		// *over* Tailscale. Where SO_MARK is unavailable we choose to not set
+		// *over* Lanhc. Where SO_MARK is unavailable we choose to not set
 		// SO_BINDTODEVICE as that could prevent handshakes from completing
 		// where multiple interfaces are in play.
 		//
 		// SO_MARK is only used on Linux at the time of writing (2026-01-08),
 		// and Linux is the popular/common choice for peer relay. If we are
 		// running on Linux and SO_MARK is unavailable (EPERM), chances are
-		// there is no TUN device, so routing over Tailscale is impossible
+		// there is no TUN device, so routing over Lanhc is impossible
 		// anyway. Both TUN creation and SO_MARK require CAP_NET_ADMIN.
 		lis := netns.Listener(logf, netMon)
 		if lis.Control != nil {

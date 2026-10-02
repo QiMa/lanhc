@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"tailscale.com/drive"
+	"lanhc.com/drive"
 )
 
-// Unicode filenames from https://github.com/tailscale/tailscale/issues/15020,
+// Unicode filenames from https://github.com/lanhc/lanhc/issues/15020,
 // in both NFC (precomposed) and NFD (decomposed) forms. The two forms are
 // canonically equivalent but byte-wise different, so on
 // normalization-sensitive filesystems like ext4 they name different files.

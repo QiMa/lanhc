@@ -12,15 +12,15 @@ import (
 	"strings"
 
 	"github.com/tailscale/wireguard-go/tun"
-	"tailscale.com/health"
-	"tailscale.com/net/netmon"
-	"tailscale.com/types/logger"
-	"tailscale.com/wgengine/router"
+	"lanhc.com/health"
+	"lanhc.com/net/netmon"
+	"lanhc.com/types/logger"
+	"lanhc.com/wgengine/router"
 )
 
 func init() {
 	router.HookCleanUp.Set(func(logf logger.Logf, netMon *netmon.Monitor, ifName string) {
-		cleanAllTailscaleRoutes(logf)
+		cleanAllLanhcRoutes(logf)
 	})
 	router.HookNewUserspaceRouter.Set(func(opts router.NewOpts) (router.Router, error) {
 		return newUserspaceRouter(opts.Logf, opts.Tun, opts.NetMon)
@@ -33,7 +33,7 @@ func newUserspaceRouter(logf logger.Logf, tundev tun.Device, netMon *netmon.Moni
 		tundev: tundev,
 		netMon: netMon,
 	}
-	cleanAllTailscaleRoutes(logf)
+	cleanAllLanhcRoutes(logf)
 	return r, nil
 }
 
@@ -50,7 +50,7 @@ func (r *plan9Router) Up() error {
 
 func (r *plan9Router) Set(cfg *router.Config) error {
 	if cfg == nil {
-		cleanAllTailscaleRoutes(r.logf)
+		cleanAllLanhcRoutes(r.logf)
 		return nil
 	}
 
@@ -120,7 +120,7 @@ func (r *plan9Router) Close() error {
 	return nil
 }
 
-func cleanAllTailscaleRoutes(logf logger.Logf) {
+func cleanAllLanhcRoutes(logf logger.Logf) {
 	routes, err := os.OpenFile("/net/iproute", os.O_RDWR, 0)
 	if err != nil {
 		logf("cleaning routes: %v", err)

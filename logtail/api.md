@@ -1,19 +1,19 @@
-# Tailscale Logs Service
+# Lanhc Logs Service
 
-The Tailscale Logs Service defines a REST interface for configuring, storing,
+The Lanhc Logs Service defines a REST interface for configuring, storing,
 retrieving, and processing log entries.
 
 # Overview
 
 HTTP requests are received at the service **base URL**
-[https://log.tailscale.com](https://log.tailscale.com), and return JSON-encoded
+[https://log.lanhc.com](https://log.lanhc.com), and return JSON-encoded
 responses using standard HTTP response codes.
 
 Authorization for the configuration and retrieval APIs is done with a secret
 API key passed as the HTTP basic auth username. Secret keys are generated via
 the web UI at base URL. An example of using basic auth with curl:
 
-    curl -u <log_api_key>: https://log.tailscale.com/collections
+    curl -u <log_api_key>: https://log.lanhc.com/collections
 
 In the future, an HTTP header will allow using MessagePack instead of JSON.
 
@@ -43,7 +43,7 @@ machine. Logs can be written as soon as a private ID is generated.
 The public ID is used to read and adopt logs. It is designed to be sent
 to a service that also holds a logs service API key.
 
-The tailscale logs service will store any logs for a short period of time.
+The lanhc logs service will store any logs for a short period of time.
 To enable logs retention, the log can be **adopted** using the public ID
 and a logs service API key.
 Once this is done, logs will be retained long-term (for the configured

@@ -2,17 +2,17 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // Package sockstats collects statistics about network sockets used by
-// the Tailscale client. The context where sockets are used must be
+// the Lanhc client. The context where sockets are used must be
 // instrumented with the WithSockStats() function.
 //
-// Only available on POSIX platforms when built with Tailscale's fork of Go.
+// Only available on POSIX platforms when built with Lanhc's fork of Go.
 package sockstats
 
 import (
 	"context"
 
-	"tailscale.com/net/netmon"
-	"tailscale.com/types/logger"
+	"lanhc.com/net/netmon"
+	"lanhc.com/types/logger"
 )
 
 // SockStats contains statistics for sockets instrumented with the

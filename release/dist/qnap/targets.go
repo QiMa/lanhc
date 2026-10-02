@@ -6,7 +6,7 @@ package qnap
 import (
 	"slices"
 
-	"tailscale.com/release/dist"
+	"lanhc.com/release/dist"
 )
 
 // Targets defines the dist.Targets for QNAP devices.

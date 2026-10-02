@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"tailscale.com/tstest"
+	"lanhc.com/tstest"
 )
 
 // TestSetCredentials verifies that calling SetCredentials
@@ -40,7 +40,7 @@ func TestSetCredentials(t *testing.T) {
 // TestFallbackToSameuserproof verifies that we fallback to the
 // sameuserproof file via LocalTCPPortAndToken when we're running
 //
-//	s cmd/tailscale
+//	s cmd/lanhc
 func TestFallbackToSameuserproof(t *testing.T) {
 	dir := t.TempDir()
 	const (
@@ -48,7 +48,7 @@ func TestFallbackToSameuserproof(t *testing.T) {
 		wantPort  = 123
 	)
 
-	// Mimics cmd/tailscale falling back to sameuserproof
+	// Mimics cmd/lanhc falling back to sameuserproof
 	tstest.Replace(t, &ssd.isMacGUIApp, func() bool { return false })
 	tstest.Replace(t, &ssd.sharedDir, dir)
 	tstest.Replace(t, &ssd.checkConn, false)

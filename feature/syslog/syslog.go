@@ -3,7 +3,7 @@
 
 //go:build unix
 
-// Package syslog provides the tailscaled --syslog flag, which sends the
+// Package syslog provides the lanhcd --syslog flag, which sends the
 // daemon's logs to the system syslog daemon instead of stderr.
 package syslog
 
@@ -14,7 +14,7 @@ import (
 	"log/syslog"
 	"sync"
 
-	"tailscale.com/feature"
+	"lanhc.com/feature"
 )
 
 func init() {
@@ -36,7 +36,7 @@ var logSink = sync.OnceValue(func() io.Writer {
 	if !useSyslog {
 		return nil
 	}
-	w, err := syslog.New(syslog.LOG_DAEMON|syslog.LOG_INFO, "tailscaled")
+	w, err := syslog.New(syslog.LOG_DAEMON|syslog.LOG_INFO, "lanhcd")
 	if err != nil {
 		log.Printf("syslog: connecting to syslog daemon failed; continuing to log to stderr: %v", err)
 		return nil

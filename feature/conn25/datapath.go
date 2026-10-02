@@ -8,14 +8,14 @@ import (
 	"errors"
 	"net/netip"
 
-	"tailscale.com/envknob"
-	"tailscale.com/net/flowtrack"
-	"tailscale.com/net/packet"
-	"tailscale.com/net/packet/checksum"
-	"tailscale.com/net/tstun"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/logger"
-	"tailscale.com/wgengine/filter"
+	"lanhc.com/envknob"
+	"lanhc.com/net/flowtrack"
+	"lanhc.com/net/packet"
+	"lanhc.com/net/packet/checksum"
+	"lanhc.com/net/tstun"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/logger"
+	"lanhc.com/wgengine/filter"
 )
 
 var (
@@ -158,7 +158,7 @@ func (dh *datapathHandler) HandlePacketFromWireGuard(p *packet.Parsed, tun *tstu
 	realIP, err := dh.conn25.ConnectorRealIPForTransitIPConnection(p.Src.Addr(), transitIP)
 	if err != nil {
 		if errors.Is(err, ErrUnmappedSrcAndTransitIP) {
-			rj := packet.TailscaleRejectedHeader{
+			rj := packet.LanhcRejectedHeader{
 				IPSrc:  p.Dst.Addr(),
 				IPDst:  p.Src.Addr(),
 				Src:    p.Src,

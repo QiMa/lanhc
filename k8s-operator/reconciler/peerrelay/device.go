@@ -15,11 +15,11 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	tailscaleclient "tailscale.com/client/tailscale/v2"
+	lanhcclient "tailscale.com/client/tailscale/v2"
 
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/k8s-operator/reconciler/tailscaled"
-	"tailscale.com/kube/kubetypes"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/k8s-operator/reconciler/lanhcd"
+	"lanhc.com/kube/kubetypes"
 )
 
 func (r *Reconciler) deleteDevicesFrom(ctx context.Context, logger *zap.SugaredLogger, pr *tsapi.PeerRelay, fromIdx int32) error {
@@ -29,14 +29,14 @@ func (r *Reconciler) deleteDevicesFrom(ctx context.Context, logger *zap.SugaredL
 
 	tsc, err := r.tsClients.For(pr.Spec.Tailnet)
 	if err != nil {
-		return fmt.Errorf("failed to resolve Tailscale API client for tailnet %q: %w", pr.Spec.Tailnet, err)
+		return fmt.Errorf("failed to resolve Lanhc API client for tailnet %q: %w", pr.Spec.Tailnet, err)
 	}
 
 	labels := peerRelayLabels(pr.Name)
 	labels[kubetypes.LabelSecretType] = kubetypes.LabelSecretTypeState
 
 	var list corev1.SecretList
-	if err = r.List(ctx, &list, client.InNamespace(r.tailscaleNamespace), client.MatchingLabels(labels)); err != nil {
+	if err = r.List(ctx, &list, client.InNamespace(r.lanhcNamespace), client.MatchingLabels(labels)); err != nil {
 		return fmt.Errorf("failed to list state Secrets: %w", err)
 	}
 
@@ -48,9 +48,9 @@ func (r *Reconciler) deleteDevicesFrom(ctx context.Context, logger *zap.SugaredL
 			continue
 		}
 
-		if deviceID := tailscaled.DeviceIDFromStateSecret(s); deviceID != "" {
+		if deviceID := lanhcd.DeviceIDFromStateSecret(s); deviceID != "" {
 			logger.Debugf("deleting tailnet device %q", deviceID)
-			if err = tsc.Devices().Delete(ctx, deviceID); err != nil && !tailscaleclient.IsNotFound(err) {
+			if err = tsc.Devices().Delete(ctx, deviceID); err != nil && !lanhcclient.IsNotFound(err) {
 				errs = append(errs, fmt.Errorf("failed to delete tailnet device %q: %w", deviceID, err))
 				continue
 			}

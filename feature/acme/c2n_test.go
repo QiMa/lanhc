@@ -17,11 +17,11 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/ipn/ipnlocal/ipnlocaltest"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/must"
+	"lanhc.com/ipn/ipnlocal/ipnlocaltest"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/must"
 )
 
 func TestHandleC2NTLSCertStatus(t *testing.T) {

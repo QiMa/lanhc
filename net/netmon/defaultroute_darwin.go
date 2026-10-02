@@ -11,7 +11,7 @@ import (
 	"log"
 	"net"
 
-	"tailscale.com/syncs"
+	"lanhc.com/syncs"
 )
 
 var (

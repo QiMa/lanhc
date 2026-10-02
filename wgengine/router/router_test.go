@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"testing"
 
-	"tailscale.com/types/preftype"
+	"lanhc.com/types/preftype"
 )
 
 func TestConfigEqual(t *testing.T) {

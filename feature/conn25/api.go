@@ -12,20 +12,20 @@ import (
 	"slices"
 	"strings"
 
-	"tailscale.com/envknob"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/localapi"
-	"tailscale.com/types/appctype"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/httpm"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/testenv"
+	"lanhc.com/envknob"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/localapi"
+	"lanhc.com/types/appctype"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/httpm"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/testenv"
 )
 
 // serveLocalAPIStateGet serves the localapi endpoint /conn25/state.
 // See also [*Conn25.GetActiveState].
 func serveLocalAPIStateGet(h *localapi.Handler, w http.ResponseWriter, r *http.Request) {
-	// TODO(tailscale/corp#39033): Remove for alpha release.
+	// TODO(lanhc/corp#39033): Remove for alpha release.
 	if !envknob.UseWIPCode() && !testenv.InTest() {
 		w.WriteHeader(http.StatusNotImplemented)
 		return
@@ -54,7 +54,7 @@ func serveLocalAPIStateGet(h *localapi.Handler, w http.ResponseWriter, r *http.R
 // serveC2NStateGet serves the C2N endpoint /conn25/state.
 // See also [*Conn25.GetActiveState].
 func serveC2NStateGet(b *ipnlocal.LocalBackend, w http.ResponseWriter, r *http.Request) {
-	// TODO(tailscale/corp#39033): Remove for alpha release.
+	// TODO(lanhc/corp#39033): Remove for alpha release.
 	if !envknob.UseWIPCode() && !testenv.InTest() {
 		w.WriteHeader(http.StatusNotImplemented)
 		return

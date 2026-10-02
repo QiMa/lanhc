@@ -15,8 +15,8 @@
 //     are ignored as part of the hash.
 //   - netip.Addr are compared based on a shallow comparison of the struct.
 //
-// WARNING: This package, like most of the tailscale.com Go module,
-// should be considered Tailscale-internal; we make no API promises.
+// WARNING: This package, like most of the lanhc.com Go module,
+// should be considered Lanhc-internal; we make no API promises.
 //
 // # Cycle detection
 //
@@ -71,8 +71,8 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/util/hashx"
-	"tailscale.com/util/set"
+	"lanhc.com/util/hashx"
+	"lanhc.com/util/set"
 )
 
 // There is much overlap between the theory of serialization and hashing.

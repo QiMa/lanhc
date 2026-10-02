@@ -13,7 +13,7 @@ import (
 
 	"github.com/tailscale/wf"
 	"golang.org/x/sys/windows"
-	"tailscale.com/net/netaddr"
+	"lanhc.com/net/netaddr"
 )
 
 // Known addresses.
@@ -95,7 +95,7 @@ type Firewall struct {
 // New returns a new Firewall for the provided interface ID.
 func New(luid uint64) (*Firewall, error) {
 	session, err := wf.New(&wf.Options{
-		Name:    "Tailscale firewall",
+		Name:    "Lanhc firewall",
 		Dynamic: true,
 	})
 	if err != nil {
@@ -108,7 +108,7 @@ func New(luid uint64) (*Firewall, error) {
 	providerID := wf.ProviderID(wguid)
 	if err := session.AddProvider(&wf.Provider{
 		ID:   providerID,
-		Name: "Tailscale provider",
+		Name: "Lanhc provider",
 	}); err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func New(luid uint64) (*Firewall, error) {
 	sublayerID := wf.SublayerID(wguid)
 	if err := session.AddSublayer(&wf.Sublayer{
 		ID:     sublayerID,
-		Name:   "Tailscale permissive and blocking filters",
+		Name:   "Lanhc permissive and blocking filters",
 		Weight: 0,
 	}); err != nil {
 		return nil, err
@@ -140,25 +140,25 @@ func New(luid uint64) (*Firewall, error) {
 type weight uint64
 
 const (
-	weightTailscaleTraffic weight = 15
+	weightLanhcTraffic weight = 15
 	weightKnownTraffic     weight = 12
 	weightCatchAll         weight = 0
 )
 
 func (f *Firewall) enable() error {
-	if err := f.permitTailscaleService(weightTailscaleTraffic); err != nil {
-		return fmt.Errorf("permitTailscaleService failed: %w", err)
+	if err := f.permitLanhcService(weightLanhcTraffic); err != nil {
+		return fmt.Errorf("permitLanhcService failed: %w", err)
 	}
 
-	if err := f.permitTunInterface(weightTailscaleTraffic); err != nil {
+	if err := f.permitTunInterface(weightLanhcTraffic); err != nil {
 		return fmt.Errorf("permitTunInterface failed: %w", err)
 	}
 
-	if err := f.permitDNS(weightTailscaleTraffic); err != nil {
+	if err := f.permitDNS(weightLanhcTraffic); err != nil {
 		return fmt.Errorf("permitDNS failed: %w", err)
 	}
 
-	if err := f.permitLoopback(weightTailscaleTraffic); err != nil {
+	if err := f.permitLoopback(weightLanhcTraffic); err != nil {
 		return fmt.Errorf("permitLoopback failed: %w", err)
 	}
 
@@ -614,7 +614,7 @@ func (f *Firewall) permitDNS(w weight) error {
 	return err
 }
 
-func (f *Firewall) permitTailscaleService(w weight) error {
+func (f *Firewall) permitLanhcService(w weight) error {
 	currentFile, err := os.Executable()
 	if err != nil {
 		return err
@@ -631,6 +631,6 @@ func (f *Firewall) permitTailscaleService(w weight) error {
 			Value: appID,
 		},
 	}
-	_, err = f.addRules("unrestricted traffic for Tailscale service", w, conditions, wf.ActionPermit, protocolAll, directionBoth)
+	_, err = f.addRules("unrestricted traffic for Lanhc service", w, conditions, wf.ActionPermit, protocolAll, directionBoth)
 	return err
 }

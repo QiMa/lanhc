@@ -1,8 +1,8 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package githook contains the shared implementation of Tailscale's git
-// hooks. The tailscale/tailscale and tailscale/corp repositories each have
+// Package githook contains the shared implementation of Lanhc's git
+// hooks. The lanhc/lanhc and lanhc/corp repositories each have
 // a thin main package that dispatches to this one, calling individual
 // hook functions with per-repo arguments as needed.
 package githook
@@ -17,7 +17,7 @@ import (
 )
 
 // Launcher is the canonical bytes of launcher.sh. Downstream repos
-// (e.g. tailscale/corp) rely on these bytes at install time.
+// (e.g. lanhc/corp) rely on these bytes at install time.
 //
 //go:embed launcher.sh
 var Launcher []byte

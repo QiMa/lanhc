@@ -13,8 +13,8 @@ import (
 	"os"
 	"strings"
 
-	"tailscale.com/feature/featuretags"
-	"tailscale.com/util/must"
+	"lanhc.com/feature/featuretags"
+	"lanhc.com/util/must"
 )
 
 const header = `// Copyright (c) Tailscale Inc & contributors

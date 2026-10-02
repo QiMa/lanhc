@@ -10,15 +10,15 @@ import (
 	"slices"
 	"testing"
 
-	"tailscale.com/ipn"
-	"tailscale.com/net/udprelay/endpoint"
-	"tailscale.com/net/udprelay/status"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsd"
-	"tailscale.com/tstime"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/views"
+	"lanhc.com/ipn"
+	"lanhc.com/net/udprelay/endpoint"
+	"lanhc.com/net/udprelay/status"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsd"
+	"lanhc.com/tstime"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/views"
 )
 
 func Test_extension_profileStateChanged(t *testing.T) {
@@ -264,7 +264,7 @@ type mockSafeBackend struct {
 
 func (m mockSafeBackend) Sys() *tsd.System       { return m.sys }
 func (mockSafeBackend) Clock() tstime.Clock      { return nil }
-func (mockSafeBackend) TailscaleVarRoot() string { return "" }
+func (mockSafeBackend) LanhcVarRoot() string { return "" }
 
 func Test_extension_handleRelayServerLifetimeLocked(t *testing.T) {
 	tests := []struct {

@@ -13,9 +13,9 @@ import (
 	"sort"
 	"time"
 
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/util/backoff"
-	"tailscale.com/util/set"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/util/backoff"
+	"lanhc.com/util/set"
 )
 
 // HasFilesWaiting reports whether any files are buffered in [Handler.Dir].

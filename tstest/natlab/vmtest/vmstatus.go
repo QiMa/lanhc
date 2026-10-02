@@ -158,7 +158,7 @@ const (
 	EventDHCPRequest   EventType = "dhcp_request"   // VM sent DHCP Request
 	EventDHCPAck       EventType = "dhcp_ack"       // server sent DHCP Ack
 	EventScreenshot    EventType = "screenshot"     // VM display screenshot (JPEG, base64)
-	EventTailscale     EventType = "tailscale"      // Tailscale status change
+	EventLanhc     EventType = "lanhc"      // Lanhc status change
 	EventTestStatus    EventType = "test_status"    // test Running/Passed/Failed
 )
 
@@ -228,14 +228,14 @@ type NICStatus struct {
 	DHCP    string // "waiting", "Discover sent", "Got 10.0.0.101", etc.
 }
 
-// NodeStatus tracks the current DHCP and Tailscale state of a VM node
+// NodeStatus tracks the current DHCP and Lanhc state of a VM node
 // for rendering on the web UI's initial page load.
 type NodeStatus struct {
 	Name           string
 	OS             string
 	NICs           []NICStatus // one per NIC; index matches NIC index
-	JoinsTailnet   bool        // whether this node runs Tailscale
-	Tailscale      string      // "--", "Up (100.64.0.1)", etc.
+	JoinsTailnet   bool        // whether this node runs Lanhc
+	Lanhc      string      // "--", "Up (100.64.0.1)", etc.
 	Console        []string    // recent console output lines (ring buffer)
 	Screenshot     string      // latest screenshot as data URI, or ""
 	ScreenshotPort int         // Host.app screenshot server port, or 0

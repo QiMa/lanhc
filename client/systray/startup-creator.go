@@ -16,19 +16,19 @@ import (
 	"path/filepath"
 	"strings"
 
-	"tailscale.com/client/freedesktop"
+	"lanhc.com/client/freedesktop"
 )
 
-//go:embed tailscale-systray.service
+//go:embed lanhc-systray.service
 var embedSystemd string
 
-//go:embed tailscale-systray.desktop
+//go:embed lanhc-systray.desktop
 var embedFreedesktop string
 
-//go:embed tailscale.svg
+//go:embed lanhc.svg
 var embedLogoSvg string
 
-//go:embed tailscale.png
+//go:embed lanhc.png
 var embedLogoPng string
 
 func InstallStartupScript(initSystem string) error {
@@ -43,11 +43,11 @@ func InstallStartupScript(initSystem string) error {
 }
 
 func installSystemd() error {
-	// Find the path to tailscale, just in case it's not where the example file
+	// Find the path to lanhc, just in case it's not where the example file
 	// has it placed, and replace that before writing the file.
-	tailscaleBin, err := exec.LookPath("tailscale")
+	lanhcBin, err := exec.LookPath("lanhc")
 	if err != nil {
-		return fmt.Errorf("failed to find tailscale binary %w", err)
+		return fmt.Errorf("failed to find lanhc binary %w", err)
 	}
 
 	var output bytes.Buffer
@@ -55,7 +55,7 @@ func installSystemd() error {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "ExecStart=") {
-			line = fmt.Sprintf("ExecStart=%s systray", tailscaleBin)
+			line = fmt.Sprintf("ExecStart=%s systray", lanhcBin)
 		}
 		output.WriteString(line + "\n")
 	}
@@ -74,7 +74,7 @@ func installSystemd() error {
 		return fmt.Errorf("failed creating systemd user dir: %w", err)
 	}
 
-	serviceFile := filepath.Join(systemdDir, "tailscale-systray.service")
+	serviceFile := filepath.Join(systemdDir, "lanhc-systray.service")
 
 	if err := os.WriteFile(serviceFile, output.Bytes(), 0o755); err != nil {
 		return fmt.Errorf("failed writing systemd user service: %w", err)
@@ -83,13 +83,13 @@ func installSystemd() error {
 	fmt.Printf("Successfully installed systemd service to: %s\n", serviceFile)
 	fmt.Println("To enable and start the service, run:")
 	fmt.Println("  systemctl --user daemon-reload")
-	fmt.Println("  systemctl --user enable --now tailscale-systray")
+	fmt.Println("  systemctl --user enable --now lanhc-systray")
 
 	return nil
 }
 
 func installFreedesktop() error {
-	tmpDir, err := os.MkdirTemp("", "tailscale-systray")
+	tmpDir, err := os.MkdirTemp("", "lanhc-systray")
 	if err != nil {
 		return fmt.Errorf("unable to make tmpDir: %w", err)
 	}
@@ -97,14 +97,14 @@ func installFreedesktop() error {
 
 	// Install icon, and use it if it works, and if not change to some generic
 	// network/vpn icon.
-	iconName := "tailscale"
+	iconName := "lanhc"
 	if err := installIcon(tmpDir); err != nil {
 		iconName = "network-transmit"
 		fmt.Printf("unable to install icon, continuing without: %s\n", err.Error())
 	}
 
 	// Create desktop file in a tmp dir
-	desktopTmpPath := filepath.Join(tmpDir, "tailscale-systray.desktop")
+	desktopTmpPath := filepath.Join(tmpDir, "lanhc-systray.desktop")
 	if err := os.WriteFile(desktopTmpPath, []byte(embedFreedesktop),
 		0o0755); err != nil {
 		return fmt.Errorf("unable to create desktop file: %w", err)
@@ -131,13 +131,13 @@ func installFreedesktop() error {
 		return fmt.Errorf("unable to install desktop file: %w - %s", err, output)
 	}
 
-	// Find the path to tailscale, just in case it's not where the example file
+	// Find the path to lanhc, just in case it's not where the example file
 	// has it placed, and replace that before writing the file.
-	tailscaleBin, err := os.Executable()
+	lanhcBin, err := os.Executable()
 	if err != nil {
-		return fmt.Errorf("failed to find tailscale binary %w", err)
+		return fmt.Errorf("failed to find lanhc binary %w", err)
 	}
-	tailscaleBin = freedesktop.Quote(tailscaleBin)
+	lanhcBin = freedesktop.Quote(lanhcBin)
 
 	// Make possible changes to the desktop file
 	runEdit := func(args ...string) error {
@@ -150,13 +150,13 @@ func installFreedesktop() error {
 	}
 
 	edits := [][]string{
-		{"--set-key=Exec", "--set-value=" + tailscaleBin + " systray"},
-		{"--set-key=TryExec", "--set-value=" + tailscaleBin},
+		{"--set-key=Exec", "--set-value=" + lanhcBin + " systray"},
+		{"--set-key=TryExec", "--set-value=" + lanhcBin},
 		{"--set-icon=" + iconName},
 	}
 
 	var errs []error
-	desktopFile := filepath.Join(autostartDir, "tailscale-systray.desktop")
+	desktopFile := filepath.Join(autostartDir, "lanhc-systray.desktop")
 	for _, args := range edits {
 		args = append(args, desktopFile)
 		if err := runEdit(args...); err != nil {
@@ -181,12 +181,12 @@ func installFreedesktop() error {
 // available.
 // Reference: https://gitlab.freedesktop.org/xdg/xdg-utils/-/merge_requests/116
 func installIcon(tmpDir string) error {
-	svgPath := filepath.Join(tmpDir, "tailscale.svg")
+	svgPath := filepath.Join(tmpDir, "lanhc.svg")
 	if err := os.WriteFile(svgPath, []byte(embedLogoSvg), 0o0644); err != nil {
 		return fmt.Errorf("unable to create svg: %w", err)
 	}
 
-	pngPath := filepath.Join(tmpDir, "tailscale.png")
+	pngPath := filepath.Join(tmpDir, "lanhc.png")
 	if err := os.WriteFile(pngPath, []byte(embedLogoPng), 0o0644); err != nil {
 		return fmt.Errorf("unable to create png: %w", err)
 	}
@@ -194,14 +194,14 @@ func installIcon(tmpDir string) error {
 	var errs []error
 	installed := false
 	svgCmd := exec.Command("xdg-icon-resource", "install", "--size", "scalable",
-		"--novendor", svgPath, "tailscale")
+		"--novendor", svgPath, "lanhc")
 	if output, err := svgCmd.Output(); err != nil {
 		errs = append(errs, fmt.Errorf("unable to install svg: %s - %s", err, output))
 	} else {
 		installed = true
 	}
 	pngCmd := exec.Command("xdg-icon-resource", "install", "--size", "512",
-		"--novendor", pngPath, "tailscale")
+		"--novendor", pngPath, "lanhc")
 	if output, err := pngCmd.Output(); err != nil {
 		errs = append(errs, fmt.Errorf("unable to install png: %s - %s", err, output))
 	} else {

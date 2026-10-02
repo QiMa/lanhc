@@ -65,7 +65,7 @@ case "$REV" in
         echo "# Downloading Go toolchain $REV" >&2
 
         # This works for linux and darwin, which is sufficient
-        # (we do not build tailscale-go for other targets).
+        # (we do not build lanhc-go for other targets).
         HOST_OS=$(uname -s | tr A-Z a-z)
         HOST_ARCH="$(uname -m)"
         if [[ "$HOST_ARCH" == "aarch64" ]]; then
@@ -92,7 +92,7 @@ case "$REV" in
     ;;
 esac
 
-# gocross is opt-in as of 2025-06-16. See tailscale/corp#26717.
+# gocross is opt-in as of 2025-06-16. See lanhc/corp#26717.
 # It's primarily used for xcode builds, and a bit still for Windows.
 # In the past we needed it for git version stamping on Linux etc, but
 # Go does that itself nowadays.
@@ -139,7 +139,7 @@ if [[ "$gocross_ok" == "0" ]]; then
     unset GO111MODULE
     unset GOROOT
     export CGO_ENABLED=0
-    "$toolchain/bin/go" build -o "$gocross_path" -ldflags "-X tailscale.com/version.gitCommitStamp=$wantver" tailscale.com/tool/gocross
+    "$toolchain/bin/go" build -o "$gocross_path" -ldflags "-X lanhc.com/version.gitCommitStamp=$wantver" lanhc.com/tool/gocross
 fi
 ) # End of the subshell execution.
 
@@ -151,7 +151,7 @@ repo_root="${BASH_SOURCE%/*}/../.."
 # fail (such as those which depend on our net/ patches).
 unset GOROOT
 
-# gocross is opt-in as of 2025-06-16. See tailscale/corp#26717
+# gocross is opt-in as of 2025-06-16. See lanhc/corp#26717
 # and comment above in this file.
 if [ "${TS_USE_GOCROSS:-}" != "1" ]; then
     read -r REV <"${repo_root}/$go_toolchain_rev_file"

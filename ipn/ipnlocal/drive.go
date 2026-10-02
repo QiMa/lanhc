@@ -15,12 +15,12 @@ import (
 	"os"
 	"slices"
 
-	"tailscale.com/drive"
-	"tailscale.com/ipn"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/views"
-	"tailscale.com/util/httpm"
+	"lanhc.com/drive"
+	"lanhc.com/ipn"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/views"
+	"lanhc.com/util/httpm"
 )
 
 func init() {

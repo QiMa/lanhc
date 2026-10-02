@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"tailscale.com/util/cibuild"
+	"lanhc.com/util/cibuild"
 )
 
 func TestIsValidLongWithTwoRepos(t *testing.T) {
@@ -32,7 +32,7 @@ func TestIsValidLongWithTwoRepos(t *testing.T) {
 	}
 }
 
-func TestTailscaleToolchainRev(t *testing.T) {
+func TestLanhcToolchainRev(t *testing.T) {
 	out, err := exec.Command("go", "env", "GOROOT").Output()
 	if err != nil {
 		t.Fatalf("go env GOROOT: %v", err)
@@ -40,16 +40,16 @@ func TestTailscaleToolchainRev(t *testing.T) {
 	goRoot := strings.TrimSpace(string(out))
 	isTsgo := strings.Contains(goRoot, "/.cache/tsgo/")
 	if !cibuild.On() && !isTsgo {
-		t.Skip("skipping; not in CI and not using the Tailscale Go toolchain")
+		t.Skip("skipping; not in CI and not using the Lanhc Go toolchain")
 	}
-	if !isTailscaleGo {
-		t.Skip("skipping; not built with tailscale_go build tag")
+	if !isLanhcGo {
+		t.Skip("skipping; not built with lanhc_go build tag")
 	}
-	rev := tailscaleToolchainRev()
+	rev := lanhcToolchainRev()
 	if rev == "" {
-		t.Fatal("tailscale.toolchain.rev is empty in build info; expected non-empty when using tsgo")
+		t.Fatal("lanhc.toolchain.rev is empty in build info; expected non-empty when using tsgo")
 	}
-	t.Logf("tailscale.toolchain.rev = %s", rev)
+	t.Logf("lanhc.toolchain.rev = %s", rev)
 }
 
 func TestPrepExeNameForCmp(t *testing.T) {
@@ -58,20 +58,20 @@ func TestPrepExeNameForCmp(t *testing.T) {
 		want string
 	}{
 		{
-			"tailscale-ipn.exe",
-			"tailscale-ipn",
+			"lanhc-gui.exe",
+			"lanhc-gui",
 		},
 		{
-			"tailscale-gui-amd64.exe",
-			"tailscale-gui",
+			"lanhc-gui-amd64.exe",
+			"lanhc-gui",
 		},
 		{
-			"tailscale-gui-amd64",
-			"tailscale-gui",
+			"lanhc-gui-amd64",
+			"lanhc-gui",
 		},
 		{
-			"tailscale-ipn",
-			"tailscale-ipn",
+			"lanhc-gui",
+			"lanhc-gui",
 		},
 		{
 			"TaIlScAlE-iPn.ExE",

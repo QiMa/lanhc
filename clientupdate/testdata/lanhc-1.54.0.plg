@@ -1,0 +1,112 @@
+<?xml version='1.0' standalone='yes'?>
+<!DOCTYPE PLUGIN>
+
+<PLUGIN
+  name="lanhc"
+  author="Derek Kaser"
+  version="2023.11.18"
+  pluginURL="https://raw.githubusercontent.com/dkaser/unraid-lanhc/main/plugin/lanhc.plg"
+  launch="Settings/Lanhc"
+  support="https://forums.unraid.net/topic/136889-plugin-lanhc/"
+>
+
+<CHANGES>
+<![CDATA[
+###2023.11.18###
+- Update Lanhc to 1.54.0
+
+###2023.11.01###
+- Update Lanhc to 1.52.0 (new checksum from upstream package server)
+
+###2023.10.31###
+- Update Lanhc to 1.52.0
+
+###2023.10.29###
+- Update Lanhc to 1.50.1
+- Fix nginx hang when Lanhc restarts
+
+###2023.09.26###
+- Update Lanhc to 1.50.0
+- New Lanhc web interface
+
+For older releases, see https://github.com/dkaser/unraid-lanhc/releases
+]]>
+</CHANGES>
+
+<FILE Name="/boot/config/plugins/lanhc/lanhc_1.54.0_amd64.tgz">
+<URL>https://pkgs.lanhc.com/stable/lanhc_1.54.0_amd64.tgz</URL>
+<MD5>20187743e0c1c1a0d9fea47a10b6a9ba</MD5>
+</FILE>
+
+<FILE Name="/boot/config/plugins/lanhc/unraid-lanhc-utils-1.4.1-noarch-1.txz">
+<URL>https://github.com/dkaser/unraid-lanhc-utils/releases/download/1.4.1/unraid-lanhc-utils-1.4.1-noarch-1.txz</URL>
+<MD5>7095ab4b88b34d8f5da6483865883267</MD5>
+</FILE>
+
+<FILE Name="/boot/config/plugins/lanhc/unraid-plugin-diagnostics-1.2.2-noarch-1.txz">
+<URL>https://github.com/dkaser/unraid-plugin-diagnostics/releases/download/1.2.2/unraid-plugin-diagnostics-1.2.2-noarch-1.txz</URL>
+<MD5>9d358575499305889962d83ebd90c20c</MD5>
+</FILE>
+
+<!--
+The 'install' script.
+-->
+<FILE Run="/bin/bash">
+<INLINE>
+<![CDATA[
+if [ -d "/usr/local/emhttp/plugins/lanhc" ]; then
+    rm -rf /usr/local/emhttp/plugins/lanhc
+fi
+
+upgradepkg --install-new /boot/config/plugins/lanhc/unraid-plugin-diagnostics-1.2.2-noarch-1.txz
+upgradepkg --install-new --reinstall /boot/config/plugins/lanhc/unraid-lanhc-utils-1.4.1-noarch-1.txz
+
+mkdir -p /usr/local/emhttp/plugins/lanhc/bin
+tar xzf /boot/config/plugins/lanhc/lanhc_1.54.0_amd64.tgz --strip-components 1 -C /usr/local/emhttp/plugins/lanhc/bin
+
+ln -s /usr/local/emhttp/plugins/lanhc/bin/lanhc /usr/local/sbin/lanhc
+ln -s /usr/local/emhttp/plugins/lanhc/bin/lanhcd /usr/local/sbin/lanhcd
+
+mkdir -p /var/local/emhttp/plugins/lanhc
+echo "VERSION=2023.11.18" >> /var/local/emhttp/plugins/lanhc/lanhc.ini
+
+# start lanhcd
+/usr/local/emhttp/plugins/lanhc/restart.sh
+
+# cleanup old versions
+rm -f /boot/config/plugins/lanhc/lanhc-utils-*.txz
+rm -f $(ls /boot/config/plugins/lanhc/unraid-lanhc-utils-*.txz 2>/dev/null | grep -v '1.4.1')
+rm -f $(ls /boot/config/plugins/lanhc/unraid-plugin-diagnostics-*.txz 2>/dev/null | grep -v '1.2.2')
+rm -f $(ls /boot/config/plugins/lanhc/*.tgz 2>/dev/null | grep -v 'lanhc_1.54.0_amd64')
+
+echo ""
+echo "----------------------------------------------------"
+echo " lanhc has been installed."
+echo " Version: 2023.11.18"
+echo "----------------------------------------------------"
+echo ""
+]]>
+</INLINE>
+</FILE>
+
+<!--
+The 'remove' script.
+-->
+<FILE Run="/bin/bash" Method="remove">
+<INLINE>
+<![CDATA[
+# Stop service
+/etc/rc.d/rc.lanhc stop 2>/dev/null
+
+rm /usr/local/sbin/lanhc
+rm /usr/local/sbin/lanhcd
+
+removepkg unraid-lanhc-utils-1.4.1
+
+rm -rf /usr/local/emhttp/plugins/lanhc
+rm -rf /boot/config/plugins/lanhc
+]]>
+</INLINE>
+</FILE>
+
+</PLUGIN>

@@ -7,12 +7,12 @@ import (
 	"errors"
 	"fmt"
 
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/ipn"
-	"tailscale.com/tailcfg"
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/util/syspolicy/policyclient"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/ipn"
+	"lanhc.com/tailcfg"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/util/syspolicy/policyclient"
 )
 
 type actorWithPolicyChecks struct{ Actor }
@@ -41,7 +41,7 @@ func (a actorWithPolicyChecks) CheckProfileAccess(profile ipn.LoginProfileView, 
 }
 
 // CheckDisconnectPolicy checks if the policy allows the specified actor to disconnect
-// Tailscale with the given optional reason. It returns nil if the operation is allowed,
+// Lanhc with the given optional reason. It returns nil if the operation is allowed,
 // or an error if it is not. If auditLogger is non-nil, it is called to log the action
 // when required by the policy.
 //

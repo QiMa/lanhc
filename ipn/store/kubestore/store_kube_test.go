@@ -12,12 +12,12 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"tailscale.com/envknob"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/kube/kubeapi"
-	"tailscale.com/kube/kubeclient"
-	"tailscale.com/kube/kubetypes"
+	"lanhc.com/envknob"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/kube/kubeapi"
+	"lanhc.com/kube/kubeclient"
+	"lanhc.com/kube/kubetypes"
 )
 
 func TestKubernetesPodMigrationWithTPMAttestationKey(t *testing.T) {
@@ -642,9 +642,9 @@ func TestNewWithClient(t *testing.T) {
 	)
 
 	certSecretsLabels := map[string]string{
-		"tailscale.com/secret-type": kubetypes.LabelSecretTypeCerts,
-		"tailscale.com/managed":     "true",
-		"tailscale.com/proxy-group": "ingress-proxies",
+		"lanhc.com/secret-type": kubetypes.LabelSecretTypeCerts,
+		"lanhc.com/managed":     "true",
+		"lanhc.com/proxy-group": "ingress-proxies",
 	}
 
 	// Helper function to create Secret objects for testing
@@ -708,9 +708,9 @@ func TestNewWithClient(t *testing.T) {
 				makeSecret("app2.tailnetxyz.ts.net", certSecretsLabels, "2"),
 				makeSecret("some-other-secret", nil, "3"),
 				makeSecret("app3.other-proxies.ts.net", map[string]string{
-					"tailscale.com/secret-type": kubetypes.LabelSecretTypeCerts,
-					"tailscale.com/managed":     "true",
-					"tailscale.com/proxy-group": "some-other-proxygroup",
+					"lanhc.com/secret-type": kubetypes.LabelSecretTypeCerts,
+					"lanhc.com/managed":     "true",
+					"lanhc.com/proxy-group": "some-other-proxygroup",
 				}, "4"),
 			},
 			wantMemoryStoreContents: map[ipn.StateKey][]byte{
@@ -732,9 +732,9 @@ func TestNewWithClient(t *testing.T) {
 				makeSecret("app2.tailnetxyz.ts.net", certSecretsLabels, "2"),
 				makeSecret("some-other-secret", nil, "3"),
 				makeSecret("app3.other-proxies.ts.net", map[string]string{
-					"tailscale.com/secret-type": kubetypes.LabelSecretTypeCerts,
-					"tailscale.com/managed":     "true",
-					"tailscale.com/proxy-group": "some-other-proxygroup",
+					"lanhc.com/secret-type": kubetypes.LabelSecretTypeCerts,
+					"lanhc.com/managed":     "true",
+					"lanhc.com/proxy-group": "some-other-proxygroup",
 				}, "4"),
 			},
 			wantMemoryStoreContents: map[ipn.StateKey][]byte{

@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package build builds the Tailscale Appliance Gokrazy image and,
+// Package build builds the Lanhc Appliance Gokrazy image and,
 // optionally, an AWS AMI from it.
 //
 // It is the reusable core behind the gokrazy/build.go command: a
@@ -13,7 +13,7 @@
 // image (e.g. flash-appliance tooling) can call [Builder.BuildImage]
 // alone.
 //
-// Tracking issue is https://github.com/tailscale/tailscale/issues/1866
+// Tracking issue is https://github.com/lanhc/lanhc/issues/1866
 package build
 
 import (
@@ -38,9 +38,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/mattn/go-isatty"
-	"tailscale.com/gokrazy/mkfs"
-	tsrate "tailscale.com/tstime/rate"
-	"tailscale.com/types/logger"
+	"lanhc.com/gokrazy/mkfs"
+	tsrate "lanhc.com/tstime/rate"
+	"lanhc.com/types/logger"
 )
 
 // Result is the machine-readable outcome of a build. Fields are

@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"strings"
 
-	"tailscale.com/version/mkversion"
+	"lanhc.com/version/mkversion"
 )
 
 // Autoflags adjusts the commandline argv into a new commandline
@@ -39,7 +39,7 @@ func autoflagsForTest(argv []string, env *Environment, goroot, nativeGOOS, nativ
 		cgoCflags   = []string{"-O3", "-std=gnu11", "-g"}
 		cgoLdflags  []string
 		ldflags     []string
-		tags        = []string{"tailscale_go"}
+		tags        = []string{"lanhc_go"}
 		cgo         = false
 		failReflect = false
 	)
@@ -59,10 +59,10 @@ func autoflagsForTest(argv []string, env *Environment, goroot, nativeGOOS, nativ
 
 	vi := getVersion()
 	ldflags = []string{
-		"-X", "tailscale.com/version.longStamp=" + vi.Long,
-		"-X", "tailscale.com/version.shortStamp=" + vi.Short,
-		"-X", "tailscale.com/version.gitCommitStamp=" + vi.GitHash,
-		"-X", "tailscale.com/version.extraGitCommitStamp=" + vi.OtherHash,
+		"-X", "lanhc.com/version.longStamp=" + vi.Long,
+		"-X", "lanhc.com/version.shortStamp=" + vi.Short,
+		"-X", "lanhc.com/version.gitCommitStamp=" + vi.GitHash,
+		"-X", "lanhc.com/version.extraGitCommitStamp=" + vi.OtherHash,
 	}
 
 	switch targetOS {
@@ -128,7 +128,7 @@ func autoflagsForTest(argv []string, env *Environment, goroot, nativeGOOS, nativ
 		tags = append(tags, "omitidna", "omitpemdecrypt")
 		if env.IsSet("XCODE_VERSION_ACTUAL") {
 			// If we're building via Xcode, we must be making the extension
-			// version (as opposed to tailscaled on Mac).
+			// version (as opposed to lanhcd on Mac).
 			tags = append(tags, "ts_macext")
 
 			var xcodeFlags []string

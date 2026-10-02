@@ -13,7 +13,7 @@ import (
 	"strings"
 	"testing"
 
-	"tailscale.com/net/memnet"
+	"lanhc.com/net/memnet"
 )
 
 func echoConnOnce(conn net.Conn) {
@@ -72,7 +72,7 @@ func TestTCPRoundRobinHandler(t *testing.T) {
 	}
 }
 
-// Capture of first TCP data segment for a connection to https://pkgs.tailscale.com
+// Capture of first TCP data segment for a connection to https://pkgs.lanhc.com
 const tlsStart = `45000239ff1840004006f9f5c0a801f2
 c726b5efcf9e01bbe803b21394e3b752
 801801f641dc00000101080ade3474f2
@@ -120,13 +120,13 @@ func fakeSNIHeader() []byte {
 
 func TestTCPSNIHandler(t *testing.T) {
 	h := tcpSNIHandler{
-		Allowlist: []string{"pkgs.tailscale.com"},
+		Allowlist: []string{"pkgs.lanhc.com"},
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 			if network != "tcp" {
 				t.Errorf("network = %s, want %s", network, "tcp")
 			}
-			if addr != "pkgs.tailscale.com:443" {
-				t.Errorf("addr = %s, want %s", addr, "pkgs.tailscale.com:443")
+			if addr != "pkgs.lanhc.com:443" {
+				t.Errorf("addr = %s, want %s", addr, "pkgs.lanhc.com:443")
 			}
 
 			c, s := memnet.NewConn("outbound", 1024)

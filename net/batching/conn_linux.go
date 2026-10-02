@@ -20,13 +20,13 @@ import (
 	"golang.org/x/net/ipv4"
 	"golang.org/x/net/ipv6"
 	"golang.org/x/sys/unix"
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/envknob"
-	"tailscale.com/hostinfo"
-	"tailscale.com/net/neterror"
-	"tailscale.com/net/packet"
-	"tailscale.com/types/nettype"
-	"tailscale.com/util/clientmetric"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/envknob"
+	"lanhc.com/hostinfo"
+	"lanhc.com/net/neterror"
+	"lanhc.com/net/packet"
+	"lanhc.com/types/nettype"
+	"lanhc.com/util/clientmetric"
 )
 
 // xnetBatchReaderWriter defines the batching i/o methods of
@@ -619,7 +619,7 @@ func TryUpgradeToConn(pconn nettype.PacketConn, network string, batchSize int, r
 	osVer := hostinfo.GetOSVersion()
 	if strings.HasPrefix(osVer, "2.") {
 		// recvmmsg/sendmmsg were added in 2.6.33, but we support down to
-		// 2.6.32 for old NAS devices. See https://github.com/tailscale/tailscale/issues/6807.
+		// 2.6.32 for old NAS devices. See https://github.com/lanhc/lanhc/issues/6807.
 		// As a cheap heuristic: if the Linux kernel starts with "2", just
 		// consider it too old for mmsg. Nobody who cares about performance runs
 		// such ancient kernels. UDP offload was added much later, so no

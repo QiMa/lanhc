@@ -18,19 +18,19 @@ import (
 	"time"
 
 	"go4.org/mem"
-	"tailscale.com/envknob"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/net/neterror"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/netns"
-	"tailscale.com/net/portmapper/portmappertype"
-	"tailscale.com/net/sockstats"
-	"tailscale.com/syncs"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/nettype"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/eventbus"
+	"lanhc.com/envknob"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/net/neterror"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/netns"
+	"lanhc.com/net/portmapper/portmappertype"
+	"lanhc.com/net/sockstats"
+	"lanhc.com/syncs"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/nettype"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/eventbus"
 )
 
 var (
@@ -783,7 +783,7 @@ func (c *Client) createOrGetMapping(ctx context.Context) (mapping mapping, exter
 	}
 }
 
-//go:generate go run tailscale.com/cmd/addlicense -file pmpresultcode_string.go go run golang.org/x/tools/cmd/stringer -type=pmpResultCode -trimprefix=pmpCode
+//go:generate go run lanhc.com/cmd/addlicense -file pmpresultcode_string.go go run golang.org/x/tools/cmd/stringer -type=pmpResultCode -trimprefix=pmpCode
 
 type pmpResultCode uint16
 
@@ -904,7 +904,7 @@ func (c *Client) Probe(ctx context.Context) (res portmappertype.ProbeResult, err
 
 	// Don't send probes to services that we recently learned (for
 	// the same gw/myIP) are available. See
-	// https://github.com/tailscale/tailscale/issues/1001
+	// https://github.com/lanhc/lanhc/issues/1001
 	if c.sawPMPRecently() {
 		res.PMP = true
 	} else if !c.debug.DisablePMP() {
@@ -956,7 +956,7 @@ func (c *Client) Probe(ctx context.Context) (res portmappertype.ProbeResult, err
 		// stage for the host firewall to accept the response to the
 		// multicast query.
 		//
-		// See https://github.com/tailscale/tailscale/issues/3197 for
+		// See https://github.com/lanhc/lanhc/issues/3197 for
 		// an example of a device that strictly implements UPnP, and
 		// only responds to multicast queries.
 		//
@@ -964,7 +964,7 @@ func (c *Client) Probe(ctx context.Context) (res portmappertype.ProbeResult, err
 		// urn:schemas-upnp-org:device:InternetGatewayDevice:1 specifically, not
 		// just ssdp:all, because there appear to be devices which only send
 		// their first descriptor (like urn:schemas-wifialliance-org:device:WFADevice:1)
-		// in response to ssdp:all. https://github.com/tailscale/tailscale/issues/3557
+		// in response to ssdp:all. https://github.com/lanhc/lanhc/issues/3557
 		metricUPnPSent.Add(1)
 		uc.WriteToUDPAddrPort(uPnPPacket, upnpAddr)
 		uc.WriteToUDPAddrPort(uPnPPacket, upnpMulticastAddr)
@@ -1053,7 +1053,7 @@ func (c *Client) Probe(ctx context.Context) (res portmappertype.ProbeResult, err
 			metricUPnPResponse.Add(1)
 
 			if ip != gw {
-				// https://github.com/tailscale/tailscale/issues/5502
+				// https://github.com/lanhc/lanhc/issues/5502
 				c.logf("UPnP discovery response from %v, but gateway IP is %v", ip, gw)
 			}
 			meta, err := parseUPnPDiscoResponse(buf[:n])
@@ -1082,7 +1082,7 @@ func (c *Client) Probe(ctx context.Context) (res portmappertype.ProbeResult, err
 			}
 
 		default:
-			// https://github.com/tailscale/tailscale/issues/7377
+			// https://github.com/lanhc/lanhc/issues/7377
 			if mem.Contains(mem.B(buf[:n]), mem.S(":InternetGatewayDevice:")) {
 				c.logf("UPnP discovery response from non-UPnP port %d", port)
 				metricUPnPResponseAlternatePort.Add(1)
@@ -1227,7 +1227,7 @@ var uPnPPacket = []byte("M-SEARCH * HTTP/1.1\r\n" +
 
 // Send a discovery frame for InternetGatewayDevice, since some devices respond
 // to ssdp:all with only their first descriptor (which is often not IGD).
-// https://github.com/tailscale/tailscale/issues/3557
+// https://github.com/lanhc/lanhc/issues/3557
 var uPnPIGDPacket = []byte("M-SEARCH * HTTP/1.1\r\n" +
 	"HOST: 239.255.255.250:1900\r\n" +
 	"ST: urn:schemas-upnp-org:device:InternetGatewayDevice:1\r\n" +

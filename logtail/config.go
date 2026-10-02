@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"time"
 
-	"tailscale.com/internal/lanhc"
-	"tailscale.com/tstime"
-	"tailscale.com/types/logid"
-	"tailscale.com/util/eventbus"
+	"lanhc.com/internal/lanhc"
+	"lanhc.com/tstime"
+	"lanhc.com/types/logid"
+	"lanhc.com/util/eventbus"
 )
 
 // DefaultHost is the default host name to upload logs to when
@@ -20,30 +20,30 @@ import (
 // It is a variable, not a constant, so that a downstream build can point the
 // stock client at its own log server (or at nothing) at link time:
 //
-//	go build -ldflags "-X tailscale.com/logtail.DefaultHost="
+//	go build -ldflags "-X lanhc.com/logtail.DefaultHost="
 //
-// The upstream default is the hosted log service run by Tailscale. The
+// The upstream default is the hosted log service run by Lanhc. The
 // initializer is compiled out entirely in isolated downstream builds.
 var DefaultHost = func() string {
 	if lanhc.Isolated {
 		return ""
 	}
-	return "log.tailscale.com"
+	return "log.lanhc.com"
 }()
 
 const defaultFlushDelay = 2 * time.Second
 
 const (
 	// CollectionNode is the name of a logtail Config.Collection
-	// for tailscaled (or equivalent: IPNExtension, Android app).
-	CollectionNode = "tailnode.log.tailscale.io"
+	// for lanhcd (or equivalent: IPNExtension, Android app).
+	CollectionNode = "tailnode.log.lanhc.io"
 )
 
 type Config struct {
 	Collection     string          // collection name, a domain name
 	PrivateID      logid.PrivateID // private ID for the primary log stream
 	CopyPrivateID  logid.PrivateID // private ID for a log stream that is a superset of this log stream
-	BaseURL        string          // if empty defaults to "https://log.tailscale.com"
+	BaseURL        string          // if empty defaults to "https://log.lanhc.com"
 	HTTPC          *http.Client    // if empty defaults to http.DefaultClient
 	SkipClientTime bool            // if true, client_time is not written to logs
 	LowMemory      bool            // if true, logtail minimizes memory use

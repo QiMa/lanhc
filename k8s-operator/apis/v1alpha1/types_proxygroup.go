@@ -17,19 +17,19 @@ import (
 // +kubebuilder:printcolumn:name="Type",type="string",JSONPath=`.spec.type`,description="ProxyGroup type."
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
-// ProxyGroup defines a set of Tailscale devices that will act as proxies.
+// ProxyGroup defines a set of Lanhc devices that will act as proxies.
 // Depending on spec.Type, it can be a group of egress, ingress, or kube-apiserver
 // proxies. In addition to running a highly available set of proxies, ingress
 // and egress ProxyGroups also allow for serving many annotated Services from a
 // single set of proxies to minimise resource consumption.
 //
-// For ingress and egress, use the tailscale.com/proxy-group annotation on a
+// For ingress and egress, use the lanhc.com/proxy-group annotation on a
 // Service to specify that the proxy should be implemented by a ProxyGroup
 // instead of a single dedicated proxy.
 //
 // More info:
-// * https://tailscale.com/kb/1438/kubernetes-operator-cluster-egress
-// * https://tailscale.com/kb/1439/kubernetes-operator-cluster-ingress
+// * https://lanhc.com/kb/1438/kubernetes-operator-cluster-egress
+// * https://lanhc.com/kb/1439/kubernetes-operator-cluster-ingress
 //
 // For kube-apiserver, the ProxyGroup is a standalone resource. Use the
 // spec.kubeAPIServer field to configure options specific to the kube-apiserver
@@ -42,7 +42,7 @@ type ProxyGroup struct {
 	Spec ProxyGroupSpec `json:"spec"`
 
 	// ProxyGroupStatus describes the status of the ProxyGroup resources. This is
-	// set and managed by the Tailscale operator.
+	// set and managed by the Lanhc operator.
 	// +optional
 	Status ProxyGroupStatus `json:"status"`
 }
@@ -62,10 +62,10 @@ type ProxyGroupSpec struct {
 	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="ProxyGroup type is immutable"
 	Type ProxyGroupType `json:"type"`
 
-	// Tags that the Tailscale devices will be tagged with. Defaults to [tag:k8s].
+	// Tags that the Lanhc devices will be tagged with. Defaults to [tag:k8s].
 	// If you specify custom tags here, make sure you also make the operator
 	// an owner of these tags.
-	// See  https://tailscale.com/kb/1236/kubernetes-operator/#setting-up-the-kubernetes-operator.
+	// See  https://lanhc.com/kb/1236/kubernetes-operator/#setting-up-the-kubernetes-operator.
 	// Tags cannot be changed once a ProxyGroup device has been created.
 	// Tag values must be in form ^tag:[a-zA-Z][a-zA-Z0-9-]*$.
 	// +optional

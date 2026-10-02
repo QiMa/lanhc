@@ -30,10 +30,10 @@ import (
 	"time"
 
 	"go4.org/mem"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest/integration/testcontrol"
-	"tailscale.com/types/key"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest/integration/testcontrol"
+	"lanhc.com/types/key"
 )
 
 // SelfUserID is the synthetic [tailcfg.UserID] assigned to the self node and
@@ -257,7 +257,7 @@ func node4(nid tailcfg.NodeID) netip.Prefix {
 }
 
 func node6(nid tailcfg.NodeID) netip.Prefix {
-	a := tsaddr.TailscaleULARange().Addr().As16()
+	a := tsaddr.LanhcULARange().Addr().As16()
 	a[13] = byte(nid >> 16)
 	a[14] = byte(nid >> 8)
 	a[15] = byte(nid)

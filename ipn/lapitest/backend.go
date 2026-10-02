@@ -6,11 +6,11 @@ package lapitest
 import (
 	"testing"
 
-	"tailscale.com/control/controlclient"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/types/logid"
-	"tailscale.com/wgengine"
+	"lanhc.com/control/controlclient"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/types/logid"
+	"lanhc.com/wgengine"
 )
 
 // NewBackend returns a new [ipnlocal.LocalBackend] for testing purposes.

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/util/must"
+	"lanhc.com/util/must"
 )
 
 func TestParseDuration(t *testing.T) {

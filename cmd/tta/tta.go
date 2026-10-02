@@ -1,9 +1,9 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// The tta server is the Tailscale Test Agent.
+// The tta server is the Lanhc Test Agent.
 //
-// It runs on each Tailscale node being integration tested and permits the test
+// It runs on each Lanhc node being integration tested and permits the test
 // harness to control the node. It connects out to the test drver (rather than
 // accepting any TCP connections inbound, which might be blocked depending on
 // the scenario being tested) and then the test driver turns the TCP connection
@@ -32,13 +32,13 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/atomicfile"
-	"tailscale.com/client/local"
-	"tailscale.com/hostinfo"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/must"
-	"tailscale.com/util/set"
-	"tailscale.com/version/distro"
+	"lanhc.com/atomicfile"
+	"lanhc.com/client/local"
+	"lanhc.com/hostinfo"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/must"
+	"lanhc.com/util/set"
+	"lanhc.com/version/distro"
 )
 
 // connContextKeyType is the type of connContextKey, which isn't of type
@@ -53,7 +53,7 @@ const (
 )
 
 var (
-	driverAddr = flag.String("driver", "test-driver.tailscale:8008", "address of the test driver; by default we use the DNS name test-driver.tailscale which is special cased in the emulated network's DNS server")
+	driverAddr = flag.String("driver", "test-driver.lanhc:8008", "address of the test driver; by default we use the DNS name test-driver.lanhc which is special cased in the emulated network's DNS server")
 )
 
 func absify(cmd string) string {
@@ -136,7 +136,7 @@ func main() {
 		}
 	}
 
-	log.Printf("Tailscale Test Agent running.")
+	log.Printf("Lanhc Test Agent running.")
 
 	gokRP := httputil.NewSingleHostReverseProxy(must.Get(url.Parse("http://gokrazy")))
 	gokRP.Transport = &http.Transport{
@@ -174,7 +174,7 @@ func main() {
 	hs.ConnState = revSt.connState
 	conns := make(chan net.Conn, 1)
 
-	lcRP := httputil.NewSingleHostReverseProxy(must.Get(url.Parse("http://local-tailscaled.sock")))
+	lcRP := httputil.NewSingleHostReverseProxy(must.Get(url.Parse("http://local-lanhcd.sock")))
 	lcRP.Transport = new(localClientRoundTripper)
 	ttaMux.HandleFunc("/localapi/", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got localapi request: %v", r.URL)
@@ -188,7 +188,7 @@ func main() {
 		return
 	})
 	ttaMux.HandleFunc("/up", func(w http.ResponseWriter, r *http.Request) {
-		args := []string{"up", "--login-server=http://control.tailscale"}
+		args := []string{"up", "--login-server=http://control.lanhc"}
 		if routes := r.URL.Query().Get("advertise-routes"); routes != "" {
 			args = append(args, "--advertise-routes="+routes)
 		}
@@ -201,7 +201,7 @@ func main() {
 		if r.URL.Query().Get("ssh") == "true" {
 			args = append(args, "--ssh")
 		}
-		serveCmd(w, "tailscale", args...)
+		serveCmd(w, "lanhc", args...)
 	})
 	ttaMux.HandleFunc("/set", func(w http.ResponseWriter, r *http.Request) {
 		args := []string{"set"}
@@ -214,10 +214,10 @@ func main() {
 		if snat := r.URL.Query().Get("snat-subnet-routes"); snat != "" {
 			args = append(args, "--snat-subnet-routes="+snat)
 		}
-		serveCmd(w, "tailscale", args...)
+		serveCmd(w, "lanhc", args...)
 	})
-	ttaMux.HandleFunc("/tailscale", func(w http.ResponseWriter, r *http.Request) {
-		serveCmd(w, "tailscale", r.URL.Query()["arg"]...)
+	ttaMux.HandleFunc("/lanhc", func(w http.ResponseWriter, r *http.Request) {
+		serveCmd(w, "lanhc", r.URL.Query()["arg"]...)
 	})
 	ttaMux.HandleFunc("/gokrazy-root", func(w http.ResponseWriter, r *http.Request) {
 		cmdLine, err := os.ReadFile("/proc/cmdline")
@@ -290,7 +290,7 @@ func main() {
 		io.WriteString(w, "OK\n")
 	})
 	ttaMux.HandleFunc("/taildrop-send", func(w http.ResponseWriter, r *http.Request) {
-		to := r.URL.Query().Get("to") // peer's Tailscale IP
+		to := r.URL.Query().Get("to") // peer's Lanhc IP
 		name := r.URL.Query().Get("name")
 		if to == "" || name == "" {
 			http.Error(w, "missing to or name", http.StatusBadRequest)
@@ -321,7 +321,7 @@ func main() {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		serveCmd(w, "tailscale", "file", "cp", path, to+":")
+		serveCmd(w, "lanhc", "file", "cp", path, to+":")
 	})
 	ttaMux.HandleFunc("/taildrop-recv", func(w http.ResponseWriter, r *http.Request) {
 		dir, err := os.MkdirTemp("", "taildrop-recv-")
@@ -332,9 +332,9 @@ func main() {
 		defer os.RemoveAll(dir)
 		ctx, cancel := context.WithTimeout(r.Context(), 60*time.Second)
 		defer cancel()
-		cmd := exec.CommandContext(ctx, absify("tailscale"), "file", "get", "--wait", dir)
+		cmd := exec.CommandContext(ctx, absify("lanhc"), "file", "get", "--wait", dir)
 		if out, err := cmd.CombinedOutput(); err != nil {
-			http.Error(w, fmt.Sprintf("tailscale file get: %v\n%s", err, out), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("lanhc file get: %v\n%s", err, out), http.StatusInternalServerError)
 			return
 		}
 		ents, err := os.ReadDir(dir)
@@ -372,14 +372,14 @@ func main() {
 		if cookie := r.Header.Get("Cookie"); cookie != "" {
 			req.Header.Set("Cookie", cookie)
 		}
-		// Use Tailscale's SOCKS5 proxy if available, so traffic to Tailscale
+		// Use Lanhc's SOCKS5 proxy if available, so traffic to Lanhc
 		// subnet routes goes through the WireGuard tunnel instead of the
 		// host network stack (which may not have the routes, especially
 		// in userspace networking mode).
 		client := &http.Client{
 			Transport: &http.Transport{
 				DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-					// Try the Tailscale localapi proxy dialer first.
+					// Try the Lanhc localapi proxy dialer first.
 					host, portStr, err := net.SplitHostPort(addr)
 					if err != nil {
 						var d net.Dialer
@@ -418,17 +418,17 @@ func main() {
 		}
 		wgServerUp(w, r)
 	})
-	ttaMux.HandleFunc("/restart-tailscaled", func(w http.ResponseWriter, r *http.Request) {
-		if restartTailscaled == nil {
-			http.Error(w, "restart-tailscaled not supported on this platform", http.StatusNotImplemented)
+	ttaMux.HandleFunc("/restart-lanhcd", func(w http.ResponseWriter, r *http.Request) {
+		if restartLanhcd == nil {
+			http.Error(w, "restart-lanhcd not supported on this platform", http.StatusNotImplemented)
 			return
 		}
-		pid, err := restartTailscaled()
+		pid, err := restartLanhcd()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		fmt.Fprintf(w, "killed tailscaled pid %d (supervisor will respawn)\n", pid)
+		fmt.Fprintf(w, "killed lanhcd pid %d (supervisor will respawn)\n", pid)
 	})
 	ttaMux.HandleFunc("/logs", func(w http.ResponseWriter, r *http.Request) {
 		logBuf.mu.Lock()
@@ -639,10 +639,10 @@ var addFirewall func() error // set by fw_linux.go
 // non-Linux.
 var wgServerUp func(w http.ResponseWriter, r *http.Request)
 
-// restartTailscaled sends SIGKILL to the local tailscaled process so the
-// gokrazy supervisor restarts it. It is set by restart_tailscaled_linux.go
+// restartLanhcd sends SIGKILL to the local lanhcd process so the
+// gokrazy supervisor restarts it. It is set by restart_lanhcd_linux.go
 // and is nil on non-Linux.
-var restartTailscaled func() (pid int, err error)
+var restartLanhcd func() (pid int, err error)
 
 // logBuffer is a bytes.Buffer that is safe for concurrent use
 // intended to capture early logs from the process, even if

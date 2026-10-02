@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/tstest"
+	"lanhc.com/tstest"
 )
 
 func TestReloader(t *testing.T) {

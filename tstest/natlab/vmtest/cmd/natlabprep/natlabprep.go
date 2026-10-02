@@ -10,7 +10,7 @@ import (
 	"context"
 	"log"
 
-	"tailscale.com/tstest/natlab/vmtest"
+	"lanhc.com/tstest/natlab/vmtest"
 )
 
 func main() {

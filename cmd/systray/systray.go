@@ -3,19 +3,19 @@
 
 //go:build cgo || !darwin
 
-// systray is a minimal Tailscale systray application.
+// systray is a minimal Lanhc systray application.
 package main
 
 import (
 	"flag"
 
-	"tailscale.com/client/local"
-	"tailscale.com/client/systray"
-	"tailscale.com/paths"
+	"lanhc.com/client/local"
+	"lanhc.com/client/systray"
+	"lanhc.com/paths"
 )
 
-var socket = flag.String("socket", paths.DefaultTailscaledSocket(), "path to tailscaled socket")
-var theme = flag.String("theme", "dark", "color theme for Tailscale icon: dark, dark:nobg, light, light:nobg")
+var socket = flag.String("socket", paths.DefaultLanhcdSocket(), "path to lanhcd socket")
+var theme = flag.String("theme", "dark", "color theme for Lanhc icon: dark, dark:nobg, light, light:nobg")
 
 func main() {
 	flag.Parse()

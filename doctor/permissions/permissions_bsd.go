@@ -7,7 +7,7 @@ package permissions
 
 import (
 	"golang.org/x/sys/unix"
-	"tailscale.com/types/logger"
+	"lanhc.com/types/logger"
 )
 
 func permissionsImpl(logf logger.Logf) error {

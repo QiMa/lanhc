@@ -17,7 +17,7 @@ func prepExeNameForCmp(exe, arch string) string {
 }
 
 func checkPreppedExeNameForGUI(preppedExeName string) bool {
-	return preppedExeName == "tailscale-ipn" || preppedExeName == "tailscale-gui"
+	return preppedExeName == "lanhc-gui"
 }
 
 func isGUIExeName(exe, arch string) bool {

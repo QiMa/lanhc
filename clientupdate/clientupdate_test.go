@@ -31,39 +31,39 @@ func TestUpdateDebianAptSourcesListBytes(t *testing.T) {
 		{
 			name:    "stable-to-unstable",
 			toTrack: UnstableTrack,
-			in:      "# Tailscale packages for debian buster\ndeb https://pkgs.tailscale.com/stable/debian bullseye main\n",
-			want:    "# Tailscale packages for debian buster\ndeb https://pkgs.tailscale.com/unstable/debian bullseye main\n",
+			in:      "# Lanhc packages for debian buster\ndeb https://pkgs.lanhc.com/stable/debian bullseye main\n",
+			want:    "# Lanhc packages for debian buster\ndeb https://pkgs.lanhc.com/unstable/debian bullseye main\n",
 		},
 		{
 			name:    "stable-unchanged",
 			toTrack: StableTrack,
-			in:      "# Tailscale packages for debian buster\ndeb https://pkgs.tailscale.com/stable/debian bullseye main\n",
+			in:      "# Lanhc packages for debian buster\ndeb https://pkgs.lanhc.com/stable/debian bullseye main\n",
 		},
 		{
 			name:    "if-both-stable-and-unstable-dont-change",
 			toTrack: StableTrack,
-			in: "# Tailscale packages for debian buster\n" +
-				"deb https://pkgs.tailscale.com/stable/debian bullseye main\n" +
-				"deb https://pkgs.tailscale.com/unstable/debian bullseye main\n",
+			in: "# Lanhc packages for debian buster\n" +
+				"deb https://pkgs.lanhc.com/stable/debian bullseye main\n" +
+				"deb https://pkgs.lanhc.com/unstable/debian bullseye main\n",
 		},
 		{
 			name:    "if-both-stable-and-unstable-dont-change-unstable",
 			toTrack: UnstableTrack,
-			in: "# Tailscale packages for debian buster\n" +
-				"deb https://pkgs.tailscale.com/stable/debian bullseye main\n" +
-				"deb https://pkgs.tailscale.com/unstable/debian bullseye main\n",
+			in: "# Lanhc packages for debian buster\n" +
+				"deb https://pkgs.lanhc.com/stable/debian bullseye main\n" +
+				"deb https://pkgs.lanhc.com/unstable/debian bullseye main\n",
 		},
 		{
 			name:    "signed-by-form",
 			toTrack: UnstableTrack,
-			in:      "# Tailscale packages for ubuntu jammy\ndeb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/ubuntu jammy main\n",
-			want:    "# Tailscale packages for ubuntu jammy\ndeb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/unstable/ubuntu jammy main\n",
+			in:      "# Lanhc packages for ubuntu jammy\ndeb [signed-by=/usr/share/keyrings/lanhc-archive-keyring.gpg] https://pkgs.lanhc.com/stable/ubuntu jammy main\n",
+			want:    "# Lanhc packages for ubuntu jammy\ndeb [signed-by=/usr/share/keyrings/lanhc-archive-keyring.gpg] https://pkgs.lanhc.com/unstable/ubuntu jammy main\n",
 		},
 		{
 			name:    "unsupported-lines",
 			toTrack: UnstableTrack,
-			in:      "# Tailscale packages for ubuntu jammy\ndeb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/foobar/ubuntu jammy main\n",
-			wantErr: "unexpected/unsupported /etc/apt/sources.list.d/tailscale.list contents",
+			in:      "# Lanhc packages for ubuntu jammy\ndeb [signed-by=/usr/share/keyrings/lanhc-archive-keyring.gpg] https://pkgs.lanhc.com/foobar/ubuntu jammy main\n",
+			wantErr: "unexpected/unsupported /etc/apt/sources.list.d/lanhc.list contents",
 		},
 	}
 	for _, tt := range tests {
@@ -91,36 +91,36 @@ func TestUpdateDebianAptSourcesListBytes(t *testing.T) {
 
 var YUMRepos = map[string]string{
 	StableTrack: `
-[tailscale-stable]
-name=Tailscale stable
-baseurl=https://pkgs.tailscale.com/stable/fedora/$basearch
+[lanhc-stable]
+name=Lanhc stable
+baseurl=https://pkgs.lanhc.com/stable/fedora/$basearch
 enabled=1
 type=rpm
 repo_gpgcheck=1
 gpgcheck=0
-gpgkey=https://pkgs.tailscale.com/stable/fedora/repo.gpg
+gpgkey=https://pkgs.lanhc.com/stable/fedora/repo.gpg
 `,
 
 	UnstableTrack: `
-[tailscale-unstable]
-name=Tailscale unstable
-baseurl=https://pkgs.tailscale.com/unstable/fedora/$basearch
+[lanhc-unstable]
+name=Lanhc unstable
+baseurl=https://pkgs.lanhc.com/unstable/fedora/$basearch
 enabled=1
 type=rpm
 repo_gpgcheck=1
 gpgcheck=0
-gpgkey=https://pkgs.tailscale.com/unstable/fedora/repo.gpg
+gpgkey=https://pkgs.lanhc.com/unstable/fedora/repo.gpg
 `,
 
 	ReleaseCandidateTrack: `
-[tailscale-release-candidate]
-name=Tailscale release-candidate
-baseurl=https://pkgs.tailscale.com/release-candidate/fedora/$basearch
+[lanhc-release-candidate]
+name=Lanhc release-candidate
+baseurl=https://pkgs.lanhc.com/release-candidate/fedora/$basearch
 enabled=1
 type=rpm
 repo_gpgcheck=1
 gpgcheck=0
-gpgkey=https://pkgs.tailscale.com/release-candidate/fedora/repo.gpg
+gpgkey=https://pkgs.lanhc.com/release-candidate/fedora/repo.gpg
 `,
 
 	"FakeRepo": `
@@ -168,7 +168,7 @@ func TestUpdateYUMRepoTrack(t *testing.T) {
 			rewrote: true,
 		},
 		{
-			desc:    "non-tailscale-repo-file",
+			desc:    "non-lanhc-repo-file",
 			before:  YUMRepos["FakeRepo"],
 			track:   StableTrack,
 			wantErr: true,
@@ -177,7 +177,7 @@ func TestUpdateYUMRepoTrack(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
-			path := filepath.Join(t.TempDir(), "tailscale.repo")
+			path := filepath.Join(t.TempDir(), "lanhc.repo")
 			if err := os.WriteFile(path, []byte(tt.before), 0644); err != nil {
 				t.Fatal(err)
 			}
@@ -217,13 +217,13 @@ func TestParseAlpinePackageVersion(t *testing.T) {
 		{
 			desc: "valid-version",
 			out: `
-tailscale-1.44.2-r0 description:
+lanhc-1.44.2-r0 description:
 The easiest, most secure way to use WireGuard and 2FA
 
-tailscale-1.44.2-r0 webpage:
-https://tailscale.com/
+lanhc-1.44.2-r0 webpage:
+https://lanhc.com/
 
-tailscale-1.44.2-r0 installed size:
+lanhc-1.44.2-r0 installed size:
 32 MiB
 `,
 			want: "1.44.2",
@@ -245,13 +245,13 @@ busybox-1.36.1-r0 installed size:
 		{
 			desc: "missing-version",
 			out: `
-tailscale description:
+lanhc description:
 The easiest, most secure way to use WireGuard and 2FA
 
-tailscale webpage:
-https://tailscale.com/
+lanhc webpage:
+https://lanhc.com/
 
-tailscale installed size:
+lanhc installed size:
 32 MiB
 `,
 			wantErr: true,
@@ -264,22 +264,22 @@ tailscale installed size:
 		{
 			desc: "multiple-versions",
 			out: `
-tailscale-1.54.1-r0 description:
+lanhc-1.54.1-r0 description:
 The easiest, most secure way to use WireGuard and 2FA
 
-tailscale-1.54.1-r0 webpage:
-https://tailscale.com/
+lanhc-1.54.1-r0 webpage:
+https://lanhc.com/
 
-tailscale-1.54.1-r0 installed size:
+lanhc-1.54.1-r0 installed size:
 34 MiB
 
-tailscale-1.58.2-r0 description:
+lanhc-1.58.2-r0 description:
 The easiest, most secure way to use WireGuard and 2FA
 
-tailscale-1.58.2-r0 webpage:
-https://tailscale.com/
+lanhc-1.58.2-r0 webpage:
+https://lanhc.com/
 
-tailscale-1.58.2-r0 installed size:
+lanhc-1.58.2-r0 installed size:
 35 MiB
 `,
 			want: "1.58.2",
@@ -391,9 +391,9 @@ func TestCheckOutdatedAlpineRepo(t *testing.T) {
 			))
 			defer testServ.Close()
 
-			oldEndpoint := tailscaleHTTPEndpoint
-			tailscaleHTTPEndpoint = testServ.URL
-			defer func() { tailscaleHTTPEndpoint = oldEndpoint }()
+			oldEndpoint := lanhcHTTPEndpoint
+			lanhcHTTPEndpoint = testServ.URL
+			defer func() { lanhcHTTPEndpoint = oldEndpoint }()
 
 			var paramLatest string
 			var paramApkVer string
@@ -600,111 +600,111 @@ func TestUnpackLinuxTarball(t *testing.T) {
 		{
 			desc: "success",
 			before: map[string]string{
-				"tailscale":  "v1",
-				"tailscaled": "v1",
+				"lanhc":  "v1",
+				"lanhcd": "v1",
 			},
 			tarball: map[string]string{
-				"/usr/bin/tailscale":  "v2",
-				"/usr/bin/tailscaled": "v2",
+				"/usr/bin/lanhc":  "v2",
+				"/usr/bin/lanhcd": "v2",
 			},
 			after: map[string]string{
-				"tailscale":  "v2",
-				"tailscaled": "v2",
+				"lanhc":  "v2",
+				"lanhcd": "v2",
 			},
 		},
 		{
 			desc: "skip-unrelated-files", // don't touch unrelated files
 			before: map[string]string{
-				"tailscale":  "v1",
-				"tailscaled": "v1",
+				"lanhc":  "v1",
+				"lanhcd": "v1",
 				"foo":        "bar",
 			},
 			tarball: map[string]string{
-				"/usr/bin/tailscale":  "v2",
-				"/usr/bin/tailscaled": "v2",
+				"/usr/bin/lanhc":  "v2",
+				"/usr/bin/lanhcd": "v2",
 			},
 			after: map[string]string{
-				"tailscale":  "v2",
-				"tailscaled": "v2",
+				"lanhc":  "v2",
+				"lanhcd": "v2",
 				"foo":        "bar",
 			},
 		},
 		{
 			desc: "unmodified",
 			before: map[string]string{
-				"tailscale":  "v1",
-				"tailscaled": "v1",
+				"lanhc":  "v1",
+				"lanhcd": "v1",
 			},
 			tarball: map[string]string{
-				"/usr/bin/tailscale":  "v1",
-				"/usr/bin/tailscaled": "v1",
+				"/usr/bin/lanhc":  "v1",
+				"/usr/bin/lanhcd": "v1",
 			},
 			after: map[string]string{
-				"tailscale":  "v1",
-				"tailscaled": "v1",
+				"lanhc":  "v1",
+				"lanhcd": "v1",
 			},
 		},
 		{
 			desc: "ignore-extra-tarball-files",
 			before: map[string]string{
-				"tailscale":  "v1",
-				"tailscaled": "v1",
+				"lanhc":  "v1",
+				"lanhcd": "v1",
 			},
 			tarball: map[string]string{
-				"/usr/bin/tailscale":          "v2",
-				"/usr/bin/tailscaled":         "v2",
-				"/systemd/tailscaled.service": "v2",
+				"/usr/bin/lanhc":          "v2",
+				"/usr/bin/lanhcd":         "v2",
+				"/systemd/lanhcd.service": "v2",
 			},
 			after: map[string]string{
-				"tailscale":  "v2",
-				"tailscaled": "v2",
+				"lanhc":  "v2",
+				"lanhcd": "v2",
 			},
 		},
 		{
-			desc: "tarball-missing-tailscaled",
+			desc: "tarball-missing-lanhcd",
 			before: map[string]string{
-				"tailscale":  "v1",
-				"tailscaled": "v1",
+				"lanhc":  "v1",
+				"lanhcd": "v1",
 			},
 			tarball: map[string]string{
-				"/usr/bin/tailscale": "v2",
+				"/usr/bin/lanhc": "v2",
 			},
 			after: map[string]string{
-				"tailscale":     "v1",
-				"tailscale.new": "v2",
-				"tailscaled":    "v1",
+				"lanhc":     "v1",
+				"lanhc.new": "v2",
+				"lanhcd":    "v1",
 			},
 			wantErr: true,
 		},
 		{
-			desc: "duplicate-tailscale-binary",
+			desc: "duplicate-lanhc-binary",
 			before: map[string]string{
-				"tailscale":  "v1",
-				"tailscaled": "v1",
+				"lanhc":  "v1",
+				"lanhcd": "v1",
 			},
 			tarball: map[string]string{
-				"/usr/bin/tailscale":  "v2",
-				"/usr/sbin/tailscale": "v2",
-				"/usr/bin/tailscaled": "v2",
+				"/usr/bin/lanhc":  "v2",
+				"/usr/sbin/lanhc": "v2",
+				"/usr/bin/lanhcd": "v2",
 			},
 			after: map[string]string{
-				"tailscale":      "v1",
-				"tailscale.new":  "v2",
-				"tailscaled":     "v1",
-				"tailscaled.new": "v2",
+				"lanhc":      "v1",
+				"lanhc.new":  "v2",
+				"lanhcd":     "v1",
+				"lanhcd.new": "v2",
 			},
 			wantErr: true,
 		},
 		{
 			desc: "empty-archive",
 			before: map[string]string{
-				"tailscale":  "v1",
-				"tailscaled": "v1",
+				"lanhc":  "v1",
+				"lanhcd": "v1",
 			},
 			tarball: map[string]string{},
 			after: map[string]string{
-				"tailscale":  "v1",
-				"tailscaled": "v1",
+				"lanhc":  "v1",
+				"lanhcd": "v1",
 			},
 			wantErr: true,
 		},
@@ -714,17 +714,17 @@ func TestUnpackLinuxTarball(t *testing.T) {
 		t.Run(tt.desc, func(t *testing.T) {
 			// Swap out binaryPaths function to point at dummy file paths.
 			tmp := t.TempDir()
-			tailscalePath := filepath.Join(tmp, "tailscale")
-			tailscaledPath := filepath.Join(tmp, "tailscaled")
+			lanhcPath := filepath.Join(tmp, "lanhc")
+			lanhcdPath := filepath.Join(tmp, "lanhcd")
 			binaryPaths = func() (string, string, error) {
-				return tailscalePath, tailscaledPath, nil
+				return lanhcPath, lanhcdPath, nil
 			}
 			for name, content := range tt.before {
 				if err := os.WriteFile(filepath.Join(tmp, name), []byte(content), 0755); err != nil {
 					t.Fatal(err)
 				}
 			}
-			tarPath := filepath.Join(tmp, "tailscale.tgz")
+			tarPath := filepath.Join(tmp, "lanhc.tgz")
 			genTarball(t, tarPath, tt.tarball)
 
 			up := &Updater{Arguments: Arguments{Logf: t.Logf}}
@@ -851,8 +851,8 @@ func TestCleanupOldDownloads(t *testing.T) {
 		{
 			desc: "MSIs",
 			before: []string{
-				"MSICache/tailscale-1.0.0.msi",
-				"MSICache/tailscale-1.1.0.msi",
+				"MSICache/lanhc-1.0.0.msi",
+				"MSICache/lanhc-1.1.0.msi",
 				"MSICache/readme.txt",
 			},
 			glob: "MSICache/*.msi",
@@ -863,50 +863,50 @@ func TestCleanupOldDownloads(t *testing.T) {
 		{
 			desc: "SPKs",
 			before: []string{
-				"tmp/tailscale-update-1/tailscale-1.0.0.spk",
-				"tmp/tailscale-update-2/tailscale-1.1.0.spk",
+				"tmp/lanhc-update-1/lanhc-1.0.0.spk",
+				"tmp/lanhc-update-2/lanhc-1.1.0.spk",
 				"tmp/readme.txt",
-				"tmp/tailscale-update-3",
-				"tmp/tailscale-update-4/tailscale-1.3.0",
+				"tmp/lanhc-update-3",
+				"tmp/lanhc-update-4/lanhc-1.3.0",
 			},
-			glob: "tmp/tailscale-update*/*.spk",
+			glob: "tmp/lanhc-update*/*.spk",
 			after: []string{
 				"tmp/readme.txt",
-				"tmp/tailscale-update-3",
-				"tmp/tailscale-update-4/tailscale-1.3.0",
+				"tmp/lanhc-update-3",
+				"tmp/lanhc-update-4/lanhc-1.3.0",
 			},
 		},
 		{
 			desc:   "empty-target",
 			before: []string{},
-			glob:   "tmp/tailscale-update*/*.spk",
+			glob:   "tmp/lanhc-update*/*.spk",
 			after:  []string{},
 		},
 		{
 			desc: "keep-dirs",
 			before: []string{
-				"tmp/tailscale-update-1/tailscale-1.0.0.spk",
+				"tmp/lanhc-update-1/lanhc-1.0.0.spk",
 			},
-			glob: "tmp/tailscale-update*",
+			glob: "tmp/lanhc-update*",
 			after: []string{
-				"tmp/tailscale-update-1/tailscale-1.0.0.spk",
+				"tmp/lanhc-update-1/lanhc-1.0.0.spk",
 			},
 		},
 		{
 			desc: "no-follow-symlinks",
 			before: []string{
-				"MSICache/tailscale-1.0.0.msi",
-				"MSICache/tailscale-1.1.0.msi",
+				"MSICache/lanhc-1.0.0.msi",
+				"MSICache/lanhc-1.1.0.msi",
 				"MSICache/readme.txt",
 			},
 			symlinks: map[string]string{
-				"MSICache/tailscale-1.3.0.msi": "MSICache/tailscale-1.0.0.msi",
-				"MSICache/tailscale-1.4.0.msi": "MSICache/readme.txt",
+				"MSICache/lanhc-1.3.0.msi": "MSICache/lanhc-1.0.0.msi",
+				"MSICache/lanhc-1.4.0.msi": "MSICache/readme.txt",
 			},
 			glob: "MSICache/*.msi",
 			after: []string{
-				"MSICache/tailscale-1.3.0.msi",
-				"MSICache/tailscale-1.4.0.msi",
+				"MSICache/lanhc-1.3.0.msi",
+				"MSICache/lanhc-1.4.0.msi",
 				"MSICache/readme.txt",
 			},
 		},
@@ -957,10 +957,10 @@ func TestParseUnraidPluginVersion(t *testing.T) {
 		wantVer string
 		wantErr string
 	}{
-		{name: "v1_52_0", plgPath: "testdata/tailscale-1.52.0.plg", wantVer: "1.52.0"},
-		{name: "v1_54_0", plgPath: "testdata/tailscale-1.54.0.plg", wantVer: "1.54.0"},
-		{name: "nover", plgPath: "testdata/tailscale-nover.plg", wantErr: "version not found in plg file"},
-		{name: "nover-path-mentioned", plgPath: "testdata/tailscale-nover-path-mentioned.plg", wantErr: "version not found in plg file"},
+		{name: "v1_52_0", plgPath: "testdata/lanhc-1.52.0.plg", wantVer: "1.52.0"},
+		{name: "v1_54_0", plgPath: "testdata/lanhc-1.54.0.plg", wantVer: "1.54.0"},
+		{name: "nover", plgPath: "testdata/lanhc-nover.plg", wantErr: "version not found in plg file"},
+		{name: "nover-path-mentioned", plgPath: "testdata/lanhc-nover-path-mentioned.plg", wantErr: "version not found in plg file"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

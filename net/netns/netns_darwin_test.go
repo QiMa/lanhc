@@ -6,7 +6,7 @@ package netns
 import (
 	"testing"
 
-	"tailscale.com/net/netmon"
+	"lanhc.com/net/netmon"
 )
 
 func TestGetInterfaceIndex(t *testing.T) {
@@ -54,13 +54,13 @@ func TestGetInterfaceIndex(t *testing.T) {
 		})
 	}
 
-	t.Run("NoTailscale", func(t *testing.T) {
-		tsif, err := tailscaleInterface()
+	t.Run("NoLanhc", func(t *testing.T) {
+		tsif, err := lanhcInterface()
 		if err != nil {
 			t.Fatal(err)
 		}
 		if tsif == nil {
-			t.Skip("no tailscale interface on this machine")
+			t.Skip("no lanhc interface on this machine")
 		}
 
 		defaultIdx, err := netmon.DefaultRouteInterfaceIndex()
@@ -73,10 +73,10 @@ func TestGetInterfaceIndex(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		t.Logf("tailscaleIdx=%d defaultIdx=%d idx=%d", tsif.Index, defaultIdx, idx)
+		t.Logf("lanhcIdx=%d defaultIdx=%d idx=%d", tsif.Index, defaultIdx, idx)
 
 		if idx == tsif.Index {
-			t.Fatalf("got idx=%d; wanted not Tailscale interface", idx)
+			t.Fatalf("got idx=%d; wanted not Lanhc interface", idx)
 		} else if idx != defaultIdx {
 			t.Fatalf("got idx=%d, want %d", idx, defaultIdx)
 		}

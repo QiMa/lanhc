@@ -15,11 +15,11 @@ import (
 	"strings"
 
 	"go4.org/mem"
-	"tailscale.com/envknob"
-	"tailscale.com/hostinfo"
-	"tailscale.com/util/lineiter"
-	"tailscale.com/util/osuser"
-	"tailscale.com/version/distro"
+	"lanhc.com/envknob"
+	"lanhc.com/hostinfo"
+	"lanhc.com/util/lineiter"
+	"lanhc.com/util/osuser"
+	"lanhc.com/version/distro"
 )
 
 // userMeta is a wrapper around *user.User with extra fields.
@@ -77,12 +77,12 @@ func (u *userMeta) LoginShell() string {
 //
 // If empty, a default value is used based on the OS & distro to match OpenSSH's
 // usually-hardcoded behavior. (see
-// https://github.com/tailscale/tailscale/issues/5285 for background).
+// https://github.com/lanhc/lanhc/issues/5285 for background).
 //
 // The template may contain @{HOME} or @{PAM_USER} which expand to the user's
 // home directory and username, respectively. (PAM is not used, despite the
 // name)
-var defaultPathTmpl = envknob.RegisterString("TAILSCALE_SSH_DEFAULT_PATH")
+var defaultPathTmpl = envknob.RegisterString("LANHC_SSH_DEFAULT_PATH")
 
 func defaultPathForUser(u *user.User) string {
 	if s := defaultPathTmpl(); s != "" {

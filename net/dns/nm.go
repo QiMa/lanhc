@@ -16,9 +16,9 @@ import (
 	"time"
 
 	"github.com/godbus/dbus/v5"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/util/cmpver"
-	"tailscale.com/util/dnsname"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/util/cmpver"
+	"lanhc.com/util/dnsname"
 )
 
 const (
@@ -154,7 +154,7 @@ func (m *nmManager) trySet(ctx context.Context, config OSConfig) error {
 			if ipnet, ok := a.(*net.IPNet); ok {
 				nip, ok := netip.AddrFromSlice(ipnet.IP)
 				nip = nip.Unmap()
-				if ok && tsaddr.IsTailscaleIP(nip) && nip.Is6() {
+				if ok && tsaddr.IsLanhcIP(nip) && nip.Is6() {
 					addrs6 = append(addrs6, map[string]any{
 						"address": nip.String(),
 						"prefix":  uint32(128),
@@ -188,7 +188,7 @@ func (m *nmManager) trySet(ctx context.Context, config OSConfig) error {
 	// Ideally we would like to disable LLMNR and mdns on the
 	// interface here, but older NetworkManagers don't understand
 	// those settings and choke on them, so we don't. Both LLMNR and
-	// mdns will fail since tailscale0 doesn't do multicast, so it's
+	// mdns will fail since lanhc0 doesn't do multicast, so it's
 	// effectively fine. We used to try and enforce LLMNR and mdns
 	// settings here, but that led to #1870.
 
@@ -313,7 +313,7 @@ func (m *nmManager) GetBaseConfig() (OSConfig, error) {
 	for _, cfg := range cfgs {
 		if name, ok := cfg["interface"]; ok {
 			if s, ok := name.Value().(string); ok && s == m.interfaceName {
-				// Config for the tailscale interface, skip.
+				// Config for the lanhc interface, skip.
 				continue
 			}
 		}
@@ -387,7 +387,7 @@ func (m *nmManager) GetBaseConfig() (OSConfig, error) {
 
 func (m *nmManager) Close() error {
 	// No need to do anything on close, NetworkManager will delete our
-	// settings when the tailscale interface goes away.
+	// settings when the lanhc interface goes away.
 	return nil
 }
 

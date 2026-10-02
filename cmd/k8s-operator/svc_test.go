@@ -17,17 +17,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/k8s-operator/tsclient"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tstest"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/k8s-operator/tsclient"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tstest"
 )
 
 func TestService_DefaultProxyClassInitiallyNotReady(t *testing.T) {
 	pc := &tsapi.ProxyClass{
 		ObjectMeta: metav1.ObjectMeta{Name: "custom-metadata"},
 		Spec: tsapi.ProxyClassSpec{
-			TailscaleConfig: &tsapi.TailscaleConfig{
+			LanhcConfig: &tsapi.LanhcConfig{
 				AcceptRoutes: true,
 			},
 			StatefulSet: &tsapi.StatefulSet{
@@ -47,19 +47,19 @@ func TestService_DefaultProxyClassInitiallyNotReady(t *testing.T) {
 	clock := tstest.NewClock(tstest.ClockOpts{})
 	sr := &ServiceReconciler{
 		Client: fc,
-		ssr: &tailscaleSTSReconciler{
+		ssr: &lanhcSTSReconciler{
 			Client:            fc,
 			clients:           tsclient.NewProvider(ft),
 			defaultTags:       []string{"tag:k8s"},
 			operatorNamespace: "operator-ns",
-			proxyImage:        "tailscale/tailscale",
+			proxyImage:        "lanhc/lanhc",
 		},
 		defaultProxyClass: "custom-metadata",
 		logger:            zl.Sugar(),
 		clock:             clock,
 	}
 
-	// 1. A new tailscale LoadBalancer Service is created but the default
+	// 1. A new lanhc LoadBalancer Service is created but the default
 	// ProxyClass is not ready yet.
 	mustCreate(t, fc, &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
@@ -73,7 +73,7 @@ func TestService_DefaultProxyClassInitiallyNotReady(t *testing.T) {
 		Spec: corev1.ServiceSpec{
 			ClusterIP:         "10.20.30.40",
 			Type:              corev1.ServiceTypeLoadBalancer,
-			LoadBalancerClass: new("tailscale"),
+			LoadBalancerClass: new("lanhc"),
 		},
 	})
 	expectReconciled(t, sr, "default", "test")
@@ -164,7 +164,7 @@ func TestProxyClassHandlerForSvc(t *testing.T) {
 			svc("exposed-other", map[string]string{AnnotationExpose: "true", LabelAnnotationProxyClass: otherPCName}, nil),
 			svc("annotated", map[string]string{LabelAnnotationProxyClass: defaultPCName}, nil),
 			svc("labelled", nil, map[string]string{LabelAnnotationProxyClass: defaultPCName}),
-			lbSvc("lb-svc", nil, new("tailscale")),
+			lbSvc("lb-svc", nil, new("lanhc")),
 			lbSvc("lb-svc-no-class", nil, nil),
 			lbSvc("lb-svc-other-class", nil, new("other")),
 			lbSvc("lb-svc-other-pc", map[string]string{LabelAnnotationProxyClass: otherPCName}, nil),

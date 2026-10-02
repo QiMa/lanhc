@@ -22,11 +22,11 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/derp/derphttp"
-	"tailscale.com/derp/derpserver"
-	"tailscale.com/net/netmon"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
+	"lanhc.com/derp/derphttp"
+	"lanhc.com/derp/derpserver"
+	"lanhc.com/net/netmon"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
 )
 
 // Verify that in --certmode=manual mode, we can use a bare IP address
@@ -51,7 +51,7 @@ func TestCertIP(t *testing.T) {
 	template := &x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
-			Organization: []string{"Tailscale Test Corp"},
+			Organization: []string{"Lanhc Test Corp"},
 		},
 		NotBefore: time.Now(),
 		NotAfter:  time.Now().Add(30 * 24 * time.Hour),
@@ -110,7 +110,7 @@ func TestCertIP(t *testing.T) {
 // cert, validating the cert against the signature of the cert in the DERP map's
 // DERPNode.
 //
-// See https://github.com/tailscale/tailscale/issues/11776.
+// See https://github.com/lanhc/lanhc/issues/11776.
 func TestPinnedCertRawIP(t *testing.T) {
 	td := t.TempDir()
 	cp, err := NewManualCertManager(td, "127.0.0.1")

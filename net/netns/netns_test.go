@@ -3,8 +3,8 @@
 
 // Package netns contains the common code for using the Go net package
 // in a logical "network namespace" to avoid routing loops where
-// Tailscale-created packets would otherwise loop back through
-// Tailscale routes.
+// Lanhc-created packets would otherwise loop back through
+// Lanhc routes.
 //
 // Despite the name netns, the exact mechanism used differs by
 // operating system, and perhaps even by version of the OS.

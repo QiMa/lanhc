@@ -10,7 +10,7 @@ import (
 	_ "net/http/pprof"
 	"strings"
 
-	"tailscale.com/tsnet"
+	"lanhc.com/tsnet"
 )
 
 // This example function is in a separate file for the "net/http/pprof" import.

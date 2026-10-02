@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package blockblame blames specific firewall manufacturers for blocking Tailscale,
+// Package blockblame blames specific firewall manufacturers for blocking Lanhc,
 // by analyzing the SSL certificate presented when attempting to connect to a remote
 // server.
 package blockblame
@@ -11,11 +11,11 @@ import (
 	"strings"
 	"sync"
 
-	"tailscale.com/feature/buildfeatures"
+	"lanhc.com/feature/buildfeatures"
 )
 
 // VerifyCertificate checks if the given certificate c is issued by a firewall manufacturer
-// that is known to block Tailscale connections. It returns true and the Manufacturer of
+// that is known to block Lanhc connections. It returns true and the Manufacturer of
 // the equipment if it is, or false and nil if it is not.
 func VerifyCertificate(c *x509.Certificate) (m *Manufacturer, ok bool) {
 	if !buildfeatures.HasDebug {
@@ -29,7 +29,7 @@ func VerifyCertificate(c *x509.Certificate) (m *Manufacturer, ok bool) {
 	return nil, false
 }
 
-// Manufacturer represents a firewall manufacturer that may be blocking Tailscale.
+// Manufacturer represents a firewall manufacturer that may be blocking Lanhc.
 type Manufacturer struct {
 	// Name is the name of the firewall manufacturer to be
 	// mentioned in health warning messages, e.g. "Fortinet".

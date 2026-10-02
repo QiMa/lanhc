@@ -26,16 +26,16 @@ import (
 
 	"golang.org/x/mod/modfile"
 	"golang.org/x/sync/errgroup"
-	"tailscale.com/client/tailscale"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest/natlab/vnet"
+	"lanhc.com/client/lanhc"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest/natlab/vnet"
 )
 
 var (
 	runVMTests    = flag.Bool("run-vm-tests", false, "run tests that require a VM")
-	logTailscaled = flag.Bool("log-tailscaled", false, "log tailscaled output")
+	logLanhcd = flag.Bool("log-lanhcd", false, "log lanhcd output")
 	pcapFile      = flag.String("pcap", "", "write pcap to file")
 )
 
@@ -182,7 +182,7 @@ func (nt *natTest) setupTest(ctx context.Context, addNode ...addNodeFunc) (nodes
 			t.Skip("skipping test; not applicable combination")
 		}
 		nodes = append(nodes, node)
-		if *logTailscaled {
+		if *logLanhcd {
 			node.SetVerboseSyslog(true)
 		}
 	}
@@ -238,7 +238,7 @@ func (nt *natTest) setupTest(ctx context.Context, addNode ...addNodeFunc) (nodes
 
 		var envBuf bytes.Buffer
 		for _, e := range node.Env() {
-			fmt.Fprintf(&envBuf, " tailscaled.env=%s=%s", e.Key, e.Value)
+			fmt.Fprintf(&envBuf, " lanhcd.env=%s=%s", e.Key, e.Value)
 		}
 		sysLogAddr := net.JoinHostPort(vnet.FakeSyslogIPv4().String(), "995")
 		if node.IsV6Only() {
@@ -253,7 +253,7 @@ func (nt *natTest) setupTest(ctx context.Context, addNode ...addNodeFunc) (nodes
 			"-m", "384M",
 			"-nodefaults", "-no-user-config", "-nographic",
 			"-kernel", nt.kernel,
-			"-append", "console=hvc0 root=PARTUUID=60c24cc1-f3f9-427a-8199-76baa2d60001/PARTNROFF=1 ro init=/gokrazy/init panic=10 oops=panic pci=off nousb gokrazy.remote_syslog.target=" + sysLogAddr + " tailscale-tta=1" + envStr,
+			"-append", "console=hvc0 root=PARTUUID=60c24cc1-f3f9-427a-8199-76baa2d60001/PARTNROFF=1 ro init=/gokrazy/init panic=10 oops=panic pci=off nousb gokrazy.remote_syslog.target=" + sysLogAddr + " lanhc-tta=1" + envStr,
 			"-drive", "id=blk0,file=" + disk + ",format=qcow2",
 			"-device", "virtio-blk-device,drive=blk0",
 			"-netdev", "stream,id=net0,addr.type=unix,addr.path=" + sockAddr,
@@ -334,7 +334,7 @@ func (nt *natTest) setupTest(ctx context.Context, addNode ...addNodeFunc) (nodes
 				}
 
 				t.Logf("%v AllowedIPs: %v", node, st.Self.Addrs)
-				t.Logf("%v up with %v", node, st.Self.TailscaleIPs)
+				t.Logf("%v up with %v", node, st.Self.LanhcIPs)
 			} else {
 				t.Logf("%v skipping joining tailnet", node)
 			}
@@ -364,7 +364,7 @@ func testContext(tb testing.TB) (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), 60*time.Second)
 }
 
-func (nt *natTest) runTailscaleConnectivityTest(addNode ...addNodeFunc) pingRoute {
+func (nt *natTest) runLanhcConnectivityTest(addNode ...addNodeFunc) pingRoute {
 	ctx, cancel := testContext(nt.tb)
 	defer cancel()
 
@@ -413,13 +413,13 @@ func (nt *natTest) runTailscaleConnectivityTest(addNode ...addNodeFunc) pingRout
 	// Should we send traffic across the nodes before starting disco?
 	// For nodes that rotated disco keys after control going away.
 	if preICMPPing {
-		_, err := ping(ctx, t, clients[0], sts[1].Self.TailscaleIPs[0], tailcfg.PingICMP)
+		_, err := ping(ctx, t, clients[0], sts[1].Self.LanhcIPs[0], tailcfg.PingICMP)
 		if err != nil {
 			t.Fatalf("ICMP ping failure: %v", err)
 		}
 	}
 
-	pingRes, err := ping(ctx, t, clients[0], sts[1].Self.TailscaleIPs[0], tailcfg.PingDisco)
+	pingRes, err := ping(ctx, t, clients[0], sts[1].Self.LanhcIPs[0], tailcfg.PingDisco)
 	if err != nil {
 		t.Logf("ping failure: %v", err)
 	}
@@ -459,7 +459,7 @@ func ping(ctx context.Context, t testing.TB, c *vnet.NodeAgentClient, target net
 	for n := range 10 {
 		t.Logf("ping attempt %d to %v ...", n+1, target)
 		pingCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
-		pr, err := c.PingWithOpts(pingCtx, target, pType, tailscale.PingOpts{})
+		pr, err := c.PingWithOpts(pingCtx, target, pType, lanhc.PingOpts{})
 		cancel()
 		if err != nil {
 			t.Logf("ping attempt %d error: %v", n+1, err)
@@ -597,7 +597,7 @@ func TestPair(t *testing.T) {
 	}
 
 	nt := newNatTest(t)
-	nt.runTailscaleConnectivityTest(find(t1), find(t2))
+	nt.runLanhcConnectivityTest(find(t1), find(t2))
 }
 
 var runGrid = flag.Bool("run-grid", false, "run grid test")
@@ -633,7 +633,7 @@ func TestGrid(t *testing.T) {
 
 				if route == "" {
 					nt := newNatTest(t)
-					route = nt.runTailscaleConnectivityTest(a.fn, b.fn)
+					route = nt.runLanhcConnectivityTest(a.fn, b.fn)
 					if err := os.WriteFile(filename, []byte(string(route)), 0666); err != nil {
 						t.Fatalf("writeFile: %v", err)
 					}

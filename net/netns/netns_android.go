@@ -10,8 +10,8 @@ import (
 	"sync"
 	"syscall"
 
-	"tailscale.com/net/netmon"
-	"tailscale.com/types/logger"
+	"lanhc.com/net/netmon"
+	"lanhc.com/types/logger"
 )
 
 var (

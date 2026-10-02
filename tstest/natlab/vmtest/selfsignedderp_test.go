@@ -10,14 +10,14 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/tstest/natlab/vmtest"
-	"tailscale.com/tstest/natlab/vnet"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/tstest/natlab/vmtest"
+	"lanhc.com/tstest/natlab/vnet"
 )
 
 // easyAnd6NoEndpoints is easy NAT plus an IPv6 prefix and
-// TS_DEBUG_STRIP_ENDPOINTS=1 on tailscaled so peer endpoints from control
+// TS_DEBUG_STRIP_ENDPOINTS=1 on lanhcd so peer endpoints from control
 // are dropped. That forces the initial peer-to-peer disco bootstrap to
 // traverse DERP, since without endpoints from control the nodes have no
 // other way to first learn about each other.
@@ -29,15 +29,15 @@ func easyAnd6NoEndpoints(env *vmtest.Env) *vmtest.Node {
 			fmt.Sprintf("192.168.%d.1/24", n),
 			v6cidr(n),
 			vnet.EasyNAT),
-		vnet.TailscaledEnv{Key: "TS_DEBUG_STRIP_ENDPOINTS", Value: "1"},
+		vnet.LanhcdEnv{Key: "TS_DEBUG_STRIP_ENDPOINTS", Value: "1"},
 		vmtest.OS(vmtest.Gokrazy))
 }
 
 // TestSelfSignedDERPHashPinning exercises the sha256-raw DERP cert pinning
-// code path end-to-end: tailscaled connects to its home DERP whose cert is
+// code path end-to-end: lanhcd connects to its home DERP whose cert is
 // self-signed and pinned via CertName="sha256-raw:<hex>" (no separate
 // fronting CertName), the two nodes communicate over the resulting tailnet,
-// and `tailscale debug derp` against the same region succeeds.
+// and `lanhc debug derp` against the same region succeeds.
 //
 // Nodes are dual-stack (v4 + v6) so the DebugDERPRegion probe exercises both
 // address families against the test DERP server. They additionally strip
@@ -58,7 +58,7 @@ func TestSelfSignedDERPHashPinning(t *testing.T) {
 	// End-to-end ping over the WireGuard tunnel. With peer endpoints
 	// stripped from control, the only way for the peers to first reach each
 	// other is via DERP, so a successful tunnel ping proves the
-	// tailscaled→DERP TLS handshake (and thus sha256-raw cert pinning)
+	// lanhcd→DERP TLS handshake (and thus sha256-raw cert pinning)
 	// worked on both ends.
 	if err := env.Ping(n1, n2, tailcfg.PingTSMP, 60*time.Second); err != nil {
 		t.Fatalf("ping node-0 -> node-1: %v", err)

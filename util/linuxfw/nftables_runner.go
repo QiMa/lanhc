@@ -18,8 +18,8 @@ import (
 	"github.com/google/nftables"
 	"github.com/google/nftables/expr"
 	"golang.org/x/sys/unix"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/types/logger"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/types/logger"
 )
 
 const (
@@ -53,7 +53,7 @@ type nftable struct {
 // ecosystem. The rules installed by nftablesRunner have the following
 // properties:
 //   - Install rules that intend to take precedence over rules installed by
-//     other software. Tailscale provides packet filtering for tailnet traffic
+//     other software. Lanhc provides packet filtering for tailnet traffic
 //     inside the daemon based on the tailnet ACL rules.
 //   - As nftables "accept" is not final, rules from high priority tables (low
 //     numbers) will fall through to lower priority tables (high numbers). In
@@ -61,7 +61,7 @@ type nftable struct {
 //     tables and chains that will reach an accept verdict inside those tables.
 //   - The table and chain conventions followed here are those used by
 //     `iptables-nft` and `ufw`, so that those tools co-exist and do not
-//     negatively affect Tailscale function.
+//     negatively affect Lanhc function.
 //   - Be mindful that 1) all chains attached to a given hook (i.e the forward hook)
 //     will be processed in priority order till either a rule in one of the chains issues a drop verdict
 //     or there are no more chains for that hook
@@ -158,12 +158,12 @@ func dnatRuleForChain(t *nftables.Table, ch *nftables.Chain, origDst, dst netip.
 // to the first IP address from the backend targets.
 // TODO (irbekrm): instead of doing this load balance traffic evenly to all
 // backend destinations.
-// https://github.com/tailscale/tailscale/commit/d37f2f508509c6c35ad724fd75a27685b90b575b#diff-a3bcbcd1ca198799f4f768dc56fea913e1945a6b3ec9dbec89325a84a19a85e7R148-R232
+// https://github.com/lanhc/lanhc/commit/d37f2f508509c6c35ad724fd75a27685b90b575b#diff-a3bcbcd1ca198799f4f768dc56fea913e1945a6b3ec9dbec89325a84a19a85e7R148-R232
 func (n *nftablesRunner) DNATWithLoadBalancer(origDst netip.Addr, dsts []netip.Addr) error {
 	return n.AddDNATRule(origDst, dsts[0])
 }
 
-func (n *nftablesRunner) DNATNonTailscaleTraffic(tunname string, dst netip.Addr) error {
+func (n *nftablesRunner) DNATNonLanhcTraffic(tunname string, dst netip.Addr) error {
 	nat, preroutingCh, err := n.ensurePreroutingChain(dst)
 	if err != nil {
 		return err
@@ -253,17 +253,17 @@ func (n *nftablesRunner) EnsureSNATForDst(src, dst netip.Addr) error {
 // tun. Clamping only the output direction would leave the endpoint on the other
 // side of the proxy advertising an MSS that is too large for the tun MTU,
 // black-holing large segments when path MTU discovery is broken. This can be
-// useful if this tailscale instance is expected to run as a forwarding proxy,
+// useful if this lanhc instance is expected to run as a forwarding proxy,
 // forwarding packets from an endpoint with higher MTU in an environment where
 // path MTU discovery is expected to not work (such as the proxies created by
-// the Tailscale Kubernetes operator). ClampMSSToPMTU creates a new base-chain
+// the Lanhc Kubernetes operator). ClampMSSToPMTU creates a new base-chain
 // ts-clamp in the filter
 // table with accept policy and priority -150. In practice, this means that for
 // SYN packets the clamp rule in this chain will likely run first and accept the
 // packet. This is fine because 1) nftables run ALL chains with the same hook
 // type unless a rule in one of them drops the packet and 2) this chain does not
 // have functionality to drop the packet- so in practice a matching clamp rule
-// will always be followed by the custom tailscale filtering rules in the other
+// will always be followed by the custom lanhc filtering rules in the other
 // chains attached to the filter hook (FORWARD, ts-forward).
 // We do not want to place the clamping rule into FORWARD/ts-forward chains
 // because wgengine populates those chains with rules that contain accept
@@ -454,7 +454,7 @@ func getChainFromTable(c *nftables.Conn, table *nftables.Table, name string) (*n
 }
 
 // isTSChain reports whether `name` begins with "ts-" (and is thus a
-// Tailscale-managed chain).
+// Lanhc-managed chain).
 func isTSChain(name string) bool {
 	return strings.HasPrefix(name, "ts-")
 }
@@ -513,13 +513,13 @@ type NetfilterRunner interface {
 	DelLoopbackRule(addr netip.Addr) error
 
 	// AddHooks adds rules to conventional chains like "FORWARD", "INPUT" and
-	// "POSTROUTING" to jump from those chains to tailscale chains.
+	// "POSTROUTING" to jump from those chains to lanhc chains.
 	AddHooks() error
 
 	// DelHooks deletes rules added by AddHooks.
 	DelHooks(logf logger.Logf) error
 
-	// AddChains creates custom Tailscale chains.
+	// AddChains creates custom Lanhc chains.
 	AddChains() error
 
 	// DelChains removes chains added by AddChains.
@@ -532,7 +532,7 @@ type NetfilterRunner interface {
 	DelBase() error
 
 	// AddSNATRule adds the netfilter rule to SNAT incoming traffic over
-	// the Tailscale interface destined for local subnets. An error is
+	// the Lanhc interface destined for local subnets. An error is
 	// returned if the rule already exists.
 	AddSNATRule() error
 
@@ -570,7 +570,7 @@ type NetfilterRunner interface {
 
 	// AddDNATRule adds a rule to the nat/PREROUTING chain to DNAT traffic
 	// destined for the given original destination to the given new destination.
-	// This is used to forward all traffic destined for the Tailscale interface
+	// This is used to forward all traffic destined for the Lanhc interface
 	// to the provided destination, as used in the Kubernetes ingress proxies.
 	AddDNATRule(origDst, dst netip.Addr) error
 
@@ -578,7 +578,7 @@ type NetfilterRunner interface {
 	// traffic destined for the given original destination to the given new
 	// destination(s) using round robin to load balance if more than one
 	// destination is provided. This is used to forward all traffic destined
-	// for the Tailscale interface to the provided destination(s), as used
+	// for the Lanhc interface to the provided destination(s), as used
 	// in the Kubernetes ingress proxies.
 	DNATWithLoadBalancer(origDst netip.Addr, dsts []netip.Addr) error
 
@@ -586,14 +586,14 @@ type NetfilterRunner interface {
 	// - creates a SNAT rule if it doesn't already exist
 	// - deletes any pre-existing rules matching the destination
 	// This is used to forward traffic destined for the local machine over
-	// the Tailscale interface, as used in the Kubernetes egress proxies.
+	// the Lanhc interface, as used in the Kubernetes egress proxies.
 	EnsureSNATForDst(src, dst netip.Addr) error
 
-	// DNATNonTailscaleTraffic adds a rule to the nat/PREROUTING chain to DNAT
+	// DNATNonLanhcTraffic adds a rule to the nat/PREROUTING chain to DNAT
 	// all traffic inbound from any interface except exemptInterface to dst.
 	// This is used to forward traffic destined for the local machine over
-	// the Tailscale interface, as used in the Kubernetes egress proxies.
-	DNATNonTailscaleTraffic(exemptInterface string, dst netip.Addr) error
+	// the Lanhc interface, as used in the Kubernetes egress proxies.
+	DNATNonLanhcTraffic(exemptInterface string, dst netip.Addr) error
 
 	EnsurePortMapRuleForSvc(svc, tun string, targetIP netip.Addr, pm PortMap) error
 
@@ -618,7 +618,7 @@ type NetfilterRunner interface {
 	DelMagicsockPortRule(port uint16, network string) error
 
 	// AddExternalCGNATRules adds rules to the ts-input chain to deal with
-	// traffic from the CGNAT range that arrives on non-Tailscale network
+	// traffic from the CGNAT range that arrives on non-Lanhc network
 	// interfaces.
 	AddExternalCGNATRules(mode CGNATMode, tunname string) error
 
@@ -864,7 +864,7 @@ func (n *nftablesRunner) getNFTByAddr(addr netip.Addr) (*nftable, error) {
 }
 
 // AddLoopbackRule adds an nftables rule to permit loopback traffic to
-// a local Tailscale IP. This rule is added only if it does not already exist.
+// a local Lanhc IP. This rule is added only if it does not already exist.
 func (n *nftablesRunner) AddLoopbackRule(addr netip.Addr) error {
 	nf, err := n.getNFTByAddr(addr)
 	if err != nil {
@@ -884,7 +884,7 @@ func (n *nftablesRunner) AddLoopbackRule(addr netip.Addr) error {
 }
 
 // DelLoopbackRule removes the nftables rule permitting loopback
-// traffic to a Tailscale IP.
+// traffic to a Lanhc IP.
 func (n *nftablesRunner) DelLoopbackRule(addr netip.Addr) error {
 	nf, err := n.getNFTByAddr(addr)
 	if err != nil {
@@ -926,7 +926,7 @@ func (n *nftablesRunner) getTables() []*nftable {
 	return []*nftable{n.nft4}
 }
 
-// AddChains creates custom Tailscale chains in netfilter via nftables
+// AddChains creates custom Lanhc chains in netfilter via nftables
 // if the ts-chain doesn't already exist.
 func (n *nftablesRunner) AddChains() error {
 	polAccept := nftables.ChainPolicyAccept
@@ -947,7 +947,7 @@ func (n *nftablesRunner) AddChains() error {
 		if err = createChainIfNotExist(n.conn, chainInfo{filter, "INPUT", nftables.ChainTypeFilter, nftables.ChainHookInput, nftables.ChainPriorityFilter, &polAccept}); err != nil {
 			return fmt.Errorf("create input chain: %w", err)
 		}
-		// Adding the tailscale chains that contain our rules.
+		// Adding the lanhc chains that contain our rules.
 		if err = createChainIfNotExist(n.conn, chainInfo{filter, chainNameForward, chainTypeRegular, nil, nil, nil}); err != nil {
 			return fmt.Errorf("create forward chain: %w", err)
 		}
@@ -968,7 +968,7 @@ func (n *nftablesRunner) AddChains() error {
 		if err = createChainIfNotExist(n.conn, chainInfo{nat, "POSTROUTING", nftables.ChainTypeNAT, nftables.ChainHookPostrouting, nftables.ChainPriorityNATSource, &polAccept}); err != nil {
 			return fmt.Errorf("create postrouting chain: %w", err)
 		}
-		// Adding the tailscale chain that contains our rules.
+		// Adding the lanhc chain that contains our rules.
 		if err = createChainIfNotExist(n.conn, chainInfo{nat, chainNamePostrouting, chainTypeRegular, nil, nil, nil}); err != nil {
 			return fmt.Errorf("create postrouting chain: %w", err)
 		}
@@ -1034,7 +1034,7 @@ func deleteChainIfExists(c *nftables.Conn, table *nftables.Table, name string) e
 	return nil
 }
 
-// DelChains removes the custom Tailscale chains from netfilter via nftables.
+// DelChains removes the custom Lanhc chains from netfilter via nftables.
 func (n *nftablesRunner) DelChains() error {
 	for _, table := range n.getTables() {
 		if err := deleteChainIfExists(n.conn, table.Filter, chainNameForward); err != nil {
@@ -1094,7 +1094,7 @@ func addHookRule(conn *nftables.Conn, table *nftables.Table, fromChain *nftables
 }
 
 // AddHooks is adding rules to conventional chains like "FORWARD", "INPUT" and "POSTROUTING"
-// in tables and jump from those chains to tailscale chains.
+// in tables and jump from those chains to lanhc chains.
 func (n *nftablesRunner) AddHooks() error {
 	conn := n.conn
 
@@ -1148,7 +1148,7 @@ func delHookRule(conn *nftables.Conn, table *nftables.Table, fromChain *nftables
 	return nil
 }
 
-// DelHooks is deleting the rules added to conventional chains to jump to tailscale chains.
+// DelHooks is deleting the rules added to conventional chains to jump to lanhc chains.
 func (n *nftablesRunner) DelHooks(logf logger.Logf) error {
 	conn := n.conn
 
@@ -1347,8 +1347,8 @@ func delReturnCGNATRangeRule(c *nftables.Conn, table *nftables.Table, chain *nft
 // createSetSubnetRouteMarkRule creates a rule to set the subnet route
 // mark if the packet is from the given interface.
 func createSetSubnetRouteMarkRule(table *nftables.Table, chain *nftables.Chain, tunname string) (*nftables.Rule, error) {
-	hexTsFwmarkMaskNeg := getTailscaleFwmarkMaskNeg()
-	hexTSSubnetRouteMark := getTailscaleSubnetRouteMark()
+	hexTsFwmarkMaskNeg := getLanhcFwmarkMaskNeg()
+	hexTSSubnetRouteMark := getLanhcSubnetRouteMark()
 
 	rule := &nftables.Rule{
 		Table: table,
@@ -1612,7 +1612,7 @@ func (n *nftablesRunner) DelMagicsockPortRule(port uint16, network string) error
 }
 
 // AddExternalCGNATRules adds rules to the ts-input chain to deal with
-// traffic from the CGNAT range that arrives on non-Tailscale network
+// traffic from the CGNAT range that arrives on non-Lanhc network
 // interfaces.
 func (n *nftablesRunner) AddExternalCGNATRules(mode CGNATMode, tunname string) error {
 	conn := n.conn
@@ -1793,7 +1793,7 @@ func (n *nftablesRunner) addBase6(tunname string) error {
 	return nil
 }
 
-// DelBase empties, but does not remove, custom Tailscale chains from
+// DelBase empties, but does not remove, custom Lanhc chains from
 // netfilter via iptables.
 func (n *nftablesRunner) DelBase() error {
 	conn := n.conn
@@ -1823,8 +1823,8 @@ func (n *nftablesRunner) DelBase() error {
 // createMatchSubnetRouteMarkRule creates a rule that matches packets
 // with the subnet route mark and takes the specified action.
 func createMatchSubnetRouteMarkRule(table *nftables.Table, chain *nftables.Chain, action MatchDecision) (*nftables.Rule, error) {
-	hexTSFwmarkMask := getTailscaleFwmarkMask()
-	hexTSSubnetRouteMark := getTailscaleSubnetRouteMark()
+	hexTSFwmarkMask := getLanhcFwmarkMask()
+	hexTSSubnetRouteMark := getLanhcSubnetRouteMark()
 
 	var endAction expr.Any
 	endAction = &expr.Verdict{Kind: expr.VerdictAccept}
@@ -1945,7 +1945,7 @@ func nativeUint32(v uint32) []byte {
 
 func makeStatefulRuleExprs(tunname string) []expr.Any {
 	return []expr.Any{
-		// Check if the output interface is the Tailscale interface by
+		// Check if the output interface is the Lanhc interface by
 		// first loding the OIFNAME into register 1 and comparing it
 		// against our tunname.
 		//
@@ -2129,7 +2129,7 @@ func (n *nftablesRunner) DelStatefulRule(tunname string) error {
 // Implements: ct state established,related ct mark & 0xff0000 != 0 meta mark set ct mark & 0xff0000
 //
 // LIMITATION: Unlike iptables CONNMARK --restore-mark with --nfmask, this implementation
-// overwrites non-Tailscale bits in the packet mark rather than merging them. This is a
+// overwrites non-Lanhc bits in the packet mark rather than merging them. This is a
 // fundamental limitation of the Linux kernel's nftables expression VM (not the Go library).
 //
 // The nftables Bitwise expression only supports: (register & CONSTANT_MASK) ^ CONSTANT_XOR.
@@ -2172,12 +2172,12 @@ func makeConnmarkRestoreExprs() []expr.Any {
 			Register: 1,
 			Key:      expr.CtKeyMARK,
 		},
-		// Mask to Tailscale mark bits (0xff0000)
+		// Mask to Lanhc mark bits (0xff0000)
 		&expr.Bitwise{
 			SourceRegister: 1,
 			DestRegister:   1,
 			Len:            4,
-			Mask:           getTailscaleFwmarkMask(),
+			Mask:           getLanhcFwmarkMask(),
 			Xor:            []byte{0x00, 0x00, 0x00, 0x00},
 		},
 		// Check if masked ct mark is non-zero (critical: prevents wiping marks with 0)
@@ -2222,12 +2222,12 @@ func makeConnmarkSaveExprs() []expr.Any {
 			Key:      expr.MetaKeyMARK,
 			Register: 1,
 		},
-		// Mask to Tailscale mark bits (0xff0000)
+		// Mask to Lanhc mark bits (0xff0000)
 		&expr.Bitwise{
 			SourceRegister: 1,
 			DestRegister:   1,
 			Len:            4,
-			Mask:           getTailscaleFwmarkMask(),
+			Mask:           getLanhcFwmarkMask(),
 			Xor:            []byte{0x00, 0x00, 0x00, 0x00},
 		},
 		// Check if mark is non-zero
@@ -2246,7 +2246,7 @@ func makeConnmarkSaveExprs() []expr.Any {
 			SourceRegister: 1,
 			DestRegister:   1,
 			Len:            4,
-			Mask:           getTailscaleFwmarkMask(),
+			Mask:           getLanhcFwmarkMask(),
 			Xor:            []byte{0x00, 0x00, 0x00, 0x00},
 		},
 		// Set conntrack mark from register 1
@@ -2413,7 +2413,7 @@ func cleanupChain(logf logger.Logf, conn *nftables.Conn, table *nftables.Table, 
 	}
 }
 
-// NfTablesCleanUp removes all Tailscale added nftables rules.
+// NfTablesCleanUp removes all Lanhc added nftables rules.
 // Any errors that occur are logged to the provided logf.
 func NfTablesCleanUp(logf logger.Logf) {
 	conn, err := nftables.New()

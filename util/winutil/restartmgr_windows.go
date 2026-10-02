@@ -18,7 +18,7 @@ import (
 
 	"github.com/dblohm7/wingoes"
 	"golang.org/x/sys/windows"
-	"tailscale.com/types/logger"
+	"lanhc.com/types/logger"
 )
 
 var (
@@ -372,7 +372,7 @@ func (up *UniqueProcess) AsRestartableProcess() (*RestartableProcess, error) {
 	// Non-fatal, so we'll proceed with best-effort.
 	if tokenUser, err := tok.GetTokenUser(); err == nil {
 		// Save the user's SID so that we can later check it against the currently
-		// logged-in Tailscale profile.
+		// logged-in Lanhc profile.
 		userSID = tokenUser.User.Sid.String()
 	}
 

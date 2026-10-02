@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-//go:generate go run tailscale.com/cmd/viewer --type=Config --clonefunc
+//go:generate go run lanhc.com/cmd/viewer --type=Config --clonefunc
 
 // Package dns contains code to configure and manage DNS settings.
 package dns
@@ -14,14 +14,14 @@ import (
 	"slices"
 	"sort"
 
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/envknob"
-	"tailscale.com/net/dns/publicdns"
-	"tailscale.com/net/dns/resolver"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/types/dnstype"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/set"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/envknob"
+	"lanhc.com/net/dns/publicdns"
+	"lanhc.com/net/dns/resolver"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/types/dnstype"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/set"
 )
 
 // Config is a DNS configuration.
@@ -33,7 +33,7 @@ type Config struct {
 	// DefaultResolvers are the DNS resolvers to use for DNS names
 	// which aren't covered by more specific per-domain routes below.
 	// If empty, the OS's default resolvers (the ones that predate
-	// Tailscale altering the configuration) are used.
+	// Lanhc altering the configuration) are used.
 	DefaultResolvers []*dnstype.Resolver
 	// Routes maps a DNS suffix to the resolvers that should be used
 	// for queries that fall within that suffix.
@@ -78,19 +78,19 @@ var magicDNSDualStack = envknob.RegisterBool("TS_DEBUG_MAGIC_DNS_DUAL_STACK")
 // The provided knobs may be nil.
 func (c *Config) serviceIPs(knobs *controlknobs.Knobs) []netip.Addr {
 	if c.OnlyIPv6 {
-		return []netip.Addr{tsaddr.TailscaleServiceIPv6()}
+		return []netip.Addr{tsaddr.LanhcServiceIPv6()}
 	}
 
-	// See https://github.com/tailscale/tailscale/issues/15404 for the background
+	// See https://github.com/lanhc/lanhc/issues/15404 for the background
 	// on the opt-in debug knob and the controlknob opt-out.
 	if magicDNSDualStack() || !knobs.ShouldForceRegisterMagicDNSIPv4Only() {
 		return []netip.Addr{
-			tsaddr.TailscaleServiceIP(),
-			tsaddr.TailscaleServiceIPv6(),
+			tsaddr.LanhcServiceIP(),
+			tsaddr.LanhcServiceIPv6(),
 		}
 	}
 
-	return []netip.Addr{tsaddr.TailscaleServiceIP()}
+	return []netip.Addr{tsaddr.LanhcServiceIP()}
 }
 
 // WriteToBufioWriter write a debug version of c for logs to w, omitting

@@ -15,10 +15,10 @@ import (
 	"github.com/go-json-experiment/json/jsontext"
 	jsonv1 "github.com/go-json-experiment/json/v1"
 
-	"tailscale.com/net/routecheck/peernode"
-	"tailscale.com/tailcfg"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/mak"
+	"lanhc.com/net/routecheck/peernode"
+	"lanhc.com/tailcfg"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/mak"
 )
 
 var (
@@ -68,7 +68,7 @@ func (rp Report) IsReachable(id tailcfg.NodeID) peernode.Reachability {
 // Note: Fallback routes are not supported by design. If a subnet prefix
 // contained within another more general prefix has no reachable routers,
 // traffic is still sent to one of those unreachable routers.
-// Routers for the general prefix aren’t candidates. See tailscale/tailscale#18550.
+// Routers for the general prefix aren’t candidates. See lanhc/lanhc#18550.
 func (rp Report) RoutablePrefixes() RoutablePrefixes {
 	var out map[netip.Prefix][]Node
 	for _, n := range rp.Reachable {

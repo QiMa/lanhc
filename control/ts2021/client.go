@@ -20,17 +20,17 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/control/controlhttp"
-	"tailscale.com/health"
-	"tailscale.com/net/dnscache"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
+	"lanhc.com/control/controlhttp"
+	"lanhc.com/health"
+	"lanhc.com/net/dnscache"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
 )
 
 // Client provides a http.Client to connect to tailcontrol over

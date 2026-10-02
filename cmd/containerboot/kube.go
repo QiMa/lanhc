@@ -19,22 +19,22 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
-	"tailscale.com/client/local"
-	"tailscale.com/ipn"
-	"tailscale.com/kube/authkey"
-	"tailscale.com/kube/egressservices"
-	"tailscale.com/kube/ingressservices"
-	"tailscale.com/kube/kubeapi"
-	"tailscale.com/kube/kubeclient"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/backoff"
+	"lanhc.com/client/local"
+	"lanhc.com/ipn"
+	"lanhc.com/kube/authkey"
+	"lanhc.com/kube/egressservices"
+	"lanhc.com/kube/ingressservices"
+	"lanhc.com/kube/kubeapi"
+	"lanhc.com/kube/kubeclient"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/backoff"
 )
 
-const fieldManager = "tailscale-container"
+const fieldManager = "lanhc-container"
 
-// kubeClient is a wrapper around Tailscale's internal kube client that knows how to talk to the kube API server. We use
+// kubeClient is a wrapper around Lanhc's internal kube client that knows how to talk to the kube API server. We use
 // this rather than any of the upstream Kubernetes client libaries to avoid extra imports.
 type kubeClient struct {
 	kubeclient.Client
@@ -49,7 +49,7 @@ func newKubeClient(root string, stateSecret string) (*kubeClient, error) {
 		kubeclient.SetRootPathForTesting(root)
 	}
 	var err error
-	kc, err := kubeclient.New("tailscale-container")
+	kc, err := kubeclient.New("lanhc-container")
 	if err != nil {
 		return nil, fmt.Errorf("error creating kube client: %w", err)
 	}
@@ -92,7 +92,7 @@ func (kc *kubeClient) storeDeviceEndpoints(ctx context.Context, fqdn string, add
 	return kc.StrategicMergePatchSecret(ctx, kc.stateSecret, s, fieldManager)
 }
 
-// storeHTTPSEndpoint writes an HTTPS endpoint exposed by this device via 'tailscale serve' to the client's state
+// storeHTTPSEndpoint writes an HTTPS endpoint exposed by this device via 'lanhc serve' to the client's state
 // Secret. In practice this will be the same value that gets written to 'device_fqdn', but this should only be called
 // when the serve config has been successfully set up.
 func (kc *kubeClient) storeHTTPSEndpoint(ctx context.Context, ep string) error {
@@ -130,7 +130,7 @@ func (kc *kubeClient) deleteAuthKey(ctx context.Context) error {
 //
 // Device identity keys (device_id, device_fqdn, device_ips) are preserved so
 // the operator can clean up the old device from the control plane.
-func (kc *kubeClient) resetContainerbootState(ctx context.Context, podUID string, tailscaledConfigAuthkey string) error {
+func (kc *kubeClient) resetContainerbootState(ctx context.Context, podUID string, lanhcdConfigAuthkey string) error {
 	existingSecret, err := kc.GetSecret(ctx, kc.stateSecret)
 	switch {
 	case kubeclient.IsNotFoundErr(err):
@@ -154,40 +154,40 @@ func (kc *kubeClient) resetContainerbootState(ctx context.Context, podUID string
 
 	// Only clear reissue_authkey if the operator has actioned it.
 	brokenAuthkey, ok := existingSecret.Data[kubetypes.KeyReissueAuthkey]
-	if ok && tailscaledConfigAuthkey != "" && string(brokenAuthkey) != tailscaledConfigAuthkey {
+	if ok && lanhcdConfigAuthkey != "" && string(brokenAuthkey) != lanhcdConfigAuthkey {
 		s.Data[kubetypes.KeyReissueAuthkey] = nil
 	}
 
 	return kc.StrategicMergePatchSecret(ctx, kc.stateSecret, s, fieldManager)
 }
 
-func (kc *kubeClient) setAndWaitForAuthKeyReissue(ctx context.Context, client *local.Client, cfg *settings, tailscaledConfigAuthKey string) error {
+func (kc *kubeClient) setAndWaitForAuthKeyReissue(ctx context.Context, client *local.Client, cfg *settings, lanhcdConfigAuthKey string) error {
 	err := client.DisconnectControl(ctx)
 	if err != nil {
 		return fmt.Errorf("error disconnecting from control: %w", err)
 	}
 
-	err = authkey.SetReissueAuthKey(ctx, kc.Client, kc.stateSecret, tailscaledConfigAuthKey, authkey.TailscaleContainerFieldManager)
+	err = authkey.SetReissueAuthKey(ctx, kc.Client, kc.stateSecret, lanhcdConfigAuthKey, authkey.LanhcContainerFieldManager)
 	if err != nil {
 		return fmt.Errorf("failed to set reissue_authkey in Kubernetes Secret: %w", err)
 	}
 
 	clearFn := func(ctx context.Context) error {
-		return authkey.ClearReissueAuthKey(ctx, kc.Client, kc.stateSecret, authkey.TailscaleContainerFieldManager)
+		return authkey.ClearReissueAuthKey(ctx, kc.Client, kc.stateSecret, authkey.LanhcContainerFieldManager)
 	}
 
-	getAuthKey := func() string { return authkey.AuthKeyFromConfig(cfg.TailscaledConfigFilePath) }
-	tailscaledCfgDir := filepath.Dir(cfg.TailscaledConfigFilePath)
+	getAuthKey := func() string { return authkey.AuthKeyFromConfig(cfg.LanhcdConfigFilePath) }
+	lanhcdCfgDir := filepath.Dir(cfg.LanhcdConfigFilePath)
 	var notify <-chan struct{}
 	if w, err := fsnotify.NewWatcher(); err != nil {
 		log.Printf("auth key reissue: fsnotify unavailable, using polling: %v", err)
-	} else if err := w.Add(tailscaledCfgDir); err != nil {
+	} else if err := w.Add(lanhcdCfgDir); err != nil {
 		w.Close()
 		log.Printf("auth key reissue: fsnotify watch failed, using polling: %v", err)
 	} else {
 		defer w.Close()
 		ch := make(chan struct{}, 1)
-		toWatch := filepath.Join(tailscaledCfgDir, "..data")
+		toWatch := filepath.Join(lanhcdCfgDir, "..data")
 		go func() {
 			for ev := range w.Events {
 				if ev.Name == toWatch {
@@ -202,7 +202,7 @@ func (kc *kubeClient) setAndWaitForAuthKeyReissue(ctx context.Context, client *l
 		log.Printf("auth key reissue: watching for config changes via fsnotify")
 	}
 
-	err = authkey.WaitForAuthKeyReissue(ctx, tailscaledConfigAuthKey, 10*time.Minute, getAuthKey, clearFn, notify)
+	err = authkey.WaitForAuthKeyReissue(ctx, lanhcdConfigAuthKey, 10*time.Minute, getAuthKey, clearFn, notify)
 	if err != nil {
 		return fmt.Errorf("failed to receive new auth key: %w", err)
 	}
@@ -210,9 +210,9 @@ func (kc *kubeClient) setAndWaitForAuthKeyReissue(ctx context.Context, client *l
 	return nil
 }
 
-// waitForConsistentState waits for tailscaled to finish writing state if it
+// waitForConsistentState waits for lanhcd to finish writing state if it
 // looks like it's started. It is designed to reduce the likelihood that
-// tailscaled gets shut down in the window between authenticating to control
+// lanhcd gets shut down in the window between authenticating to control
 // and finishing writing state. However, it's not bullet proof because we can't
 // atomically authenticate and write state.
 func (kc *kubeClient) waitForConsistentState(ctx context.Context) error {
@@ -238,7 +238,7 @@ func (kc *kubeClient) waitForConsistentState(ctx context.Context) error {
 		}
 
 		if !logged {
-			log.Printf("Waiting for tailscaled to finish writing state to Secret %q", kc.stateSecret)
+			log.Printf("Waiting for lanhcd to finish writing state to Secret %q", kc.stateSecret)
 			logged = true
 		}
 		bo.BackOff(ctx, errors.New("")) // Fake error to trigger actual sleep.

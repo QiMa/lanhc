@@ -10,9 +10,9 @@ import (
 	"runtime"
 	"time"
 
-	"tailscale.com/syncs"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/cibuild"
+	"lanhc.com/syncs"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/cibuild"
 )
 
 type DeliveredEvent struct {
@@ -225,7 +225,7 @@ func newSubscriber[T any](r *subscribeState, logf logger.Logf) *Subscriber[T] {
 // send on its own goroutine on every event delivery. That bridge was measured
 // at ~2.7x throughput regression on BenchmarkBasicThroughput, so we keep
 // dispatchTyped generic and pay the per-shape stencil cost instead (measured
-// at ~1,600 B body + ~1,100 B pclntab per shape on linux/amd64 tailscaled).
+// at ~1,600 B body + ~1,100 B pclntab per shape on linux/amd64 lanhcd).
 // Only the typed select lives in the per-shape stencil; the surrounding state
 // (slow timer, log function, type name) is reached through the non-generic
 // core.

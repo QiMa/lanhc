@@ -22,18 +22,18 @@ import (
 	"github.com/tailscale/netlink"
 	"github.com/tailscale/wireguard-go/tun"
 	"go4.org/netipx"
-	"tailscale.com/health"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/tsconst"
-	"tailscale.com/tstest"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/eventbus/eventbustest"
-	"tailscale.com/util/linuxfw"
-	"tailscale.com/util/set"
-	"tailscale.com/version/distro"
-	"tailscale.com/wgengine/router"
+	"lanhc.com/health"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/tsconst"
+	"lanhc.com/tstest"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/eventbus/eventbustest"
+	"lanhc.com/util/linuxfw"
+	"lanhc.com/util/set"
+	"lanhc.com/version/distro"
+	"lanhc.com/wgengine/router"
 )
 
 type Config = router.Config
@@ -68,7 +68,7 @@ up` + basic,
 			},
 			want: `
 up
-ip addr add 100.101.102.103/10 dev tailscale0` + basic,
+ip addr add 100.101.102.103/10 dev lanhc0` + basic,
 		},
 
 		{
@@ -80,9 +80,9 @@ ip addr add 100.101.102.103/10 dev tailscale0` + basic,
 			},
 			want: `
 up
-ip addr add 100.101.102.103/10 dev tailscale0
-ip route add 100.100.100.100/32 dev tailscale0 table 52
-ip route add 192.168.16.0/24 dev tailscale0 table 52` + basic,
+ip addr add 100.101.102.103/10 dev lanhc0
+ip route add 100.100.100.100/32 dev lanhc0 table 52
+ip route add 192.168.16.0/24 dev lanhc0 table 52` + basic,
 		},
 
 		{
@@ -95,9 +95,9 @@ ip route add 192.168.16.0/24 dev tailscale0 table 52` + basic,
 			},
 			want: `
 up
-ip addr add 100.101.102.103/10 dev tailscale0
-ip route add 100.100.100.100/32 dev tailscale0 table 52
-ip route add 192.168.16.0/24 dev tailscale0 table 52` + basic,
+ip addr add 100.101.102.103/10 dev lanhc0
+ip route add 100.100.100.100/32 dev lanhc0 table 52
+ip route add 192.168.16.0/24 dev lanhc0 table 52` + basic,
 		},
 
 		{
@@ -112,29 +112,29 @@ ip route add 192.168.16.0/24 dev tailscale0 table 52` + basic,
 			},
 			want: `
 up
-ip addr add 100.101.102.104/10 dev tailscale0
-ip route add 10.0.0.0/8 dev tailscale0 table 52
-ip route add 100.100.100.100/32 dev tailscale0 table 52` + basic +
+ip addr add 100.101.102.104/10 dev lanhc0
+ip route add 10.0.0.0/8 dev lanhc0 table 52
+ip route add 100.100.100.100/32 dev lanhc0 table 52` + basic +
 				`v4/filter/FORWARD -j ts-forward
 v4/filter/INPUT -j ts-input
-v4/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v4/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v4/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v4/filter/ts-forward -o tailscale0 -s 100.64.0.0/10 -j DROP
-v4/filter/ts-forward -o tailscale0 -m conntrack ! --ctstate ESTABLISHED,RELATED -j DROP
-v4/filter/ts-forward -o tailscale0 -j ACCEPT
+v4/filter/ts-forward -o lanhc0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-forward -o lanhc0 -m conntrack ! --ctstate ESTABLISHED,RELATED -j DROP
+v4/filter/ts-forward -o lanhc0 -j ACCEPT
 v4/filter/ts-input -i lo -s 100.101.102.104 -j ACCEPT
-v4/filter/ts-input ! -i tailscale0 -s 100.115.92.0/23 -j RETURN
-v4/filter/ts-input ! -i tailscale0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-input ! -i lanhc0 -s 100.115.92.0/23 -j RETURN
+v4/filter/ts-input ! -i lanhc0 -s 100.64.0.0/10 -j DROP
 v4/mangle/OUTPUT -m conntrack --ctstate NEW -m mark ! --mark 0x0/0xff0000 -j CONNMARK --save-mark --nfmask 0xff0000 --ctmask 0xff0000
 v4/mangle/PREROUTING -m conntrack --ctstate ESTABLISHED,RELATED -j CONNMARK --restore-mark --nfmask 0xff0000 --ctmask 0xff0000
 v4/nat/POSTROUTING -j ts-postrouting
 v4/nat/ts-postrouting -m mark --mark 0x40000/0xff0000 -j MASQUERADE
 v6/filter/FORWARD -j ts-forward
 v6/filter/INPUT -j ts-input
-v6/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v6/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v6/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v6/filter/ts-forward -o tailscale0 -m conntrack ! --ctstate ESTABLISHED,RELATED -j DROP
-v6/filter/ts-forward -o tailscale0 -j ACCEPT
+v6/filter/ts-forward -o lanhc0 -m conntrack ! --ctstate ESTABLISHED,RELATED -j DROP
+v6/filter/ts-forward -o lanhc0 -j ACCEPT
 v6/mangle/OUTPUT -m conntrack --ctstate NEW -m mark ! --mark 0x0/0xff0000 -j CONNMARK --save-mark --nfmask 0xff0000 --ctmask 0xff0000
 v6/mangle/PREROUTING -m conntrack --ctstate ESTABLISHED,RELATED -j CONNMARK --restore-mark --nfmask 0xff0000 --ctmask 0xff0000
 v6/nat/POSTROUTING -j ts-postrouting
@@ -153,27 +153,27 @@ v6/nat/ts-postrouting -m mark --mark 0x40000/0xff0000 -j MASQUERADE
 			},
 			want: `
 up
-ip addr add 100.101.102.104/10 dev tailscale0
-ip route add 10.0.0.0/8 dev tailscale0 table 52
-ip route add 100.100.100.100/32 dev tailscale0 table 52` + basic +
+ip addr add 100.101.102.104/10 dev lanhc0
+ip route add 10.0.0.0/8 dev lanhc0 table 52
+ip route add 100.100.100.100/32 dev lanhc0 table 52` + basic +
 				`v4/filter/FORWARD -j ts-forward
 v4/filter/INPUT -j ts-input
-v4/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v4/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v4/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v4/filter/ts-forward -o tailscale0 -s 100.64.0.0/10 -j DROP
-v4/filter/ts-forward -o tailscale0 -j ACCEPT
+v4/filter/ts-forward -o lanhc0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-forward -o lanhc0 -j ACCEPT
 v4/filter/ts-input -i lo -s 100.101.102.104 -j ACCEPT
-v4/filter/ts-input ! -i tailscale0 -s 100.115.92.0/23 -j RETURN
-v4/filter/ts-input ! -i tailscale0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-input ! -i lanhc0 -s 100.115.92.0/23 -j RETURN
+v4/filter/ts-input ! -i lanhc0 -s 100.64.0.0/10 -j DROP
 v4/mangle/OUTPUT -m conntrack --ctstate NEW -m mark ! --mark 0x0/0xff0000 -j CONNMARK --save-mark --nfmask 0xff0000 --ctmask 0xff0000
 v4/mangle/PREROUTING -m conntrack --ctstate ESTABLISHED,RELATED -j CONNMARK --restore-mark --nfmask 0xff0000 --ctmask 0xff0000
 v4/nat/POSTROUTING -j ts-postrouting
 v4/nat/ts-postrouting -m mark --mark 0x40000/0xff0000 -j MASQUERADE
 v6/filter/FORWARD -j ts-forward
 v6/filter/INPUT -j ts-input
-v6/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v6/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v6/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v6/filter/ts-forward -o tailscale0 -j ACCEPT
+v6/filter/ts-forward -o lanhc0 -j ACCEPT
 v6/mangle/OUTPUT -m conntrack --ctstate NEW -m mark ! --mark 0x0/0xff0000 -j CONNMARK --save-mark --nfmask 0xff0000 --ctmask 0xff0000
 v6/mangle/PREROUTING -m conntrack --ctstate ESTABLISHED,RELATED -j CONNMARK --restore-mark --nfmask 0xff0000 --ctmask 0xff0000
 v6/nat/POSTROUTING -j ts-postrouting
@@ -189,26 +189,26 @@ v6/nat/ts-postrouting -m mark --mark 0x40000/0xff0000 -j MASQUERADE
 			},
 			want: `
 up
-ip addr add 100.101.102.104/10 dev tailscale0
-ip route add 10.0.0.0/8 dev tailscale0 table 52
-ip route add 100.100.100.100/32 dev tailscale0 table 52` + basic +
+ip addr add 100.101.102.104/10 dev lanhc0
+ip route add 10.0.0.0/8 dev lanhc0 table 52
+ip route add 100.100.100.100/32 dev lanhc0 table 52` + basic +
 				`v4/filter/FORWARD -j ts-forward
 v4/filter/INPUT -j ts-input
-v4/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v4/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v4/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v4/filter/ts-forward -o tailscale0 -s 100.64.0.0/10 -j DROP
-v4/filter/ts-forward -o tailscale0 -j ACCEPT
+v4/filter/ts-forward -o lanhc0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-forward -o lanhc0 -j ACCEPT
 v4/filter/ts-input -i lo -s 100.101.102.104 -j ACCEPT
-v4/filter/ts-input ! -i tailscale0 -s 100.115.92.0/23 -j RETURN
-v4/filter/ts-input ! -i tailscale0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-input ! -i lanhc0 -s 100.115.92.0/23 -j RETURN
+v4/filter/ts-input ! -i lanhc0 -s 100.64.0.0/10 -j DROP
 v4/mangle/OUTPUT -m conntrack --ctstate NEW -m mark ! --mark 0x0/0xff0000 -j CONNMARK --save-mark --nfmask 0xff0000 --ctmask 0xff0000
 v4/mangle/PREROUTING -m conntrack --ctstate ESTABLISHED,RELATED -j CONNMARK --restore-mark --nfmask 0xff0000 --ctmask 0xff0000
 v4/nat/POSTROUTING -j ts-postrouting
 v6/filter/FORWARD -j ts-forward
 v6/filter/INPUT -j ts-input
-v6/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v6/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v6/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v6/filter/ts-forward -o tailscale0 -j ACCEPT
+v6/filter/ts-forward -o lanhc0 -j ACCEPT
 v6/mangle/OUTPUT -m conntrack --ctstate NEW -m mark ! --mark 0x0/0xff0000 -j CONNMARK --save-mark --nfmask 0xff0000 --ctmask 0xff0000
 v6/mangle/PREROUTING -m conntrack --ctstate ESTABLISHED,RELATED -j CONNMARK --restore-mark --nfmask 0xff0000 --ctmask 0xff0000
 v6/nat/POSTROUTING -j ts-postrouting
@@ -226,26 +226,26 @@ v6/nat/POSTROUTING -j ts-postrouting
 			},
 			want: `
 up
-ip addr add 100.101.102.104/10 dev tailscale0
-ip route add 10.0.0.0/8 dev tailscale0 table 52
-ip route add 100.100.100.100/32 dev tailscale0 table 52` + basic +
+ip addr add 100.101.102.104/10 dev lanhc0
+ip route add 10.0.0.0/8 dev lanhc0 table 52
+ip route add 100.100.100.100/32 dev lanhc0 table 52` + basic +
 				`v4/filter/FORWARD -j ts-forward
 v4/filter/INPUT -j ts-input
-v4/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v4/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v4/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v4/filter/ts-forward -o tailscale0 -s 100.64.0.0/10 -j DROP
-v4/filter/ts-forward -o tailscale0 -j ACCEPT
+v4/filter/ts-forward -o lanhc0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-forward -o lanhc0 -j ACCEPT
 v4/filter/ts-input -i lo -s 100.101.102.104 -j ACCEPT
-v4/filter/ts-input ! -i tailscale0 -s 100.115.92.0/23 -j RETURN
-v4/filter/ts-input ! -i tailscale0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-input ! -i lanhc0 -s 100.115.92.0/23 -j RETURN
+v4/filter/ts-input ! -i lanhc0 -s 100.64.0.0/10 -j DROP
 v4/mangle/OUTPUT -m conntrack --ctstate NEW -m mark ! --mark 0x0/0xff0000 -j CONNMARK --save-mark --nfmask 0xff0000 --ctmask 0xff0000
 v4/mangle/PREROUTING -m conntrack --ctstate ESTABLISHED,RELATED -j CONNMARK --restore-mark --nfmask 0xff0000 --ctmask 0xff0000
 v4/nat/POSTROUTING -j ts-postrouting
 v6/filter/FORWARD -j ts-forward
 v6/filter/INPUT -j ts-input
-v6/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v6/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v6/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v6/filter/ts-forward -o tailscale0 -j ACCEPT
+v6/filter/ts-forward -o lanhc0 -j ACCEPT
 v6/mangle/OUTPUT -m conntrack --ctstate NEW -m mark ! --mark 0x0/0xff0000 -j CONNMARK --save-mark --nfmask 0xff0000 --ctmask 0xff0000
 v6/mangle/PREROUTING -m conntrack --ctstate ESTABLISHED,RELATED -j CONNMARK --restore-mark --nfmask 0xff0000 --ctmask 0xff0000
 v6/nat/POSTROUTING -j ts-postrouting
@@ -260,26 +260,26 @@ v6/nat/POSTROUTING -j ts-postrouting
 			},
 			want: `
 up
-ip addr add 100.101.102.104/10 dev tailscale0
-ip route add 10.0.0.0/8 dev tailscale0 table 52
-ip route add 100.100.100.100/32 dev tailscale0 table 52` + basic +
+ip addr add 100.101.102.104/10 dev lanhc0
+ip route add 10.0.0.0/8 dev lanhc0 table 52
+ip route add 100.100.100.100/32 dev lanhc0 table 52` + basic +
 				`v4/filter/FORWARD -j ts-forward
 v4/filter/INPUT -j ts-input
-v4/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v4/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v4/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v4/filter/ts-forward -o tailscale0 -s 100.64.0.0/10 -j DROP
-v4/filter/ts-forward -o tailscale0 -j ACCEPT
+v4/filter/ts-forward -o lanhc0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-forward -o lanhc0 -j ACCEPT
 v4/filter/ts-input -i lo -s 100.101.102.104 -j ACCEPT
-v4/filter/ts-input ! -i tailscale0 -s 100.115.92.0/23 -j RETURN
-v4/filter/ts-input ! -i tailscale0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-input ! -i lanhc0 -s 100.115.92.0/23 -j RETURN
+v4/filter/ts-input ! -i lanhc0 -s 100.64.0.0/10 -j DROP
 v4/mangle/OUTPUT -m conntrack --ctstate NEW -m mark ! --mark 0x0/0xff0000 -j CONNMARK --save-mark --nfmask 0xff0000 --ctmask 0xff0000
 v4/mangle/PREROUTING -m conntrack --ctstate ESTABLISHED,RELATED -j CONNMARK --restore-mark --nfmask 0xff0000 --ctmask 0xff0000
 v4/nat/POSTROUTING -j ts-postrouting
 v6/filter/FORWARD -j ts-forward
 v6/filter/INPUT -j ts-input
-v6/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v6/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v6/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v6/filter/ts-forward -o tailscale0 -j ACCEPT
+v6/filter/ts-forward -o lanhc0 -j ACCEPT
 v6/mangle/OUTPUT -m conntrack --ctstate NEW -m mark ! --mark 0x0/0xff0000 -j CONNMARK --save-mark --nfmask 0xff0000 --ctmask 0xff0000
 v6/mangle/PREROUTING -m conntrack --ctstate ESTABLISHED,RELATED -j CONNMARK --restore-mark --nfmask 0xff0000 --ctmask 0xff0000
 v6/nat/POSTROUTING -j ts-postrouting
@@ -295,19 +295,19 @@ v6/nat/POSTROUTING -j ts-postrouting
 			},
 			want: `
 up
-ip addr add 100.101.102.104/10 dev tailscale0
-ip route add 10.0.0.0/8 dev tailscale0 table 52
-ip route add 100.100.100.100/32 dev tailscale0 table 52` + basic +
-				`v4/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+ip addr add 100.101.102.104/10 dev lanhc0
+ip route add 10.0.0.0/8 dev lanhc0 table 52
+ip route add 100.100.100.100/32 dev lanhc0 table 52` + basic +
+				`v4/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v4/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v4/filter/ts-forward -o tailscale0 -s 100.64.0.0/10 -j DROP
-v4/filter/ts-forward -o tailscale0 -j ACCEPT
+v4/filter/ts-forward -o lanhc0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-forward -o lanhc0 -j ACCEPT
 v4/filter/ts-input -i lo -s 100.101.102.104 -j ACCEPT
-v4/filter/ts-input ! -i tailscale0 -s 100.115.92.0/23 -j RETURN
-v4/filter/ts-input ! -i tailscale0 -s 100.64.0.0/10 -j DROP
-v6/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v4/filter/ts-input ! -i lanhc0 -s 100.115.92.0/23 -j RETURN
+v4/filter/ts-input ! -i lanhc0 -s 100.64.0.0/10 -j DROP
+v6/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v6/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v6/filter/ts-forward -o tailscale0 -j ACCEPT
+v6/filter/ts-forward -o lanhc0 -j ACCEPT
 `,
 		},
 		{
@@ -319,26 +319,26 @@ v6/filter/ts-forward -o tailscale0 -j ACCEPT
 			},
 			want: `
 up
-ip addr add 100.101.102.104/10 dev tailscale0
-ip route add 10.0.0.0/8 dev tailscale0 table 52
-ip route add 100.100.100.100/32 dev tailscale0 table 52` + basic +
+ip addr add 100.101.102.104/10 dev lanhc0
+ip route add 10.0.0.0/8 dev lanhc0 table 52
+ip route add 100.100.100.100/32 dev lanhc0 table 52` + basic +
 				`v4/filter/FORWARD -j ts-forward
 v4/filter/INPUT -j ts-input
-v4/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v4/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v4/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v4/filter/ts-forward -o tailscale0 -s 100.64.0.0/10 -j DROP
-v4/filter/ts-forward -o tailscale0 -j ACCEPT
+v4/filter/ts-forward -o lanhc0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-forward -o lanhc0 -j ACCEPT
 v4/filter/ts-input -i lo -s 100.101.102.104 -j ACCEPT
-v4/filter/ts-input ! -i tailscale0 -s 100.115.92.0/23 -j RETURN
-v4/filter/ts-input ! -i tailscale0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-input ! -i lanhc0 -s 100.115.92.0/23 -j RETURN
+v4/filter/ts-input ! -i lanhc0 -s 100.64.0.0/10 -j DROP
 v4/mangle/OUTPUT -m conntrack --ctstate NEW -m mark ! --mark 0x0/0xff0000 -j CONNMARK --save-mark --nfmask 0xff0000 --ctmask 0xff0000
 v4/mangle/PREROUTING -m conntrack --ctstate ESTABLISHED,RELATED -j CONNMARK --restore-mark --nfmask 0xff0000 --ctmask 0xff0000
 v4/nat/POSTROUTING -j ts-postrouting
 v6/filter/FORWARD -j ts-forward
 v6/filter/INPUT -j ts-input
-v6/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v6/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v6/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v6/filter/ts-forward -o tailscale0 -j ACCEPT
+v6/filter/ts-forward -o lanhc0 -j ACCEPT
 v6/mangle/OUTPUT -m conntrack --ctstate NEW -m mark ! --mark 0x0/0xff0000 -j CONNMARK --save-mark --nfmask 0xff0000 --ctmask 0xff0000
 v6/mangle/PREROUTING -m conntrack --ctstate ESTABLISHED,RELATED -j CONNMARK --restore-mark --nfmask 0xff0000 --ctmask 0xff0000
 v6/nat/POSTROUTING -j ts-postrouting
@@ -354,27 +354,27 @@ v6/nat/POSTROUTING -j ts-postrouting
 			},
 			want: `
 up
-ip addr add 100.101.102.104/10 dev tailscale0
-ip route add 0.0.0.0/0 dev tailscale0 table 52
-ip route add 100.100.100.100/32 dev tailscale0 table 52
+ip addr add 100.101.102.104/10 dev lanhc0
+ip route add 0.0.0.0/0 dev lanhc0 table 52
+ip route add 100.100.100.100/32 dev lanhc0 table 52
 ip route add throw 10.0.0.0/8 table 52` + basic +
 				`v4/filter/FORWARD -j ts-forward
 v4/filter/INPUT -j ts-input
-v4/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v4/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v4/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v4/filter/ts-forward -o tailscale0 -s 100.64.0.0/10 -j DROP
-v4/filter/ts-forward -o tailscale0 -j ACCEPT
+v4/filter/ts-forward -o lanhc0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-forward -o lanhc0 -j ACCEPT
 v4/filter/ts-input -i lo -s 100.101.102.104 -j ACCEPT
-v4/filter/ts-input ! -i tailscale0 -s 100.115.92.0/23 -j RETURN
-v4/filter/ts-input ! -i tailscale0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-input ! -i lanhc0 -s 100.115.92.0/23 -j RETURN
+v4/filter/ts-input ! -i lanhc0 -s 100.64.0.0/10 -j DROP
 v4/mangle/OUTPUT -m conntrack --ctstate NEW -m mark ! --mark 0x0/0xff0000 -j CONNMARK --save-mark --nfmask 0xff0000 --ctmask 0xff0000
 v4/mangle/PREROUTING -m conntrack --ctstate ESTABLISHED,RELATED -j CONNMARK --restore-mark --nfmask 0xff0000 --ctmask 0xff0000
 v4/nat/POSTROUTING -j ts-postrouting
 v6/filter/FORWARD -j ts-forward
 v6/filter/INPUT -j ts-input
-v6/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v6/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v6/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v6/filter/ts-forward -o tailscale0 -j ACCEPT
+v6/filter/ts-forward -o lanhc0 -j ACCEPT
 v6/mangle/OUTPUT -m conntrack --ctstate NEW -m mark ! --mark 0x0/0xff0000 -j CONNMARK --save-mark --nfmask 0xff0000 --ctmask 0xff0000
 v6/mangle/PREROUTING -m conntrack --ctstate ESTABLISHED,RELATED -j CONNMARK --restore-mark --nfmask 0xff0000 --ctmask 0xff0000
 v6/nat/POSTROUTING -j ts-postrouting
@@ -390,9 +390,9 @@ v6/nat/POSTROUTING -j ts-postrouting
 			},
 			want: `
 up
-ip addr add 100.101.102.104/10 dev tailscale0
-ip route add 0.0.0.0/0 dev tailscale0 table 52
-ip route add 100.100.100.100/32 dev tailscale0 table 52
+ip addr add 100.101.102.104/10 dev lanhc0
+ip route add 0.0.0.0/0 dev lanhc0 table 52
+ip route add 100.100.100.100/32 dev lanhc0 table 52
 ip route add throw 10.0.0.0/8 table 52
 ip route add throw 192.168.0.0/24 table 52` + basic,
 		},
@@ -407,26 +407,26 @@ ip route add throw 192.168.0.0/24 table 52` + basic,
 			},
 			want: `
 up
-ip addr add 100.101.102.104/10 dev tailscale0
-ip route add 100.100.100.100/32 dev tailscale0 table 52` + basic +
+ip addr add 100.101.102.104/10 dev lanhc0
+ip route add 100.100.100.100/32 dev lanhc0 table 52` + basic +
 				`v4/filter/FORWARD -j ts-forward
 v4/filter/INPUT -j ts-input
-v4/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v4/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v4/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v4/filter/ts-forward -o tailscale0 -s 100.64.0.0/10 -j DROP
-v4/filter/ts-forward -o tailscale0 -j ACCEPT
+v4/filter/ts-forward -o lanhc0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-forward -o lanhc0 -j ACCEPT
 v4/filter/ts-input -i lo -s 100.101.102.104 -j ACCEPT
-v4/filter/ts-input ! -i tailscale0 -s 100.115.92.0/23 -j RETURN
-v4/filter/ts-input ! -i tailscale0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-input ! -i lanhc0 -s 100.115.92.0/23 -j RETURN
+v4/filter/ts-input ! -i lanhc0 -s 100.64.0.0/10 -j DROP
 v4/mangle/OUTPUT -m conntrack --ctstate NEW -m mark ! --mark 0x0/0xff0000 -j CONNMARK --save-mark --nfmask 0xff0000 --ctmask 0xff0000
 v4/mangle/PREROUTING -m conntrack --ctstate ESTABLISHED,RELATED -j CONNMARK --restore-mark --nfmask 0xff0000 --ctmask 0xff0000
 v4/nat/POSTROUTING -j ts-postrouting
 v4/nat/ts-postrouting -m mark --mark 0x40000/0xff0000 -j MASQUERADE
 v6/filter/FORWARD -j ts-forward
 v6/filter/INPUT -j ts-input
-v6/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v6/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v6/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v6/filter/ts-forward -o tailscale0 -j ACCEPT
+v6/filter/ts-forward -o lanhc0 -j ACCEPT
 v6/mangle/OUTPUT -m conntrack --ctstate NEW -m mark ! --mark 0x0/0xff0000 -j CONNMARK --save-mark --nfmask 0xff0000 --ctmask 0xff0000
 v6/mangle/PREROUTING -m conntrack --ctstate ESTABLISHED,RELATED -j CONNMARK --restore-mark --nfmask 0xff0000 --ctmask 0xff0000
 v6/nat/POSTROUTING -j ts-postrouting
@@ -444,26 +444,26 @@ v6/nat/ts-postrouting -m mark --mark 0x40000/0xff0000 -j MASQUERADE
 			},
 			want: `
 up
-ip addr add 100.101.102.104/10 dev tailscale0
-ip route add 100.100.100.100/32 dev tailscale0 table 52` + basic +
+ip addr add 100.101.102.104/10 dev lanhc0
+ip route add 100.100.100.100/32 dev lanhc0 table 52` + basic +
 				`v4/filter/FORWARD -j ts-forward
 v4/filter/INPUT -j ts-input
-v4/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v4/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v4/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v4/filter/ts-forward -o tailscale0 -s 100.64.0.0/10 -j DROP
-v4/filter/ts-forward -o tailscale0 -j ACCEPT
+v4/filter/ts-forward -o lanhc0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-forward -o lanhc0 -j ACCEPT
 v4/filter/ts-input -i lo -s 100.101.102.104 -j ACCEPT
-v4/filter/ts-input ! -i tailscale0 -s 100.115.92.0/23 -j RETURN
-v4/filter/ts-input ! -i tailscale0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-input ! -i lanhc0 -s 100.115.92.0/23 -j RETURN
+v4/filter/ts-input ! -i lanhc0 -s 100.64.0.0/10 -j DROP
 v4/mangle/OUTPUT -m conntrack --ctstate NEW -m mark ! --mark 0x0/0xff0000 -j CONNMARK --save-mark --nfmask 0xff0000 --ctmask 0xff0000
 v4/mangle/PREROUTING -m conntrack --ctstate ESTABLISHED,RELATED -j CONNMARK --restore-mark --nfmask 0xff0000 --ctmask 0xff0000
 v4/nat/POSTROUTING -j ts-postrouting
 v4/nat/ts-postrouting -m mark --mark 0x40000/0xff0000 -j MASQUERADE
 v6/filter/FORWARD -j ts-forward
 v6/filter/INPUT -j ts-input
-v6/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v6/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v6/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v6/filter/ts-forward -o tailscale0 -j ACCEPT
+v6/filter/ts-forward -o lanhc0 -j ACCEPT
 v6/mangle/OUTPUT -m conntrack --ctstate NEW -m mark ! --mark 0x0/0xff0000 -j CONNMARK --save-mark --nfmask 0xff0000 --ctmask 0xff0000
 v6/mangle/PREROUTING -m conntrack --ctstate ESTABLISHED,RELATED -j CONNMARK --restore-mark --nfmask 0xff0000 --ctmask 0xff0000
 v6/nat/POSTROUTING -j ts-postrouting
@@ -482,28 +482,28 @@ v6/nat/ts-postrouting -m mark --mark 0x40000/0xff0000 -j MASQUERADE
 			},
 			want: `
 up
-ip addr add 100.101.102.104/10 dev tailscale0
-ip route add 100.100.100.100/32 dev tailscale0 table 52` + basic +
+ip addr add 100.101.102.104/10 dev lanhc0
+ip route add 100.100.100.100/32 dev lanhc0 table 52` + basic +
 				`v4/filter/FORWARD -j ts-forward
 v4/filter/INPUT -j ts-input
-v4/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v4/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v4/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v4/filter/ts-forward -o tailscale0 -s 100.64.0.0/10 -j DROP
-v4/filter/ts-forward -o tailscale0 -m conntrack ! --ctstate ESTABLISHED,RELATED -j DROP
-v4/filter/ts-forward -o tailscale0 -j ACCEPT
+v4/filter/ts-forward -o lanhc0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-forward -o lanhc0 -m conntrack ! --ctstate ESTABLISHED,RELATED -j DROP
+v4/filter/ts-forward -o lanhc0 -j ACCEPT
 v4/filter/ts-input -i lo -s 100.101.102.104 -j ACCEPT
-v4/filter/ts-input ! -i tailscale0 -s 100.115.92.0/23 -j RETURN
-v4/filter/ts-input ! -i tailscale0 -s 100.64.0.0/10 -j DROP
+v4/filter/ts-input ! -i lanhc0 -s 100.115.92.0/23 -j RETURN
+v4/filter/ts-input ! -i lanhc0 -s 100.64.0.0/10 -j DROP
 v4/mangle/OUTPUT -m conntrack --ctstate NEW -m mark ! --mark 0x0/0xff0000 -j CONNMARK --save-mark --nfmask 0xff0000 --ctmask 0xff0000
 v4/mangle/PREROUTING -m conntrack --ctstate ESTABLISHED,RELATED -j CONNMARK --restore-mark --nfmask 0xff0000 --ctmask 0xff0000
 v4/nat/POSTROUTING -j ts-postrouting
 v4/nat/ts-postrouting -m mark --mark 0x40000/0xff0000 -j MASQUERADE
 v6/filter/FORWARD -j ts-forward
 v6/filter/INPUT -j ts-input
-v6/filter/ts-forward -i tailscale0 -j MARK --set-mark 0x40000/0xff0000
+v6/filter/ts-forward -i lanhc0 -j MARK --set-mark 0x40000/0xff0000
 v6/filter/ts-forward -m mark --mark 0x40000/0xff0000 -j ACCEPT
-v6/filter/ts-forward -o tailscale0 -m conntrack ! --ctstate ESTABLISHED,RELATED -j DROP
-v6/filter/ts-forward -o tailscale0 -j ACCEPT
+v6/filter/ts-forward -o lanhc0 -m conntrack ! --ctstate ESTABLISHED,RELATED -j DROP
+v6/filter/ts-forward -o lanhc0 -j ACCEPT
 v6/mangle/OUTPUT -m conntrack --ctstate NEW -m mark ! --mark 0x0/0xff0000 -j CONNMARK --save-mark --nfmask 0xff0000 --ctmask 0xff0000
 v6/mangle/PREROUTING -m conntrack --ctstate ESTABLISHED,RELATED -j CONNMARK --restore-mark --nfmask 0xff0000 --ctmask 0xff0000
 v6/nat/POSTROUTING -j ts-postrouting
@@ -523,7 +523,7 @@ v6/nat/ts-postrouting -m mark --mark 0x40000/0xff0000 -j MASQUERADE
 
 	fake := NewFakeOS(t)
 	ht := health.NewTracker(bus)
-	router, err := newUserspaceRouterAdvanced(t.Logf, "tailscale0", mon, fake, ht, bus)
+	router, err := newUserspaceRouterAdvanced(t.Logf, "lanhc0", mon, fake, ht, bus)
 	router.(*linuxRouter).nfr = fake.nfr
 	// Don't consult the live /proc for the tun's IPv6 state in tests; the
 	// fake netfilter runner's HasIPV6 (noV6) is the authoritative v6 signal
@@ -700,7 +700,7 @@ func (n *fakeIPTablesRunner) EnsureSNATForDst(src, dst netip.Addr) error {
 	return errors.New("not implemented")
 }
 
-func (n *fakeIPTablesRunner) DNATNonTailscaleTraffic(exemptInterface string, dst netip.Addr) error {
+func (n *fakeIPTablesRunner) DNATNonLanhcTraffic(exemptInterface string, dst netip.Addr) error {
 	return errors.New("not implemented")
 }
 
@@ -1111,9 +1111,9 @@ func (o *fakeOS) run(args ...string) error {
 	case "link":
 		got := strings.Join(args[2:], " ")
 		switch got {
-		case "set dev tailscale0 up":
+		case "set dev lanhc0 up":
 			o.up = true
-		case "set dev tailscale0 down":
+		case "set dev lanhc0 down":
 			o.up = false
 		default:
 			return unexpected()
@@ -1181,7 +1181,7 @@ func (o *fakeOS) output(args ...string) ([]byte, error) {
 		// Render o.ips (entries look like "<cidr> dev <ifname>") in a simplified
 		// `ip -oneline addr show` format that exposes the family token the parser
 		// keys off of. Only addresses on the requested device are returned, so the
-		// fake models a real multi-interface host: `show dev tailscale0` never
+		// fake models a real multi-interface host: `show dev lanhc0` never
 		// reports an address that lives on eth0.
 		var ret []string
 		for _, e := range o.ips {
@@ -1617,7 +1617,7 @@ func TestSetSkipsNetfilterAddonsWhenSetupFails(t *testing.T) {
 
 	fake := NewFakeOS(t)
 	ht := health.NewTracker(bus)
-	r, err := newUserspaceRouterAdvanced(logger.Discard, "tailscale0", mon, fake, ht, bus)
+	r, err := newUserspaceRouterAdvanced(logger.Discard, "lanhc0", mon, fake, ht, bus)
 	if err != nil {
 		t.Fatalf("newUserspaceRouterAdvanced: %v", err)
 	}
@@ -1667,7 +1667,7 @@ func newTestLinuxRouter(t *testing.T) (*linuxRouter, *fakeOS) {
 
 	fake := NewFakeOS(t)
 	ht := health.NewTracker(bus)
-	r, err := newUserspaceRouterAdvanced(logger.Discard, "tailscale0", mon, fake, ht, bus)
+	r, err := newUserspaceRouterAdvanced(logger.Discard, "lanhc0", mon, fake, ht, bus)
 	if err != nil {
 		t.Fatalf("newUserspaceRouterAdvanced: %v", err)
 	}
@@ -1683,19 +1683,19 @@ func newTestLinuxRouter(t *testing.T) (*linuxRouter, *fakeOS) {
 	return lr, fake
 }
 
-// TestSetRemovesOrphanedTailscaleAddrs verifies that Set removes Tailscale-range
+// TestSetRemovesOrphanedLanhcAddrs verifies that Set removes Lanhc-range
 // addresses left on the interface by a previous instance (issue 19974), even
 // though they're absent from the in-memory r.addrs map.
-func TestSetRemovesOrphanedTailscaleAddrs(t *testing.T) {
+func TestSetRemovesOrphanedLanhcAddrs(t *testing.T) {
 	lr, fake := newTestLinuxRouter(t)
 
-	// Simulate a tailscale0 that survived a restart still carrying a prior
-	// profile's CGNAT v4 and Tailscale ULA v6 addresses, plus a non-Tailscale
+	// Simulate a lanhc0 that survived a restart still carrying a prior
+	// profile's CGNAT v4 and Lanhc ULA v6 addresses, plus a non-Lanhc
 	// address that must be left alone.
 	fake.ips = []string{
-		"100.64.0.99/32 dev tailscale0",         // CGNAT v4 orphan
-		"fd7a:115c:a1e0::99/128 dev tailscale0", // ULA v6 orphan
-		"192.168.1.5/24 dev tailscale0",         // non-Tailscale, leave alone
+		"100.64.0.99/32 dev lanhc0",         // CGNAT v4 orphan
+		"fd7a:115c:a1e0::99/128 dev lanhc0", // ULA v6 orphan
+		"192.168.1.5/24 dev lanhc0",         // non-Lanhc, leave alone
 	}
 	slices.Sort(fake.ips)
 
@@ -1707,20 +1707,20 @@ func TestSetRemovesOrphanedTailscaleAddrs(t *testing.T) {
 		t.Fatalf("Set: %v", err)
 	}
 
-	if !slices.Contains(fake.ips, "100.64.0.1/32 dev tailscale0") {
+	if !slices.Contains(fake.ips, "100.64.0.1/32 dev lanhc0") {
 		t.Errorf("desired addr 100.64.0.1/32 not present; ips=%q", fake.ips)
 	}
 	for _, gone := range []string{
-		"100.64.0.99/32 dev tailscale0",
-		"fd7a:115c:a1e0::99/128 dev tailscale0",
+		"100.64.0.99/32 dev lanhc0",
+		"fd7a:115c:a1e0::99/128 dev lanhc0",
 	} {
 		if slices.Contains(fake.ips, gone) {
-			t.Errorf("orphaned Tailscale addr %q was not removed; ips=%q", gone, fake.ips)
+			t.Errorf("orphaned Lanhc addr %q was not removed; ips=%q", gone, fake.ips)
 		}
 	}
-	// Non-Tailscale address must be untouched.
-	if !slices.Contains(fake.ips, "192.168.1.5/24 dev tailscale0") {
-		t.Errorf("non-Tailscale addr 192.168.1.5/24 was wrongly removed; ips=%q", fake.ips)
+	// Non-Lanhc address must be untouched.
+	if !slices.Contains(fake.ips, "192.168.1.5/24 dev lanhc0") {
+		t.Errorf("non-Lanhc addr 192.168.1.5/24 was wrongly removed; ips=%q", fake.ips)
 	}
 }
 
@@ -1733,7 +1733,7 @@ func TestSetRemovesOrphanWithNetfilter(t *testing.T) {
 	lr, fake := newTestLinuxRouter(t)
 
 	fake.ips = []string{
-		"100.64.0.99/32 dev tailscale0", // CGNAT v4 orphan, no loopback rule
+		"100.64.0.99/32 dev lanhc0", // CGNAT v4 orphan, no loopback rule
 	}
 
 	cfg := &Config{
@@ -1744,16 +1744,16 @@ func TestSetRemovesOrphanWithNetfilter(t *testing.T) {
 		t.Fatalf("Set: %v", err)
 	}
 
-	if slices.Contains(fake.ips, "100.64.0.99/32 dev tailscale0") {
+	if slices.Contains(fake.ips, "100.64.0.99/32 dev lanhc0") {
 		t.Errorf("orphan was not removed with netfilter on; ips=%q", fake.ips)
 	}
-	if !slices.Contains(fake.ips, "100.64.0.1/32 dev tailscale0") {
+	if !slices.Contains(fake.ips, "100.64.0.1/32 dev lanhc0") {
 		t.Errorf("desired addr 100.64.0.1/32 not present; ips=%q", fake.ips)
 	}
 }
 
 // TestSetInstallsLoopbackRuleForExistingAddr covers the persisted-interface
-// restart case: the node's own address is already on tailscale0 (so the kernel
+// restart case: the node's own address is already on lanhc0 (so the kernel
 // reports it), but its per-address loopback rule was flushed when the netfilter
 // chains were rebuilt. Set must still install the loopback rule, i.e. it must
 // not skip addAddress just because the address is already present -- which it
@@ -1763,7 +1763,7 @@ func TestSetInstallsLoopbackRuleForExistingAddr(t *testing.T) {
 
 	// The node's own address persisted on the interface across the restart.
 	fake.ips = []string{
-		"100.64.0.1/32 dev tailscale0",
+		"100.64.0.1/32 dev lanhc0",
 	}
 
 	cfg := &Config{
@@ -1799,7 +1799,7 @@ func TestSetOrphanScanGatedByAddrChange(t *testing.T) {
 
 	// An orphan appears afterward. A route-only update leaves LocalAddrs
 	// unchanged, so the scan is skipped and the orphan stays in place.
-	fake.ips = append(fake.ips, "100.64.0.99/32 dev tailscale0")
+	fake.ips = append(fake.ips, "100.64.0.99/32 dev lanhc0")
 	slices.Sort(fake.ips)
 	if err := lr.Set(&Config{
 		LocalAddrs:    mustCIDRs("100.64.0.1/32"),
@@ -1808,7 +1808,7 @@ func TestSetOrphanScanGatedByAddrChange(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("Set 2 (route-only): %v", err)
 	}
-	if !slices.Contains(fake.ips, "100.64.0.99/32 dev tailscale0") {
+	if !slices.Contains(fake.ips, "100.64.0.99/32 dev lanhc0") {
 		t.Errorf("orphan removed on a route-only update; scan should have been skipped; ips=%q", fake.ips)
 	}
 
@@ -1820,7 +1820,7 @@ func TestSetOrphanScanGatedByAddrChange(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("Set 3 (addr change): %v", err)
 	}
-	if slices.Contains(fake.ips, "100.64.0.99/32 dev tailscale0") {
+	if slices.Contains(fake.ips, "100.64.0.99/32 dev lanhc0") {
 		t.Errorf("orphan not removed after LocalAddrs change; ips=%q", fake.ips)
 	}
 }
@@ -1845,28 +1845,28 @@ func TestSetOrphanScanNotRetriedOnDuplicateLocalAddrs(t *testing.T) {
 
 	// An orphan appears; re-applying the same (duplicated) LocalAddrs must not
 	// trigger a rescan, so the orphan stays.
-	fake.ips = append(fake.ips, "100.64.0.99/32 dev tailscale0")
+	fake.ips = append(fake.ips, "100.64.0.99/32 dev lanhc0")
 	slices.Sort(fake.ips)
 	if err := lr.Set(dupCfg); err != nil {
 		t.Fatalf("Set 2: %v", err)
 	}
-	if !slices.Contains(fake.ips, "100.64.0.99/32 dev tailscale0") {
+	if !slices.Contains(fake.ips, "100.64.0.99/32 dev lanhc0") {
 		t.Errorf("rescan ran for an unchanged (duplicated) LocalAddrs; ips=%q", fake.ips)
 	}
 }
 
-// TestSetKeepsNonTailscaleAddrs is the safety check: Set must never remove
-// addresses outside Tailscale's ranges, even when they're not in the config.
-func TestSetKeepsNonTailscaleAddrs(t *testing.T) {
+// TestSetKeepsNonLanhcAddrs is the safety check: Set must never remove
+// addresses outside Lanhc's ranges, even when they're not in the config.
+func TestSetKeepsNonLanhcAddrs(t *testing.T) {
 	lr, fake := newTestLinuxRouter(t)
 
 	keep := []string{
-		"192.168.1.5/24 dev tailscale0",        // non-Tailscale v4
-		"fe80::1/64 dev tailscale0",            // link-local v6
-		"100.115.92.5/32 dev tailscale0",       // ChromeOS VM range: in CGNAT, not a Tailscale IP
-		"100.63.0.1/32 dev tailscale0",         // just below CGNAT 100.64.0.0/10
-		"100.128.0.1/32 dev tailscale0",        // just above CGNAT
-		"fd7a:115c:a1e1::1/128 dev tailscale0", // adjacent to the Tailscale ULA /48, not in it
+		"192.168.1.5/24 dev lanhc0",        // non-Lanhc v4
+		"fe80::1/64 dev lanhc0",            // link-local v6
+		"100.115.92.5/32 dev lanhc0",       // ChromeOS VM range: in CGNAT, not a Lanhc IP
+		"100.63.0.1/32 dev lanhc0",         // just below CGNAT 100.64.0.0/10
+		"100.128.0.1/32 dev lanhc0",        // just above CGNAT
+		"fd7a:115c:a1e1::1/128 dev lanhc0", // adjacent to the Lanhc ULA /48, not in it
 	}
 	fake.ips = append([]string(nil), keep...)
 	slices.Sort(fake.ips)
@@ -1881,7 +1881,7 @@ func TestSetKeepsNonTailscaleAddrs(t *testing.T) {
 
 	for _, k := range keep {
 		if !slices.Contains(fake.ips, k) {
-			t.Errorf("non-Tailscale addr %q was wrongly removed; ips=%q", k, fake.ips)
+			t.Errorf("non-Lanhc addr %q was wrongly removed; ips=%q", k, fake.ips)
 		}
 	}
 }
@@ -1928,8 +1928,8 @@ func TestSetSkipsV6OrphansWhenV6Unavailable(t *testing.T) {
 	fake.nfr.(*fakeIPTablesRunner).noV6 = true
 
 	fake.ips = []string{
-		"100.64.0.99/32 dev tailscale0",         // CGNAT v4 orphan, removable
-		"fd7a:115c:a1e0::99/128 dev tailscale0", // ULA v6 orphan, not removable without v6
+		"100.64.0.99/32 dev lanhc0",         // CGNAT v4 orphan, removable
+		"fd7a:115c:a1e0::99/128 dev lanhc0", // ULA v6 orphan, not removable without v6
 	}
 	slices.Sort(fake.ips)
 
@@ -1943,10 +1943,10 @@ func TestSetSkipsV6OrphansWhenV6Unavailable(t *testing.T) {
 
 	// The v4 orphan is removed; the v6 orphan is left in place rather than
 	// being treated as removed via a no-op delete.
-	if slices.Contains(fake.ips, "100.64.0.99/32 dev tailscale0") {
+	if slices.Contains(fake.ips, "100.64.0.99/32 dev lanhc0") {
 		t.Errorf("v4 orphan was not removed; ips=%q", fake.ips)
 	}
-	if !slices.Contains(fake.ips, "fd7a:115c:a1e0::99/128 dev tailscale0") {
+	if !slices.Contains(fake.ips, "fd7a:115c:a1e0::99/128 dev lanhc0") {
 		t.Errorf("v6 orphan should be left alone when v6 is unavailable; ips=%q", fake.ips)
 	}
 }
@@ -1973,10 +1973,10 @@ func TestSetSkipsV6WhenInterfaceV6Unusable(t *testing.T) {
 
 	// The v4 address is programmed; the v6 address is skipped rather than
 	// attempted (which would have errored on a v6-less interface).
-	if !slices.Contains(fake.ips, "100.64.0.1/32 dev tailscale0") {
+	if !slices.Contains(fake.ips, "100.64.0.1/32 dev lanhc0") {
 		t.Errorf("v4 address was not programmed; ips=%q", fake.ips)
 	}
-	if slices.Contains(fake.ips, "fd7a:115c:a1e0::1/128 dev tailscale0") {
+	if slices.Contains(fake.ips, "fd7a:115c:a1e0::1/128 dev lanhc0") {
 		t.Errorf("v6 address should be skipped when the interface has no usable v6; ips=%q", fake.ips)
 	}
 }
@@ -2005,35 +2005,35 @@ func TestSetSnapshotsV6Usable(t *testing.T) {
 	}
 }
 
-// TestCleanUpRemovesAllTailscaleAddrs verifies the teardown path removes every
-// Tailscale-range address (IPv4 CGNAT and IPv6 ULA) while leaving non-Tailscale
+// TestCleanUpRemovesAllLanhcAddrs verifies the teardown path removes every
+// Lanhc-range address (IPv4 CGNAT and IPv6 ULA) while leaving non-Lanhc
 // addresses alone.
-func TestCleanUpRemovesAllTailscaleAddrs(t *testing.T) {
+func TestCleanUpRemovesAllLanhcAddrs(t *testing.T) {
 	fake := NewFakeOS(t)
 	fake.ips = []string{
-		"100.64.0.1/32 dev tailscale0",         // CGNAT v4
-		"fd7a:115c:a1e0::1/128 dev tailscale0", // ULA v6
-		"192.168.1.5/24 dev tailscale0",        // non-Tailscale, leave alone
-		"fe80::1/64 dev tailscale0",            // link-local v6, leave alone
+		"100.64.0.1/32 dev lanhc0",         // CGNAT v4
+		"fd7a:115c:a1e0::1/128 dev lanhc0", // ULA v6
+		"192.168.1.5/24 dev lanhc0",        // non-Lanhc, leave alone
+		"fe80::1/64 dev lanhc0",            // link-local v6, leave alone
 	}
 	slices.Sort(fake.ips)
 
-	removeOrphanedAddrsForCleanup(t.Logf, fake, "tailscale0")
+	removeOrphanedAddrsForCleanup(t.Logf, fake, "lanhc0")
 
 	for _, gone := range []string{
-		"100.64.0.1/32 dev tailscale0",
-		"fd7a:115c:a1e0::1/128 dev tailscale0",
+		"100.64.0.1/32 dev lanhc0",
+		"fd7a:115c:a1e0::1/128 dev lanhc0",
 	} {
 		if slices.Contains(fake.ips, gone) {
-			t.Errorf("Tailscale addr %q was not removed during cleanup; ips=%q", gone, fake.ips)
+			t.Errorf("Lanhc addr %q was not removed during cleanup; ips=%q", gone, fake.ips)
 		}
 	}
 	for _, keep := range []string{
-		"192.168.1.5/24 dev tailscale0",
-		"fe80::1/64 dev tailscale0",
+		"192.168.1.5/24 dev lanhc0",
+		"fe80::1/64 dev lanhc0",
 	} {
 		if !slices.Contains(fake.ips, keep) {
-			t.Errorf("non-Tailscale addr %q was wrongly removed during cleanup; ips=%q", keep, fake.ips)
+			t.Errorf("non-Lanhc addr %q was wrongly removed during cleanup; ips=%q", keep, fake.ips)
 		}
 	}
 }
@@ -2044,39 +2044,39 @@ func TestCleanUpRemovesAllTailscaleAddrs(t *testing.T) {
 func TestCleanUpRemovesV6OrphanWithoutNetfilter(t *testing.T) {
 	fake := NewFakeOS(t)
 	fake.ips = []string{
-		"fd7a:115c:a1e0::99/128 dev tailscale0", // ULA v6 orphan
+		"fd7a:115c:a1e0::99/128 dev lanhc0", // ULA v6 orphan
 	}
 
-	removeOrphanedAddrsForCleanup(t.Logf, fake, "tailscale0")
+	removeOrphanedAddrsForCleanup(t.Logf, fake, "lanhc0")
 
-	if slices.Contains(fake.ips, "fd7a:115c:a1e0::99/128 dev tailscale0") {
+	if slices.Contains(fake.ips, "fd7a:115c:a1e0::99/128 dev lanhc0") {
 		t.Errorf("v6 orphan was not removed during cleanup; ips=%q", fake.ips)
 	}
 }
 
 // TestCleanUpKeepsNearRangeAddrs verifies the teardown sweep removes real
-// Tailscale orphans while leaving addresses at the edges of Tailscale's ranges
+// Lanhc orphans while leaving addresses at the edges of Lanhc's ranges
 // untouched. In particular the ChromeOS VM range is inside CGNAT 100.64.0.0/10
-// but excluded by tsaddr.IsTailscaleIP, so a naive CGNAT-prefix check would
+// but excluded by tsaddr.IsLanhcIP, so a naive CGNAT-prefix check would
 // wrongly delete it.
 func TestCleanUpKeepsNearRangeAddrs(t *testing.T) {
 	fake := NewFakeOS(t)
 	remove := []string{
-		"100.64.0.99/32 dev tailscale0",         // CGNAT v4 orphan
-		"fd7a:115c:a1e0::99/128 dev tailscale0", // Tailscale ULA v6 orphan
+		"100.64.0.99/32 dev lanhc0",         // CGNAT v4 orphan
+		"fd7a:115c:a1e0::99/128 dev lanhc0", // Lanhc ULA v6 orphan
 	}
 	keep := []string{
-		"100.115.92.5/32 dev tailscale0",       // ChromeOS VM range: in CGNAT, not a Tailscale IP
-		"100.63.0.1/32 dev tailscale0",         // just below CGNAT
-		"100.128.0.1/32 dev tailscale0",        // just above CGNAT
-		"fd7a:115c:a1e1::1/128 dev tailscale0", // adjacent to the Tailscale ULA /48
-		"192.168.1.5/24 dev tailscale0",        // non-Tailscale v4
-		"fe80::1/64 dev tailscale0",            // link-local v6
+		"100.115.92.5/32 dev lanhc0",       // ChromeOS VM range: in CGNAT, not a Lanhc IP
+		"100.63.0.1/32 dev lanhc0",         // just below CGNAT
+		"100.128.0.1/32 dev lanhc0",        // just above CGNAT
+		"fd7a:115c:a1e1::1/128 dev lanhc0", // adjacent to the Lanhc ULA /48
+		"192.168.1.5/24 dev lanhc0",        // non-Lanhc v4
+		"fe80::1/64 dev lanhc0",            // link-local v6
 	}
 	fake.ips = append(append([]string(nil), remove...), keep...)
 	slices.Sort(fake.ips)
 
-	removeOrphanedAddrsForCleanup(t.Logf, fake, "tailscale0")
+	removeOrphanedAddrsForCleanup(t.Logf, fake, "lanhc0")
 
 	for _, r := range remove {
 		if slices.Contains(fake.ips, r) {
@@ -2085,30 +2085,30 @@ func TestCleanUpKeepsNearRangeAddrs(t *testing.T) {
 	}
 	for _, k := range keep {
 		if !slices.Contains(fake.ips, k) {
-			t.Errorf("near-range non-Tailscale addr %q was wrongly removed during cleanup; ips=%q", k, fake.ips)
+			t.Errorf("near-range non-Lanhc addr %q was wrongly removed during cleanup; ips=%q", k, fake.ips)
 		}
 	}
 }
 
 // TestCleanUpOnlyTouchesTunInterface guards that the sweep is scoped to the
 // tunnel interface. 100.64.0.0/10 is shared ISP CGNAT space, so a host may carry
-// a non-Tailscale CGNAT address on its WAN/other interface; the sweep enumerates
-// and deletes only on tailscale0, so such an address on eth0 must never be
+// a non-Lanhc CGNAT address on its WAN/other interface; the sweep enumerates
+// and deletes only on lanhc0, so such an address on eth0 must never be
 // touched even though it's in the CGNAT range.
 func TestCleanUpOnlyTouchesTunInterface(t *testing.T) {
 	fake := NewFakeOS(t)
 	fake.ips = []string{
-		"100.64.0.99/32 dev tailscale0", // our orphan on the tun -> removed
+		"100.64.0.99/32 dev lanhc0", // our orphan on the tun -> removed
 		"100.64.0.5/32 dev eth0",        // someone else's CGNAT on WAN -> must survive
 	}
 	slices.Sort(fake.ips)
 
-	removeOrphanedAddrsForCleanup(t.Logf, fake, "tailscale0")
+	removeOrphanedAddrsForCleanup(t.Logf, fake, "lanhc0")
 
-	if slices.Contains(fake.ips, "100.64.0.99/32 dev tailscale0") {
-		t.Errorf("tailscale0 orphan was not removed; ips=%q", fake.ips)
+	if slices.Contains(fake.ips, "100.64.0.99/32 dev lanhc0") {
+		t.Errorf("lanhc0 orphan was not removed; ips=%q", fake.ips)
 	}
 	if !slices.Contains(fake.ips, "100.64.0.5/32 dev eth0") {
-		t.Errorf("non-Tailscale CGNAT addr on eth0 was wrongly removed; ips=%q", fake.ips)
+		t.Errorf("non-Lanhc CGNAT addr on eth0 was wrongly removed; ips=%q", fake.ips)
 	}
 }

@@ -20,8 +20,8 @@ import (
 	"github.com/tailscale/wireguard-go/conn"
 	"golang.org/x/net/ipv6"
 	"golang.org/x/sys/unix"
-	"tailscale.com/net/neterror"
-	"tailscale.com/net/packet"
+	"lanhc.com/net/neterror"
+	"lanhc.com/net/packet"
 )
 
 func Test_linuxBatchingConn_splitCoalescedMessages(t *testing.T) {

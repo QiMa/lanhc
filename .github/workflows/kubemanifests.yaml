@@ -22,10 +22,10 @@ jobs:
       run: |
         eval `./tool/go run ./cmd/mkversion`
         ./tool/helm package --app-version="${VERSION_SHORT}" --version=${VERSION_SHORT} './cmd/k8s-operator/deploy/chart'
-        ./tool/helm lint "tailscale-operator-${VERSION_SHORT}.tgz"
+        ./tool/helm lint "lanhc-operator-${VERSION_SHORT}.tgz"
     - name: Verify that static manifests are up to date
       run: |
         make kube-generate-all
         echo
         echo
-        git diff --name-only --exit-code || (echo "Generated files for Tailscale Kubernetes operator are out of date. Please run 'make kube-generate-all' and commit the diff."; exit 1)
+        git diff --name-only --exit-code || (echo "Generated files for Lanhc Kubernetes operator are out of date. Please run 'make kube-generate-all' and commit the diff."; exit 1)

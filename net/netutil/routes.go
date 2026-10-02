@@ -10,11 +10,11 @@ import (
 	"sort"
 	"strings"
 
-	"tailscale.com/net/tsaddr"
+	"lanhc.com/net/tsaddr"
 )
 
 // ValidateViaPrefix checks that the IP prefix is a valid 4via6 route.
-// It verifies that the prefix is in the Tailscale via range, has a prefix
+// It verifies that the prefix is in the Lanhc via range, has a prefix
 // length between /96 and /128, and that the embedded site ID is in the
 // range 0–65535.
 func ValidateViaPrefix(ipp netip.Prefix) error {

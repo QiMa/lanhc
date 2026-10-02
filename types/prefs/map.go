@@ -10,8 +10,8 @@ import (
 	jsonv2 "github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
 	"golang.org/x/exp/constraints"
-	"tailscale.com/types/opt"
-	"tailscale.com/types/views"
+	"lanhc.com/types/opt"
+	"lanhc.com/types/views"
 )
 
 // MapKeyType is a constraint allowing types that can be used as [Map] and [StructMap] keys.

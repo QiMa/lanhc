@@ -11,7 +11,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"tailscale.com/tstest"
+	"lanhc.com/tstest"
 )
 
 func TestAssignmentsExpire(t *testing.T) {

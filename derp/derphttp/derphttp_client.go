@@ -29,23 +29,23 @@ import (
 	"time"
 
 	"go4.org/mem"
-	"tailscale.com/derp"
-	"tailscale.com/derp/derpconst"
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/health"
-	"tailscale.com/net/dnscache"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/netns"
-	"tailscale.com/net/netx"
-	"tailscale.com/net/sockstats"
-	"tailscale.com/net/tlsdial"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
+	"lanhc.com/derp"
+	"lanhc.com/derp/derpconst"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/health"
+	"lanhc.com/net/dnscache"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/netns"
+	"lanhc.com/net/netx"
+	"lanhc.com/net/sockstats"
+	"lanhc.com/net/tlsdial"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
 )
 
 // Client is a DERP-over-HTTP client.
@@ -520,13 +520,13 @@ func (c *Client) connect(ctx context.Context, caller string) (client *derp.Clien
 		// connGen, finish the Upgrade, close the old one, and set a new field
 		// on Client that's like "here's the connect result and connGen for the
 		// next connect that comes in"). Tracking bug for all this is:
-		// https://github.com/tailscale/tailscale/issues/12724
+		// https://github.com/lanhc/lanhc/issues/12724
 	}
 
 	if !serverPub.IsZero() && serverProtoVersion != 0 {
 		// parseMetaCert found the server's public key (no TLS
 		// middlebox was in the way), so skip the HTTP upgrade
-		// exchange.  See https://github.com/tailscale/tailscale/issues/693
+		// exchange.  See https://github.com/lanhc/lanhc/issues/693
 		// for an overview. We still send the HTTP request
 		// just to get routed into the server's HTTP Handler so it
 		// can Hijack the request, but we signal with a special header
@@ -1163,7 +1163,7 @@ func (c *Client) Close() error {
 // prevents a send and receive goroutine from failing at the ~same
 // time and both calling closeForReconnect and the caller goroutines
 // forever calling closeForReconnect in lockstep endlessly;
-// https://github.com/tailscale/tailscale/pull/264)
+// https://github.com/lanhc/lanhc/pull/264)
 func (c *Client) closeForReconnect(brokenClient *derp.Client) {
 	c.mu.Lock()
 	defer c.mu.Unlock()

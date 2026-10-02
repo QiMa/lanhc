@@ -11,10 +11,10 @@ import (
 	"gvisor.dev/gvisor/pkg/tcpip"
 	"gvisor.dev/gvisor/pkg/tcpip/header"
 	"gvisor.dev/gvisor/pkg/tcpip/stack"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/net/packet"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/wgengine/netstack/gro"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/net/packet"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/wgengine/netstack/gro"
 )
 
 type queue struct {
@@ -99,7 +99,7 @@ const (
 )
 
 // linkEndpoint implements stack.LinkEndpoint and stack.GSOEndpoint. Outbound
-// packets written by gVisor towards Tailscale are stored in a channel.
+// packets written by gVisor towards Lanhc are stored in a channel.
 // Inbound is fed to gVisor via injectInbound or gro. This is loosely
 // modeled after gvisor.dev/pkg/tcpip/link/channel.Endpoint.
 type linkEndpoint struct {

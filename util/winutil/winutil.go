@@ -73,7 +73,7 @@ func GetRegInteger(name string) (uint64, error) {
 // type that is a valid security principal under Windows. This check helps us
 // work around a bug in the standard library's Windows implementation of
 // LookupId in os/user.
-// See https://github.com/tailscale/tailscale/issues/869
+// See https://github.com/lanhc/lanhc/issues/869
 //
 // This function will only work on GOOS=windows. Trying to run it on any other
 // OS will always return false.

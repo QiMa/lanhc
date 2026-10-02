@@ -18,7 +18,7 @@ import (
 	"strconv"
 	"strings"
 
-	"tailscale.com/types/logger"
+	"lanhc.com/types/logger"
 )
 
 // versionRE matches a concrete X.Y.Z release version.
@@ -26,7 +26,7 @@ var versionRE = regexp.MustCompile(`^\d+\.\d+\.\d+$`)
 
 // resolveTestVersion returns the concrete release version (e.g. "1.97.255")
 // for the given --test-version flag value. If v is "unstable" or "stable", it
-// queries pkgs.tailscale.com for the latest TarballsVersion on that track.
+// queries pkgs.lanhc.com for the latest TarballsVersion on that track.
 // Otherwise it returns v unchanged.
 func resolveTestVersion(ctx context.Context, v string) (string, error) {
 	if v != "unstable" && v != "stable" {
@@ -35,7 +35,7 @@ func resolveTestVersion(ctx context.Context, v string) (string, error) {
 		}
 		return v, nil
 	}
-	url := "https://pkgs.tailscale.com/" + v + "/?mode=json"
+	url := "https://pkgs.lanhc.com/" + v + "/?mode=json"
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return "", err
@@ -60,7 +60,7 @@ func resolveTestVersion(ctx context.Context, v string) (string, error) {
 	return meta.TarballsVersion, nil
 }
 
-// versionTrack returns the pkgs.tailscale.com track ("stable" or "unstable")
+// versionTrack returns the pkgs.lanhc.com track ("stable" or "unstable")
 // for a release version. Even minors are stable; odd minors are unstable.
 func versionTrack(version string) (string, error) {
 	parts := strings.Split(version, ".")
@@ -87,7 +87,7 @@ func versionCacheRoot() string {
 	if err != nil {
 		panic(fmt.Sprintf("os.UserCacheDir: %v", err))
 	}
-	return filepath.Join(cache, "tailscale-vmtest", "builds")
+	return filepath.Join(cache, "lanhc-vmtest", "builds")
 }
 
 // versionCacheDir returns the directory holding the extracted binaries for
@@ -96,15 +96,15 @@ func versionCacheDir(version, arch string) string {
 	return filepath.Join(versionCacheRoot(), fmt.Sprintf("%s_%s", version, arch))
 }
 
-// ensureVersionBinaries downloads (if needed) and extracts the tailscale
+// ensureVersionBinaries downloads (if needed) and extracts the lanhc
 // release tarball for the given concrete version+arch, returning the
-// directory containing tailscale and tailscaled.
+// directory containing lanhc and lanhcd.
 func ensureVersionBinaries(ctx context.Context, version, arch string, logf logger.Logf) (string, error) {
 	dir := versionCacheDir(version, arch)
-	tailscaled := filepath.Join(dir, "tailscaled")
-	tailscale := filepath.Join(dir, "tailscale")
-	if _, err1 := os.Stat(tailscaled); err1 == nil {
-		if _, err2 := os.Stat(tailscale); err2 == nil {
+	lanhcd := filepath.Join(dir, "lanhcd")
+	lanhc := filepath.Join(dir, "lanhc")
+	if _, err1 := os.Stat(lanhcd); err1 == nil {
+		if _, err2 := os.Stat(lanhc); err2 == nil {
 			return dir, nil
 		}
 	}
@@ -113,7 +113,7 @@ func ensureVersionBinaries(ctx context.Context, version, arch string, logf logge
 	if err != nil {
 		return "", err
 	}
-	url := fmt.Sprintf("https://pkgs.tailscale.com/%s/tailscale_%s_%s.tgz", track, version, arch)
+	url := fmt.Sprintf("https://pkgs.lanhc.com/%s/lanhc_%s_%s.tgz", track, version, arch)
 	logf("downloading %s", url)
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
@@ -141,8 +141,8 @@ func ensureVersionBinaries(ctx context.Context, version, arch string, logf logge
 	tr := tar.NewReader(gzr)
 
 	wantBase := map[string]bool{
-		"tailscale":  true,
-		"tailscaled": true,
+		"lanhc":  true,
+		"lanhcd": true,
 	}
 	got := map[string]bool{}
 	for {
@@ -170,7 +170,7 @@ func ensureVersionBinaries(ctx context.Context, version, arch string, logf logge
 			return "", fmt.Errorf("tarball %s missing %s", url, b)
 		}
 	}
-	logf("extracted %s and %s to %s", "tailscale", "tailscaled", dir)
+	logf("extracted %s and %s to %s", "lanhc", "lanhcd", dir)
 	return dir, nil
 }
 

@@ -19,7 +19,7 @@ import (
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
-	"tailscale.com/util/must"
+	"lanhc.com/util/must"
 )
 
 const (
@@ -87,7 +87,7 @@ func TestPacketSideEffects(t *testing.T) {
 				},
 				{
 					name: "syslog-v4",
-					pkt:  mkSyslogPacket(clientIPv4(1), "<6>2024-08-30T10:36:06-07:00 natlabapp tailscaled[1]: 2024/08/30 10:36:06 some-message"),
+					pkt:  mkSyslogPacket(clientIPv4(1), "<6>2024-08-30T10:36:06-07:00 natlabapp lanhcd[1]: 2024/08/30 10:36:06 some-message"),
 					check: all(
 						numPkts(0),
 						logSubstr("some-message"),
@@ -95,7 +95,7 @@ func TestPacketSideEffects(t *testing.T) {
 				},
 				{
 					name: "syslog-v6",
-					pkt:  mkSyslogPacket(nodeWANIP6(1), "<6>2024-08-30T10:36:06-07:00 natlabapp tailscaled[1]: 2024/08/30 10:36:06 some-message"),
+					pkt:  mkSyslogPacket(nodeWANIP6(1), "<6>2024-08-30T10:36:06-07:00 natlabapp lanhcd[1]: 2024/08/30 10:36:06 some-message"),
 					check: all(
 						numPkts(0),
 						logSubstr("some-message"),
@@ -289,7 +289,7 @@ func mkAllNodesPing(srcMAC MAC, srcIP netip.Addr) []byte {
 	return mkEth(macAllNodes, srcMAC, ethType6, mustPacket(ip, icmp))
 }
 
-// mkDNSReq makes a DNS request to "control.tailscale" using the source IPs as
+// mkDNSReq makes a DNS request to "control.lanhc" using the source IPs as
 // defined in this test file.
 //
 // ipVer must be 4 or 6:
@@ -339,7 +339,7 @@ func mkDNSReq(ipVer int) []byte {
 	dns := &layers.DNS{
 		ID: 789,
 		Questions: []layers.DNSQuestion{{
-			Name:  []byte("control.tailscale"),
+			Name:  []byte("control.lanhc"),
 			Type:  layers.DNSTypeA,
 			Class: layers.DNSClassIN,
 		}},

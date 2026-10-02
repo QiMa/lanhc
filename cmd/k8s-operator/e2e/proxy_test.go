@@ -15,8 +15,8 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"tailscale.com/ipn"
-	"tailscale.com/tstest"
+	"lanhc.com/ipn"
+	"lanhc.com/tstest"
 )
 
 // See [TestMain] for test requirements.
@@ -27,7 +27,7 @@ func TestProxy(t *testing.T) {
 
 	// Create role and role binding to allow a group we'll impersonate to do stuff.
 	createAndCleanup(t, kubeClient, &rbacv1.Role{
-		ObjectMeta: objectMeta("tailscale", "read-secrets"),
+		ObjectMeta: objectMeta("lanhc", "read-secrets"),
 		Rules: []rbacv1.PolicyRule{{
 			APIGroups: []string{""},
 			Verbs:     []string{"get"},
@@ -35,7 +35,7 @@ func TestProxy(t *testing.T) {
 		}},
 	})
 	createAndCleanup(t, kubeClient, &rbacv1.RoleBinding{
-		ObjectMeta: objectMeta("tailscale", "read-secrets"),
+		ObjectMeta: objectMeta("lanhc", "read-secrets"),
 		Subjects: []rbacv1.Subject{{
 			Kind: "Group",
 			Name: "ts:e2e-test-proxy",
@@ -48,7 +48,7 @@ func TestProxy(t *testing.T) {
 
 	// Get operator host name from kube secret.
 	operatorSecret := corev1.Secret{
-		ObjectMeta: objectMeta("tailscale", "operator"),
+		ObjectMeta: objectMeta("lanhc", "operator"),
 	}
 	if err := get(t.Context(), kubeClient, &operatorSecret); err != nil {
 		t.Fatal(err)
@@ -67,7 +67,7 @@ func TestProxy(t *testing.T) {
 
 	// Expect success.
 	allowedSecret := corev1.Secret{
-		ObjectMeta: objectMeta("tailscale", "operator"),
+		ObjectMeta: objectMeta("lanhc", "operator"),
 	}
 	// Wait for up to a minute the first time we use the proxy, to give it time
 	// to provision the TLS certs.

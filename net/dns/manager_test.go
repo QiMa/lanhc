@@ -23,18 +23,18 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	dns "golang.org/x/net/dns/dnsmessage"
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/health"
-	"tailscale.com/net/dns/publicdns"
-	"tailscale.com/net/dns/resolver"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/tstest"
-	"tailscale.com/types/dnstype"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/eventbus/eventbustest"
-	"tailscale.com/util/httpm"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/health"
+	"lanhc.com/net/dns/publicdns"
+	"lanhc.com/net/dns/resolver"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/tstest"
+	"lanhc.com/types/dnstype"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/eventbus/eventbustest"
+	"lanhc.com/util/httpm"
 )
 
 type fakeOSConfigurator struct {
@@ -95,21 +95,21 @@ func TestCompileHostEntries(t *testing.T) {
 					"a.foo.ts.net.":             {netip.MustParseAddr("1.1.1.1")},
 					"b.foo.ts.net.":             {netip.MustParseAddr("1.1.1.2")},
 					"c.foo.ts.net.":             {netip.MustParseAddr("1.1.1.3")},
-					"d.foo.beta.tailscale.net.": {netip.MustParseAddr("1.1.1.4")},
+					"d.foo.beta.lanhc.net.": {netip.MustParseAddr("1.1.1.4")},
 					"d.foo.ts.net.":             {netip.MustParseAddr("1.1.1.4")},
-					"e.foo.beta.tailscale.net.": {netip.MustParseAddr("1.1.1.5")},
+					"e.foo.beta.lanhc.net.": {netip.MustParseAddr("1.1.1.5")},
 					"random.example.com.":       {netip.MustParseAddr("1.1.1.1")},
 					"other.example.com.":        {netip.MustParseAddr("1.1.1.2")},
 					"othertoo.example.com.":     {netip.MustParseAddr("1.1.5.2")},
 				},
-				SearchDomains: []dnsname.FQDN{"foo.ts.net.", "foo.beta.tailscale.net."},
+				SearchDomains: []dnsname.FQDN{"foo.ts.net.", "foo.beta.lanhc.net."},
 			},
 			want: []*HostEntry{
 				{Addr: netip.MustParseAddr("1.1.1.1"), Hosts: []string{"a.foo.ts.net.", "a"}},
 				{Addr: netip.MustParseAddr("1.1.1.2"), Hosts: []string{"b.foo.ts.net.", "b"}},
 				{Addr: netip.MustParseAddr("1.1.1.3"), Hosts: []string{"c.foo.ts.net.", "c"}},
-				{Addr: netip.MustParseAddr("1.1.1.4"), Hosts: []string{"d.foo.ts.net.", "d", "d.foo.beta.tailscale.net."}},
-				{Addr: netip.MustParseAddr("1.1.1.5"), Hosts: []string{"e.foo.beta.tailscale.net.", "e"}},
+				{Addr: netip.MustParseAddr("1.1.1.4"), Hosts: []string{"d.foo.ts.net.", "d", "d.foo.beta.lanhc.net."}},
+				{Addr: netip.MustParseAddr("1.1.1.5"), Hosts: []string{"e.foo.beta.lanhc.net.", "e"}},
 			},
 		},
 		{
@@ -117,29 +117,29 @@ func TestCompileHostEntries(t *testing.T) {
 			cfg: Config{
 				Hosts: map[dnsname.FQDN][]netip.Addr{
 					"e.foo.ts.net.":                     {netip.MustParseAddr("1.1.1.5")},
-					"e.foo.beta.tailscale.net.":         {netip.MustParseAddr("1.1.1.5")},
-					"e.ignored.foo.beta.tailscale.net.": {netip.MustParseAddr("1.1.1.6")},
+					"e.foo.beta.lanhc.net.":         {netip.MustParseAddr("1.1.1.5")},
+					"e.ignored.foo.beta.lanhc.net.": {netip.MustParseAddr("1.1.1.6")},
 				},
-				SearchDomains: []dnsname.FQDN{"foo.ts.net.", "foo.beta.tailscale.net."},
+				SearchDomains: []dnsname.FQDN{"foo.ts.net.", "foo.beta.lanhc.net."},
 			},
 			want: []*HostEntry{
-				{Addr: netip.MustParseAddr("1.1.1.5"), Hosts: []string{"e.foo.ts.net.", "e", "e.foo.beta.tailscale.net."}},
+				{Addr: netip.MustParseAddr("1.1.1.5"), Hosts: []string{"e.foo.ts.net.", "e", "e.foo.beta.lanhc.net."}},
 			},
 		},
 		{
 			name: "unmatched-domains",
 			cfg: Config{
 				Hosts: map[dnsname.FQDN][]netip.Addr{
-					"d.foo.beta.tailscale.net.": {netip.MustParseAddr("1.1.1.4")},
+					"d.foo.beta.lanhc.net.": {netip.MustParseAddr("1.1.1.4")},
 					"d.foo.ts.net.":             {netip.MustParseAddr("1.1.1.4")},
 					"random.example.com.":       {netip.MustParseAddr("1.1.1.1")},
 					"other.example.com.":        {netip.MustParseAddr("1.1.1.2")},
 					"othertoo.example.com.":     {netip.MustParseAddr("1.1.5.2")},
 				},
-				SearchDomains: []dnsname.FQDN{"foo.ts.net.", "foo.beta.tailscale.net."},
+				SearchDomains: []dnsname.FQDN{"foo.ts.net.", "foo.beta.lanhc.net."},
 			},
 			want: []*HostEntry{
-				{Addr: netip.MustParseAddr("1.1.1.4"), Hosts: []string{"d.foo.ts.net.", "d", "d.foo.beta.tailscale.net."}},
+				{Addr: netip.MustParseAddr("1.1.1.4"), Hosts: []string{"d.foo.ts.net.", "d", "d.foo.beta.lanhc.net."}},
 			},
 		},
 		{
@@ -147,17 +147,17 @@ func TestCompileHostEntries(t *testing.T) {
 			cfg: Config{
 				Hosts: map[dnsname.FQDN][]netip.Addr{
 					"h1.foo.ts.net.":             {netip.MustParseAddr("1.1.1.3")},
-					"h1.foo.beta.tailscale.net.": {netip.MustParseAddr("1.1.1.2")},
+					"h1.foo.beta.lanhc.net.": {netip.MustParseAddr("1.1.1.2")},
 					"h2.foo.ts.net.":             {netip.MustParseAddr("1.1.1.1")},
-					"h2.foo.beta.tailscale.net.": {netip.MustParseAddr("1.1.1.1")},
+					"h2.foo.beta.lanhc.net.": {netip.MustParseAddr("1.1.1.1")},
 					"example.com":                {netip.MustParseAddr("1.1.1.1")},
 				},
-				SearchDomains: []dnsname.FQDN{"foo.ts.net.", "foo.beta.tailscale.net."},
+				SearchDomains: []dnsname.FQDN{"foo.ts.net.", "foo.beta.lanhc.net."},
 			},
 			want: []*HostEntry{
-				{Addr: netip.MustParseAddr("1.1.1.2"), Hosts: []string{"h1.foo.beta.tailscale.net."}},
+				{Addr: netip.MustParseAddr("1.1.1.2"), Hosts: []string{"h1.foo.beta.lanhc.net."}},
 				{Addr: netip.MustParseAddr("1.1.1.3"), Hosts: []string{"h1.foo.ts.net.", "h1"}},
-				{Addr: netip.MustParseAddr("1.1.1.1"), Hosts: []string{"h2.foo.ts.net.", "h2", "h2.foo.beta.tailscale.net."}},
+				{Addr: netip.MustParseAddr("1.1.1.1"), Hosts: []string{"h2.foo.ts.net.", "h2", "h2.foo.beta.lanhc.net."}},
 			},
 		},
 	}
@@ -173,7 +173,7 @@ func TestCompileHostEntries(t *testing.T) {
 	}
 }
 
-var serviceAddr46 = []netip.Addr{tsaddr.TailscaleServiceIP(), tsaddr.TailscaleServiceIPv6()}
+var serviceAddr46 = []netip.Addr{tsaddr.LanhcServiceIP(), tsaddr.LanhcServiceIPv6()}
 
 func TestManager(t *testing.T) {
 	if runtime.GOOS == "windows" {
@@ -203,14 +203,14 @@ func TestManager(t *testing.T) {
 		{
 			name: "search-only",
 			in: Config{
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			os: OSConfig{
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 		},
 		{
-			// Regression test for https://github.com/tailscale/tailscale/issues/1886
+			// Regression test for https://github.com/lanhc/lanhc/issues/1886
 			name: "hosts-only",
 			in: Config{
 				Hosts: hosts(
@@ -292,30 +292,30 @@ func TestManager(t *testing.T) {
 			name: "corp",
 			in: Config{
 				DefaultResolvers: mustRes("1.1.1.1", "9.9.9.9"),
-				SearchDomains:    fqdns("tailscale.com", "universe.tf"),
+				SearchDomains:    fqdns("lanhc.com", "universe.tf"),
 			},
 			os: OSConfig{
 				Nameservers:   mustIPs("1.1.1.1", "9.9.9.9"),
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 		},
 		{
 			name: "corp-split",
 			in: Config{
 				DefaultResolvers: mustRes("1.1.1.1", "9.9.9.9"),
-				SearchDomains:    fqdns("tailscale.com", "universe.tf"),
+				SearchDomains:    fqdns("lanhc.com", "universe.tf"),
 			},
 			split: true,
 			os: OSConfig{
 				Nameservers:   mustIPs("1.1.1.1", "9.9.9.9"),
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 		},
 		{
 			name: "corp-magic",
 			in: Config{
 				DefaultResolvers: mustRes("1.1.1.1", "9.9.9.9"),
-				SearchDomains:    fqdns("tailscale.com", "universe.tf"),
+				SearchDomains:    fqdns("lanhc.com", "universe.tf"),
 				Routes:           upstreams("ts.com", ""),
 				Hosts: hosts(
 					"dave.ts.com.", "1.2.3.4",
@@ -323,7 +323,7 @@ func TestManager(t *testing.T) {
 			},
 			os: OSConfig{
 				Nameservers:   serviceAddr46,
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			rs: resolver.Config{
 				Routes: upstreams(".", "1.1.1.1", "9.9.9.9"),
@@ -337,7 +337,7 @@ func TestManager(t *testing.T) {
 			name: "corp-magic-split",
 			in: Config{
 				DefaultResolvers: mustRes("1.1.1.1", "9.9.9.9"),
-				SearchDomains:    fqdns("tailscale.com", "universe.tf"),
+				SearchDomains:    fqdns("lanhc.com", "universe.tf"),
 				Routes:           upstreams("ts.com", ""),
 				Hosts: hosts(
 					"dave.ts.com.", "1.2.3.4",
@@ -346,7 +346,7 @@ func TestManager(t *testing.T) {
 			split: true,
 			os: OSConfig{
 				Nameservers:   serviceAddr46,
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			rs: resolver.Config{
 				Routes: upstreams(".", "1.1.1.1", "9.9.9.9"),
@@ -361,11 +361,11 @@ func TestManager(t *testing.T) {
 			in: Config{
 				DefaultResolvers: mustRes("1.1.1.1", "9.9.9.9"),
 				Routes:           upstreams("corp.com", "2.2.2.2"),
-				SearchDomains:    fqdns("tailscale.com", "universe.tf"),
+				SearchDomains:    fqdns("lanhc.com", "universe.tf"),
 			},
 			os: OSConfig{
 				Nameservers:   serviceAddr46,
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			rs: resolver.Config{
 				Routes: upstreams(
@@ -378,12 +378,12 @@ func TestManager(t *testing.T) {
 			in: Config{
 				DefaultResolvers: mustRes("1.1.1.1", "9.9.9.9"),
 				Routes:           upstreams("corp.com", "2.2.2.2"),
-				SearchDomains:    fqdns("tailscale.com", "universe.tf"),
+				SearchDomains:    fqdns("lanhc.com", "universe.tf"),
 			},
 			split: true,
 			os: OSConfig{
 				Nameservers:   serviceAddr46,
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			rs: resolver.Config{
 				Routes: upstreams(
@@ -395,7 +395,7 @@ func TestManager(t *testing.T) {
 			name: "controlknob-disable-v6-registration",
 			in: Config{
 				DefaultResolvers: mustRes("1.1.1.1", "9.9.9.9"),
-				SearchDomains:    fqdns("tailscale.com", "universe.tf"),
+				SearchDomains:    fqdns("lanhc.com", "universe.tf"),
 				Routes:           upstreams("ts.com", ""),
 				Hosts: hosts(
 					"dave.ts.com.", "1.2.3.4",
@@ -408,7 +408,7 @@ func TestManager(t *testing.T) {
 			})(),
 			os: OSConfig{
 				Nameservers:   mustIPs("100.100.100.100"), // without IPv6
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			rs: resolver.Config{
 				Routes: upstreams(".", "1.1.1.1", "9.9.9.9"),
@@ -422,7 +422,7 @@ func TestManager(t *testing.T) {
 			name: "routes",
 			in: Config{
 				Routes:        upstreams("corp.com", "2.2.2.2"),
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			bs: OSConfig{
 				Nameservers:   mustIPs("8.8.8.8"),
@@ -430,7 +430,7 @@ func TestManager(t *testing.T) {
 			},
 			os: OSConfig{
 				Nameservers:   serviceAddr46,
-				SearchDomains: fqdns("tailscale.com", "universe.tf", "coffee.shop"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf", "coffee.shop"),
 			},
 			rs: resolver.Config{
 				Routes: upstreams(
@@ -442,23 +442,23 @@ func TestManager(t *testing.T) {
 			name: "routes-split",
 			in: Config{
 				Routes:        upstreams("corp.com", "2.2.2.2"),
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			split: true,
 			os: OSConfig{
 				Nameservers:   mustIPs("2.2.2.2"),
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 				MatchDomains:  fqdns("corp.com"),
 			},
 		},
 		{
 			// Sandboxed macOS app builds use NetworkExtension DNS settings, not
-			// tailscaled's /etc/resolver configurator, so they keep the older
+			// lanhcd's /etc/resolver configurator, so they keep the older
 			// Apple base-config behavior.
 			name: "routes-split-sandboxed-darwin",
 			in: Config{
 				Routes:        upstreams("corp.com", "2.2.2.2"),
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			split: true,
 			bs: OSConfig{
@@ -467,7 +467,7 @@ func TestManager(t *testing.T) {
 			},
 			os: OSConfig{
 				Nameservers:   serviceAddr46,
-				SearchDomains: fqdns("tailscale.com", "universe.tf", "coffee.shop"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf", "coffee.shop"),
 			},
 			rs: resolver.Config{
 				Routes: upstreams(
@@ -483,7 +483,7 @@ func TestManager(t *testing.T) {
 				Routes: upstreams(
 					"corp.com", "2.2.2.2",
 					"bigco.net", "3.3.3.3"),
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			bs: OSConfig{
 				Nameservers:   mustIPs("8.8.8.8"),
@@ -491,7 +491,7 @@ func TestManager(t *testing.T) {
 			},
 			os: OSConfig{
 				Nameservers:   serviceAddr46,
-				SearchDomains: fqdns("tailscale.com", "universe.tf", "coffee.shop"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf", "coffee.shop"),
 			},
 			rs: resolver.Config{
 				Routes: upstreams(
@@ -506,12 +506,12 @@ func TestManager(t *testing.T) {
 				Routes: upstreams(
 					"corp.com", "2.2.2.2",
 					"bigco.net", "3.3.3.3"),
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			split: true,
 			os: OSConfig{
 				Nameservers:   serviceAddr46,
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 				MatchDomains:  fqdns("bigco.net", "corp.com"),
 			},
 			rs: resolver.Config{
@@ -523,18 +523,18 @@ func TestManager(t *testing.T) {
 		},
 		{
 			// The `routes-multi-split-linux` test case above should match on
-			// macOS, where tailscaled configures split DNS via /etc/resolver.
+			// macOS, where lanhcd configures split DNS via /etc/resolver.
 			name: "routes-multi-split-darwin",
 			in: Config{
 				Routes: upstreams(
 					"corp.com", "2.2.2.2",
 					"bigco.net", "3.3.3.3"),
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			split: true,
 			os: OSConfig{
 				Nameservers:   serviceAddr46,
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 				MatchDomains:  fqdns("bigco.net", "corp.com"),
 			},
 			rs: resolver.Config{
@@ -554,12 +554,12 @@ func TestManager(t *testing.T) {
 				Routes: upstreams(
 					"corp.com", "2.2.2.2",
 					"bigco.net", "3.3.3.3"),
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			split: false,
 			os: OSConfig{
 				Nameservers:   serviceAddr46,
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			rs: resolver.Config{
 				Routes: upstreams(
@@ -576,7 +576,7 @@ func TestManager(t *testing.T) {
 					"dave.ts.com.", "1.2.3.4",
 					"bradfitz.ts.com.", "2.3.4.5"),
 				Routes:        upstreams("ts.com", ""),
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			bs: OSConfig{
 				Nameservers:   mustIPs("8.8.8.8"),
@@ -584,7 +584,7 @@ func TestManager(t *testing.T) {
 			},
 			os: OSConfig{
 				Nameservers:   serviceAddr46,
-				SearchDomains: fqdns("tailscale.com", "universe.tf", "coffee.shop"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf", "coffee.shop"),
 			},
 			rs: resolver.Config{
 				Routes: upstreams(".", "8.8.8.8"),
@@ -601,12 +601,12 @@ func TestManager(t *testing.T) {
 					"dave.ts.com.", "1.2.3.4",
 					"bradfitz.ts.com.", "2.3.4.5"),
 				Routes:        upstreams("ts.com", ""),
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			split: true,
 			os: OSConfig{
 				Nameservers:   serviceAddr46,
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 				MatchDomains:  fqdns("ts.com"),
 			},
 			rs: resolver.Config{
@@ -619,19 +619,19 @@ func TestManager(t *testing.T) {
 		},
 		{
 			// The `magic-split` test case above should match on macOS, where
-			// tailscaled configures split DNS via /etc/resolver.
+			// lanhcd configures split DNS via /etc/resolver.
 			name: "magic-split-darwin",
 			in: Config{
 				Hosts: hosts(
 					"dave.ts.com.", "1.2.3.4",
 					"bradfitz.ts.com.", "2.3.4.5"),
 				Routes:        upstreams("ts.com", ""),
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			split: true,
 			os: OSConfig{
 				Nameservers:   serviceAddr46,
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 				MatchDomains:  fqdns("ts.com"),
 			},
 			rs: resolver.Config{
@@ -652,12 +652,12 @@ func TestManager(t *testing.T) {
 					"dave.ts.com.", "1.2.3.4",
 					"bradfitz.ts.com.", "2.3.4.5"),
 				Routes:        upstreams("ts.com", ""),
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			split: false,
 			os: OSConfig{
 				Nameservers:   serviceAddr46,
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			rs: resolver.Config{
 				Routes: upstreams(".", ""),
@@ -675,7 +675,7 @@ func TestManager(t *testing.T) {
 				Hosts: hosts(
 					"dave.ts.com.", "1.2.3.4",
 					"bradfitz.ts.com.", "2.3.4.5"),
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			bs: OSConfig{
 				Nameservers:   mustIPs("8.8.8.8"),
@@ -683,7 +683,7 @@ func TestManager(t *testing.T) {
 			},
 			os: OSConfig{
 				Nameservers:   serviceAddr46,
-				SearchDomains: fqdns("tailscale.com", "universe.tf", "coffee.shop"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf", "coffee.shop"),
 			},
 			rs: resolver.Config{
 				Routes: upstreams(
@@ -704,12 +704,12 @@ func TestManager(t *testing.T) {
 				Hosts: hosts(
 					"dave.ts.com.", "1.2.3.4",
 					"bradfitz.ts.com.", "2.3.4.5"),
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			split: true,
 			os: OSConfig{
 				Nameservers:   serviceAddr46,
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 				MatchDomains:  fqdns("corp.com", "ts.com"),
 			},
 			rs: resolver.Config{
@@ -723,7 +723,7 @@ func TestManager(t *testing.T) {
 		},
 		{
 			// The `routes-magic-split-linux` test case above should match on
-			// macOS, where tailscaled configures split DNS via /etc/resolver.
+			// macOS, where lanhcd configures split DNS via /etc/resolver.
 			name: "routes-magic-split-darwin",
 			in: Config{
 				Routes: upstreams(
@@ -732,12 +732,12 @@ func TestManager(t *testing.T) {
 				Hosts: hosts(
 					"dave.ts.com.", "1.2.3.4",
 					"bradfitz.ts.com.", "2.3.4.5"),
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			split: true,
 			os: OSConfig{
 				Nameservers:   serviceAddr46,
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 				MatchDomains:  fqdns("corp.com", "ts.com"),
 			},
 			rs: resolver.Config{
@@ -762,12 +762,12 @@ func TestManager(t *testing.T) {
 				Hosts: hosts(
 					"dave.ts.com.", "1.2.3.4",
 					"bradfitz.ts.com.", "2.3.4.5"),
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			split: true,
 			os: OSConfig{
 				Nameservers:   serviceAddr46,
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			rs: resolver.Config{
 				Routes: upstreams(
@@ -788,11 +788,11 @@ func TestManager(t *testing.T) {
 				Hosts: hosts(
 					"dave.ts.com.", "1.2.3.4",
 					"bradfitz.ts.com.", "2.3.4.5"),
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			os: OSConfig{
 				Nameservers:   serviceAddr46,
-				SearchDomains: fqdns("tailscale.com", "universe.tf"),
+				SearchDomains: fqdns("lanhc.com", "universe.tf"),
 			},
 			rs: resolver.Config{
 				Routes: upstreams(".", "http://[fd7a:115c:a1e0:ab12:4843:cd96:6245:7a66]:2982/doh"),
@@ -839,7 +839,7 @@ func TestManager(t *testing.T) {
 		},
 		{
 			// on iOS exclusively, tests the split DNS behavior for battery life optimization added in
-			// https://github.com/tailscale/tailscale/pull/10576
+			// https://github.com/lanhc/lanhc/pull/10576
 			name: "ios-use-split-dns-when-no-custom-resolvers",
 			in: Config{
 				Routes:        upstreams("ts.net", "199.247.155.52", "optimistic-display.ts.net", ""),
@@ -948,7 +948,7 @@ func TestManager(t *testing.T) {
 			goos: "windows",
 		},
 		{
-			// Regression test for https://github.com/tailscale/tailscale/issues/14428
+			// Regression test for https://github.com/lanhc/lanhc/issues/14428
 			name: "nopopulate-hosts-nomagicdns",
 			in: Config{
 				Routes: upstreams(
@@ -1273,8 +1273,8 @@ func TestSystemDNSDoHUpgrade(t *testing.T) {
 	// Configure the manager with routes but no default resolvers, which
 	// reads BaseConfig from the OS configurator.
 	config := Config{
-		Routes:        upstreams("tailscale.com.", "10.0.0.1"),
-		SearchDomains: fqdns("tailscale.com."),
+		Routes:        upstreams("lanhc.com.", "10.0.0.1"),
+		SearchDomains: fqdns("lanhc.com."),
 	}
 	if err := m.Set(config); err != nil {
 		t.Fatal(err)
@@ -1297,7 +1297,7 @@ func TestSystemDNSDoHUpgrade(t *testing.T) {
 	}
 
 	// Build a DNS query to something not handled by our split DNS route
-	// (tailscale.com) above.
+	// (lanhc.com) above.
 	query := buildTestDNSQuery(t, testDomain)
 
 	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)

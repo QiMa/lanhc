@@ -17,8 +17,8 @@ import (
 
 	"golang.org/x/net/route"
 	"golang.org/x/sys/unix"
-	"tailscale.com/net/netmon"
-	"tailscale.com/types/logger"
+	"lanhc.com/net/netmon"
+	"lanhc.com/types/logger"
 )
 
 type RouteEntryBSD struct {

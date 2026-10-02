@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# This script acts like the "go" command, but uses Tailscale's
+# This script acts like the "go" command, but uses Lanhc's
 # currently-desired version from https://github.com/tailscale/go,
 # downloading it first if necessary.
 

@@ -10,8 +10,8 @@ import (
 	"iter"
 	"time"
 
-	tslogger "tailscale.com/types/logger"
-	"tailscale.com/types/logid"
+	tslogger "lanhc.com/types/logger"
+	"lanhc.com/types/logid"
 )
 
 // Noop implementations of everything when ts_omit_logtail is set.

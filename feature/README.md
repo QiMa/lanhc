@@ -1,6 +1,6 @@
-# Modular Tailscale features
+# Modular Lanhc features
 
-This directory contains Tailscale's modular feature system. The Tailscale
+This directory contains Lanhc's modular feature system. The Lanhc
 client has grown large; not every user wants every feature (an IoT device on
 a few-dollar chip does not need Taildrop, WebDAV, ACME, or SSH). The
 `feature/` tree is how we make individual features conditionally linkable so
@@ -13,7 +13,7 @@ in small self-contained packages instead of being dumped into
 **The preferred home for new functionality is a `feature/<name>` package.**
 If there is any plausible user who might not want your feature in their
 build (which is almost always the case), it should be modular from the
-start. A feature package should install itself into the rest of Tailscale
+start. A feature package should install itself into the rest of Lanhc
 via hooks, extensions, and registrations from its own `init` (see
 "Hooks and registration" below). It should not export API used by callers
 elsewhere in the tree; callers reach the feature through the hook, not by
@@ -31,7 +31,7 @@ Much of the tree is in a **half-migrated state**. A given feature may:
 - Have a `ts_omit_<name>` build tag declared in
   [`featuretags/featuretags.go`](featuretags/featuretags.go), and
 - Have some of its code moved to `feature/<name>/`, but
-- Still have significant code living in `ipn/ipnlocal`, `cmd/tailscaled`,
+- Still have significant code living in `ipn/ipnlocal`, `cmd/lanhcd`,
   or elsewhere, either:
   - Behind a build-tag-conditional file (a whole `.go` file gated with
     `//go:build !ts_omit_<name>`), or
@@ -45,7 +45,7 @@ But do not feel obligated to finish the migration in one PR.
 ## The registry: `feature/featuretags`
 
 [`featuretags/featuretags.go`](featuretags/featuretags.go) is the single
-source of truth. It declares the [`Features`](https://pkg.go.dev/tailscale.com/feature/featuretags#Features)
+source of truth. It declares the [`Features`](https://pkg.go.dev/lanhc.com/feature/featuretags#Features)
 map: for each feature tag (a
 lowercase string like `acme` or `taildrop`), it records the exported symbol
 name used by generated constants, a human-readable description, and any
@@ -54,9 +54,9 @@ other features it depends on (forming a DAG).
 Adding a new feature starts with adding an entry there. See the top of the
 file for the tag naming convention: feature `foo` corresponds to build tag
 `ts_omit_foo` (opt-out). The one exception is `cli`, which is opt-in via
-`ts_include_cli`; see [`FeatureTag.IsOmittable`](https://pkg.go.dev/tailscale.com/feature/featuretags#FeatureTag.IsOmittable).
+`ts_include_cli`; see [`FeatureTag.IsOmittable`](https://pkg.go.dev/lanhc.com/feature/featuretags#FeatureTag.IsOmittable).
 
-Features can be marked [`ImplementationDetail: true`](https://pkg.go.dev/tailscale.com/feature/featuretags#FeatureMeta)
+Features can be marked [`ImplementationDetail: true`](https://pkg.go.dev/lanhc.com/feature/featuretags#FeatureMeta)
 when they are internal
 plumbing (e.g. `dbus`, `c2n`) that users would not select directly; they
 exist only so that user-visible features can depend on them.
@@ -90,19 +90,19 @@ Prefer separate packages when you can.
 ## `feature/condregister`: opt-out registration
 
 [`condregister/`](condregister/) is the one central package that
-`tailscaled` (and the macOS/iOS closed-source client) empty-imports so
+`lanhcd` (and the macOS/iOS closed-source client) empty-imports so
 that all "on by default" features get registered. Every feature that
-should ship in `tailscaled` by default has a `maybe_<name>.go` file here
+should ship in `lanhcd` by default has a `maybe_<name>.go` file here
 of the form:
 
     //go:build !ts_omit_<name>
 
     package condregister
 
-    import _ "tailscale.com/feature/<name>"
+    import _ "lanhc.com/feature/<name>"
 
 That is the whole file. The build tag is the only mechanism that decides
-whether the feature is compiled in. Because `tailscaled` imports
+whether the feature is compiled in. Because `lanhcd` imports
 `condregister`, all these `maybe_*` files pull in their respective
 `feature/<name>` packages by default; adding `ts_omit_<name>` to the
 build removes the file, and with it the import, and with it the
@@ -121,7 +121,7 @@ free of its own omit tag lets any program directly opt in with a blank
 import regardless of what `ts_omit_*` tags are set on the top-level
 build:
 
-    import _ "tailscale.com/feature/foo"
+    import _ "lanhc.com/feature/foo"
 
 That is how a `tsnet`-using application pulls a feature in on its own
 terms without having to reason about which `ts_omit_*` tags are in
@@ -137,7 +137,7 @@ would fail to compile or run there.
 ## `tsnet` does NOT depend on `condregister`
 
 `tsnet` is a library, not a daemon, and it links in a different (and
-generally smaller) default feature set than `tailscaled`. `tsnet` has its
+generally smaller) default feature set than `lanhcd`. `tsnet` has its
 own top-level `maybe_*.go` files that decide which features it opts in
 to, and its own `depaware.txt`.
 
@@ -148,7 +148,7 @@ not be set (so `HasFoo` is `true`), yet `tsnet` may have never imported
 
 `buildfeatures.HasFoo` really means "not explicitly omitted by build
 tag." Whether the feature is actually present is
-[`feature.IsRegistered("foo")`](https://pkg.go.dev/tailscale.com/feature#IsRegistered).
+[`feature.IsRegistered("foo")`](https://pkg.go.dev/lanhc.com/feature#IsRegistered).
 The idiom is:
 
     buildfeatures.HasFoo && feature.IsRegistered("foo")
@@ -159,33 +159,33 @@ unset but the package was never imported.
 
 ## The `feature` API
 
-Package [`feature`](https://pkg.go.dev/tailscale.com/feature) itself
+Package [`feature`](https://pkg.go.dev/lanhc.com/feature) itself
 exposes the small runtime API used by feature packages and their callers:
 
-- [`feature.Register(name)`](https://pkg.go.dev/tailscale.com/feature#Register):
+- [`feature.Register(name)`](https://pkg.go.dev/lanhc.com/feature#Register):
   a feature package calls this from its `init` to record that it was
   linked in. Callers use
-  [`feature.IsRegistered(name)`](https://pkg.go.dev/tailscale.com/feature#IsRegistered)
+  [`feature.IsRegistered(name)`](https://pkg.go.dev/lanhc.com/feature#IsRegistered)
   to check.
-- [`feature.Hook[Func]`](https://pkg.go.dev/tailscale.com/feature#Hook):
+- [`feature.Hook[Func]`](https://pkg.go.dev/lanhc.com/feature#Hook):
   a single-writer, single-reader hook. The
   extension point declares a `var HookX feature.Hook[func(...)]`, the
   feature package `Set`s it once from `init`, and callers use
   `GetOk`/`GetOrNil`/`IsSet` to invoke it. `Set` panics if called twice.
-- [`feature.Hooks[Func]`](https://pkg.go.dev/tailscale.com/feature#Hooks):
+- [`feature.Hooks[Func]`](https://pkg.go.dev/lanhc.com/feature#Hooks):
   a slice of hooks for extension points that may
   legitimately have multiple registrants.
 - Common cross-feature hooks (auto-update, proxy, TPM, SSH host keys,
   hardware attestation) live in [`hooks.go`](hooks.go) alongside their
   small dispatcher functions like
-  [`feature.CanAutoUpdate()`](https://pkg.go.dev/tailscale.com/feature#CanAutoUpdate)
+  [`feature.CanAutoUpdate()`](https://pkg.go.dev/lanhc.com/feature#CanAutoUpdate)
   and
-  [`feature.TPMAvailable()`](https://pkg.go.dev/tailscale.com/feature#TPMAvailable).
+  [`feature.TPMAvailable()`](https://pkg.go.dev/lanhc.com/feature#TPMAvailable).
   Add hooks here only sparingly: every hook in this package is loaded
   by every consumer of `feature`, so its function signature must not
   reference types from "heavy" packages. By heavy we mean any package
   whose presence in this signature would unnecessarily grow
-  [`cmd/tailscaled/depaware-min.txt`](../cmd/tailscaled/depaware-min.txt):
+  [`cmd/lanhcd/depaware-min.txt`](../cmd/lanhcd/depaware-min.txt):
   packages with a large API/dependency footprint (e.g. `net/http`,
   `crypto/tls`, `golang.org/x/crypto/ssh`, `k8s.io/...`), or packages
   that trigger expensive runtime features like `reflect`-based
@@ -195,7 +195,7 @@ exposes the small runtime API used by feature packages and their callers:
   hook (and its dispatcher) in the caller's package instead of
   promoting it here.
 
-[`ipnext.RegisterExtension`](https://pkg.go.dev/tailscale.com/ipn/ipnext#RegisterExtension)
+[`ipnext.RegisterExtension`](https://pkg.go.dev/lanhc.com/ipn/ipnext#RegisterExtension)
 (in `ipn/ipnext`) is the corresponding
 mechanism for features that need to hook into `LocalBackend`; see the
 next section.
@@ -205,14 +205,14 @@ next section.
 For features that need to attach state and behavior to `LocalBackend`,
 the plain `feature.Hook` mechanism is not enough; you also need
 per-`LocalBackend` state and a well-defined lifecycle. That is what
-[`ipn/ipnext`](https://pkg.go.dev/tailscale.com/ipn/ipnext) provides.
+[`ipn/ipnext`](https://pkg.go.dev/lanhc.com/ipn/ipnext) provides.
 
 Per-`LocalBackend` state matters because a single process can have more
 than one `LocalBackend` alive at once: a `tsnet` program can host many
 `tsnet.Server` nodes concurrently, each with its own `LocalBackend`.
 Package-global variables in a feature package would be shared across all
 of them, which should be avoided unless it is otherwise infeasible. An
-[`ipnext.Extension`](https://pkg.go.dev/tailscale.com/ipn/ipnext#Extension)
+[`ipnext.Extension`](https://pkg.go.dev/lanhc.com/ipn/ipnext#Extension)
 is instantiated once *per* `LocalBackend`, so each node gets its own
 copy of the extension's state.
 
@@ -233,7 +233,7 @@ feature package registers a factory:
 
 When `LocalBackend.Start` runs, it instantiates each registered
 extension and calls its
-`Init(host `[`ipnext.Host`](https://pkg.go.dev/tailscale.com/ipn/ipnext#Host)`) error`
+`Init(host `[`ipnext.Host`](https://pkg.go.dev/lanhc.com/ipn/ipnext#Host)`) error`
 method. `Init` is where the extension wires up its per-backend hooks
 against `host.Hooks()`:
 
@@ -246,7 +246,7 @@ against `host.Hooks()`:
         return nil
     }
 
-[`ipnext.Hooks`](https://pkg.go.dev/tailscale.com/ipn/ipnext#Hooks)
+[`ipnext.Hooks`](https://pkg.go.dev/lanhc.com/ipn/ipnext#Hooks)
 is a struct of `feature.Hook`/`feature.Hooks` fields
 covering `LocalBackend`'s extension points: backend and profile state
 changes, netmap toggles, self-node changes, notify mutation, peer
@@ -262,7 +262,7 @@ rather than assuming a single writer.
 
 To get back to your extension from a `LocalBackend` inside a LocalAPI or
 C2N handler, use
-[`ipnlocal.GetExt[*yourExtType](b)`](https://pkg.go.dev/tailscale.com/ipn/ipnlocal#GetExt).
+[`ipnlocal.GetExt[*yourExtType](b)`](https://pkg.go.dev/lanhc.com/ipn/ipnlocal#GetExt).
 
 Canonical examples:
 
@@ -294,17 +294,17 @@ Tests come in three flavors:
    what got pulled in or dropped. We use this to have an auditable
    history of the dependency footprint of key programs and libraries.
    We track several flavors:
-   - full `tailscaled` on all GOOSes
-   - full `tailscale` CLI on all GOOSes
+   - full `lanhcd` on all GOOSes
+   - full `lanhc` CLI on all GOOSes
    - `cmd/derper`
-   - minimal `tailscaled`+CLI (`depaware-min.txt`, `depaware-minbox.txt`)
+   - minimal `lanhcd`+CLI (`depaware-min.txt`, `depaware-minbox.txt`)
    - `tsnet` (has its own `depaware.txt`)
    - `k8s-operator`, which uses `tsnet`
 
    When reviewing a PR, look at the depaware diff to see what got pulled
    in or dropped, and make sure the changes make sense.
 
-3. **[`deptest.DepChecker`](https://pkg.go.dev/tailscale.com/tstest/deptest#DepChecker)**
+3. **[`deptest.DepChecker`](https://pkg.go.dev/lanhc.com/tstest/deptest#DepChecker)**
    lets you *lock down* omissions once you've
    achieved them. Rather than hoping nobody accidentally adds a
    `taildrop` import back into a `ts_omit_taildrop` build, you write:
@@ -322,7 +322,7 @@ Tests come in three flavors:
             }.Check(t)
         }
 
-   `cmd/tailscaled/deps_test.go` has many examples; add new ones there
+   `cmd/lanhcd/deps_test.go` has many examples; add new ones there
    or wherever they fit. `tsnet` has its own `TestDeps` in
    [`tsnet_test.go`](../tsnet/tsnet_test.go) with a `BadDeps` map
    asserting that things like `feature/remoteconfig`,
@@ -345,9 +345,9 @@ Tests come in three flavors:
 3. Create `feature/<name>/` with the code, and register hooks and any
    `ipnext.Extension` from its `init`. Call `feature.Register("<name>")`
    from `init` too.
-4. If the feature should be on by default in `tailscaled`, add
+4. If the feature should be on by default in `lanhcd`, add
    `feature/condregister/maybe_<name>.go` with `//go:build !ts_omit_<name>`
-   and a blank import of `tailscale.com/feature/<name>`.
+   and a blank import of `lanhc.com/feature/<name>`.
 5. If `tsnet` should also link it, add an equivalent `maybe_<name>.go`
    under `tsnet/`. Otherwise remember `buildfeatures.HasFoo` alone is not
    enough; pair it with `feature.IsRegistered("foo")`.
@@ -360,7 +360,7 @@ Tests come in three flavors:
 If something in this document is unclear, if you are not sure whether
 your work should be modular, or if you need a new extension point:
 
-- **Tailscale employees:** ask in the `#client` Slack channel.
+- **Lanhc employees:** ask in the `#client` Slack channel.
 - **Open source contributors:** file a public GitHub issue with your
   proposal or question at
-  [github.com/tailscale/tailscale/issues](https://github.com/tailscale/tailscale/issues).
+  [github.com/lanhc/lanhc/issues](https://github.com/lanhc/lanhc/issues).

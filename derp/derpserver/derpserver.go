@@ -42,24 +42,24 @@ import (
 	"go4.org/mem"
 	"golang.org/x/sync/errgroup"
 	xrate "golang.org/x/time/rate"
-	"tailscale.com/client/local"
-	"tailscale.com/derp"
-	"tailscale.com/derp/derpconst"
-	"tailscale.com/disco"
-	"tailscale.com/envknob"
-	"tailscale.com/metrics"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
-	"tailscale.com/tstime/rate"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/bufiox"
-	"tailscale.com/util/ctxkey"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
-	"tailscale.com/util/slicesx"
-	"tailscale.com/version"
+	"lanhc.com/client/local"
+	"lanhc.com/derp"
+	"lanhc.com/derp/derpconst"
+	"lanhc.com/disco"
+	"lanhc.com/envknob"
+	"lanhc.com/metrics"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
+	"lanhc.com/tstime/rate"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/bufiox"
+	"lanhc.com/util/ctxkey"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
+	"lanhc.com/util/slicesx"
+	"lanhc.com/version"
 )
 
 // verboseDropKeys is the set of destination public keys that should
@@ -182,10 +182,10 @@ type Server struct {
 	rateLimitPerClientWaited   expvar.Int         // number of times per-client rate limit caused a wait
 	// TODO(illotum): add metrics for rate limited wait time, consider total seconds vs a histogram.
 
-	// verifyClientsLocalTailscaled only accepts client connections to the DERP
+	// verifyClientsLocalLanhcd only accepts client connections to the DERP
 	// server if the clientKey is a known peer in the network, as specified by a
-	// running tailscaled's client's LocalAPI.
-	verifyClientsLocalTailscaled bool
+	// running lanhcd's client's LocalAPI.
+	verifyClientsLocalLanhcd bool
 
 	verifyClientsURL         string
 	verifyClientsURLFailOpen bool
@@ -481,16 +481,16 @@ func (s *Server) SetMeshKey(v string) error {
 	return nil
 }
 
-// SetVerifyClients sets whether this DERP server verifies clients through tailscaled.
+// SetVerifyClients sets whether this DERP server verifies clients through lanhcd.
 //
 // It must be called before serving begins.
 func (s *Server) SetVerifyClient(v bool) {
-	s.verifyClientsLocalTailscaled = v
+	s.verifyClientsLocalLanhcd = v
 }
 
 // SetVerifyClientURL sets the admission controller URL to use for verifying clients.
 // If empty, all clients are accepted (unless restricted by SetVerifyClient checking
-// against tailscaled).
+// against lanhcd).
 func (s *Server) SetVerifyClientURL(v string) {
 	s.verifyClientsURL = v
 }
@@ -501,12 +501,12 @@ func (s *Server) SetVerifyClientURLFailOpen(v bool) {
 	s.verifyClientsURLFailOpen = v
 }
 
-// SetTailscaledSocketPath sets the unix socket path to use to talk to
-// tailscaled if client verification is enabled.
+// SetLanhcdSocketPath sets the unix socket path to use to talk to
+// lanhcd if client verification is enabled.
 //
 // If unset or set to the empty string, the default path for the operating
 // system is used.
-func (s *Server) SetTailscaledSocketPath(path string) {
+func (s *Server) SetLanhcdSocketPath(path string) {
 	s.localClient.Socket = path
 	s.localClient.UseSocketOnly = path != ""
 }
@@ -1454,7 +1454,7 @@ type dropReason string
 const (
 	dropReasonUnknownDest      dropReason = "unknown_dest"        // unknown destination pubkey
 	dropReasonUnknownDestOnFwd dropReason = "unknown_dest_on_fwd" // unknown destination pubkey on a derp-forwarded packet
-	dropReasonGoneDisconnected dropReason = "gone_disconnected"   // destination tailscaled disconnected before we could send
+	dropReasonGoneDisconnected dropReason = "gone_disconnected"   // destination lanhcd disconnected before we could send
 	dropReasonQueueHead        dropReason = "queue_head"          // destination queue is full, dropped packet at queue head
 	dropReasonQueueTail        dropReason = "queue_tail"          // destination queue is full, dropped packet at queue tail
 	dropReasonWriteError       dropReason = "write_error"         // OS write() failed
@@ -1581,23 +1581,23 @@ func (s *Server) isMeshPeer(info *derp.ClientInfo) bool {
 func (s *Server) verifyClient(ctx context.Context, clientKey key.NodePublic, info *derp.ClientInfo, clientIP netip.Addr) error {
 	if s.isMeshPeer(info) {
 		// Trusted mesh peer. No need to verify further. In fact, verifying
-		// further wouldn't work: it's not part of the tailnet so tailscaled and
+		// further wouldn't work: it's not part of the tailnet so lanhcd and
 		// likely the admission control URL wouldn't know about it.
 		return nil
 	}
 
-	// tailscaled-based verification:
-	if s.verifyClientsLocalTailscaled {
+	// lanhcd-based verification:
+	if s.verifyClientsLocalLanhcd {
 		_, err := s.localClient.WhoIsNodeKey(ctx, clientKey)
 		if err == local.ErrPeerNotFound {
-			return fmt.Errorf("peer %v not authorized (not found in local tailscaled)", clientKey)
+			return fmt.Errorf("peer %v not authorized (not found in local lanhcd)", clientKey)
 		}
 		if err != nil {
 			if strings.Contains(err.Error(), "invalid 'addr' parameter") {
 				// Issue 12617
-				return errors.New("tailscaled version is too old (out of sync with derper binary)")
+				return errors.New("lanhcd version is too old (out of sync with derper binary)")
 			}
-			return fmt.Errorf("failed to query local tailscaled status for %v: %w", clientKey, err)
+			return fmt.Errorf("failed to query local lanhcd status for %v: %w", clientKey, err)
 		}
 	}
 
@@ -2510,8 +2510,8 @@ func (s *Server) ConsistencyCheck() error {
 			s.numLocalClientKeys))
 	}
 
-	if s.verifyClientsLocalTailscaled {
-		if err := s.checkVerifyClientsLocalTailscaled(); err != nil {
+	if s.verifyClientsLocalLanhcd {
+		if err := s.checkVerifyClientsLocalLanhcd(); err != nil {
 			errs = append(errs, err.Error())
 		}
 	}
@@ -2522,8 +2522,8 @@ func (s *Server) ConsistencyCheck() error {
 	return errors.New(strings.Join(errs, ", "))
 }
 
-// checkVerifyClientsLocalTailscaled checks that a verifyClients call can be made successfully for the derper hosts own node key.
-func (s *Server) checkVerifyClientsLocalTailscaled() error {
+// checkVerifyClientsLocalLanhcd checks that a verifyClients call can be made successfully for the derper hosts own node key.
+func (s *Server) checkVerifyClientsLocalLanhcd() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	status, err := s.localClient.StatusWithoutPeers(ctx)

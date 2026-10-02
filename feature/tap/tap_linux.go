@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package tap registers Tailscale's experimental (demo) Linux TAP (Layer 2) support.
+// Package tap registers Lanhc's experimental (demo) Linux TAP (Layer 2) support.
 package tap
 
 import (
@@ -23,18 +23,18 @@ import (
 	"gvisor.dev/gvisor/pkg/tcpip/network/ipv4"
 	"gvisor.dev/gvisor/pkg/tcpip/network/ipv6"
 	"gvisor.dev/gvisor/pkg/tcpip/transport/udp"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/net/packet"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/net/tstun"
-	"tailscale.com/syncs"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/logger"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/net/packet"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/net/tstun"
+	"lanhc.com/syncs"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/logger"
 )
 
 // TODO: this was randomly generated once. Maybe do it per process start? But
-// then an upgraded tailscaled would be visible to devices behind it. So
-// maybe instead make it a function of the tailscaled's wireguard public key?
+// then an upgraded lanhcd would be visible to devices behind it. So
+// maybe instead make it a function of the lanhcd's wireguard public key?
 // For now just hard code it.
 var ourMAC = net.HardwareAddr{0x30, 0x2D, 0x66, 0xEC, 0x7A, 0x93}
 
@@ -188,7 +188,7 @@ func (t *tapDevice) handleTAPFrame(ethBuf []byte) bool {
 
 var (
 	// routerIP is the IP address of the DHCP server.
-	routerIP = net.ParseIP(tsaddr.TailscaleServiceIPString)
+	routerIP = net.ParseIP(tsaddr.LanhcServiceIPString)
 	// cgnatNetMask is the netmask of the 100.64.0.0/10 CGNAT range.
 	cgnatNetMask = net.IPMask(net.ParseIP("255.192.0.0").To4())
 )

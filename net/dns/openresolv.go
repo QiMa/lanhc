@@ -11,7 +11,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"tailscale.com/types/logger"
+	"lanhc.com/types/logger"
 )
 
 // openresolvManager manages DNS configuration using the openresolv
@@ -39,8 +39,8 @@ func (m openresolvManager) logCmdErr(cmd *exec.Cmd, err error) {
 	m.logf("error running command %s stderr=%q exitCode=%d: %v", commandStr, exerr.Stderr, exerr.ExitCode(), err)
 }
 
-func (m openresolvManager) deleteTailscaleConfig() error {
-	cmd := exec.Command("resolvconf", "-f", "-d", "tailscale")
+func (m openresolvManager) deleteLanhcConfig() error {
+	cmd := exec.Command("resolvconf", "-f", "-d", "lanhc")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		m.logCmdErr(cmd, err)
@@ -51,13 +51,13 @@ func (m openresolvManager) deleteTailscaleConfig() error {
 
 func (m openresolvManager) SetDNS(config OSConfig) error {
 	if config.IsZero() {
-		return m.deleteTailscaleConfig()
+		return m.deleteLanhcConfig()
 	}
 
 	var stdin bytes.Buffer
 	writeResolvConf(&stdin, config.Nameservers, config.SearchDomains)
 
-	cmd := exec.Command("resolvconf", "-m", "0", "-x", "-a", "tailscale")
+	cmd := exec.Command("resolvconf", "-m", "0", "-x", "-a", "lanhc")
 	cmd.Stdin = &stdin
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -80,10 +80,10 @@ func (m openresolvManager) GetBaseConfig() (OSConfig, error) {
 		return OSConfig{}, err
 	}
 
-	// Remove the "tailscale" snippet from the list.
+	// Remove the "lanhc" snippet from the list.
 	args := []string{"-l"}
 	for f := range strings.SplitSeq(strings.TrimSpace(string(bs)), " ") {
-		if f == "tailscale" {
+		if f == "lanhc" {
 			continue
 		}
 		args = append(args, f)
@@ -91,12 +91,12 @@ func (m openresolvManager) GetBaseConfig() (OSConfig, error) {
 
 	// List all resolvconf snippets except our own, and parse that as
 	// a resolv.conf. This effectively generates a blended config of
-	// "everyone except tailscale", which is what would be in use if
-	// tailscale hadn't set exclusive mode.
+	// "everyone except lanhc", which is what would be in use if
+	// lanhc hadn't set exclusive mode.
 	//
 	// Note that this is not _entirely_ true. To be perfectly correct,
 	// we should be looking for other interfaces marked exclusive that
-	// predated tailscale, and stick to only those. However, in
+	// predated lanhc, and stick to only those. However, in
 	// practice, openresolv uses are generally quite limited, and boil
 	// down to 1-2 DHCP leases, for which the correct outcome is a
 	// blended config like the one we produce here.
@@ -111,5 +111,5 @@ func (m openresolvManager) GetBaseConfig() (OSConfig, error) {
 }
 
 func (m openresolvManager) Close() error {
-	return m.deleteTailscaleConfig()
+	return m.deleteLanhcConfig()
 }

@@ -22,20 +22,20 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/envknob"
-	"tailscale.com/hostinfo"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/views"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
-	"tailscale.com/util/slicesx"
-	"tailscale.com/wgengine/filter"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/envknob"
+	"lanhc.com/hostinfo"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/views"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
+	"lanhc.com/util/slicesx"
+	"lanhc.com/wgengine/filter"
 )
 
 type responseWithSource struct {
@@ -1037,7 +1037,7 @@ func peerChangeDiff(was tailcfg.NodeView, n *tailcfg.Node, onFalse func(string))
 		case "DataPlaneAuditLogID":
 			//  Not sent for peers.
 		case "Capabilities":
-			// Deprecated; see https://github.com/tailscale/tailscale/issues/11508
+			// Deprecated; see https://github.com/lanhc/lanhc/issues/11508
 			// And it was never sent by any known control server.
 		case "ID":
 			if was.ID() != n.ID {
@@ -1231,10 +1231,10 @@ func peerChangeDiff(was tailcfg.NodeView, n *tailcfg.Node, onFalse func(string))
 	return ret, true
 }
 
-// PeerIDAndKeyByTailscaleIP returns the node ID and node Key from the peers
+// PeerIDAndKeyByLanhcIP returns the node ID and node Key from the peers
 // map without touching the netmap itself. The implementation mirrors the
-// implementation of [netmap.PeerByTailscaleIP].
-func (ms *mapSession) PeerIDAndKeyByTailscaleIP(ip netip.Addr) (tailcfg.NodeID, key.NodePublic, bool) {
+// implementation of [netmap.PeerByLanhcIP].
+func (ms *mapSession) PeerIDAndKeyByLanhcIP(ip netip.Addr) (tailcfg.NodeID, key.NodePublic, bool) {
 	ms.peersMu.RLock()
 	defer ms.peersMu.RUnlock()
 	for _, n := range ms.peers {

@@ -14,8 +14,8 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/version"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/version"
 )
 
 func tsrStatefulSet(tsr *tsapi.Recorder, namespace string, loginServer string) *appsv1.StatefulSet {
@@ -57,7 +57,7 @@ func tsrStatefulSet(tsr *tsapi.Recorder, namespace string, loginServer string) *
 							Image: func() string {
 								image := tsr.Spec.StatefulSet.Pod.Container.Image
 								if image == "" {
-									image = fmt.Sprintf("tailscale/tsrecorder:%s", selfVersionImageTag())
+									image = fmt.Sprintf("lanhc/tsrecorder:%s", selfVersionImageTag())
 								}
 
 								return image
@@ -108,7 +108,7 @@ func tsrStatefulSet(tsr *tsapi.Recorder, namespace string, loginServer string) *
 		ss.Spec.Template.Spec.Containers[0].VolumeMounts = append(ss.Spec.Template.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{
 			Name:      volumeName,
 			ReadOnly:  true,
-			MountPath: fmt.Sprintf("/etc/tailscaled/%s-%d", ss.Name, replica),
+			MountPath: fmt.Sprintf("/etc/lanhcd/%s-%d", ss.Name, replica),
 		})
 
 		ss.Spec.Template.Spec.Volumes = append(ss.Spec.Template.Spec.Volumes, corev1.Volume{
@@ -260,7 +260,7 @@ func tsrEnv(tsr *tsapi.Recorder, loginServer string) []corev1.EnvVar {
 		},
 		{
 			Name:  "TS_AUTHKEY_FILE",
-			Value: "/etc/tailscaled/$(POD_NAME)/authkey",
+			Value: "/etc/lanhcd/$(POD_NAME)/authkey",
 		},
 		{
 			Name:  "TS_STATE",
@@ -318,7 +318,7 @@ func tsrLabels(app, instance string, customLabels map[string]string) map[string]
 	// ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/
 	labels["app.kubernetes.io/name"] = app
 	labels["app.kubernetes.io/instance"] = instance
-	labels["app.kubernetes.io/managed-by"] = "tailscale-operator"
+	labels["app.kubernetes.io/managed-by"] = "lanhc-operator"
 
 	return labels
 }

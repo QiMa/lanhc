@@ -12,16 +12,16 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/client/local"
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/tstest/integration"
-	"tailscale.com/tstest/integration/testcontrol"
+	"lanhc.com/client/local"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/tstest/integration"
+	"lanhc.com/tstest/integration/testcontrol"
 )
 
 // TODO(bradfitz): add test where control doesn't send tailcfg.CapabilityFileSharing
-// and verify that we get the "file sharing not enabled by Tailscale admin" error.
+// and verify that we get the "file sharing not enabled by Lanhc admin" error.
 
 // TODO(bradfitz): add test between different users with the peercap to permit that?
 
@@ -34,7 +34,7 @@ func TestTaildropIntegration_Fresh(t *testing.T) {
 }
 
 // freshProfiles is whether to start the test right away
-// with a fresh profile. If false, tailscaled is started, stopped,
+// with a fresh profile. If false, lanhcd is started, stopped,
 // and restarted again to simulate a real-world scenario where
 // the first profile already existed.
 //
@@ -94,8 +94,8 @@ func testTaildropIntegration(t *testing.T, freshProfiles bool) {
 			return errors.New("peer is self")
 		}
 
-		if len(st.TailscaleIPs) == 0 {
-			return errors.New("no Tailscale IPs")
+		if len(st.LanhcIPs) == 0 {
+			return errors.New("no Lanhc IPs")
 		}
 
 		return nil

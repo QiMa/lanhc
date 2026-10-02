@@ -3,8 +3,8 @@
 
 //go:build linux
 
-// fbstatus is a Linux framebuffer status display for the Tailscale
-// appliance. It draws the Tailscale logo, the tailscaled backend state,
+// fbstatus is a Linux framebuffer status display for the Lanhc
+// appliance. It draws the Lanhc logo, the lanhcd backend state,
 // the device's tailnet IP addresses, and (when the device needs to be
 // logged in) a QR code containing the login URL so a user can enroll
 // the appliance into a tailnet by pointing their phone camera at the
@@ -49,13 +49,13 @@ import (
 	"golang.org/x/image/font/basicfont"
 	"golang.org/x/image/math/fixed"
 	"golang.org/x/sys/unix"
-	"tailscale.com/client/local"
-	"tailscale.com/ipn"
-	"tailscale.com/util/cloudenv"
+	"lanhc.com/client/local"
+	"lanhc.com/ipn"
+	"lanhc.com/util/cloudenv"
 )
 
-//go:embed tailscale.png
-var tailscalePNG []byte
+//go:embed lanhc.png
+var lanhcPNG []byte
 
 // Linux framebuffer ioctl numbers, from include/uapi/linux/fb.h.
 const (
@@ -146,7 +146,7 @@ func run() error {
 		*flagFB, fb.width, fb.height, fb.bpp, fb.lineLength,
 		fb.redShift, fb.greenShift, fb.blueShift)
 
-	logo, err := png.Decode(bytes.NewReader(tailscalePNG))
+	logo, err := png.Decode(bytes.NewReader(lanhcPNG))
 	if err != nil {
 		return fmt.Errorf("decoding embedded logo: %w", err)
 	}
@@ -192,7 +192,7 @@ func watchBusOnce(ctx context.Context, lc *local.Client, st *uiState) error {
 		}
 		if n.State != nil {
 			st.state = *n.State
-			// On a fresh appliance, tailscaled enters NeedsLogin but
+			// On a fresh appliance, lanhcd enters NeedsLogin but
 			// does not generate a login URL until someone asks. Trigger
 			// an interactive login so the control server sends us a URL
 			// (and thus a QR code appears on the display).
@@ -209,7 +209,7 @@ func watchBusOnce(ctx context.Context, lc *local.Client, st *uiState) error {
 			st.loginURL = *n.BrowseToURL
 		}
 		if n.InitialStatus != nil {
-			st.ips = append(st.ips[:0], n.InitialStatus.TailscaleIPs...)
+			st.ips = append(st.ips[:0], n.InitialStatus.LanhcIPs...)
 		}
 		if n.SelfChange != nil {
 			st.ips = st.ips[:0]
@@ -587,7 +587,7 @@ func (st *uiState) render() {
 	y := textTop + 3*lineH + shortSide/40
 
 	if len(st.ips) > 0 {
-		drawCenteredScaled(img, "Tailscale IPs:", dimColor, w/2, y, 2)
+		drawCenteredScaled(img, "Lanhc IPs:", dimColor, w/2, y, 2)
 		y += 2 * lineH
 		for _, a := range st.ips {
 			drawCenteredScaled(img, a.String(), fgColor, w/2, y, 2)

@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"tailscale.com/tailcfg"
-	"tailscale.com/util/must"
+	"lanhc.com/tailcfg"
+	"lanhc.com/util/must"
 )
 
 var golden = `{

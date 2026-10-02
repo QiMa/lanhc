@@ -18,9 +18,9 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/cloudenv"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/cloudenv"
 )
 
 const maxCloudInfoWait = 2 * time.Second
@@ -57,7 +57,7 @@ func New(logf logger.Logf) *CloudInfo {
 }
 
 // GetPublicIPs returns any public IPs attached to the current cloud instance,
-// if the tailscaled process is running in a known cloud and there are any such
+// if the lanhcd process is running in a known cloud and there are any such
 // IPs present.
 //
 // Currently supports only AWS.

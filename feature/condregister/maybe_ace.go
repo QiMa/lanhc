@@ -5,4 +5,4 @@
 
 package condregister
 
-import _ "tailscale.com/feature/ace"
+import _ "lanhc.com/feature/ace"

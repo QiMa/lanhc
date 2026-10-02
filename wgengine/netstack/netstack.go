@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package netstack wires up gVisor's netstack into Tailscale.
+// Package netstack wires up gVisor's netstack into Lanhc.
 package netstack
 
 import (
@@ -32,33 +32,33 @@ import (
 	"gvisor.dev/gvisor/pkg/tcpip/transport/tcp"
 	"gvisor.dev/gvisor/pkg/tcpip/transport/udp"
 	"gvisor.dev/gvisor/pkg/waiter"
-	"tailscale.com/envknob"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/metrics"
-	"tailscale.com/net/dns"
-	"tailscale.com/net/ipset"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/net/netx"
-	"tailscale.com/net/packet"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/net/tstun"
-	"tailscale.com/proxymap"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/nettype"
-	"tailscale.com/types/views"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/set"
-	"tailscale.com/version"
-	"tailscale.com/wgengine"
-	"tailscale.com/wgengine/filter"
-	"tailscale.com/wgengine/magicsock"
-	"tailscale.com/wgengine/netstack/gro"
+	"lanhc.com/envknob"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/metrics"
+	"lanhc.com/net/dns"
+	"lanhc.com/net/ipset"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/net/netx"
+	"lanhc.com/net/packet"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/net/tstun"
+	"lanhc.com/proxymap"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/nettype"
+	"lanhc.com/types/views"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/set"
+	"lanhc.com/version"
+	"lanhc.com/wgengine"
+	"lanhc.com/wgengine/filter"
+	"lanhc.com/wgengine/magicsock"
+	"lanhc.com/wgengine/netstack/gro"
 )
 
 const debugPackets = false
@@ -106,7 +106,7 @@ func maxInFlightConnectionAttempts() int {
 
 // maxInFlightConnectionAttemptsPerClient is the same as
 // maxInFlightConnectionAttempts, but applies on a per-client basis
-// (i.e. keyed by the remote Tailscale IP).
+// (i.e. keyed by the remote Lanhc IP).
 func maxInFlightConnectionAttemptsPerClient() int {
 	if n := maxInFlightConnectionAttemptsPerClientForTest.Load(); n > 0 {
 		return int(n)
@@ -128,7 +128,7 @@ var debugNetstack = envknob.RegisterBool("TS_DEBUG_NETSTACK")
 // fires. Under high-churn forwarding — many short-lived peers, or peers
 // holding thousands of proxied connections that drop at once — the 2h default
 // lets stuck goroutines accumulate faster than they clear. Value is a Go
-// duration, e.g. "60s". See tailscale/tailscale#4522.
+// duration, e.g. "60s". See lanhc/lanhc#4522.
 var netstackKeepaliveIdle = envknob.RegisterDuration("TS_NETSTACK_KEEPALIVE_IDLE")
 
 // netstackKeepaliveInterval overrides the netstack default (75s) TCP keepalive
@@ -138,8 +138,8 @@ var netstackKeepaliveIdle = envknob.RegisterDuration("TS_NETSTACK_KEEPALIVE_IDLE
 var netstackKeepaliveInterval = envknob.RegisterDuration("TS_NETSTACK_KEEPALIVE_INTERVAL")
 
 var (
-	serviceIP   = tsaddr.TailscaleServiceIP()
-	serviceIPv6 = tsaddr.TailscaleServiceIPv6()
+	serviceIP   = tsaddr.LanhcServiceIP()
+	serviceIPv6 = tsaddr.LanhcServiceIPv6()
 )
 
 func init() {
@@ -156,7 +156,7 @@ func init() {
 
 // Impl contains the state for the netstack implementation,
 // and implements wgengine.FakeImpl to act as a userspace network
-// stack when Tailscale is running in fake mode.
+// stack when Lanhc is running in fake mode.
 type Impl struct {
 	// GetTCPHandlerForFlow conditionally handles an incoming TCP flow for the
 	// provided (src/port, dst/port) 4-tuple.
@@ -191,7 +191,7 @@ type Impl struct {
 	// It can only be set before calling Start.
 	// TODO(raggi): refactor the way we handle both CheckLocalTransportEndpoints
 	// and the earlier netstack registrations for serve, funnel, peerAPI and so
-	// on. Currently this optimizes away cost for tailscaled in TUN mode, while
+	// on. Currently this optimizes away cost for lanhcd in TUN mode, while
 	// enabling extension support when using tsnet in TUN mode. See #18423.
 	CheckLocalTransportEndpoints bool
 
@@ -233,7 +233,7 @@ type Impl struct {
 	peerapiPort6Atomic atomic.Uint32 // uint16 port number for IPv6 peerapi
 
 	// atomicIsLocalIPFunc holds a func that reports whether an IP
-	// is a local (non-subnet) Tailscale IP address of this
+	// is a local (non-subnet) Lanhc IP address of this
 	// machine. It's always a non-nil func. It's changed on netmap
 	// updates.
 	atomicIsLocalIPFunc syncs.AtomicValue[func(netip.Addr) bool]
@@ -263,7 +263,7 @@ type Impl struct {
 	// closed.
 	connsOpenBySubnetIP map[netip.Addr]int
 	// connsInFlightByClient keeps track of the number of in-flight
-	// connections by the client ("Tailscale") IP. This is used to apply a
+	// connections by the client ("Lanhc") IP. This is used to apply a
 	// per-client limit on in-flight connections that's smaller than the
 	// global limit, preventing a misbehaving client from starving the
 	// global limit.
@@ -287,7 +287,7 @@ const nicID = 1
 
 // maxUDPPacketSize is the maximum size of a UDP packet we copy in
 // startPacketCopy when relaying UDP packets. The user can configure
-// the tailscale MTU to anything up to this size so we can potentially
+// the lanhc MTU to anything up to this size so we can potentially
 // have a UDP packet as big as the MTU.
 const maxUDPPacketSize = tstun.MaxPacketSize
 
@@ -296,7 +296,7 @@ func setTCPBufSizes(ipstack *stack.Stack) error {
 	// Linux's tcp_{r,w}mem. Application within gVisor differs as some Linux
 	// features are not (yet) implemented, and socket buffer memory is not
 	// controlled within gVisor, e.g. we allocate *stack.PacketBuffer's for the
-	// write path within Tailscale. Therefore, we loosen our understanding of
+	// write path within Lanhc. Therefore, we loosen our understanding of
 	// the relationship between these Linux and gVisor tunables. The chosen
 	// values are biased towards higher throughput on high bandwidth-delay
 	// product paths, except on memory-constrained platforms.
@@ -358,7 +358,7 @@ func Create(logf logger.Logf, tundev *tstun.Wrapper, e wgengine.Engine, mc *magi
 	if tcpipErr != nil {
 		return nil, fmt.Errorf("could not enable TCP SACK: %v", tcpipErr)
 	}
-	// See https://github.com/tailscale/tailscale/issues/9707
+	// See https://github.com/lanhc/lanhc/issues/9707
 	// gVisor's RACK performs poorly. ACKs do not appear to be handled in a
 	// timely manner, leading to spurious retransmissions and a reduced
 	// congestion window.
@@ -399,7 +399,7 @@ func Create(logf logger.Logf, tundev *tstun.Wrapper, e wgengine.Engine, mc *magi
 	// incoming packets. The NIC won't receive anything it isn't meant to
 	// since WireGuard will only send us packets that are meant for us.
 	ipstack.SetPromiscuousMode(nicID, true)
-	// Add IPv4 and IPv6 default routes, so all incoming packets from the Tailscale side
+	// Add IPv4 and IPv6 default routes, so all incoming packets from the Lanhc side
 	// are handled by the one fake NIC we use.
 	ipv4Subnet, err := tcpip.NewSubnet(tcpip.AddrFromSlice(make([]byte, 4)), tcpip.MaskFromBytes(make([]byte, 4)))
 	if err != nil {
@@ -836,7 +836,7 @@ func (ns *Impl) isLoopbackPort(port uint16) bool {
 }
 
 // handleLocalPackets is hooked into the tun datapath for packets leaving
-// the host and arriving at tailscaled. This method returns filter.DropSilently
+// the host and arriving at lanhcd. This method returns filter.DropSilently
 // to intercept a packet for handling, for instance traffic to quad-100.
 // Caution: can be called before Start
 func (ns *Impl) handleLocalPackets(p *packet.Parsed, t *tstun.Wrapper, gro *gro.GRO) (filter.Response, *gro.GRO) {
@@ -849,7 +849,7 @@ func (ns *Impl) handleLocalPackets(p *packet.Parsed, t *tstun.Wrapper, gro *gro.
 	serviceName, isVIPServiceIP := ns.atomicIPVIPServiceMap.Load()[dst]
 	switch {
 	case dst == serviceIP || dst == serviceIPv6:
-		// Traffic to the Tailscale service IP (100.100.100.100 /
+		// Traffic to the Lanhc service IP (100.100.100.100 /
 		// fd7a:115c:a1e0::53) is always terminated locally on this
 		// node; it must never be forwarded out over WireGuard to a
 		// peer. Netstack's TCP/UDP acceptors handle the ports we
@@ -1095,9 +1095,9 @@ func (ns *Impl) inject() {
 }
 
 // shouldSendToHost determines if the provided packet should be sent to the
-// host (i.e the current machine running Tailscale), in which case it will
+// host (i.e the current machine running Lanhc), in which case it will
 // return true. It will return false if the packet should be sent outbound, for
-// transit via WireGuard to another Tailscale node.
+// transit via WireGuard to another Lanhc node.
 func (ns *Impl) shouldSendToHost(pkt *stack.PacketBuffer) bool {
 	// Determine if the packet is from a service IP (100.100.100.100 or the
 	// IPv6 variant), in which case it needs to go back into the machine's
@@ -1146,7 +1146,7 @@ func (ns *Impl) shouldSendToHost(pkt *stack.PacketBuffer) bool {
 				// send traffic that's intended for another
 				// peer from the local 4via6 address to the
 				// host instead of outbound to WireGuard. See:
-				//     https://github.com/tailscale/tailscale/issues/12448
+				//     https://github.com/lanhc/lanhc/issues/12448
 				if ns.isLocalIP(dstIP) {
 					return true
 				}
@@ -1165,7 +1165,7 @@ func (ns *Impl) shouldSendToHost(pkt *stack.PacketBuffer) bool {
 	return false
 }
 
-// isSelfDst reports whether pkt's destination IP is a local Tailscale IP
+// isSelfDst reports whether pkt's destination IP is a local Lanhc IP
 // assigned to this node. This is used by inject() to detect self-addressed
 // packets that need loopback delivery.
 func (ns *Impl) isSelfDst(pkt *stack.PacketBuffer) bool {
@@ -1179,7 +1179,7 @@ func (ns *Impl) isSelfDst(pkt *stack.PacketBuffer) bool {
 	return false
 }
 
-// isLocalIP reports whether ip is a Tailscale IP assigned to this
+// isLocalIP reports whether ip is a Lanhc IP assigned to this
 // node directly (but not a subnet-routed IP).
 func (ns *Impl) isLocalIP(ip netip.Addr) bool {
 	return ns.atomicIsLocalIPFunc.Load()(ip)
@@ -1202,7 +1202,7 @@ func (ns *Impl) peerAPIPortAtomic(ip netip.Addr) *atomic.Uint32 {
 	}
 }
 
-var viaRange = tsaddr.TailscaleViaRange()
+var viaRange = tsaddr.LanhcViaRange()
 
 // shouldProcessInbound reports whether an inbound packet (a packet from a
 // WireGuard peer) should be handled by netstack.
@@ -1212,7 +1212,7 @@ func (ns *Impl) shouldProcessInbound(p *packet.Parsed, t *tstun.Wrapper) bool {
 	isLocal := ns.isLocalIP(dstIP)
 	isService := ns.isVIPServiceIP(dstIP)
 
-	// Handle TCP connection to the Tailscale IP(s) in some cases:
+	// Handle TCP connection to the Lanhc IP(s) in some cases:
 	if ns.lb != nil && p.IPProto == ipproto.TCP && isLocal {
 		var peerAPIPort uint16
 
@@ -1334,7 +1334,7 @@ const (
 	// "outbound"–i.e. from this node to a peer via WireGuard.
 	userPingDirectionOutbound userPingDirection = iota
 	// userPingDirectionInbound is used when the pong packet is to be sent
-	// "inbound"–i.e. from Tailscale to another process on this host.
+	// "inbound"–i.e. from Lanhc to another process on this host.
 	userPingDirectionInbound
 )
 
@@ -1502,8 +1502,8 @@ func (ns *Impl) shouldHandlePing(p *packet.Parsed) (_ netip.Addr, ok bool) {
 	}
 
 	// For non-4via6 addresses, we don't handle pings if they're destined
-	// for a Tailscale IP.
-	if tsaddr.IsTailscaleIP(destIP) {
+	// for a Lanhc IP.
+	if tsaddr.IsLanhcIP(destIP) {
 		return netip.Addr{}, false
 	}
 
@@ -1555,7 +1555,7 @@ func (ns *Impl) acceptTCP(r *tcp.ForwarderRequest) {
 	clientRemoteAddrPort := netip.AddrPortFrom(clientRemoteIP, clientRemotePort)
 
 	dialIP := netaddrIPFromNetstackIP(reqDetails.LocalAddress)
-	isTailscaleIP := tsaddr.IsTailscaleIP(dialIP)
+	isLanhcIP := tsaddr.IsLanhcIP(dialIP)
 	isLocal := ns.isLocalIP(dialIP) // i.e. not a subnet routed or 4via6 target
 
 	dstAddrPort := netip.AddrPortFrom(dialIP, reqDetails.LocalPort)
@@ -1563,13 +1563,13 @@ func (ns *Impl) acceptTCP(r *tcp.ForwarderRequest) {
 	isVia := viaRange.Contains(dialIP)
 	var viaIP netip.Addr
 	if isVia {
-		isTailscaleIP = false
+		isLanhcIP = false
 		viaIP = dialIP
 		dialIP = tsaddr.UnmapVia(dialIP)
 	}
 
 	defer func() {
-		if !isTailscaleIP {
+		if !isLanhcIP {
 			// if this is a subnet IP, we added this in before the TCP handshake
 			// so netstack is happy TCP-handshaking as a subnet IP
 			ns.removeSubnetAddress(dialIP)
@@ -1614,7 +1614,7 @@ func (ns *Impl) acceptTCP(r *tcp.ForwarderRequest) {
 		// defaults are left unchanged because the long timers are low-impact for
 		// battery-powered peers and this has broad implications in userspace
 		// mode (lingering connections to fork-style daemons, etc). See
-		// tailscale/tailscale#4522.
+		// lanhc/lanhc#4522.
 		if d := netstackKeepaliveIdle(); d > 0 {
 			idle := tcpip.KeepaliveIdleOption(d)
 			if err := ep.SetSockOpt(&idle); err != nil {
@@ -1696,7 +1696,7 @@ func (ns *Impl) acceptTCP(r *tcp.ForwarderRequest) {
 			dialIP = ipv4Loopback
 		}
 	case hittingServiceIP:
-		// TCP to the Tailscale service IP on a port we don't serve
+		// TCP to the Lanhc service IP on a port we don't serve
 		// (anything other than DNS/53, web client/80, Taildrive/8080,
 		// or the debug loopback port handled above). handleLocalPackets
 		// absorbs all quad-100 traffic into netstack to prevent it
@@ -1705,8 +1705,8 @@ func (ns *Impl) acceptTCP(r *tcp.ForwarderRequest) {
 		// (see the comment there).
 		//
 		// Without this explicit guard, execution would fall through
-		// to the isTailscaleIP case below (quad-100 is in the
-		// tailscale IP range), rewriting the dial target to
+		// to the isLanhcIP case below (quad-100 is in the
+		// lanhc IP range), rewriting the dial target to
 		// 127.0.0.1:<port> and forwardTCP'ing the connection onto
 		// whatever random service happens to be listening on the
 		// host's loopback at that port. Reject cleanly with a RST
@@ -1717,14 +1717,14 @@ func (ns *Impl) acceptTCP(r *tcp.ForwarderRequest) {
 		// TCP to a VIP service IP on a port the service does not serve. A served
 		// port returns early above (TCPHandlerForDst is non-nil), so reaching here
 		// means this node has no serve handler for this port. Don't fall through
-		// to the isTailscaleIP case below (a VIP is in the Tailscale IP range),
+		// to the isLanhcIP case below (a VIP is in the Lanhc IP range),
 		// which would rewrite the dial target to 127.0.0.1:<port> and forwardTCP
 		// the connection onto whatever unrelated service happens to be listening
 		// on the host's loopback at that port — reachable via the service IP by
 		// any peer, even one granted access only to the service. Reject with a RST.
 		r.Complete(true) // sends a RST
 		return
-	case isTailscaleIP:
+	case isLanhcIP:
 		dialIP = ipv4Loopback
 	}
 	dialAddr := netip.AddrPortFrom(dialIP, uint16(reqDetails.LocalPort))
@@ -1778,7 +1778,7 @@ func (ns *Impl) forwardTCP(getClient func(...tcpip.SettableSocketOption) *gonet.
 	}
 
 	// TODO: this is racy, dialing before we register our local address. See
-	// https://github.com/tailscale/tailscale/issues/1616.
+	// https://github.com/lanhc/lanhc/issues/1616.
 	backend, err := dialFunc(ctx, "tcp", dialAddrStr)
 	if err != nil {
 		ns.logf("netstack: could not connect to local backend server at %s: %v", dialAddr.String(), err)
@@ -2052,7 +2052,7 @@ func (ns *Impl) handleMagicDNSUDP(srcAddr netip.AddrPort, c *gonet.UDPConn) {
 
 // forwardUDP proxies between client (with addr clientAddr) and dstAddr.
 //
-// dstAddr may be either a local Tailscale IP, in which we case we proxy to
+// dstAddr may be either a local Lanhc IP, in which we case we proxy to
 // 127.0.0.1, or any other IP (from an advertised subnet), in which case we
 // proxy to it directly.
 func (ns *Impl) forwardUDP(client *gonet.UDPConn, clientAddr, dstAddr netip.AddrPort) {
@@ -2395,7 +2395,7 @@ func (ns *Impl) ExpVar() expvar.Var {
 // windowsPingOutputIsSuccess reports whether the ping.exe output b contains a
 // success ping response for ip.
 //
-// See https://github.com/tailscale/tailscale/issues/13654
+// See https://github.com/lanhc/lanhc/issues/13654
 //
 // TODO(bradfitz,nickkhyl): delete this and use the proper Windows APIs.
 func windowsPingOutputIsSuccess(ip netip.Addr, b []byte) bool {

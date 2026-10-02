@@ -11,16 +11,16 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/types/key"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/types/key"
 )
 
 // TestWhoIsAfterPeerAddressReuse drives the whole client stack through the
 // netmap delta ordering that broke WhoIs on App Connectors
-// (tailscale/corp#47435).
+// (lanhc/corp#47435).
 //
-// Control reassigns a churning ephemeral peer's Tailscale IP to a newer peer.
+// Control reassigns a churning ephemeral peer's Lanhc IP to a newer peer.
 // The newer peer's upsert can reach the client before the older peer's
 // removal, either in an earlier MapResponse or, as here, reordered within one
 // MapResponse by the NodeID sort in netmap.MutationsFromMapResponse. Evicting
@@ -185,7 +185,7 @@ func TestWhoIsAfterPeerAddressReuse(t *testing.T) {
 	// identify a peer n1 is actively exchanging traffic with, not a peer it
 	// has genuinely lost.
 	if err := tstest.WaitFor(30*time.Second, func() error {
-		out, err := n2.TailscaleForOutput("ping", "-c", "1", "--timeout=5s", "--tsmp", n1IP.String()).CombinedOutput()
+		out, err := n2.LanhcForOutput("ping", "-c", "1", "--timeout=5s", "--tsmp", n1IP.String()).CombinedOutput()
 		if err != nil {
 			return fmt.Errorf("%v: %s", err, out)
 		}
@@ -199,7 +199,7 @@ func TestWhoIsAfterPeerAddressReuse(t *testing.T) {
 // selfDiscoKey returns the disco key n is currently advertising for itself.
 func selfDiscoKey(t *testing.T, n *TestNode) key.DiscoPublic {
 	t.Helper()
-	out, err := n.TailscaleForOutput("debug", "netmap").Output()
+	out, err := n.LanhcForOutput("debug", "netmap").Output()
 	if err != nil {
 		t.Fatalf("debug netmap: %v", err)
 	}

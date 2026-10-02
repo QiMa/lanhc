@@ -15,7 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrlreconcile "sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"tailscale.com/k8s-operator/reconciler"
+	"lanhc.com/k8s-operator/reconciler"
 )
 
 func TestFinalizers(t *testing.T) {
@@ -50,9 +50,9 @@ func TestLabels(t *testing.T) {
 	t.Run("cluster-scoped-parent", func(t *testing.T) {
 		got := reconciler.Labels("peerrelay", "test", "")
 		want := map[string]string{
-			"tailscale.com/managed":              "true",
-			"tailscale.com/parent-resource-type": "peerrelay",
-			"tailscale.com/parent-resource":      "test",
+			"lanhc.com/managed":              "true",
+			"lanhc.com/parent-resource-type": "peerrelay",
+			"lanhc.com/parent-resource":      "test",
 		}
 		if !maps.Equal(got, want) {
 			t.Errorf("expected %v, got %v", want, got)
@@ -62,10 +62,10 @@ func TestLabels(t *testing.T) {
 	t.Run("namespaced-parent", func(t *testing.T) {
 		got := reconciler.Labels("connector", "test", "kube-system")
 		want := map[string]string{
-			"tailscale.com/managed":              "true",
-			"tailscale.com/parent-resource-type": "connector",
-			"tailscale.com/parent-resource":      "test",
-			"tailscale.com/parent-resource-ns":   "kube-system",
+			"lanhc.com/managed":              "true",
+			"lanhc.com/parent-resource-type": "connector",
+			"lanhc.com/parent-resource":      "test",
+			"lanhc.com/parent-resource-ns":   "kube-system",
 		}
 		if !maps.Equal(got, want) {
 			t.Errorf("expected %v, got %v", want, got)
@@ -86,42 +86,42 @@ func TestEnqueueForChild(t *testing.T) {
 		{
 			name: "matching-cluster-scoped",
 			labels: map[string]string{
-				"tailscale.com/managed":              "true",
-				"tailscale.com/parent-resource-type": "peerrelay",
-				"tailscale.com/parent-resource":      "test",
+				"lanhc.com/managed":              "true",
+				"lanhc.com/parent-resource-type": "peerrelay",
+				"lanhc.com/parent-resource":      "test",
 			},
 			want: []ctrlreconcile.Request{{NamespacedName: types.NamespacedName{Name: "test"}}},
 		},
 		{
 			name: "matching-namespaced",
 			labels: map[string]string{
-				"tailscale.com/managed":              "true",
-				"tailscale.com/parent-resource-type": "peerrelay",
-				"tailscale.com/parent-resource":      "test",
-				"tailscale.com/parent-resource-ns":   "kube-system",
+				"lanhc.com/managed":              "true",
+				"lanhc.com/parent-resource-type": "peerrelay",
+				"lanhc.com/parent-resource":      "test",
+				"lanhc.com/parent-resource-ns":   "kube-system",
 			},
 			want: []ctrlreconcile.Request{{NamespacedName: types.NamespacedName{Name: "test", Namespace: "kube-system"}}},
 		},
 		{
 			name: "not-managed",
 			labels: map[string]string{
-				"tailscale.com/parent-resource-type": "peerrelay",
-				"tailscale.com/parent-resource":      "test",
+				"lanhc.com/parent-resource-type": "peerrelay",
+				"lanhc.com/parent-resource":      "test",
 			},
 		},
 		{
 			name: "wrong-parent-type",
 			labels: map[string]string{
-				"tailscale.com/managed":              "true",
-				"tailscale.com/parent-resource-type": "proxygroup",
-				"tailscale.com/parent-resource":      "test",
+				"lanhc.com/managed":              "true",
+				"lanhc.com/parent-resource-type": "proxygroup",
+				"lanhc.com/parent-resource":      "test",
 			},
 		},
 		{
 			name: "missing-parent-name",
 			labels: map[string]string{
-				"tailscale.com/managed":              "true",
-				"tailscale.com/parent-resource-type": "peerrelay",
+				"lanhc.com/managed":              "true",
+				"lanhc.com/parent-resource-type": "peerrelay",
 			},
 		},
 		{

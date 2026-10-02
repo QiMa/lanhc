@@ -18,10 +18,10 @@ import (
 	"time"
 
 	"github.com/fxamacker/cbor/v2"
-	"tailscale.com/atomicfile"
-	"tailscale.com/tstime"
-	"tailscale.com/util/set"
-	"tailscale.com/util/testenv"
+	"lanhc.com/atomicfile"
+	"lanhc.com/tstime"
+	"lanhc.com/util/set"
+	"lanhc.com/util/testenv"
 )
 
 // Chonk implementations provide durable storage for AUMs and other
@@ -413,7 +413,7 @@ func (c *FS) CommitTime(h AUMHash) (time.Time, error) {
 
 	// If we got this far, the AUM exists but CreatedUnix is not
 	// set, presumably because this AUM was committed using a version
-	// of tailscaled that pre-dates the introduction of CreatedUnix.
+	// of lanhcd that pre-dates the introduction of CreatedUnix.
 	// As such, we use the file modification time as a suitable analog.
 	dir, base := c.aumDir(h)
 	s, err := os.Stat(filepath.Join(dir, base))

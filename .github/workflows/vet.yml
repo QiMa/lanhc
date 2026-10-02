@@ -1,4 +1,4 @@
-name: tailscale.com/cmd/vet
+name: lanhc.com/cmd/vet
 
 env:
   HOME: ${{ github.workspace }}
@@ -34,13 +34,13 @@ jobs:
 
       - name: Build 'go vet' tool
         working-directory: src
-        run: ./tool/go build -o /tmp/vettool tailscale.com/cmd/vet
+        run: ./tool/go build -o /tmp/vettool lanhc.com/cmd/vet
 
       - name: Run 'go vet'
         working-directory: src
         # Use listpkgs --ignore-3p to skip tempfork/ packages, which
         # intentionally match upstream and may not follow our style rules.
-        # Must use ./... instead of tailscale.com/... because the latter will
+        # Must use ./... instead of lanhc.com/... because the latter will
         # include the v2 go client (tailscale.com/client/tailscale/v2) if it's
         # a dependency in our go.mod file. Possibly a go vet bug, but avoid
         # cross-repo vetting for now so we can safely add the dependency.

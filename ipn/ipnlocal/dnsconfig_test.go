@@ -10,17 +10,17 @@ import (
 	"reflect"
 	"testing"
 
-	"tailscale.com/appc"
-	"tailscale.com/ipn"
-	"tailscale.com/net/dns"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/types/dnstype"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/opt"
-	"tailscale.com/util/cloudenv"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/set"
+	"lanhc.com/appc"
+	"lanhc.com/ipn"
+	"lanhc.com/net/dns"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/types/dnstype"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/opt"
+	"lanhc.com/util/cloudenv"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/set"
 )
 
 func ipps(ippStrs ...string) (ipps []netip.Prefix) {
@@ -297,7 +297,7 @@ func TestDNSConfigForNetmap(t *testing.T) {
 			},
 		},
 		{
-			// Prior to fixing https://github.com/tailscale/tailscale/issues/2116,
+			// Prior to fixing https://github.com/lanhc/lanhc/issues/2116,
 			// Android had cases where it needed FallbackResolvers. This was the
 			// negative test for the case where Override-local-DNS was set, so the
 			// fallback resolvers did not need to be used. This test is still valid
@@ -429,7 +429,7 @@ func TestDNSConfigForNetmap(t *testing.T) {
 				Hosts:     map[dnsname.FQDN][]netip.Addr{},
 				Routes: map[dnsname.FQDN][]*dnstype.Resolver{
 					dnsname.FQDN("example.com."): {
-						{Addr: "tailscale-app:app1"},
+						{Addr: "lanhc-app:app1"},
 					},
 				},
 				MagicDNSHostsUnrouted: true,

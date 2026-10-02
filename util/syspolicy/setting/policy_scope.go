@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strings"
 
-	"tailscale.com/types/lazy"
-	"tailscale.com/util/syspolicy/internal"
+	"lanhc.com/types/lazy"
+	"lanhc.com/util/syspolicy/internal"
 )
 
 var (
@@ -17,7 +17,7 @@ var (
 	// DeviceScope indicates a scope containing device-global policies.
 	DeviceScope = PolicyScope{kind: DeviceSetting}
 	// CurrentProfileScope indicates a scope containing policies that apply to the
-	// currently active Tailscale profile.
+	// currently active Lanhc profile.
 	CurrentProfileScope = PolicyScope{kind: ProfileSetting}
 	// CurrentUserScope indicates a scope containing policies that apply to the
 	// current user, for whatever that means on the current platform and

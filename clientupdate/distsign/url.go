@@ -9,12 +9,12 @@ import (
 	"net/url"
 	"strings"
 
-	"tailscale.com/types/logger"
+	"lanhc.com/types/logger"
 )
 
 // DownloadVerified is a convenience wrapper around [Client.Download]
 // for callers that have a full URL (e.g.
-// https://pkgs.tailscale.com/unstable/foo.gaf) rather than a base URL
+// https://pkgs.lanhc.com/unstable/foo.gaf) rather than a base URL
 // plus path. It splits srcURL into a base ("scheme://host") and a path,
 // constructs a [Client] for the base, and downloads with signature
 // verification to dstPath.

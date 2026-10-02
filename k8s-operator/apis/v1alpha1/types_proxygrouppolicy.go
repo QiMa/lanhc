@@ -29,7 +29,7 @@ type ProxyGroupPolicy struct {
 	Spec ProxyGroupPolicySpec `json:"spec"`
 
 	// Status describes the status of the ProxyGroupPolicy. This is set
-	// and managed by the Tailscale operator.
+	// and managed by the Lanhc operator.
 	// +optional
 	Status ProxyGroupPolicyStatus `json:"status"`
 }

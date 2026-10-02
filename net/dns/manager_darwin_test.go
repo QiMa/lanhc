@@ -13,8 +13,8 @@ import (
 	"strings"
 	"testing"
 
-	"tailscale.com/types/logger"
-	"tailscale.com/util/dnsname"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/dnsname"
 )
 
 func newTestConfigurator(t *testing.T) *darwinConfigurator {
@@ -68,7 +68,7 @@ func TestSetDNS(t *testing.T) {
 			},
 			fileContents: map[string]string{
 				"ts.net":           macResolverFileHeader + "nameserver 100.100.100.100\n",
-				"search.tailscale": macResolverFileHeader + "search tail1234.ts.net\n",
+				"search.lanhc": macResolverFileHeader + "search tail1234.ts.net\n",
 			},
 		},
 	}
@@ -251,13 +251,13 @@ func TestSetDNS_PathTraversal(t *testing.T) {
 func TestRemoveResolverFiles(t *testing.T) {
 	c := newTestConfigurator(t)
 
-	// Write a tailscale-managed file.
+	// Write a lanhc-managed file.
 	managed := filepath.Join(c.resolverDir, "ts.net")
 	if err := os.WriteFile(managed, []byte(macResolverFileHeader+"nameserver 100.100.100.100\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	// Write a non-tailscale file that should be left alone.
+	// Write a non-lanhc file that should be left alone.
 	unmanaged := filepath.Join(c.resolverDir, "other.conf")
 	if err := os.WriteFile(unmanaged, []byte("# not ours\nnameserver 8.8.8.8\n"), 0644); err != nil {
 		t.Fatal(err)

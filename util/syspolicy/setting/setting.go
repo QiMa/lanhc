@@ -13,12 +13,12 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/syncs"
-	"tailscale.com/types/lazy"
-	"tailscale.com/util/syspolicy/internal"
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/util/syspolicy/ptype"
-	"tailscale.com/util/testenv"
+	"lanhc.com/syncs"
+	"lanhc.com/types/lazy"
+	"lanhc.com/util/syspolicy/internal"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/util/syspolicy/ptype"
+	"lanhc.com/util/testenv"
 )
 
 // Scope indicates the broadest scope at which a policy setting may apply,
@@ -27,10 +27,10 @@ type Scope int8
 
 const (
 	// DeviceSetting indicates a policy setting that applies to a device, regardless of
-	// which OS user or Tailscale profile is currently active, if any.
+	// which OS user or Lanhc profile is currently active, if any.
 	// It can only be configured at a [DeviceScope].
 	DeviceSetting Scope = iota
-	// ProfileSetting indicates a policy setting that applies to a Tailscale profile.
+	// ProfileSetting indicates a policy setting that applies to a Lanhc profile.
 	// It can only be configured for a specific profile or at a [DeviceScope],
 	// in which case it applies to all profiles on the device.
 	ProfileSetting

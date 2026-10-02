@@ -12,20 +12,20 @@ import (
 	"time"
 
 	"go4.org/netipx"
-	"tailscale.com/envknob"
-	"tailscale.com/net/flowtrack"
-	"tailscale.com/net/ipset"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/net/packet"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime/rate"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/views"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/slicesx"
-	"tailscale.com/util/usermetric"
-	"tailscale.com/wgengine/filter/filtertype"
+	"lanhc.com/envknob"
+	"lanhc.com/net/flowtrack"
+	"lanhc.com/net/ipset"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/net/packet"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime/rate"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/views"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/slicesx"
+	"lanhc.com/util/usermetric"
+	"lanhc.com/wgengine/filter/filtertype"
 )
 
 // Filter is a stateful packet filter.
@@ -49,7 +49,7 @@ type Filter struct {
 	srcIPHasCap CapTestFunc
 
 	// matches4 and matches6 are lists of match->action rules
-	// applied to all packets arriving over tailscale
+	// applied to all packets arriving over lanhc
 	// tunnels. Matches are checked in order, and processing stops
 	// at the first matching rule. The default policy if no rules
 	// match is to drop the packet.
@@ -439,7 +439,7 @@ func (f *Filter) CapsWithValues(srcIP, dstIP netip.Addr) tailcfg.PeerCapMap {
 func (f *Filter) ShieldsUp() bool { return f.shieldsUp }
 
 // RunIn determines whether this node is allowed to receive q from a
-// Tailscale peer.
+// Lanhc peer.
 func (f *Filter) RunIn(q *packet.Parsed, rf RunFlags) Response {
 	dir := in
 	r, _ := f.pre(q, rf, dir)
@@ -472,7 +472,7 @@ func (f *Filter) RunIn(q *packet.Parsed, rf RunFlags) Response {
 }
 
 // RunOut determines whether this node is allowed to send q to a
-// Tailscale peer.
+// Lanhc peer.
 func (f *Filter) RunOut(q *packet.Parsed, rf RunFlags) (Response, usermetric.DropReason) {
 	dir := out
 	r, reason := f.pre(q, rf, dir)
@@ -637,8 +637,8 @@ func (f *Filter) runOut(q *packet.Parsed) (r Response, why string) {
 // [Filter.RunOut] (for example netstack's [InjectOutbound] path used by
 // userspace networking, tsnet and the SOCKS5/HTTP proxies), so that reply
 // packets matching an outbound UDP flow are not silently dropped as "no
-// matching rule" by [Filter.RunIn]. See tailscale/tailscale#14229 and
-// tailscale/tailscale#20064.
+// matching rule" by [Filter.RunIn]. See lanhc/lanhc#14229 and
+// lanhc/lanhc#20064.
 func (f *Filter) UpdateOutboundFlowState(q *packet.Parsed) {
 	switch q.IPProto {
 	case ipproto.UDP, ipproto.SCTP:
@@ -654,8 +654,8 @@ func (f *Filter) UpdateOutboundFlowState(q *packet.Parsed) {
 type direction int
 
 const (
-	in  direction = iota // from Tailscale peer to local machine
-	out                  // from local machine to Tailscale peer
+	in  direction = iota // from Lanhc peer to local machine
+	out                  // from local machine to Lanhc peer
 )
 
 func (d direction) String() string {

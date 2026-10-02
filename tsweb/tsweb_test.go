@@ -22,11 +22,11 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"tailscale.com/metrics"
-	"tailscale.com/tstest"
-	"tailscale.com/util/httpm"
-	"tailscale.com/util/must"
-	"tailscale.com/util/vizerror"
+	"lanhc.com/metrics"
+	"lanhc.com/tstest"
+	"lanhc.com/util/httpm"
+	"lanhc.com/util/must"
+	"lanhc.com/util/vizerror"
 )
 
 type noopHijacker struct {
@@ -694,7 +694,7 @@ func TestStdHandler_Panic(t *testing.T) {
 		t.Errorf("got Err prefix %q, want %q", r.Err[:min(len(r.Err), len(p))], p)
 		logerr = true
 	}
-	if s := "\ntailscale.com/tsweb.panicElsewhere("; !strings.Contains(r.Err, s) {
+	if s := "\nlanhc.com/tsweb.panicElsewhere("; !strings.Contains(r.Err, s) {
 		t.Errorf("want Err substr %q, not found", s)
 		logerr = true
 	}
@@ -1003,7 +1003,7 @@ func TestStdHandler_OnErrorPanic(t *testing.T) {
 		t.Errorf("got Err prefix %q, want %q", r.Err[:min(len(r.Err), len(p))], p)
 		logerr = true
 	}
-	if s := "\ntailscale.com/tsweb.panicElsewhere("; !strings.Contains(r.Err, s) {
+	if s := "\nlanhc.com/tsweb.panicElsewhere("; !strings.Contains(r.Err, s) {
 		t.Errorf("want Err substr %q, not found", s)
 		logerr = true
 	}
@@ -1212,8 +1212,8 @@ func TestPort80Handler(t *testing.T) {
 }
 
 func TestCleanRedirectURL(t *testing.T) {
-	tailscaleHost := []string{"tailscale.com"}
-	tailscaleAndOtherHost := []string{"microsoft.com", "tailscale.com"}
+	lanhcHost := []string{"lanhc.com"}
+	lanhcAndOtherHost := []string{"microsoft.com", "lanhc.com"}
 	localHost := []string{"127.0.0.1", "localhost"}
 	myServer := []string{"myserver"}
 	cases := []struct {
@@ -1222,13 +1222,13 @@ func TestCleanRedirectURL(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		{"http://tailscale.com/foo", tailscaleHost, "http://tailscale.com/foo", false},
-		{"http://tailscale.com/foo", tailscaleAndOtherHost, "http://tailscale.com/foo", false},
-		{"http://microsoft.com/foo", tailscaleAndOtherHost, "http://microsoft.com/foo", false},
-		{"https://tailscale.com/foo", tailscaleHost, "https://tailscale.com/foo", false},
-		{"/foo", tailscaleHost, "/foo", false},
-		{"//tailscale.com/foo", tailscaleHost, "//tailscale.com/foo", false},
-		{"/a/foobar", tailscaleHost, "/a/foobar", false},
+		{"http://lanhc.com/foo", lanhcHost, "http://lanhc.com/foo", false},
+		{"http://lanhc.com/foo", lanhcAndOtherHost, "http://lanhc.com/foo", false},
+		{"http://microsoft.com/foo", lanhcAndOtherHost, "http://microsoft.com/foo", false},
+		{"https://lanhc.com/foo", lanhcHost, "https://lanhc.com/foo", false},
+		{"/foo", lanhcHost, "/foo", false},
+		{"//lanhc.com/foo", lanhcHost, "//lanhc.com/foo", false},
+		{"/a/foobar", lanhcHost, "/a/foobar", false},
 		{"http://127.0.0.1/a/foobar", localHost, "http://127.0.0.1/a/foobar", false},
 		{"http://127.0.0.1:123/a/foobar", localHost, "http://127.0.0.1:123/a/foobar", false},
 		{"http://127.0.0.1:31544/a/foobar", localHost, "http://127.0.0.1:31544/a/foobar", false},
@@ -1238,23 +1238,23 @@ func TestCleanRedirectURL(t *testing.T) {
 		{"http://myserver/a/foobar", myServer, "http://myserver/a/foobar", false},
 		{"http://myserver:123/a/foobar", myServer, "http://myserver:123/a/foobar", false},
 		{"http://myserver:31544/a/foobar", myServer, "http://myserver:31544/a/foobar", false},
-		{"http://evil.com/foo", tailscaleHost, "", true},
-		{"//evil.com", tailscaleHost, "", true},
-		{"\\\\evil.com", tailscaleHost, "", true},
-		{"javascript:alert(123)", tailscaleHost, "", true},
-		{"file:///", tailscaleHost, "", true},
-		{"file:////SERVER/directory/goats.txt", tailscaleHost, "", true},
-		{"https://google.com", tailscaleHost, "", true},
-		{"", tailscaleHost, "", false},
-		{"\"\"", tailscaleHost, "", true},
-		{"https://tailscale.com@goats.com:8443", tailscaleHost, "", true},
-		{"https://tailscale.com:8443@goats.com:8443", tailscaleHost, "", true},
-		{"HttP://tailscale.com", tailscaleHost, "http://tailscale.com", false},
-		{"http://TaIlScAlE.CoM/spongebob", tailscaleHost, "http://TaIlScAlE.CoM/spongebob", false},
-		{"ftp://tailscale.com", tailscaleHost, "", true},
-		{"https:/evil.com", tailscaleHost, "", true},                     // regression test for tailscale/corp#892
-		{"%2Fa%2F44869c061701", tailscaleHost, "/a/44869c061701", false}, // regression test for tailscale/corp#13288
-		{"https%3A%2Ftailscale.com", tailscaleHost, "", true},            // escaped colon-single-slash malformed URL
+		{"http://evil.com/foo", lanhcHost, "", true},
+		{"//evil.com", lanhcHost, "", true},
+		{"\\\\evil.com", lanhcHost, "", true},
+		{"javascript:alert(123)", lanhcHost, "", true},
+		{"file:///", lanhcHost, "", true},
+		{"file:////SERVER/directory/goats.txt", lanhcHost, "", true},
+		{"https://google.com", lanhcHost, "", true},
+		{"", lanhcHost, "", false},
+		{"\"\"", lanhcHost, "", true},
+		{"https://lanhc.com@goats.com:8443", lanhcHost, "", true},
+		{"https://lanhc.com:8443@goats.com:8443", lanhcHost, "", true},
+		{"HttP://lanhc.com", lanhcHost, "http://lanhc.com", false},
+		{"http://LaNhC.CoM/spongebob", lanhcHost, "http://LaNhC.CoM/spongebob", false},
+		{"ftp://lanhc.com", lanhcHost, "", true},
+		{"https:/evil.com", lanhcHost, "", true},                     // regression test for lanhc/corp#892
+		{"%2Fa%2F44869c061701", lanhcHost, "/a/44869c061701", false}, // regression test for lanhc/corp#13288
+		{"https%3A%2Flanhc.com", lanhcHost, "", true},            // escaped colon-single-slash malformed URL
 		{"", nil, "", false},
 	}
 

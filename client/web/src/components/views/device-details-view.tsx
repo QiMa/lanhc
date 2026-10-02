@@ -86,7 +86,7 @@ export default function DeviceDetailsView({
                 </td>
               </tr>
               <tr>
-                <td>Tailscale version</td>
+                <td>Lanhc version</td>
                 <td>{node.IPNVersion}</td>
               </tr>
               <tr>
@@ -108,7 +108,7 @@ export default function DeviceDetailsView({
           <table>
             <tbody>
               <tr>
-                <td>Tailscale IPv4</td>
+                <td>Lanhc IPv4</td>
                 <td>
                   <QuickCopy
                     primaryActionValue={node.IPv4}
@@ -119,7 +119,7 @@ export default function DeviceDetailsView({
                 </td>
               </tr>
               <tr>
-                <td>Tailscale IPv6</td>
+                <td>Lanhc IPv6</td>
                 <td>
                   <QuickCopy
                     primaryActionValue={node.IPv6}
@@ -191,7 +191,7 @@ export default function DeviceDetailsView({
             ·{" "}
             <a
               className="link"
-              href="https://tailscale.com/privacy-policy/"
+              href="https://lanhc.com/privacy-policy/"
               target="_blank"
               rel="noreferrer"
             >
@@ -200,7 +200,7 @@ export default function DeviceDetailsView({
             ·{" "}
             <a
               className="link"
-              href="https://tailscale.com/terms/"
+              href="https://lanhc.com/terms/"
               target="_blank"
               rel="noreferrer"
             >
@@ -211,8 +211,8 @@ export default function DeviceDetailsView({
             WireGuard is a registered trademark of Jason A. Donenfeld.
           </p>
           <p>
-            © {new Date().getFullYear()} Tailscale Inc. All rights reserved.
-            Tailscale is a registered trademark of Tailscale Inc.
+            © {new Date().getFullYear()} Lanhc Inc. All rights reserved.
+            Lanhc is a registered trademark of Lanhc Inc.
           </p>
         </footer>
       </div>
@@ -241,8 +241,8 @@ function DisconnectDialog() {
       >
         Logging out of this device will disconnect it from your tailnet and
         expire its node key. You won’t be able to use this web interface until
-        you re-authenticate the device from either the Tailscale app or the
-        Tailscale command line interface.
+        you re-authenticate the device from either the Lanhc app or the
+        Lanhc command line interface.
       </Dialog.Form>
     </Dialog>
   )

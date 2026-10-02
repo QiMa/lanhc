@@ -11,8 +11,8 @@ import (
 	"strconv"
 	"strings"
 
-	"tailscale.com/types/lazy"
-	"tailscale.com/util/lineiter"
+	"lanhc.com/types/lazy"
+	"lanhc.com/util/lineiter"
 )
 
 type Distro string

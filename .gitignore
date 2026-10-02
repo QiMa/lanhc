@@ -10,9 +10,9 @@
 # tool/go.exe is built specially and committed.
 !/tool/go.exe
 
-cmd/tailscale/tailscale
-cmd/tailscaled/tailscaled
-ssh/tailssh/testcontainers/tailscaled
+cmd/lanhc/lanhc
+cmd/lanhcd/lanhcd
+ssh/tailssh/testcontainers/lanhcd
 
 # Test binary, built with `go test -c`
 *.test

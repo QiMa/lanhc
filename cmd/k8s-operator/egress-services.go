@@ -32,14 +32,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	tsoperator "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/kube/egressservices"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tstime"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
+	tsoperator "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/kube/egressservices"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tstime"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
 )
 
 const (
@@ -48,9 +48,9 @@ const (
 	reasonEgressSvcCreationFailed = "EgressSvcCreationFailed"
 	reasonProxyGroupNotReady      = "ProxyGroupNotReady"
 
-	labelProxyGroup = "tailscale.com/proxy-group"
+	labelProxyGroup = "lanhc.com/proxy-group"
 
-	labelSvcType = "tailscale.com/svc-type" // ingress or egress
+	labelSvcType = "lanhc.com/svc-type" // ingress or egress
 	typeEgress   = "egress"
 	// maxPorts is the maximum number of ports that can be exposed on a
 	// container. In practice this will be ports in range [10000 - 11000). The
@@ -62,7 +62,7 @@ const (
 
 	indexEgressProxyGroup = ".metadata.annotations.egress-proxy-group"
 
-	tsHealthCheckPortName = "tailscale-health-check"
+	tsHealthCheckPortName = "lanhc-health-check"
 )
 
 var gaugeEgressServices = clientmetric.NewGauge(kubetypes.MetricEgressServiceCount)
@@ -117,9 +117,9 @@ func (esr *egressSvcsReconciler) Reconcile(ctx context.Context, req reconcile.Re
 
 	// Note that resources for egress Services are only cleaned up when the
 	// Service is actually deleted (and not if, for example, user decides to
-	// remove the Tailscale annotation from it). This should be fine- we
+	// remove the Lanhc annotation from it). This should be fine- we
 	// assume that the egress ExternalName Services are always created for
-	// Tailscale operator specifically.
+	// Lanhc operator specifically.
 	if !svc.DeletionTimestamp.IsZero() {
 		lg.Info("Service is being deleted, ensuring resource cleanup")
 		return res, esr.maybeCleanup(ctx, svc, lg)
@@ -295,11 +295,11 @@ func (esr *egressSvcsReconciler) provision(ctx context.Context, proxyGroupName s
 				// ensure that we name all unnamed ports as the ClusterIP Service that we create will
 				// always have at least two ports.
 				// https://kubernetes.io/docs/concepts/services-networking/service/#multi-port-services
-				// See also https://github.com/tailscale/tailscale/issues/13406#issuecomment-2507230388
+				// See also https://github.com/lanhc/lanhc/issues/13406#issuecomment-2507230388
 				if wantsPM.Name != "" {
 					clusterIPSvc.Spec.Ports[i].Name = wantsPM.Name
 				} else {
-					clusterIPSvc.Spec.Ports[i].Name = "tailscale-unnamed"
+					clusterIPSvc.Spec.Ports[i].Name = "lanhc-unnamed"
 				}
 				found = true
 				break
@@ -319,7 +319,7 @@ func (esr *egressSvcsReconciler) provision(ctx context.Context, proxyGroupName s
 		// means that we cannot have ports with name not set.
 		// https://kubernetes.io/docs/concepts/services-networking/service/#multi-port-services
 		if wantsPM.Name == "" {
-			wantsPM.Name = "tailscale-unnamed"
+			wantsPM.Name = "lanhc-unnamed"
 		}
 		found := false
 		for _, gotPM := range clusterIPSvc.Spec.Ports {
@@ -425,7 +425,7 @@ func (esr *egressSvcsReconciler) maybeCleanup(ctx context.Context, svc *corev1.S
 
 	ix := slices.Index(svc.Finalizers, FinalizerName)
 	if ix != -1 {
-		logger.Debug("Removing Tailscale finalizer from Service")
+		logger.Debug("Removing Lanhc finalizer from Service")
 		svc.Finalizers = append(svc.Finalizers[:ix], svc.Finalizers[ix+1:]...)
 		if err := esr.Update(ctx, svc); err != nil {
 			return fmt.Errorf("failed to remove finalizer: %w", err)
@@ -653,8 +653,8 @@ func unusedPort(usedPorts sets.Set[int32]) int32 {
 }
 
 // tailnetTargetFromSvc returns a tailnet target for the given egress Service.
-// Service must contain exactly one of tailscale.com/tailnet-ip,
-// tailscale.com/tailnet-fqdn annotations.
+// Service must contain exactly one of lanhc.com/tailnet-ip,
+// lanhc.com/tailnet-fqdn annotations.
 func tailnetTargetFromSvc(svc *corev1.Service) egressservices.TailnetTarget {
 	if fqdn := svc.Annotations[AnnotationTailnetTargetFQDN]; fqdn != "" {
 		return egressservices.TailnetTarget{
@@ -736,7 +736,7 @@ func egressSvcEpsLabels(extNSvc, clusterIPSvc *corev1.Service) map[string]string
 	lbels[discoveryv1.LabelServiceName] = clusterIPSvc.Name
 	// Kubernetes recommends setting this label.
 	// https://kubernetes.io/docs/concepts/services-networking/endpoint-slices/#management
-	lbels[discoveryv1.LabelManagedBy] = "tailscale.com"
+	lbels[discoveryv1.LabelManagedBy] = "lanhc.com"
 	return lbels
 }
 

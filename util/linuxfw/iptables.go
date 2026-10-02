@@ -15,8 +15,8 @@ import (
 	"unicode"
 
 	"github.com/coreos/go-iptables/iptables"
-	"tailscale.com/types/logger"
-	"tailscale.com/version/distro"
+	"lanhc.com/types/logger"
+	"lanhc.com/version/distro"
 )
 
 func init() {
@@ -155,7 +155,7 @@ func checkSupportsV6NAT(ipt *iptables.IPTables, logf logger.Logf) bool {
 	// TODO (irbekrm): the following two checks were added before the check
 	// above that verifies that nat chains can be listed. It is a
 	// container-friendly check (see
-	// https://github.com/tailscale/tailscale/issues/11344), but also should
+	// https://github.com/lanhc/lanhc/issues/11344), but also should
 	// be good enough on its own in other environments. If we never observe
 	// it falsely succeed, let's remove the other two checks.
 
@@ -178,7 +178,7 @@ func init() {
 	hookIPTablesCleanup.Set(ipTablesCleanUp)
 }
 
-// ipTablesCleanUp removes all Tailscale added iptables rules.
+// ipTablesCleanUp removes all Lanhc added iptables rules.
 // Any errors that occur are logged to the provided logf.
 func ipTablesCleanUp(logf logger.Logf) {
 	switch distro.Get() {
@@ -198,7 +198,7 @@ func ipTablesCleanUp(logf logger.Logf) {
 	}
 }
 
-// clearRules clears all the iptables rules created by Tailscale
+// clearRules clears all the iptables rules created by Lanhc
 // for the given protocol. If error occurs, it's logged but not returned.
 func clearRules(proto iptables.Protocol, logf logger.Logf) error {
 	ipt, err := iptables.NewWithProtocol(proto)

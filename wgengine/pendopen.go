@@ -14,12 +14,12 @@ import (
 	"time"
 
 	"github.com/gaissmai/bart"
-	"tailscale.com/net/flowtrack"
-	"tailscale.com/net/packet"
-	"tailscale.com/net/tstun"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/util/mak"
-	"tailscale.com/wgengine/filter"
+	"lanhc.com/net/flowtrack"
+	"lanhc.com/net/packet"
+	"lanhc.com/net/tstun"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/util/mak"
+	"lanhc.com/wgengine/filter"
 )
 
 type flowtrackTuple = flowtrack.Tuple
@@ -33,7 +33,7 @@ type pendingOpenFlow struct {
 
 	// problem is non-zero if we got a MaybeBroken (non-terminal)
 	// TSMP "reject" header.
-	problem packet.TailscaleRejectReason
+	problem packet.LanhcRejectReason
 }
 
 func (e *userspaceEngine) removeFlow(f flowtrack.Tuple) (removed bool) {
@@ -49,7 +49,7 @@ func (e *userspaceEngine) removeFlow(f flowtrack.Tuple) (removed bool) {
 	return true
 }
 
-func (e *userspaceEngine) noteFlowProblemFromPeer(f flowtrack.Tuple, problem packet.TailscaleRejectReason) {
+func (e *userspaceEngine) noteFlowProblemFromPeer(f flowtrack.Tuple, problem packet.LanhcRejectReason) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	of, ok := e.pendOpen[f]
@@ -60,7 +60,7 @@ func (e *userspaceEngine) noteFlowProblemFromPeer(f flowtrack.Tuple, problem pac
 	of.problem = problem
 }
 
-func tsRejectFlow(rh packet.TailscaleRejectedHeader) flowtrack.Tuple {
+func tsRejectFlow(rh packet.LanhcRejectedHeader) flowtrack.Tuple {
 	return flowtrack.MakeTuple(rh.Proto, rh.Src, rh.Dst)
 }
 
@@ -68,7 +68,7 @@ func (e *userspaceEngine) trackOpenPreFilterIn(pp *packet.Parsed, t *tstun.Wrapp
 	res = filter.Accept // always
 
 	if pp.IPProto == ipproto.TSMP {
-		rh, ok := pp.AsTailscaleRejectedHeader()
+		rh, ok := pp.AsLanhcRejectedHeader()
 		if !ok {
 			return
 		}
@@ -142,7 +142,7 @@ func (e *userspaceEngine) isOSNetworkProbe(dst netip.AddrPort) bool {
 			return true
 		}
 	}
-	// NetworkManager; https://github.com/tailscale/tailscale/issues/13687
+	// NetworkManager; https://github.com/lanhc/lanhc/issues/13687
 	// open-conn-track: timeout opening (TCP 100.96.229.119:42798 => 185.125.190.49:80); no associated peer node
 	if runtime.GOOS == "linux" && dst.Port() == 80 && canonicalIPs()(dst.Addr()) {
 		if _, ok := e.peerForIP(dst.Addr()); !ok {

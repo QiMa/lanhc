@@ -20,16 +20,16 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/localapi"
-	"tailscale.com/tailcfg"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/httphdr"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/progresstracking"
-	"tailscale.com/util/rands"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/localapi"
+	"lanhc.com/tailcfg"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/httphdr"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/progresstracking"
+	"lanhc.com/util/rands"
 )
 
 func init() {
@@ -45,11 +45,11 @@ var (
 // serveFilePut sends a file to another node.
 //
 // It's sometimes possible for clients to do this themselves, without
-// tailscaled, except in the case of tailscaled running in
-// userspace-networking ("netstack") mode, in which case tailscaled
+// lanhcd, except in the case of lanhcd running in
+// userspace-networking ("netstack") mode, in which case lanhcd
 // needs to a do a netstack dial out.
 //
-// Instead, the CLI also goes through tailscaled so it doesn't need to be
+// Instead, the CLI also goes through lanhcd so it doesn't need to be
 // aware of the network mode in use.
 //
 // macOS/iOS have always used this localapi method to simplify the GUI

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // updateflakes regenerates flakehashes.json, the file that records
-// the Nix SRI hashes for the Go module vendor tree and the Tailscale
+// the Nix SRI hashes for the Go module vendor tree and the Lanhc
 // Go toolchain tarball.
 //
 // The file is content-addressed: each block records the input
@@ -33,7 +33,7 @@ import (
 	"strings"
 
 	"golang.org/x/sync/errgroup"
-	"tailscale.com/cmd/nardump/nardump"
+	"lanhc.com/cmd/nardump/nardump"
 )
 
 const (
@@ -54,7 +54,7 @@ type FlakeHashes struct {
 	Vendor    VendorHash    `json:"vendor"`
 }
 
-// ToolchainHash records the SRI of the Tailscale Go toolchain
+// ToolchainHash records the SRI of the Lanhc Go toolchain
 // tarball. Rev is the value in go.toolchain.rev that produced SRI.
 type ToolchainHash struct {
 	Rev string `json:"rev"`

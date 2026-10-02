@@ -8,8 +8,8 @@ package routetable
 import (
 	"context"
 
-	"tailscale.com/net/routetable"
-	"tailscale.com/types/logger"
+	"lanhc.com/net/routetable"
+	"lanhc.com/types/logger"
 )
 
 // MaxRoutes is the maximum number of routes that will be displayed.

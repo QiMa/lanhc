@@ -15,7 +15,7 @@ func TestIssueFormat(t *testing.T) {
 	}{
 		{"https://github.com/tailscale/cOrp/issues/1234", true},
 		{"https://github.com/otherproject/corp/issues/1234", true},
-		{"https://not.huyb/tailscale/corp/issues/1234", false},
+		{"https://not.huyb/lanhc/corp/issues/1234", false},
 		{"https://github.com/tailscale/corp/issues/", false},
 	}
 	for _, testCase := range testCases {
@@ -33,7 +33,7 @@ func TestIssueFormat(t *testing.T) {
 // for the first time, but succeeds on the second run.
 // It's used to test whether the testwrapper retries flaky tests.
 func TestFlakeRun(t *testing.T) {
-	Mark(t, "https://github.com/tailscale/tailscale/issues/0") // random issue
+	Mark(t, "https://github.com/lanhc/lanhc/issues/0") // random issue
 	e := os.Getenv(FlakeAttemptEnv)
 	if e == "" {
 		t.Skip("not running in testwrapper")
@@ -44,7 +44,7 @@ func TestFlakeRun(t *testing.T) {
 }
 
 func TestMarked_Root(t *testing.T) {
-	Mark(t, "https://github.com/tailscale/tailscale/issues/0")
+	Mark(t, "https://github.com/lanhc/lanhc/issues/0")
 
 	t.Run("child", func(t *testing.T) {
 		t.Run("grandchild", func(t *testing.T) {
@@ -65,7 +65,7 @@ func TestMarked_Root(t *testing.T) {
 
 func TestMarked_Subtest(t *testing.T) {
 	t.Run("flaky", func(t *testing.T) {
-		Mark(t, "https://github.com/tailscale/tailscale/issues/0")
+		Mark(t, "https://github.com/lanhc/lanhc/issues/0")
 
 		t.Run("child", func(t *testing.T) {
 			t.Run("grandchild", func(t *testing.T) {

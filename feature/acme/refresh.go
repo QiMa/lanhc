@@ -8,10 +8,10 @@ import (
 	"net"
 	"time"
 
-	"tailscale.com/envknob"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/util/set"
+	"lanhc.com/envknob"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/util/set"
 )
 
 // certRefreshInterval is how often the background loop iterates the set
@@ -128,9 +128,9 @@ func (e *extension) refreshApplicableCerts(ctx context.Context, b *ipnlocal.Loca
 }
 
 // serveConfigUsesACMECerts reports whether sc has any entry that
-// causes tailscaled to obtain ACME-managed TLS certs: an HTTPS Web
+// causes lanhcd to obtain ACME-managed TLS certs: an HTTPS Web
 // entry (background, foreground, or service) or a TCP handler with
-// TerminateTLS set (`tailscale serve --tls-terminated-tcp`).
+// TerminateTLS set (`lanhc serve --tls-terminated-tcp`).
 func serveConfigUsesACMECerts(sc ipn.ServeConfigView) bool {
 	if !sc.Valid() {
 		return false

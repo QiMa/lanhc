@@ -13,11 +13,11 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/ipn"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/rands"
-	"tailscale.com/util/set"
+	"lanhc.com/ipn"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/rands"
+	"lanhc.com/util/set"
 )
 
 // transaction represents an audit log that has not yet been sent to the control plane.

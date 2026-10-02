@@ -14,7 +14,7 @@ import (
 
 	"github.com/jellydator/ttlcache/v3"
 	"golang.org/x/text/unicode/norm"
-	"tailscale.com/drive/driveimpl/shared"
+	"lanhc.com/drive/driveimpl/shared"
 )
 
 var (

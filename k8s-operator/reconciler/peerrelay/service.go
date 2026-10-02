@@ -19,15 +19,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/k8s-operator/reconciler"
-	"tailscale.com/k8s-operator/reconciler/tailscaled"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/k8s-operator/reconciler"
+	"lanhc.com/k8s-operator/reconciler/lanhcd"
 )
 
 const (
 	// labelReplicaIndex stores the replica index of a managed Service so it can be matched back to a specific
 	// peer relay instance.
-	labelReplicaIndex = "tailscale.com/peer-relay-replica"
+	labelReplicaIndex = "lanhc.com/peer-relay-replica"
 
 	// parentTypePeerRelay is the value used for reconciler.LabelParentType on PeerRelay-managed resources.
 	parentTypePeerRelay = "peerrelay"
@@ -59,7 +59,7 @@ var cloudAnnotations = map[string]string{
 	// succeed and every target reports unhealthy even while relaying fine. /healthz returns 200 once the device
 	// has tailnet addresses, which is the condition that actually matters.
 	"service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol": "http",
-	"service.beta.kubernetes.io/aws-load-balancer-healthcheck-port":     strconv.Itoa(tailscaled.HealthCheckPort),
+	"service.beta.kubernetes.io/aws-load-balancer-healthcheck-port":     strconv.Itoa(lanhcd.HealthCheckPort),
 	"service.beta.kubernetes.io/aws-load-balancer-healthcheck-path":     "/healthz",
 
 	// Azure: pin the LB to external.
@@ -123,7 +123,7 @@ func (r *Reconciler) peerRelayService(pr *tsapi.PeerRelay, idx int32) *corev1.Se
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        name,
-			Namespace:   r.tailscaleNamespace,
+			Namespace:   r.lanhcNamespace,
 			Labels:      peerRelayServiceLabels(pr.Name, idx),
 			Annotations: peerRelayServiceAnnotations(pr, idx),
 		},

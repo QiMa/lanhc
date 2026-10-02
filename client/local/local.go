@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package local contains a Go client for the Tailscale LocalAPI.
+// Package local contains a Go client for the Lanhc LocalAPI.
 //
 // The APIs in this package vary in maturity: some methods are considered
 // stable APIs and are documented as such, while others are not necessarily
@@ -33,32 +33,32 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/drive"
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/net/netutil"
-	"tailscale.com/net/udprelay/status"
-	"tailscale.com/paths"
-	"tailscale.com/safesocket"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/appctype"
-	"tailscale.com/types/dnstype"
-	"tailscale.com/types/key"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/eventbus"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/drive"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/net/netutil"
+	"lanhc.com/net/udprelay/status"
+	"lanhc.com/paths"
+	"lanhc.com/safesocket"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/appctype"
+	"lanhc.com/types/dnstype"
+	"lanhc.com/types/key"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/eventbus"
 )
 
 // defaultClient is the default Client when using the legacy
 // package-level functions.
 var defaultClient Client
 
-// Client is a client to Tailscale's "LocalAPI", communicating with the
-// Tailscale daemon on the local machine. Its API is not necessarily stable and
+// Client is a client to Lanhc's "LocalAPI", communicating with the
+// Lanhc daemon on the local machine. Its API is not necessarily stable and
 // subject to changes between releases. Some API calls have stricter
 // compatibility guarantees, once they've been widely adopted. See method docs
 // for details.
@@ -69,7 +69,7 @@ var defaultClient Client
 // and not changed thereafter.
 type Client struct {
 	// Dial optionally specifies an alternate func that connects to the local
-	// machine's tailscaled or equivalent. If nil, a default is used.
+	// machine's lanhcd or equivalent. If nil, a default is used.
 	Dial func(ctx context.Context, network, addr string) (net.Conn, error)
 
 	// Transport optionally specifies an alternate [http.RoundTripper]
@@ -78,16 +78,16 @@ type Client struct {
 	// It is primarily used for testing.
 	Transport http.RoundTripper
 
-	// Socket specifies an alternate path to the local Tailscale socket.
+	// Socket specifies an alternate path to the local Lanhc socket.
 	// If empty, a platform-specific default is used.
 	Socket string
 
-	// UseSocketOnly, if true, tries to only connect to tailscaled via the
+	// UseSocketOnly, if true, tries to only connect to lanhcd via the
 	// Unix socket and not via fallback mechanisms as done on macOS when
 	// connecting to the GUI client variants.
 	UseSocketOnly bool
 
-	// OmitAuth, if true, omits sending the local Tailscale daemon any
+	// OmitAuth, if true, omits sending the local Lanhc daemon any
 	// authentication token that might be required by the platform.
 	//
 	// As of 2024-08-12, only macOS uses an authentication token. OmitAuth is
@@ -95,7 +95,7 @@ type Client struct {
 	// different operating system, such as in integration tests.
 	OmitAuth bool
 
-	// tsClient does HTTP requests to the local Tailscale daemon.
+	// tsClient does HTTP requests to the local Lanhc daemon.
 	// It's lazily initialized on first use.
 	tsClient     *http.Client
 	tsClientOnce sync.Once
@@ -105,7 +105,7 @@ func (lc *Client) socket() string {
 	if lc.Socket != "" {
 		return lc.Socket
 	}
-	return paths.DefaultTailscaledSocket()
+	return paths.DefaultLanhcdSocket()
 }
 
 func (lc *Client) dialer() func(ctx context.Context, network, addr string) (net.Conn, error) {
@@ -116,7 +116,7 @@ func (lc *Client) dialer() func(ctx context.Context, network, addr string) (net.
 }
 
 func (lc *Client) defaultDialer(ctx context.Context, network, addr string) (net.Conn, error) {
-	if addr != "local-tailscaled.sock:80" {
+	if addr != "local-lanhcd.sock:80" {
 		return nil, fmt.Errorf("unexpected URL address %q", addr)
 	}
 	if !lc.UseSocketOnly {
@@ -132,20 +132,20 @@ func (lc *Client) defaultDialer(ctx context.Context, network, addr string) (net.
 	return safesocket.ConnectContext(ctx, lc.socket())
 }
 
-// DoLocalRequest makes an HTTP request to the local machine's Tailscale daemon.
+// DoLocalRequest makes an HTTP request to the local machine's Lanhc daemon.
 //
-// URLs are of the form http://local-tailscaled.sock/localapi/v0/whois?ip=1.2.3.4.
+// URLs are of the form http://local-lanhcd.sock/localapi/v0/whois?ip=1.2.3.4.
 //
-// The hostname must be "local-tailscaled.sock", even though it
+// The hostname must be "local-lanhcd.sock", even though it
 // doesn't actually do any DNS lookup. The actual means of connecting to and
-// authenticating to the local Tailscale daemon vary by platform.
+// authenticating to the local Lanhc daemon vary by platform.
 //
 // DoLocalRequest may mutate the request to add Authorization headers.
 //
 // API maturity: this method is not considered a stable API and is
 // subject to change between releases.
 func (lc *Client) DoLocalRequest(req *http.Request) (*http.Response, error) {
-	req.Header.Set("Tailscale-Cap", strconv.Itoa(int(tailcfg.CurrentCapabilityVersion)))
+	req.Header.Set("Lanhc-Cap", strconv.Itoa(int(tailcfg.CurrentCapabilityVersion)))
 	lc.tsClientOnce.Do(func() {
 		lc.tsClient = &http.Client{
 			Transport: cmp.Or(lc.Transport, http.RoundTripper(
@@ -164,7 +164,7 @@ func (lc *Client) DoLocalRequest(req *http.Request) (*http.Response, error) {
 func (lc *Client) doLocalRequestNiceError(req *http.Request) (*http.Response, error) {
 	res, err := lc.DoLocalRequest(req)
 	if err == nil {
-		if server := res.Header.Get("Tailscale-Version"); server != "" && server != envknob.IPCVersion() && onVersionMismatch != nil {
+		if server := res.Header.Get("Lanhc-Version"); server != "" && server != envknob.IPCVersion() && onVersionMismatch != nil {
 			onVersionMismatch(envknob.IPCVersion(), server)
 		}
 		if res.StatusCode == 403 {
@@ -181,7 +181,7 @@ func (lc *Client) doLocalRequestNiceError(req *http.Request) (*http.Response, er
 		if oe, ok := ue.Err.(*net.OpError); ok && oe.Op == "dial" {
 			path := req.URL.Path
 			pathPrefix, _, _ := strings.Cut(path, "?")
-			return nil, fmt.Errorf("Failed to connect to local Tailscale daemon for %s; %s Error: %w", pathPrefix, tailscaledConnectHint(), oe)
+			return nil, fmt.Errorf("Failed to connect to local Lanhc daemon for %s; %s Error: %w", pathPrefix, lanhcdConnectHint(), oe)
 		}
 	}
 	return nil, err
@@ -323,7 +323,7 @@ func decodeJSON[T any](b []byte) (ret T, err error) {
 //
 // If not found, the error is [ErrPeerNotFound].
 //
-// For connections proxied by tailscaled, this looks up the owner of the given
+// For connections proxied by lanhcd, this looks up the owner of the given
 // address as TCP first, falling back to UDP; if you want to only check a
 // specific address family, use WhoIsProto.
 //
@@ -409,12 +409,12 @@ func (lc *Client) WhoIsProto(ctx context.Context, proto, remoteAddr string) (*ap
 	return decodeJSON[*apitype.WhoIsResponse](body)
 }
 
-// Goroutines returns a dump of the Tailscale daemon's current goroutines.
+// Goroutines returns a dump of the Lanhc daemon's current goroutines.
 func (lc *Client) Goroutines(ctx context.Context) ([]byte, error) {
 	return lc.get200(ctx, "/localapi/v0/goroutines")
 }
 
-// DaemonMetrics returns the Tailscale daemon's metrics in
+// DaemonMetrics returns the Lanhc daemon's metrics in
 // the Prometheus text exposition format.
 func (lc *Client) DaemonMetrics(ctx context.Context) ([]byte, error) {
 	return lc.get200(ctx, "/localapi/v0/metrics")
@@ -426,7 +426,7 @@ func (lc *Client) UserMetrics(ctx context.Context) ([]byte, error) {
 	return lc.get200(ctx, "/localapi/v0/usermetrics")
 }
 
-// IncrementCounter increments the value of a Tailscale daemon's counter
+// IncrementCounter increments the value of a Lanhc daemon's counter
 // metric by the given delta. If the metric has yet to exist, a new counter
 // metric is created and initialized to delta.
 //
@@ -447,7 +447,7 @@ func (lc *Client) IncrementCounter(ctx context.Context, name string, delta int) 
 	return err
 }
 
-// IncrementGauge increments the value of a Tailscale daemon's gauge
+// IncrementGauge increments the value of a Lanhc daemon's gauge
 // metric by the given delta. If the metric has yet to exist, a new gauge
 // metric is created and initialized to delta. The delta value can be negative.
 func (lc *Client) IncrementGauge(ctx context.Context, name string, delta int) error {
@@ -460,7 +460,7 @@ func (lc *Client) IncrementGauge(ctx context.Context, name string, delta int) er
 	return err
 }
 
-// SetGauge sets the value of a Tailscale daemon's gauge metric to the given value.
+// SetGauge sets the value of a Lanhc daemon's gauge metric to the given value.
 // If the metric has yet to exist, a new gauge metric is created and initialized to value.
 func (lc *Client) SetGauge(ctx context.Context, name string, value int) error {
 	_, err := lc.send(ctx, "POST", "/localapi/v0/upload-client-metrics", 200, jsonBody([]clientmetric.MetricUpdate{{
@@ -472,7 +472,7 @@ func (lc *Client) SetGauge(ctx context.Context, name string, value int) error {
 	return err
 }
 
-// TailDaemonLogs returns a stream the Tailscale daemon's logs as they arrive.
+// TailDaemonLogs returns a stream the Lanhc daemon's logs as they arrive.
 // Close the context to stop the stream.
 //
 // API maturity: this method is not considered a stable API and is
@@ -509,7 +509,7 @@ func (lc *Client) EventBusQueues(ctx context.Context) ([]byte, error) {
 	return lc.get200(ctx, "/localapi/v0/debug-bus-queues")
 }
 
-// StreamBusEvents returns an iterator of Tailscale bus events as they arrive.
+// StreamBusEvents returns an iterator of Lanhc bus events as they arrive.
 // Each pair is a valid event and a nil error, or a zero event a non-nil error.
 // In case of error, the iterator ends after the pair reporting the error.
 // Iteration stops if ctx ends.
@@ -550,7 +550,7 @@ func (lc *Client) StreamBusEvents(ctx context.Context) iter.Seq2[eventbus.DebugE
 	}
 }
 
-// Pprof returns a pprof profile of the Tailscale daemon.
+// Pprof returns a pprof profile of the Lanhc daemon.
 func (lc *Client) Pprof(ctx context.Context, pprofType string, sec int) ([]byte, error) {
 	var secArg string
 	if sec < 0 || sec > 300 {
@@ -562,7 +562,7 @@ func (lc *Client) Pprof(ctx context.Context, pprofType string, sec int) ([]byte,
 	return lc.get200(ctx, fmt.Sprintf("/localapi/v0/pprof?name=%s&seconds=%v", url.QueryEscape(pprofType), secArg))
 }
 
-// BugReportOpts contains options to pass to the Tailscale daemon when
+// BugReportOpts contains options to pass to the Lanhc daemon when
 // generating a bug report.
 type BugReportOpts struct {
 	// Note contains an optional user-provided note to add to the logs.
@@ -582,7 +582,7 @@ type BugReportOpts struct {
 // BugReportWithOpts logs and returns a log marker that can be shared by the
 // user with support.
 //
-// The opts type specifies options to pass to the Tailscale daemon when
+// The opts type specifies options to pass to the Lanhc daemon when
 // generating this bug report.
 //
 // API maturity: this is considered a stable API.
@@ -702,7 +702,7 @@ func GetDebugResultJSON[T any](ctx context.Context, lc *Client, action string) (
 	return v, nil
 }
 
-// QueryOptionalFeatures queries the optional features supported by the Tailscale daemon.
+// QueryOptionalFeatures queries the optional features supported by the Lanhc daemon.
 func (lc *Client) QueryOptionalFeatures(ctx context.Context) (*apitype.OptionalFeatures, error) {
 	body, err := lc.send(ctx, "POST", "/localapi/v0/debug-optional-features", 200, nil)
 	if err != nil {
@@ -756,24 +756,24 @@ func (lc *Client) SetComponentDebugLogging(ctx context.Context, component string
 	return nil
 }
 
-// Status returns the Tailscale daemon's status.
+// Status returns the Lanhc daemon's status.
 func Status(ctx context.Context) (*ipnstate.Status, error) {
 	return defaultClient.Status(ctx)
 }
 
-// Status returns the Tailscale daemon's status.
+// Status returns the Lanhc daemon's status.
 //
 // API maturity: this is considered a stable API.
 func (lc *Client) Status(ctx context.Context) (*ipnstate.Status, error) {
 	return lc.status(ctx, "")
 }
 
-// StatusWithoutPeers returns the Tailscale daemon's status, without the peer info.
+// StatusWithoutPeers returns the Lanhc daemon's status, without the peer info.
 func StatusWithoutPeers(ctx context.Context) (*ipnstate.Status, error) {
 	return defaultClient.StatusWithoutPeers(ctx)
 }
 
-// StatusWithoutPeers returns the Tailscale daemon's status, without the peer info.
+// StatusWithoutPeers returns the Lanhc daemon's status, without the peer info.
 //
 // API maturity: this is considered a stable API.
 func (lc *Client) StatusWithoutPeers(ctx context.Context) (*ipnstate.Status, error) {
@@ -800,7 +800,7 @@ func (lc *Client) IDToken(ctx context.Context, aud string) (*tailcfg.TokenRespon
 }
 
 // WaitingFiles returns the list of received Taildrop files that have been
-// received by the Tailscale daemon in its staging/cache directory but not yet
+// received by the Lanhc daemon in its staging/cache directory but not yet
 // transferred by the user's CLI or GUI client and written to a user's home
 // directory somewhere.
 func (lc *Client) WaitingFiles(ctx context.Context) ([]apitype.WaitingFile, error) {
@@ -877,7 +877,7 @@ func (lc *Client) PushFile(ctx context.Context, target tailcfg.StableNodeID, siz
 	return bestError(fmt.Errorf("%s: %s", res.Status, all), all)
 }
 
-// CheckIPForwarding asks the local Tailscale daemon whether it looks like the
+// CheckIPForwarding asks the local Lanhc daemon whether it looks like the
 // machine is properly configured to forward IP packets as a subnet router
 // or exit node.
 //
@@ -903,7 +903,7 @@ func (lc *Client) CheckIPForwarding(ctx context.Context) error {
 	return nil
 }
 
-// CheckUDPGROForwarding asks the local Tailscale daemon whether it looks like
+// CheckUDPGROForwarding asks the local Lanhc daemon whether it looks like
 // the machine is optimally configured to forward UDP packets as a subnet router
 // or exit node.
 //
@@ -929,7 +929,7 @@ func (lc *Client) CheckUDPGROForwarding(ctx context.Context) error {
 // SetUDPGROForwarding enables UDP GRO forwarding for the main interface of this
 // node. This can be done to improve performance of tailnet nodes acting as exit
 // nodes or subnet routers.
-// See https://tailscale.com/kb/1320/performance-best-practices#linux-optimizations-for-subnet-routers-and-exit-nodes
+// See https://lanhc.com/kb/1320/performance-best-practices#linux-optimizations-for-subnet-routers-and-exit-nodes
 func (lc *Client) SetUDPGROForwarding(ctx context.Context) error {
 	body, err := lc.get200(ctx, "/localapi/v0/set-udp-gro-forwarding")
 	if err != nil {
@@ -958,7 +958,7 @@ func (lc *Client) CheckPrefs(ctx context.Context, p *ipn.Prefs) error {
 	return err
 }
 
-// GetPrefs returns the [ipn.Prefs] of the current Tailscale profile.
+// GetPrefs returns the [ipn.Prefs] of the current Lanhc profile.
 //
 // API maturity: this is considered a stable API.
 func (lc *Client) GetPrefs(ctx context.Context) (*ipn.Prefs, error) {
@@ -973,7 +973,7 @@ func (lc *Client) GetPrefs(ctx context.Context) (*ipn.Prefs, error) {
 	return &p, nil
 }
 
-// EditPrefs updates the [ipn.Prefs] of the current Tailscale profile, applying the changes in mp.
+// EditPrefs updates the [ipn.Prefs] of the current Lanhc profile, applying the changes in mp.
 // It returns an error if the changes cannot be applied, such as due to the caller's access rights
 // or a policy restriction. An optional reason or justification for the request can be
 // provided as a context value using [apitype.RequestReasonKey]. If permitted by policy,
@@ -989,7 +989,7 @@ func (lc *Client) EditPrefs(ctx context.Context, mp *ipn.MaskedPrefs) (*ipn.Pref
 }
 
 // GetDNSOSConfig returns the system DNS configuration for the current device.
-// That is, it returns the DNS configuration that the system would use if Tailscale weren't being used.
+// That is, it returns the DNS configuration that the system would use if Lanhc weren't being used.
 //
 // API maturity: this method is not considered a stable API and is
 // subject to change between releases.
@@ -1039,7 +1039,7 @@ func (lc *Client) QueryDNS(ctx context.Context, name string, queryType string) (
 // Calling StartLoginInteractive does not itself change the node's
 // desired run state, but successfully completing the login does: the
 // node's WantRunning pref is set to true, so a stopped node
-// ("tailscale down") starts once the login finishes. If the login is
+// ("lanhc down") starts once the login finishes. If the login is
 // completed as a different user or node identity than the current
 // profile's, the node switches to an existing profile matching the new
 // identity if one exists, or else updates the current profile to the
@@ -1064,10 +1064,10 @@ func (lc *Client) Logout(ctx context.Context) error {
 	return err
 }
 
-// DialTCP connects to the host's port via Tailscale.
+// DialTCP connects to the host's port via Lanhc.
 //
 // The host may be a base DNS name (resolved from the netmap inside
-// tailscaled), a FQDN, or an IP address.
+// lanhcd), a FQDN, or an IP address.
 //
 // The ctx is only used for the duration of the call, not the lifetime of the [net.Conn].
 //
@@ -1076,9 +1076,9 @@ func (lc *Client) DialTCP(ctx context.Context, host string, port uint16) (net.Co
 	return lc.UserDial(ctx, "tcp", host, port)
 }
 
-// UserDial connects to the host's port via Tailscale for the given network.
+// UserDial connects to the host's port via Lanhc for the given network.
 //
-// The host may be a base DNS name (resolved from the netmap inside tailscaled),
+// The host may be a base DNS name (resolved from the netmap inside lanhcd),
 // a FQDN, or an IP address.
 //
 // The ctx is only used for the duration of the call, not the lifetime of the
@@ -1113,7 +1113,7 @@ func (lc *Client) UserDial(ctx context.Context, network, host string, port uint1
 		res.Body.Close()
 		if res.StatusCode == http.StatusOK && res.Header.Get("Dial-Self") == "true" {
 			// Server told us to dial the address ourselves rather than
-			// proxying through the daemon. This happens for non-Tailscale
+			// proxying through the daemon. This happens for non-Lanhc
 			// addresses where the daemon shouldn't dial as root on the
 			// client's behalf. The server provides the resolved address
 			// to avoid a TOCTOU race with DNS re-resolution.
@@ -1147,7 +1147,7 @@ func (lc *Client) UserDial(ctx context.Context, network, host string, port uint1
 	return netutil.NewAltReadWriteCloserConn(rwc, switchedConn), nil
 }
 
-// CurrentDERPMap returns the current DERPMap that is being used by the local tailscaled.
+// CurrentDERPMap returns the current DERPMap that is being used by the local lanhcd.
 // It is intended to be used with netcheck to see availability of DERPs.
 //
 // API maturity: this is considered a stable API, though the returned
@@ -1165,7 +1165,7 @@ func (lc *Client) CurrentDERPMap(ctx context.Context) (*tailcfg.DERPMap, error) 
 	return &derpMap, nil
 }
 
-// CertDomains returns the list of domains for which the local tailscaled can
+// CertDomains returns the list of domains for which the local lanhcd can
 // fetch TLS certificates, equivalent to the DNS.CertDomains field of the
 // current netmap. The returned list is sorted in ascending order, and is
 // empty if no netmap has been received yet.
@@ -1271,16 +1271,16 @@ func (lc *Client) DisconnectControl(ctx context.Context) error {
 	return nil
 }
 
-// tailscaledConnectHint gives a little thing about why tailscaled (or
+// lanhcdConnectHint gives a little thing about why lanhcd (or
 // platform equivalent) is not answering localapi connections.
 //
 // It ends in a punctuation. See caller.
-func tailscaledConnectHint() string {
+func lanhcdConnectHint() string {
 	if runtime.GOOS != "linux" {
 		// TODO(bradfitz): flesh this out
 		return "not running?"
 	}
-	out, err := exec.Command("systemctl", "show", "tailscaled.service", "--no-page", "--property", "LoadState,ActiveState,SubState").Output()
+	out, err := exec.Command("systemctl", "show", "lanhcd.service", "--no-page", "--property", "LoadState,ActiveState,SubState").Output()
 	if err != nil {
 		return "not running?"
 	}
@@ -1296,7 +1296,7 @@ func tailscaledConnectHint() string {
 	}
 	if st["LoadState"] == "loaded" &&
 		(st["SubState"] != "running" || st["ActiveState"] != "active") {
-		return "systemd tailscaled.service not running."
+		return "systemd lanhcd.service not running."
 	}
 	return "not running?"
 }
@@ -1612,7 +1612,7 @@ func (lc *Client) DriveShareList(ctx context.Context) ([]*drive.Share, error) {
 	return shares, err
 }
 
-// IPNBusWatcher is an active subscription (watch) of the local tailscaled IPN bus.
+// IPNBusWatcher is an active subscription (watch) of the local lanhcd IPN bus.
 // It's returned by [Client.WatchIPNBus].
 //
 // It must be closed when done.
@@ -1673,7 +1673,7 @@ func (lc *Client) SuggestExitNodeWithProbe(ctx context.Context) (apitype.ExitNod
 }
 
 // CheckSOMarkInUse reports whether the socket mark option is in use. This will only
-// be true if tailscale is running on Linux and tailscaled uses SO_MARK.
+// be true if lanhc is running on Linux and lanhcd uses SO_MARK.
 //
 // API maturity: this method is not considered a stable API and is
 // subject to change between releases.
@@ -1692,11 +1692,11 @@ func (lc *Client) CheckSOMarkInUse(ctx context.Context) (bool, error) {
 	return res.UseSOMark, nil
 }
 
-// ShutdownTailscaled requests a graceful shutdown of tailscaled.
+// ShutdownLanhcd requests a graceful shutdown of lanhcd.
 //
 // API maturity: this method is not considered a stable API and is
 // subject to change between releases.
-func (lc *Client) ShutdownTailscaled(ctx context.Context) error {
+func (lc *Client) ShutdownLanhcd(ctx context.Context) error {
 	_, err := lc.send(ctx, "POST", "/localapi/v0/shutdown", 200, nil)
 	return err
 }

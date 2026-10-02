@@ -22,15 +22,15 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	"tailscale.com/client/tailscale/v2"
+	lanhcclient "tailscale.com/client/tailscale/v2"
 
-	tsoperator "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/k8s-operator/tsclient"
-	"tailscale.com/kube/ingressservices"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tstest"
-	"tailscale.com/util/mak"
+	tsoperator "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/k8s-operator/tsclient"
+	"lanhc.com/kube/ingressservices"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tstest"
+	"lanhc.com/util/mak"
 )
 
 func TestServicePGReconciler(t *testing.T) {
@@ -45,8 +45,8 @@ func TestServicePGReconciler(t *testing.T) {
 		expectReconciled(t, svcPGR, "default", svc.Name)
 
 		config = append(config, fmt.Sprintf("svc:default-%s", svc.Name))
-		verifyTailscaleService(t, ft, fmt.Sprintf("svc:default-%s", svc.Name), []string{"do-not-validate"})
-		verifyTailscaledConfig(t, fc, "test-pg", config)
+		verifyLanhcService(t, ft, fmt.Sprintf("svc:default-%s", svc.Name), []string{"do-not-validate"})
+		verifyLanhcdConfig(t, fc, "test-pg", config)
 	}
 
 	for i, svc := range svcs {
@@ -75,7 +75,7 @@ func TestServicePGReconciler(t *testing.T) {
 		}
 
 		config = removeEl(config, fmt.Sprintf("svc:default-%s", svc.Name))
-		verifyTailscaledConfig(t, fc, "test-pg", config)
+		verifyLanhcdConfig(t, fc, "test-pg", config)
 	}
 }
 
@@ -87,8 +87,8 @@ func TestServicePGReconciler_UpdateHostname(t *testing.T) {
 
 	expectReconciled(t, svcPGR, "default", svc.Name)
 
-	verifyTailscaleService(t, ft, fmt.Sprintf("svc:default-%s", svc.Name), []string{"do-not-validate"})
-	verifyTailscaledConfig(t, fc, "test-pg", []string{fmt.Sprintf("svc:default-%s", svc.Name)})
+	verifyLanhcService(t, ft, fmt.Sprintf("svc:default-%s", svc.Name), []string{"do-not-validate"})
+	verifyLanhcdConfig(t, fc, "test-pg", []string{fmt.Sprintf("svc:default-%s", svc.Name)})
 
 	hostname := "foobarbaz"
 	mustUpdate(t, fc, svc.Namespace, svc.Name, func(s *corev1.Service) {
@@ -99,14 +99,14 @@ func TestServicePGReconciler_UpdateHostname(t *testing.T) {
 	updateIngressConfigSecret(t, fc, stateSecret, hostname, cip)
 	expectReconciled(t, svcPGR, "default", svc.Name)
 
-	verifyTailscaleService(t, ft, fmt.Sprintf("svc:%s", hostname), []string{"do-not-validate"})
-	verifyTailscaledConfig(t, fc, "test-pg", []string{fmt.Sprintf("svc:%s", hostname)})
+	verifyLanhcService(t, ft, fmt.Sprintf("svc:%s", hostname), []string{"do-not-validate"})
+	verifyLanhcdConfig(t, fc, "test-pg", []string{fmt.Sprintf("svc:%s", hostname)})
 
 	_, err := ft.VIPServices().Get(context.Background(), fmt.Sprintf("svc:default-%s", svc.Name))
 	if err == nil {
 		t.Fatalf("svc:default-%s not cleaned up", svc.Name)
 	}
-	if !tailscale.IsNotFound(err) {
+	if !lanhcclient.IsNotFound(err) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
@@ -142,7 +142,7 @@ func setupServiceTest(t *testing.T) (*HAServiceReconciler, *corev1.Secret, clien
 			Labels:    pgSecretLabels("test-pg", kubetypes.LabelSecretTypeConfig),
 		},
 		Data: map[string][]byte{
-			tsoperator.TailscaledConfigFileName(pgMinCapabilityVersion): []byte(`{"Version":""}`),
+			tsoperator.LanhcdConfigFileName(pgMinCapabilityVersion): []byte(`{"Version":""}`),
 		},
 	}
 
@@ -189,7 +189,7 @@ func setupServiceTest(t *testing.T) (*HAServiceReconciler, *corev1.Secret, clien
 	}
 
 	ft := &fakeTSClient{
-		vipServices: make(map[string]tailscale.VIPService),
+		vipServices: make(map[string]lanhcclient.VIPService),
 	}
 	zl, err := zap.NewDevelopment()
 	if err != nil {
@@ -211,7 +211,7 @@ func setupServiceTest(t *testing.T) (*HAServiceReconciler, *corev1.Secret, clien
 }
 
 func TestValidateService(t *testing.T) {
-	// Test that no more than one Kubernetes Service in a cluster refers to the same Tailscale Service.
+	// Test that no more than one Kubernetes Service in a cluster refers to the same Lanhc Service.
 	pgr, _, lc, _, cl := setupServiceTest(t)
 	svc := &corev1.Service{
 		TypeMeta: metav1.TypeMeta{Kind: "Service", APIVersion: "v1"},
@@ -220,14 +220,14 @@ func TestValidateService(t *testing.T) {
 			Namespace: "ns-1",
 			UID:       types.UID("1234-UID"),
 			Annotations: map[string]string{
-				"tailscale.com/proxy-group": "test-pg",
-				"tailscale.com/hostname":    "my-app",
+				"lanhc.com/proxy-group": "test-pg",
+				"lanhc.com/hostname":    "my-app",
 			},
 		},
 		Spec: corev1.ServiceSpec{
 			ClusterIP:         "1.2.3.4",
 			Type:              corev1.ServiceTypeLoadBalancer,
-			LoadBalancerClass: new("tailscale"),
+			LoadBalancerClass: new("lanhc"),
 		},
 	}
 	svc2 := &corev1.Service{
@@ -237,14 +237,14 @@ func TestValidateService(t *testing.T) {
 			Namespace: "ns-2",
 			UID:       types.UID("1235-UID"),
 			Annotations: map[string]string{
-				"tailscale.com/proxy-group": "test-pg",
-				"tailscale.com/hostname":    "my-app",
+				"lanhc.com/proxy-group": "test-pg",
+				"lanhc.com/hostname":    "my-app",
 			},
 		},
 		Spec: corev1.ServiceSpec{
 			ClusterIP:         "1.2.3.5",
 			Type:              corev1.ServiceTypeLoadBalancer,
-			LoadBalancerClass: new("tailscale"),
+			LoadBalancerClass: new("lanhc"),
 		},
 	}
 	wantSvc := &corev1.Service{
@@ -278,8 +278,8 @@ func TestValidateService(t *testing.T) {
 // themselves managed by a ProxyGroup.
 func TestValidateService_SingleProxyServiceDoesNotCollideWithProxyGroup(t *testing.T) {
 	pgr, _, lc, _, _ := setupServiceTest(t)
-	// Service exposed via the single-proxy path: tailscale.com/expose=true
-	// and no tailscale.com/proxy-group annotation. Its hostname matches
+	// Service exposed via the single-proxy path: lanhc.com/expose=true
+	// and no lanhc.com/proxy-group annotation. Its hostname matches
 	// the ProxyGroup-managed Service below, but it lives in a different
 	// reconciler entirely and must not be flagged as a duplicate.
 	singleProxySvc := &corev1.Service{
@@ -289,8 +289,8 @@ func TestValidateService_SingleProxyServiceDoesNotCollideWithProxyGroup(t *testi
 			Namespace: "ns-1",
 			UID:       types.UID("single-proxy-uid"),
 			Annotations: map[string]string{
-				"tailscale.com/expose":   "true",
-				"tailscale.com/hostname": "my-app",
+				"lanhc.com/expose":   "true",
+				"lanhc.com/hostname": "my-app",
 			},
 		},
 		Spec: corev1.ServiceSpec{
@@ -306,14 +306,14 @@ func TestValidateService_SingleProxyServiceDoesNotCollideWithProxyGroup(t *testi
 			Namespace: "ns-2",
 			UID:       types.UID("pg-svc-uid"),
 			Annotations: map[string]string{
-				"tailscale.com/proxy-group": "test-pg",
-				"tailscale.com/hostname":    "my-app",
+				"lanhc.com/proxy-group": "test-pg",
+				"lanhc.com/hostname":    "my-app",
 			},
 		},
 		Spec: corev1.ServiceSpec{
 			ClusterIP:         "1.2.3.5",
 			Type:              corev1.ServiceTypeLoadBalancer,
-			LoadBalancerClass: new("tailscale"),
+			LoadBalancerClass: new("lanhc"),
 		},
 	}
 
@@ -362,14 +362,14 @@ func TestValidateService_DifferentTailnetDoesNotCollide(t *testing.T) {
 			Namespace: "ns-2",
 			UID:       types.UID("other-tailnet-svc-uid"),
 			Annotations: map[string]string{
-				"tailscale.com/proxy-group": "secondary-pg",
-				"tailscale.com/hostname":    "my-app",
+				"lanhc.com/proxy-group": "secondary-pg",
+				"lanhc.com/hostname":    "my-app",
 			},
 		},
 		Spec: corev1.ServiceSpec{
 			ClusterIP:         "1.2.3.5",
 			Type:              corev1.ServiceTypeLoadBalancer,
-			LoadBalancerClass: new("tailscale"),
+			LoadBalancerClass: new("lanhc"),
 		},
 	}
 	mustCreate(t, lc, otherTailnetSvc)
@@ -382,14 +382,14 @@ func TestValidateService_DifferentTailnetDoesNotCollide(t *testing.T) {
 			Namespace: "ns-1",
 			UID:       types.UID("primary-svc-uid"),
 			Annotations: map[string]string{
-				"tailscale.com/proxy-group": "test-pg",
-				"tailscale.com/hostname":    "my-app",
+				"lanhc.com/proxy-group": "test-pg",
+				"lanhc.com/hostname":    "my-app",
 			},
 		},
 		Spec: corev1.ServiceSpec{
 			ClusterIP:         "1.2.3.4",
 			Type:              corev1.ServiceTypeLoadBalancer,
-			LoadBalancerClass: new("tailscale"),
+			LoadBalancerClass: new("lanhc"),
 		},
 	}
 	mustCreate(t, lc, primarySvc)
@@ -421,15 +421,15 @@ func TestServicePGReconciler_MultiCluster(t *testing.T) {
 
 		tsSvcs, err := ft.VIPServices().List(t.Context())
 		if err != nil {
-			t.Fatalf("getting Tailscale Service: %v", err)
+			t.Fatalf("getting Lanhc Service: %v", err)
 		}
 
 		if len(tsSvcs) != 1 {
-			t.Fatalf("unexpected number of Tailscale Services (%d)", len(tsSvcs))
+			t.Fatalf("unexpected number of Lanhc Services (%d)", len(tsSvcs))
 		}
 
 		for _, svc := range tsSvcs {
-			t.Logf("found Tailscale Service with name %q", svc.Name)
+			t.Logf("found Lanhc Service with name %q", svc.Name)
 		}
 	}
 }
@@ -446,7 +446,7 @@ func TestIgnoreRegularService(t *testing.T) {
 			// on it being set.
 			UID: types.UID("1234-UID"),
 			Annotations: map[string]string{
-				"tailscale.com/expose": "true",
+				"lanhc.com/expose": "true",
 			},
 		},
 		Spec: corev1.ServiceSpec{
@@ -458,12 +458,12 @@ func TestIgnoreRegularService(t *testing.T) {
 	mustCreate(t, fc, svc)
 	expectReconciled(t, pgr, "default", "test")
 
-	verifyTailscaledConfig(t, fc, "test-pg", nil)
+	verifyLanhcdConfig(t, fc, "test-pg", nil)
 
 	tsSvcs, err := ft.VIPServices().List(t.Context())
 	if err == nil {
 		if len(tsSvcs) > 0 {
-			t.Fatal("unexpected Tailscale Services found")
+			t.Fatal("unexpected Lanhc Services found")
 		}
 	}
 }
@@ -482,7 +482,7 @@ func updateIngressConfigSecret(t *testing.T, fc client.Client, stateSecret *core
 	ingressConfig := ingressservices.Configs{
 		fmt.Sprintf("svc:%s", serviceName): ingressservices.Config{
 			IPv4Mapping: &ingressservices.Mapping{
-				TailscaleServiceIP: netip.MustParseAddr(vipTestIP),
+				LanhcServiceIP: netip.MustParseAddr(vipTestIP),
 				ClusterIP:          netip.MustParseAddr(clusterIP),
 			},
 		},
@@ -512,12 +512,12 @@ func setupTestService(t *testing.T, svcName string, hostname string, clusterIP s
 			Namespace: "default",
 			UID:       types.UID(fmt.Sprintf("%d-UID", uid)),
 			Annotations: map[string]string{
-				"tailscale.com/proxy-group": "test-pg",
+				"lanhc.com/proxy-group": "test-pg",
 			},
 		},
 		Spec: corev1.ServiceSpec{
 			Type:              corev1.ServiceTypeLoadBalancer,
-			LoadBalancerClass: new("tailscale"),
+			LoadBalancerClass: new("lanhc"),
 			ClusterIP:         clusterIP,
 			ClusterIPs:        []string{clusterIP},
 		},

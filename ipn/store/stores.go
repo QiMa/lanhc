@@ -18,13 +18,13 @@ import (
 	"strings"
 	"sync"
 
-	"tailscale.com/atomicfile"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/paths"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/testenv"
+	"lanhc.com/atomicfile"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/paths"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/testenv"
 )
 
 // Provider returns a StateStore for the provided path.
@@ -122,9 +122,9 @@ func HasKnownProviderPrefix(path string) bool {
 // TryWindowsAppDataMigration attempts to copy the Windows state file
 // from its old location to the new location. (Issue 2856)
 //
-// Tailscale 1.14 and before stored state under %LocalAppData%
+// Lanhc 1.14 and before stored state under %LocalAppData%
 // (usually "C:\WINDOWS\system32\config\systemprofile\AppData\Local"
-// when tailscaled.exe is running as a non-user system service).
+// when lanhcd.exe is running as a non-user system service).
 // However it is frequently cleared for almost any reason: Windows
 // updates, System Restore, even various System Cleaner utilities.
 //
@@ -132,7 +132,7 @@ func HasKnownProviderPrefix(path string) bool {
 // This will be a fallback %LocalAppData% path if migration fails,
 // a %ProgramData% path otherwise.
 func TryWindowsAppDataMigration(logf logger.Logf, path string) string {
-	if path != paths.DefaultTailscaledStateFile() {
+	if path != paths.DefaultLanhcdStateFile() {
 		// If they're specifying a non-default path, just trust that they know
 		// what they are doing.
 		return path
@@ -164,7 +164,7 @@ func NewFileStore(logf logger.Logf, path string) (ipn.StateStore, error) {
 	bs, err := os.ReadFile(path)
 
 	// Treat an empty file as a missing file.
-	// (https://github.com/tailscale/tailscale/issues/895#issuecomment-723255589)
+	// (https://github.com/lanhc/lanhc/issues/895#issuecomment-723255589)
 	if err == nil && len(bs) == 0 {
 		logf("store.NewFileStore(%q): file empty; treating it like a missing file [warning]", path)
 		err = os.ErrNotExist

@@ -47,7 +47,7 @@ export function hasAnyEditCapabilities(auth: AuthResponse): boolean {
 }
 
 /**
- * useAuth reports and refreshes Tailscale auth status for the web client.
+ * useAuth reports and refreshes Lanhc auth status for the web client.
  */
 export default function useAuth() {
   const { data, error, mutate } = useSWR<AuthResponse>("/auth")

@@ -13,9 +13,9 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/eventbus/eventbustest"
-	"tailscale.com/util/mak"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/eventbus/eventbustest"
+	"lanhc.com/util/mak"
 )
 
 func TestMonitorStartClose(t *testing.T) {
@@ -267,8 +267,8 @@ func TestRebindRequired(t *testing.T) {
 			want: false,
 		},
 		{
-			name:     "ignore-tailscale-interface-appearing",
-			tsIfName: "tailscale0",
+			name:     "ignore-lanhc-interface-appearing",
+			tsIfName: "lanhc0",
 			s1: &State{
 				DefaultRouteInterface: "foo",
 				InterfaceIPs: map[string][]netip.Prefix{
@@ -279,19 +279,19 @@ func TestRebindRequired(t *testing.T) {
 				DefaultRouteInterface: "foo",
 				InterfaceIPs: map[string][]netip.Prefix{
 					"foo":        {netip.MustParsePrefix("10.0.1.2/16")},
-					"tailscale0": {netip.MustParsePrefix("100.69.4.20/32")},
+					"lanhc0": {netip.MustParsePrefix("100.69.4.20/32")},
 				},
 			},
 			want: false,
 		},
 		{
-			name:     "ignore-tailscale-interface-disappearing",
-			tsIfName: "tailscale0",
+			name:     "ignore-lanhc-interface-disappearing",
+			tsIfName: "lanhc0",
 			s1: &State{
 				DefaultRouteInterface: "foo",
 				InterfaceIPs: map[string][]netip.Prefix{
 					"foo":        {netip.MustParsePrefix("10.0.1.2/16")},
-					"tailscale0": {netip.MustParsePrefix("100.69.4.20/32")},
+					"lanhc0": {netip.MustParsePrefix("100.69.4.20/32")},
 				},
 			},
 			s2: &State{
@@ -632,7 +632,7 @@ func TestRebindRequired(t *testing.T) {
 	withIsInterestingInterface(t, func(ni Interface, pfxs []netip.Prefix) bool {
 		return !strings.HasPrefix(ni.Name, "boring")
 	})
-	saveAndRestoreTailscaleIfaceProps(t)
+	saveAndRestoreLanhcIfaceProps(t)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -651,7 +651,7 @@ func TestRebindRequired(t *testing.T) {
 				}
 			}
 
-			SetTailscaleInterfaceProps(tt.tsIfName, 1)
+			SetLanhcInterfaceProps(tt.tsIfName, 1)
 			cd, err := NewChangeDelta(tt.s1, tt.s2, 0, true)
 			if err != nil {
 				t.Fatalf("NewChangeDelta error: %v", err)
@@ -717,8 +717,8 @@ func TestTimeJumpedDoesNotTriggerRebind(t *testing.T) {
 		HaveV4: true,
 	}
 
-	saveAndRestoreTailscaleIfaceProps(t)
-	SetTailscaleInterfaceProps("", 0)
+	saveAndRestoreLanhcIfaceProps(t)
+	SetLanhcInterfaceProps("", 0)
 
 	cd3, err := NewChangeDelta(s, s2, 55*time.Second, true)
 	if err != nil {
@@ -729,12 +729,12 @@ func TestTimeJumpedDoesNotTriggerRebind(t *testing.T) {
 	}
 }
 
-func saveAndRestoreTailscaleIfaceProps(t *testing.T) {
+func saveAndRestoreLanhcIfaceProps(t *testing.T) {
 	t.Helper()
-	index, _ := TailscaleInterfaceIndex()
-	name, _ := TailscaleInterfaceName()
+	index, _ := LanhcInterfaceIndex()
+	name, _ := LanhcInterfaceName()
 	t.Cleanup(func() {
-		SetTailscaleInterfaceProps(name, index)
+		SetLanhcInterfaceProps(name, index)
 	})
 }
 

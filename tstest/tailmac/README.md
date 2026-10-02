@@ -91,7 +91,7 @@ tailmac create --id my_custom_vm_id --image "/images/macos_ventura.ipsw" --mac 5
 ```
 
 A typical workflow would be to create single VM, manually set it up the way you wish including the installation of any required client side software
-(tailscaled or the client-side test harness for example)  then clone that images as required and back up your 
+(lanhcd or the client-side test harness for example)  then clone that images as required and back up your 
 images for future use.
 
 Fetching and persisting pre-configured images is left as an exercise for the reader (for now).  A previously used image can simply be copied to the

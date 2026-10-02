@@ -24,19 +24,19 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/client/local"
-	"tailscale.com/metrics"
-	"tailscale.com/tsnet"
-	"tailscale.com/tsweb"
+	"lanhc.com/client/local"
+	"lanhc.com/metrics"
+	"lanhc.com/tsnet"
+	"lanhc.com/tsweb"
 )
 
 var (
-	hostname     = flag.String("hostname", "", "Tailscale hostname to serve on")
+	hostname     = flag.String("hostname", "", "Lanhc hostname to serve on")
 	port         = flag.Int("port", 5432, "Listening port for client connections")
 	debugPort    = flag.Int("debug-port", 80, "Listening port for debug/metrics endpoint")
 	upstreamAddr = flag.String("upstream-addr", "", "Address of the upstream Postgres server, in host:port format")
 	upstreamCA   = flag.String("upstream-ca-file", "", "File containing the PEM-encoded CA certificate for the upstream server")
-	tailscaleDir = flag.String("state-dir", "", "Directory in which to store the Tailscale auth state")
+	lanhcDir = flag.String("state-dir", "", "Directory in which to store the Lanhc auth state")
 )
 
 func main() {
@@ -50,12 +50,12 @@ func main() {
 	if *upstreamCA == "" {
 		log.Fatal("missing --upstream-ca-file")
 	}
-	if *tailscaleDir == "" {
+	if *lanhcDir == "" {
 		log.Fatal("missing --state-dir")
 	}
 
 	ts := &tsnet.Server{
-		Dir:      *tailscaleDir,
+		Dir:      *lanhcDir,
 		Hostname: *hostname,
 	}
 
@@ -155,7 +155,7 @@ func (p *proxy) Expvar() expvar.Var {
 
 // Serve accepts postgres client connections on ln and proxies them to
 // the configured upstream. ln can be any net.Listener, but all client
-// connections must originate from tailscale IPs that can be verified
+// connections must originate from lanhc IPs that can be verified
 // with WhoIs.
 func (p *proxy) Serve(ln net.Listener) error {
 	var lastSessionID int64

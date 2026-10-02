@@ -54,13 +54,13 @@ import (
 	"sigs.k8s.io/kind/pkg/cluster/nodeutils"
 	"sigs.k8s.io/kind/pkg/cmd"
 
-	"tailscale.com/client/tailscale/v2"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/store/mem"
-	tsoperator "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/tsnet"
-	"tailscale.com/util/must"
+	lanhcclient "tailscale.com/client/tailscale/v2"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/store/mem"
+	tsoperator "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/tsnet"
+	"lanhc.com/util/must"
 )
 
 const (
@@ -71,9 +71,9 @@ const (
 )
 
 var (
-	tsClient           *tailscale.Client // For API calls to control.
+	tsClient           *lanhcclient.Client // For API calls to control.
 	tnClient           *tsnet.Server     // For testing real tailnet traffic on first tailnet.
-	secondTSClient     *tailscale.Client // For API calls to the secondary tailnet (_second_tailnet).
+	secondTSClient     *lanhcclient.Client // For API calls to the secondary tailnet (_second_tailnet).
 	secondTNClient     *tsnet.Server     // For testing real tailnet traffic on second tailnet.
 	restCfg            *rest.Config      // For constructing a client-go client if necessary.
 	kubeClient         client.WithWatch  // For k8s API calls.
@@ -225,7 +225,7 @@ func runTests(m *testing.M) (int, error) {
 		// For devcontrol -> pebble (DNS mgmt for ACME challenges):
 		// * Port forward from localhost port 8055 to in-cluster pebble port 8055.
 		//
-		// For Pods -> devcontrol (tailscale clients joining the tailnet):
+		// For Pods -> devcontrol (lanhc clients joining the tailnet):
 		// * Create ssh-server Deployment in cluster.
 		// * Create reverse ssh tunnel that goes from ssh-server port 31544 to localhost:31544.
 		if err = forwardLocalPortToPod(ctx, logger, restCfg, ns, pebblePod, 8055); err != nil {
@@ -255,7 +255,7 @@ func runTests(m *testing.M) (int, error) {
 		}
 
 		// Address cluster workloads can reach devcontrol at. Must be a private
-		// IP to make sure tailscale client code recognises it shouldn't try an
+		// IP to make sure lanhc client code recognises it shouldn't try an
 		// https fallback. See [controlclient.NewNoiseClient] for details.
 		clusterLoginServer = fmt.Sprintf("http://%s:31544", sshServiceIP)
 
@@ -274,7 +274,7 @@ func runTests(m *testing.M) (int, error) {
 		}
 
 		// Finish setting up tsClient.
-		tsClient = &tailscale.Client{
+		tsClient = &lanhcclient.Client{
 			APIKey:  apiKeyData.APIKey,
 			BaseURL: must.Get(url.Parse("http://localhost:31544")),
 		}
@@ -286,7 +286,7 @@ func runTests(m *testing.M) (int, error) {
 
 		logger.Info("ACLs configured for first tailnet")
 
-		key, err := tsClient.Keys().CreateOAuthClient(ctx, tailscale.CreateOAuthClientRequest{
+		key, err := tsClient.Keys().CreateOAuthClient(ctx, lanhcclient.CreateOAuthClientRequest{
 			Scopes:      []string{"auth_keys", "devices:core", "services"},
 			Tags:        []string{"tag:k8s-operator"},
 			Description: "k8s-operator client for e2e tests",
@@ -308,7 +308,7 @@ func runTests(m *testing.M) (int, error) {
 		}
 
 		// Set HTTPS on second tailnet.
-		err = bootstrapClient.TailnetSettings().Update(ctx, tailscale.UpdateTailnetSettingsRequest{HTTPSEnabled: new(true)})
+		err = bootstrapClient.TailnetSettings().Update(ctx, lanhcclient.UpdateTailnetSettingsRequest{HTTPSEnabled: new(true)})
 		if err != nil {
 			return 0, fmt.Errorf("failed to configure https for second tailnet: %w", err)
 		}
@@ -323,7 +323,7 @@ func runTests(m *testing.M) (int, error) {
 
 		// Create an OAuth client for the second tailnet to be used
 		// by the k8s-operator.
-		secondKey, err := bootstrapClient.Keys().CreateOAuthClient(ctx, tailscale.CreateOAuthClientRequest{
+		secondKey, err := bootstrapClient.Keys().CreateOAuthClient(ctx, lanhcclient.CreateOAuthClientRequest{
 			Scopes:      []string{"auth_keys", "devices:core", "services"},
 			Tags:        []string{"tag:k8s-operator"},
 			Description: "k8s-operator client for e2e tests",
@@ -334,7 +334,7 @@ func runTests(m *testing.M) (int, error) {
 		secondClientID = secondKey.ID
 		secondClientSecret = secondKey.Key
 
-		secondTSClient, err = tailscaleClientFromSecret(ctx, "http://localhost:31544", secondClientID, secondClientSecret)
+		secondTSClient, err = lanhcClientFromSecret(ctx, "http://localhost:31544", secondClientID, secondClientSecret)
 		if err != nil {
 			return 0, fmt.Errorf("failed to set up second tailnet client: %w", err)
 		}
@@ -348,7 +348,7 @@ func runTests(m *testing.M) (int, error) {
 		if err != nil {
 			return 0, fmt.Errorf("failed to get client id from secret: %w", err)
 		}
-		tsClient, err = tailscaleClientFromSecret(ctx, ipn.DefaultControlURL, clientID, clientSecret)
+		tsClient, err = lanhcClientFromSecret(ctx, ipn.DefaultControlURL, clientID, clientSecret)
 		if err != nil {
 			return 0, fmt.Errorf("failed to set up first tailnet client: %w", err)
 		}
@@ -360,7 +360,7 @@ func runTests(m *testing.M) (int, error) {
 		if err != nil {
 			return 0, fmt.Errorf("failed to get client id from secret: %w", err)
 		}
-		secondTSClient, err = tailscaleClientFromSecret(ctx, ipn.DefaultControlURL, secondClientID, secondClientSecret)
+		secondTSClient, err = lanhcClientFromSecret(ctx, ipn.DefaultControlURL, secondClientID, secondClientSecret)
 		if err != nil {
 			return 0, fmt.Errorf("failed to set up second tailnet client: %w", err)
 		}
@@ -372,7 +372,7 @@ func runTests(m *testing.M) (int, error) {
 		// TODO(tomhjp): support non-local platform.
 		// TODO(tomhjp): build tsrecorder as well.
 
-		// Build tailscale/k8s-operator, tailscale/tailscale, tailscale/k8s-proxy, with pebble CAs added.
+		// Build lanhc/k8s-operator, lanhc/lanhc, lanhc/k8s-proxy, with pebble CAs added.
 		ossTag, err = tagForRepo(ossDir)
 		if err != nil {
 			return 0, err
@@ -380,7 +380,7 @@ func runTests(m *testing.M) (int, error) {
 		logger.Infof("using OSS image tag: %q", ossTag)
 		ossImageToTarget := map[string]string{
 			"local/k8s-operator": "publishdevoperator",
-			"local/tailscale":    "publishdevimage",
+			"local/lanhc":    "publishdevimage",
 			"local/k8s-proxy":    "publishdevproxy",
 		}
 		for img, target := range ossImageToTarget {
@@ -419,7 +419,7 @@ func runTests(m *testing.M) (int, error) {
 	}
 
 	// Generate CRDs for the helm chart.
-	cmd := exec.CommandContext(ctx, "go", "run", "tailscale.com/cmd/k8s-operator/generate", "helmcrd")
+	cmd := exec.CommandContext(ctx, "go", "run", "lanhc.com/cmd/k8s-operator/generate", "helmcrd")
 	cmd.Dir = ossDir
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -461,7 +461,7 @@ func runTests(m *testing.M) (int, error) {
 		"proxyConfig": map[string]any{
 			"defaultProxyClass": "default",
 			"image": map[string]any{
-				"repository": "local/tailscale",
+				"repository": "local/lanhc",
 				"tag":        ossTag,
 			},
 		},
@@ -469,13 +469,13 @@ func runTests(m *testing.M) (int, error) {
 
 	settings := cli.New()
 	settings.KubeConfig = kubeconfig
-	settings.SetNamespace("tailscale")
+	settings.SetNamespace("lanhc")
 	helmCfg := &action.Configuration{}
-	if err := helmCfg.Init(settings.RESTClientGetter(), "tailscale", "", logger.Infof); err != nil {
+	if err := helmCfg.Init(settings.RESTClientGetter(), "lanhc", "", logger.Infof); err != nil {
 		return 0, fmt.Errorf("failed to initialize helm action configuration: %w", err)
 	}
 
-	const relName = "tailscale-operator" // TODO(tomhjp): maybe configurable if others use a different value.
+	const relName = "lanhc-operator" // TODO(tomhjp): maybe configurable if others use a different value.
 	f := upgraderOrInstaller(helmCfg, relName)
 	if _, err := f(ctx, relName, chart, values); err != nil {
 		return 0, fmt.Errorf("failed to install %q via helm: %w", relName, err)
@@ -485,18 +485,18 @@ func runTests(m *testing.M) (int, error) {
 		return 0, fmt.Errorf("failed to apply default ProxyClass: %w", err)
 	}
 
-	caps := tailscale.KeyCapabilities{}
+	caps := lanhcclient.KeyCapabilities{}
 	caps.Devices.Create.Preauthorized = true
 	caps.Devices.Create.Ephemeral = true
 	caps.Devices.Create.Tags = []string{"tag:k8s"}
 
-	authKey, err := tsClient.Keys().CreateAuthKey(ctx, tailscale.CreateKeyRequest{Capabilities: caps})
+	authKey, err := tsClient.Keys().CreateAuthKey(ctx, lanhcclient.CreateKeyRequest{Capabilities: caps})
 	if err != nil {
 		return 0, fmt.Errorf("failed to create auth key for first tailnet: %w", err)
 	}
 	defer tsClient.Keys().Delete(context.Background(), authKey.ID)
 
-	secondAuthKey, err := secondTSClient.Keys().CreateAuthKey(ctx, tailscale.CreateKeyRequest{Capabilities: caps})
+	secondAuthKey, err := secondTSClient.Keys().CreateAuthKey(ctx, lanhcclient.CreateKeyRequest{Capabilities: caps})
 	if err != nil {
 		return 0, fmt.Errorf("failed to create auth key for second tailnet: %w", err)
 	}
@@ -528,11 +528,11 @@ func runTests(m *testing.M) (int, error) {
 	}
 	defer secondTNClient.Close()
 
-	// Create the tailnet Secret in the tailscale namespace.
+	// Create the tailnet Secret in the lanhc namespace.
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "second-tailnet-credentials",
-			Namespace: "tailscale",
+			Namespace: "lanhc",
 		},
 		Data: map[string][]byte{
 			"client_id":     []byte(secondClientID),
@@ -586,7 +586,7 @@ func upgraderOrInstaller(cfg *action.Configuration, releaseName string) helmInst
 
 func helmUpgrader(cfg *action.Configuration) helmInstallerFunc {
 	upgrade := action.NewUpgrade(cfg)
-	upgrade.Namespace = "tailscale"
+	upgrade.Namespace = "lanhc"
 	upgrade.Install = true
 	upgrade.Wait = true
 	upgrade.Timeout = 5 * time.Minute
@@ -595,7 +595,7 @@ func helmUpgrader(cfg *action.Configuration) helmInstallerFunc {
 
 func helmInstaller(cfg *action.Configuration, releaseName string) helmInstallerFunc {
 	install := action.NewInstall(cfg)
-	install.Namespace = "tailscale"
+	install.Namespace = "lanhc"
 	install.CreateNamespace = true
 	install.ReleaseName = releaseName
 	install.Wait = true
@@ -662,10 +662,10 @@ func applyDefaultProxyClass(ctx context.Context, logger *zap.SugaredLogger, cl c
 		Spec: tsapi.ProxyClassSpec{
 			StatefulSet: &tsapi.StatefulSet{
 				Pod: &tsapi.Pod{
-					TailscaleInitContainer: &tsapi.Container{
+					LanhcInitContainer: &tsapi.Container{
 						ImagePullPolicy: "IfNotPresent",
 					},
-					TailscaleContainer: &tsapi.Container{
+					LanhcContainer: &tsapi.Container{
 						ImagePullPolicy: "IfNotPresent",
 						Env:             env,
 					},
@@ -842,16 +842,16 @@ func createOrUpdate(ctx context.Context, cl client.Client, obj client.Object) er
 	return nil
 }
 
-// createTailnet creates a new tailnet and returns a tailscale.Client
+// createTailnet creates a new tailnet and returns a lanhcclient.Client
 // authenticated against it using the bootstrap credentials included in the
 // creation response.
-func createTailnet(ctx context.Context, tsClient *tailscale.Client) (*tailscale.Client, error) {
+func createTailnet(ctx context.Context, tsClient *lanhcclient.Client) (*lanhcclient.Client, error) {
 	tailnetName := fmt.Sprintf("second-tailnet-%d", time.Now().Unix())
 	body, err := json.Marshal(map[string]any{"displayName": tailnetName})
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal tailnet creation request: %w", err)
 	}
-	// TODO(beckypauley): change to use a method on tailscale.Client once this is available.
+	// TODO(beckypauley): change to use a method on lanhcclient.Client once this is available.
 	req, _ := http.NewRequestWithContext(ctx, "POST", tsClient.BaseURL.String()+"/api/v2/organizations/-/tailnets", bytes.NewBuffer(body))
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tsClient.APIKey))
 	resp, err := tsClient.HTTP.Do(req)
@@ -872,13 +872,13 @@ func createTailnet(ctx context.Context, tsClient *tailscale.Client) (*tailscale.
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
-	return tailscaleClientFromSecret(ctx, tsClient.BaseURL.String(), result.OauthClient.ID, result.OauthClient.Secret)
+	return lanhcClientFromSecret(ctx, tsClient.BaseURL.String(), result.OauthClient.ID, result.OauthClient.Secret)
 }
 
-// tailscaleClientFromSecret exchanges OAuth client credentials for an access token and
-// returns a tailscale.Client configured to use it. The token is valid for
+// lanhcClientFromSecret exchanges OAuth client credentials for an access token and
+// returns a lanhcclient.Client configured to use it. The token is valid for
 // one hour, which is sufficient for the tests to run. No need for refresh logic.
-func tailscaleClientFromSecret(ctx context.Context, baseURL, clientID, clientSecret string) (*tailscale.Client, error) {
+func lanhcClientFromSecret(ctx context.Context, baseURL, clientID, clientSecret string) (*lanhcclient.Client, error) {
 	cfg := clientcredentials.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
@@ -888,7 +888,7 @@ func tailscaleClientFromSecret(ctx context.Context, baseURL, clientID, clientSec
 	if err != nil {
 		return nil, fmt.Errorf("failed to get OAuth token for client %q: %w", clientID, err)
 	}
-	return &tailscale.Client{
+	return &lanhcclient.Client{
 		APIKey:  tk.AccessToken,
 		BaseURL: must.Get(url.Parse(baseURL)),
 	}, nil

@@ -2,10 +2,10 @@
 # ts-git-hook launcher (installed at .git/hooks/ts-git-hook).
 #
 # Written by misc/add-git-hooks.go from the canonical copy embedded
-# in tailscale.com/misc/git_hook/githook. On every invocation it:
+# in lanhc.com/misc/git_hook/githook. On every invocation it:
 #
 #   1. Compares the binary's reported version against the shared
-#      githook HOOK_VERSION (resolved via `go list -m tailscale.com`)
+#      githook HOOK_VERSION (resolved via `go list -m lanhc.com`)
 #      plus the repo-local HOOK_VERSION.
 #   2. If stale or missing: rebuilds ts-git-hook-bin and runs
 #      `ts-git-hook-bin install`.
@@ -32,7 +32,7 @@ BINARY="$HOOK_DIR/ts-git-hook-bin$EXE"
 GO="$REPO_ROOT/tool/go$EXE"
 if [ ! -x "$GO" ]; then GO=go; fi
 
-OSS_DIR="$(cd "$REPO_ROOT" && GOWORK=off "$GO" list -m -f '{{.Dir}}' tailscale.com 2>/dev/null || true)"
+OSS_DIR="$(cd "$REPO_ROOT" && GOWORK=off "$GO" list -m -f '{{.Dir}}' lanhc.com 2>/dev/null || true)"
 SHARED_VER="$(cat "$OSS_DIR/misc/git_hook/githook/HOOK_VERSION" 2>/dev/null || echo 0)"
 LOCAL_VER="$(cat "$REPO_ROOT/misc/git_hook/HOOK_VERSION" 2>/dev/null || echo 0)"
 WANT="$SHARED_VER:$LOCAL_VER"

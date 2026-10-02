@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/tstest"
-	"tailscale.com/types/key"
+	"lanhc.com/tstest"
+	"lanhc.com/types/key"
 )
 
 type dummyNetConn struct {

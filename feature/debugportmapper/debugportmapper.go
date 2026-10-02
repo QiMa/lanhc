@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package debugportmapper registers support for debugging Tailscale's
+// Package debugportmapper registers support for debugging Lanhc's
 // portmapping support.
 package debugportmapper
 
@@ -15,12 +15,12 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/ipn/localapi"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/portmapper"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/def"
-	"tailscale.com/util/eventbus"
+	"lanhc.com/ipn/localapi"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/portmapper"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/def"
+	"lanhc.com/util/eventbus"
 )
 
 func init() {

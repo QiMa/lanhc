@@ -11,8 +11,8 @@ import (
 	"strings"
 	"syscall"
 
-	"tailscale.com/types/logger"
-	"tailscale.com/version/distro"
+	"lanhc.com/types/logger"
+	"lanhc.com/version/distro"
 )
 
 func init() {
@@ -29,7 +29,7 @@ func modprobeTun() ([]byte, error) {
 
 func diagnoseLinuxTUNFailure(tunName string, logf logger.Logf, createErr error) {
 	if errors.Is(createErr, syscall.EBUSY) {
-		logf("TUN device %s is busy; another process probably still has it open (from old version of Tailscale that had a bug)", tunName)
+		logf("TUN device %s is busy; another process probably still has it open (from old version of Lanhc that had a bug)", tunName)
 		logf("To fix, kill the process that has it open. Find with:\n\n$ sudo lsof -n /dev/net/tun\n\n")
 		logf("... and then kill those PID(s)")
 		return

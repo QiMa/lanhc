@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // Package kubeclient provides a client to interact with Kubernetes.
-// This package is Tailscale-internal and not meant for external consumption.
+// This package is Lanhc-internal and not meant for external consumption.
 // Further, the API should not be considered stable.
 // Client is split into a separate package for consumption of
 // non-Kubernetes shared libraries and binaries. Be mindful of not increasing
@@ -28,8 +28,8 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/kube/kubeapi"
-	"tailscale.com/tstime"
+	"lanhc.com/kube/kubeapi"
+	"lanhc.com/tstime"
 )
 
 const (
@@ -377,7 +377,7 @@ func (c *client) Event(ctx context.Context, typ, reason, msg string) error {
 }
 
 // CheckSecretPermissions checks the secret access permissions of the current
-// pod. It returns an error if the basic permissions tailscale needs are
+// pod. It returns an error if the basic permissions lanhc needs are
 // missing, and reports whether the patch and create permissions are additionally present.
 //
 // Errors encountered during the access checking process are logged, but ignored
@@ -419,7 +419,7 @@ func IsNotFoundErr(err error) bool {
 	return false
 }
 
-// setEventPerms checks whether this client will be able to write tailscaled Events to its Pod and updates the state
+// setEventPerms checks whether this client will be able to write lanhcd Events to its Pod and updates the state
 // accordingly. If it determines that the client can not write Events, any subsequent calls to client.Event will be a
 // no-op.
 func (c *client) setEventPerms() {
@@ -431,7 +431,7 @@ func (c *client) setEventPerms() {
 		c.podUID = uid
 		c.hasEventsPerms = hasPerms
 		if !hasPerms {
-			log.Printf(`kubeclient: this client is not able to write tailscaled Events to the Pod in which it is running.
+			log.Printf(`kubeclient: this client is not able to write lanhcd Events to the Pod in which it is running.
 			To help with future debugging you can make it able write Events by giving it get,create,patch permissions for Events in the Pod namespace
 			and setting POD_NAME, POD_UID env vars for the Pod.`)
 		}

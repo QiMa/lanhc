@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package tshttpproxy contains Tailscale additions to httpproxy not available
+// Package tshttpproxy contains Lanhc additions to httpproxy not available
 // in golang.org/x/net/http/httpproxy. Notably, it aims to support Windows better.
 package tshttpproxy
 
@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"golang.org/x/net/http/httpproxy"
-	"tailscale.com/util/mak"
+	"lanhc.com/util/mak"
 )
 
 // InvalidateCache invalidates the package-level cache for ProxyFromEnvironment.

@@ -15,9 +15,9 @@ import (
 	"strings"
 
 	"github.com/tailscale/netlink"
-	"tailscale.com/feature"
-	"tailscale.com/tsconst"
-	"tailscale.com/types/logger"
+	"lanhc.com/feature"
+	"lanhc.com/tsconst"
+	"lanhc.com/types/logger"
 )
 
 // MatchDecision is the decision made by the firewall for a packet matched by a rule.
@@ -61,7 +61,7 @@ const (
 	CGNATModeReturn CGNATMode = "RETURN"
 )
 
-// The following bits are added to packet marks for Tailscale use.
+// The following bits are added to packet marks for Lanhc use.
 //
 // We tried to pick bits sufficiently out of the way that it's
 // unlikely to collide with existing uses. We have 4 bytes of mark
@@ -87,20 +87,20 @@ const (
 	bypassMarkNum      = tsconst.LinuxBypassMarkNum
 )
 
-// getTailscaleFwmarkMaskNeg returns the negation of TailscaleFwmarkMask
+// getLanhcFwmarkMaskNeg returns the negation of LanhcFwmarkMask
 // in native byte order.
-func getTailscaleFwmarkMaskNeg() []byte {
+func getLanhcFwmarkMaskNeg() []byte {
 	return nativeEndianUint32(^uint32(fwmarkMaskNum))
 }
 
-// getTailscaleFwmarkMask returns the TailscaleFwmarkMask in native byte order.
-func getTailscaleFwmarkMask() []byte {
+// getLanhcFwmarkMask returns the LanhcFwmarkMask in native byte order.
+func getLanhcFwmarkMask() []byte {
 	return nativeEndianUint32(fwmarkMaskNum)
 }
 
-// getTailscaleSubnetRouteMark returns the TailscaleSubnetRouteMark
+// getLanhcSubnetRouteMark returns the LanhcSubnetRouteMark
 // in native byte order.
-func getTailscaleSubnetRouteMark() []byte {
+func getLanhcSubnetRouteMark() []byte {
 	return nativeEndianUint32(subnetRouteMarkNum)
 }
 
@@ -191,7 +191,7 @@ func CheckIPRuleSupportsV6(logf logger.Logf) error {
 
 var hookIPTablesCleanup feature.Hook[func(logger.Logf)]
 
-// IPTablesCleanUp removes all Tailscale added iptables rules.
+// IPTablesCleanUp removes all Lanhc added iptables rules.
 // Any errors that occur are logged to the provided logf.
 func IPTablesCleanUp(logf logger.Logf) {
 	if f, ok := hookIPTablesCleanup.GetOk(); ok {

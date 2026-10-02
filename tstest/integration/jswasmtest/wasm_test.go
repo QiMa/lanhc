@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // Package jswasmtest contains headless-browser tests for the
-// @tailscale/connect NPM package, built by cmd/tsconnect from
-// tailscale.com/cmd/tsconnect/wasm (the js/wasm build of the client).
+// @lanhc/connect NPM package, built by cmd/tsconnect from
+// lanhc.com/cmd/tsconnect/wasm (the js/wasm build of the client).
 //
 // To run locally:
 //
@@ -44,11 +44,11 @@ import (
 
 	cdpruntime "github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
-	"tailscale.com/cmd/tsconnect/wasmbuild"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/tsnet"
-	"tailscale.com/tstest/integration"
-	"tailscale.com/tstest/integration/testcontrol"
+	"lanhc.com/cmd/tsconnect/wasmbuild"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/tsnet"
+	"lanhc.com/tstest/integration"
+	"lanhc.com/tstest/integration/testcontrol"
 )
 
 // pkgDir is the path to cmd/tsconnect/pkg/ (the directory written by
@@ -280,10 +280,10 @@ func TestFetchTailnetPeer(t *testing.T) {
 	if err != nil {
 		t.Fatalf("tsnet peer Up: %v", err)
 	}
-	if len(status.TailscaleIPs) == 0 {
-		t.Fatalf("tsnet peer has no TailscaleIPs")
+	if len(status.LanhcIPs) == 0 {
+		t.Fatalf("tsnet peer has no LanhcIPs")
 	}
-	peerIP := status.TailscaleIPs[0]
+	peerIP := status.LanhcIPs[0]
 	t.Logf("tsnet peer up at %v", peerIP)
 
 	ln, err := peer.Listen("tcp", ":80")

@@ -11,16 +11,16 @@ import (
 	"testing"
 
 	"go4.org/mem"
-	"tailscale.com/types/key"
+	"lanhc.com/types/key"
 )
 
-func TestTailscaleRejectedHeader(t *testing.T) {
+func TestLanhcRejectedHeader(t *testing.T) {
 	tests := []struct {
-		h       TailscaleRejectedHeader
+		h       LanhcRejectedHeader
 		wantStr string
 	}{
 		{
-			h: TailscaleRejectedHeader{
+			h: LanhcRejectedHeader{
 				IPSrc:  netip.MustParseAddr("5.5.5.5"),
 				IPDst:  netip.MustParseAddr("1.2.3.4"),
 				Src:    netip.MustParseAddrPort("1.2.3.4:567"),
@@ -31,7 +31,7 @@ func TestTailscaleRejectedHeader(t *testing.T) {
 			wantStr: "TSMP-reject-flow{TCP 1.2.3.4:567 > 5.5.5.5:443}: acl",
 		},
 		{
-			h: TailscaleRejectedHeader{
+			h: LanhcRejectedHeader{
 				IPSrc:  netip.MustParseAddr("2::2"),
 				IPDst:  netip.MustParseAddr("1::1"),
 				Src:    netip.MustParseAddrPort("[1::1]:567"),
@@ -42,7 +42,7 @@ func TestTailscaleRejectedHeader(t *testing.T) {
 			wantStr: "TSMP-reject-flow{UDP [1::1]:567 > [2::2]:443}: shields",
 		},
 		{
-			h: TailscaleRejectedHeader{
+			h: LanhcRejectedHeader{
 				IPSrc:       netip.MustParseAddr("2::2"),
 				IPDst:       netip.MustParseAddr("1::1"),
 				Src:         netip.MustParseAddrPort("[1::1]:567"),
@@ -67,7 +67,7 @@ func TestTailscaleRejectedHeader(t *testing.T) {
 		p.Decode(pkt)
 		t.Logf("Parsed: %+v", p)
 		t.Logf("Parsed: %s", p.String())
-		back, ok := p.AsTailscaleRejectedHeader()
+		back, ok := p.AsLanhcRejectedHeader()
 		if !ok {
 			t.Errorf("%v. %q (%02x) didn't parse back", i, gotStr, pkt)
 			continue

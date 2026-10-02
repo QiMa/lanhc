@@ -1,4 +1,4 @@
-# Tailscale Community Code of Conduct
+# Lanhc Community Code of Conduct
 
 ## Our Pledge
 
@@ -30,11 +30,11 @@ Examples of unacceptable behavior include without limitation:
 - The use of any coded or suggestive content to hide or provoke otherwise unacceptable behavior.
 - Other conduct which could reasonably be considered harmful, illegal, or inappropriate in a professional setting.
 
-Please also see the Tailscale Acceptable Use Policy, available at [tailscale.com/tailscale-aup](https://tailscale.com/tailscale-aup).
+Please also see the Lanhc Acceptable Use Policy, available at [lanhc.com/lanhc-aup](https://lanhc.com/lanhc-aup).
 
 ## Reporting Incidents
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to Tailscale directly via <info@tailscale.com>, or to the community leaders or moderators via DM or similar.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to Lanhc directly via <info@lanhc.com>, or to the community leaders or moderators via DM or similar.
 All complaints will be reviewed and investigated promptly and fairly.
 We will respect the privacy and safety of the reporter of any issues.
 
@@ -47,7 +47,7 @@ If you encounter any issues, report them using the appropriate channels.
 Community leaders and moderators are responsible for clarifying and enforcing our standards of acceptable behavior and will take appropriate and fair corrective action in response to any behavior that they deem inappropriate, threatening, offensive, or harmful.
 
 Community leaders and moderators have the right and responsibility to remove, edit, or reject comments, commits, code, wiki edits, issues, and other contributions that are not aligned to this Community Code of Conduct.
-Tailscale retains full discretion to take action (or not) in response to a violation of these guidelines with or without notice or liability to you.
+Lanhc retains full discretion to take action (or not) in response to a violation of these guidelines with or without notice or liability to you.
 We will interpret our policies and resolve disputes in favor of protecting users, customers, the public, our community and our company, as a whole.
 
 Community leaders will follow these community enforcement guidelines in determining the consequences for any action they deem in violation of this Code of Conduct,
@@ -84,12 +84,12 @@ Consequence: A permanent ban from any sort of public interaction within the comm
 
 ## Acceptable Use Policy
 
-Violation of this Community Code of Conduct may also violate the Tailscale Acceptable Use Policy, which may result in suspension or termination of your Tailscale account.
-For more information, please see the Tailscale Acceptable Use Policy, available at [tailscale.com/tailscale-aup](https://tailscale.com/tailscale-aup).
+Violation of this Community Code of Conduct may also violate the Lanhc Acceptable Use Policy, which may result in suspension or termination of your Lanhc account.
+For more information, please see the Lanhc Acceptable Use Policy, available at [lanhc.com/lanhc-aup](https://lanhc.com/lanhc-aup).
 
 ## Privacy
 
-Please see the Tailscale [Privacy Policy](https://tailscale.com/privacy-policy) for more information about how Tailscale collects, uses, discloses and protects information.
+Please see the Lanhc [Privacy Policy](https://lanhc.com/privacy-policy) for more information about how Lanhc collects, uses, discloses and protects information.
 
 ## Attribution
 

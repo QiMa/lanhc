@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"go4.org/mem"
-	"tailscale.com/types/key"
+	"lanhc.com/types/key"
 )
 
 func TestMarshalAndParse(t *testing.T) {

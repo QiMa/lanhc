@@ -17,12 +17,12 @@ import (
 	"time"
 
 	"go.uber.org/zap"
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/k8s-operator/sessionrecording/fakes"
-	"tailscale.com/net/netx"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsnet"
-	"tailscale.com/tstest"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/k8s-operator/sessionrecording/fakes"
+	"lanhc.com/net/netx"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsnet"
+	"lanhc.com/tstest"
 )
 
 func Test_Hijacker(t *testing.T) {

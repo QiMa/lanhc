@@ -14,16 +14,16 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/health"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/syspolicy/policyclient"
-	"tailscale.com/version/distro"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/health"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/syspolicy/policyclient"
+	"lanhc.com/version/distro"
 )
 
 type kv struct {
@@ -106,12 +106,12 @@ func NewOSConfigurator(logf logger.Logf, health *health.Tracker, bus *eventbus.B
 		if f, ok := optNewResolvedManager.GetOk(); ok {
 			return f(logf, health, interfaceName)
 		}
-		return nil, fmt.Errorf("tailscaled was built without DNS %q support", mode)
+		return nil, fmt.Errorf("lanhcd was built without DNS %q support", mode)
 	case "network-manager":
 		if f, ok := optNewNMManager.GetOk(); ok {
 			return f(interfaceName)
 		}
-		return nil, fmt.Errorf("tailscaled was built without DNS %q support", mode)
+		return nil, fmt.Errorf("lanhcd was built without DNS %q support", mode)
 	case "debian-resolvconf":
 		return newDebianResolvconfManager(logf)
 	case "openresolv":
@@ -193,7 +193,7 @@ func dnsMode(logf logger.Logf, health *health.Tracker, env newOSConfigEnv) (ret 
 		// resolv.conf that has the word "systemd-resolved" in its
 		// header, but doesn't actually point to resolved. We mustn't
 		// try to program resolved in that case.
-		// https://github.com/tailscale/tailscale/issues/2136
+		// https://github.com/lanhc/lanhc/issues/2136
 		if err := resolvedIsActuallyResolver(logf, env, dbg, bs); err != nil {
 			logf("dns: resolvedIsActuallyResolver error: %v", err)
 			dbg("resolved", "not-in-use")
@@ -242,8 +242,8 @@ func dnsMode(logf logger.Logf, health *health.Tracker, env newOSConfigEnv) (ret 
 		// get correct configuration into resolved, we have no choice
 		// but to use NM, and accept the loss of IPv6 configuration
 		// that comes with it (see
-		// https://github.com/tailscale/tailscale/issues/1699,
-		// https://github.com/tailscale/tailscale/pull/1945)
+		// https://github.com/lanhc/lanhc/issues/1699,
+		// https://github.com/lanhc/lanhc/pull/1945)
 		safe, err := env.nmVersionBetween("1.26.0", "1.26.5")
 		if err != nil {
 			// Failed to figure out NM's version, can't make a correct
@@ -285,10 +285,10 @@ func dnsMode(logf logger.Logf, health *health.Tracker, env newOSConfigEnv) (ret 
 			dbg("resolved", "not-in-use")
 			// You'd think we would use newNMManager here. However, as
 			// explained in
-			// https://github.com/tailscale/tailscale/issues/1699 ,
+			// https://github.com/lanhc/lanhc/issues/1699 ,
 			// using NetworkManager for DNS configuration carries with
 			// it the cost of losing IPv6 configuration on the
-			// Tailscale network interface. So, when we can avoid it,
+			// Lanhc network interface. So, when we can avoid it,
 			// we bypass NetworkManager by replacing resolv.conf
 			// directly.
 			//
@@ -327,7 +327,7 @@ func dnsMode(logf logger.Logf, health *health.Tracker, env newOSConfigEnv) (ret 
 			return "direct", nil
 		}
 
-		health.SetDNSManagerHealth(errors.New("systemd-resolved and NetworkManager are wired together incorrectly; MagicDNS will probably not work. For more info, see https://tailscale.com/s/resolved-nm"))
+		health.SetDNSManagerHealth(errors.New("systemd-resolved and NetworkManager are wired together incorrectly; MagicDNS will probably not work. For more info, see https://lanhc.com/s/resolved-nm"))
 		dbg("nm-safe", "no")
 		return "systemd-resolved", nil
 	default:

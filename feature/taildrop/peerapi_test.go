@@ -18,13 +18,13 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/tstime"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/must"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/tstime"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/must"
 )
 
 // peerAPIHandler serves the PeerAPI for a source specific client.

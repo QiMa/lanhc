@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	"github.com/creachadair/mds/shell"
-	"tailscale.com/tstest/natlab/vmtest"
-	"tailscale.com/tstest/natlab/vnet"
+	"lanhc.com/tstest/natlab/vmtest"
+	"lanhc.com/tstest/natlab/vnet"
 )
 
 func TestACMECertServeHTTPS(t *testing.T) {
@@ -28,12 +28,12 @@ func TestACMECertServeHTTPS(t *testing.T) {
 
 	out, err := env.SSHExec(issuer, certAndWatchHealthCommand(domain))
 	if err != nil {
-		t.Fatalf("tailscale cert: %v\n%s", err, out)
+		t.Fatalf("lanhc cert: %v\n%s", err, out)
 	}
 
-	out, err = env.SSHExec(issuer, "tailscale serve --bg --https=443 text:natlab-acme-ok")
+	out, err = env.SSHExec(issuer, "lanhc serve --bg --https=443 text:natlab-acme-ok")
 	if err != nil {
-		t.Fatalf("tailscale serve: %v\n%s", err, out)
+		t.Fatalf("lanhc serve: %v\n%s", err, out)
 	}
 
 	rootB64 := base64.StdEncoding.EncodeToString(env.FakeACMERootPEM())
@@ -65,10 +65,10 @@ func certAndWatchHealthCommand(domain string) string {
 set -eu
 cd /tmp
 rm -f cert.out cert.status cert.done cert-health.out
-(set +e; tailscale cert %[1]s >cert.out 2>&1; echo $? >cert.status; touch cert.done) &
+(set +e; lanhc cert %[1]s >cert.out 2>&1; echo $? >cert.status; touch cert.done) &
 certpid=$!
 for i in $(seq 1 60); do
-	if tailscale status --json | grep -F "Fetching TLS certificate" >cert-health.out; then
+	if lanhc status --json | grep -F "Fetching TLS certificate" >cert-health.out; then
 		break
 	fi
 	if [ -e cert.done ]; then

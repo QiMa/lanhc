@@ -3,8 +3,8 @@
 
 //go:build !plan9
 
-// tailscale-operator provides a way to expose services running in a Kubernetes
-// cluster to your Tailnet and to make Tailscale nodes available to cluster
+// lanhc-operator provides a way to expose services running in a Kubernetes
+// cluster to your Tailnet and to make Lanhc nodes available to cluster
 // workloads
 package main
 
@@ -20,15 +20,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/yaml"
 
-	operatorutils "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/tstest"
-	"tailscale.com/util/mak"
+	operatorutils "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/tstest"
+	"lanhc.com/util/mak"
 )
 
 func TestNameserverReconciler(t *testing.T) {
 	dnsConfig := &tsapi.DNSConfig{
-		TypeMeta: metav1.TypeMeta{Kind: "DNSConfig", APIVersion: "tailscale.com/v1alpha1"},
+		TypeMeta: metav1.TypeMeta{Kind: "DNSConfig", APIVersion: "lanhc.com/v1alpha1"},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test",
 		},
@@ -155,8 +155,8 @@ func TestNameserverReconciler(t *testing.T) {
 
 	t.Run("dns-config-status-set", func(t *testing.T) {
 		// Verify that DNSConfig advertizes the nameserver's Service IP address,
-		// has the ready status condition and tailscale finalizer.
-		mustUpdate(t, fc, "tailscale", "nameserver", func(svc *corev1.Service) {
+		// has the ready status condition and lanhc finalizer.
+		mustUpdate(t, fc, "lanhc", "nameserver", func(svc *corev1.Service) {
 			svc.Spec.ClusterIP = "1.2.3.4"
 		})
 		expectReconciled(t, reconciler, "", "test")
@@ -195,7 +195,7 @@ func TestNameserverReconciler(t *testing.T) {
 			t.Fatalf("error marshalling ConfigMap contents: %v", err)
 		}
 
-		mustUpdate(t, fc, "tailscale", "dnsrecords", func(cm *corev1.ConfigMap) {
+		mustUpdate(t, fc, "lanhc", "dnsrecords", func(cm *corev1.ConfigMap) {
 			mak.Set(&cm.Data, "records.json", string(bs))
 		})
 
@@ -204,7 +204,7 @@ func TestNameserverReconciler(t *testing.T) {
 		wantCm := &corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:            "dnsrecords",
-				Namespace:       "tailscale",
+				Namespace:       "lanhc",
 				Labels:          nameserverLabels,
 				OwnerReferences: []metav1.OwnerReference{*ownerReference},
 			},
@@ -217,12 +217,12 @@ func TestNameserverReconciler(t *testing.T) {
 
 	t.Run("uses-default-nameserver-image", func(t *testing.T) {
 		// Verify that if dnsconfig.spec.nameserver.image.{repo,tag} are unset,
-		// the nameserver image defaults to tailscale/k8s-nameserver:unstable.
+		// the nameserver image defaults to lanhc/k8s-nameserver:unstable.
 		mustUpdate(t, fc, "", "test", func(dnsCfg *tsapi.DNSConfig) {
 			dnsCfg.Spec.Nameserver.Image = nil
 		})
 		expectReconciled(t, reconciler, "", "test")
-		wantsDeploy.Spec.Template.Spec.Containers[0].Image = "tailscale/k8s-nameserver:stable"
+		wantsDeploy.Spec.Template.Spec.Containers[0].Image = "lanhc/k8s-nameserver:stable"
 		expectEqual(t, fc, wantsDeploy)
 	})
 }

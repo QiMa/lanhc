@@ -12,9 +12,9 @@ import (
 	"net/http"
 	"time"
 
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/tailcfg"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/tailcfg"
 )
 
 // handleC2NTLSCertStatus returns info about the last TLS certificate

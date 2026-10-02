@@ -14,16 +14,16 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/envknob"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/store"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/kube/kubeapi"
-	"tailscale.com/kube/kubeclient"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/mak"
+	"lanhc.com/envknob"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/store"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/kube/kubeapi"
+	"lanhc.com/kube/kubeclient"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/mak"
 )
 
 func init() {
@@ -38,10 +38,10 @@ const (
 	// state Secret and emit an Event.
 	timeout = 30 * time.Second
 
-	reasonTailscaleStateUpdated      = "TailscaledStateUpdated"
-	reasonTailscaleStateLoaded       = "TailscaleStateLoaded"
-	reasonTailscaleStateUpdateFailed = "TailscaleStateUpdateFailed"
-	reasonTailscaleStateLoadFailed   = "TailscaleStateLoadFailed"
+	reasonLanhcStateUpdated      = "LanhcdStateUpdated"
+	reasonLanhcStateLoaded       = "LanhcStateLoaded"
+	reasonLanhcStateUpdateFailed = "LanhcStateUpdateFailed"
+	reasonLanhcStateLoadFailed   = "LanhcStateLoadFailed"
 	eventTypeWarning                 = "Warning"
 	eventTypeNormal                  = "Normal"
 
@@ -59,13 +59,13 @@ type Store struct {
 
 	logf logger.Logf
 
-	// memory holds the latest tailscale state. Writes write state to a kube
+	// memory holds the latest lanhc state. Writes write state to a kube
 	// Secret and memory, Reads read from memory.
 	memory mem.Store
 }
 
 // New returns a new Store that persists state to Kubernets Secret(s).
-// Tailscale state is stored in a Secret named by the secretName parameter.
+// Lanhc state is stored in a Secret named by the secretName parameter.
 // TLS certs are stored and retrieved from state Secret or separate Secrets
 // named after TLS endpoints if running in cert share mode.
 func New(logf logger.Logf, secretName string) (*Store, error) {
@@ -77,7 +77,7 @@ func New(logf logger.Logf, secretName string) (*Store, error) {
 }
 
 func newClient() (kubeclient.Client, error) {
-	c, err := kubeclient.New("tailscale-state-store")
+	c, err := kubeclient.New("lanhc-state-store")
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +154,7 @@ func (s *Store) WriteState(id ipn.StateKey, bs []byte) (err error) {
 }
 
 // WriteTLSCertAndKey writes a TLS cert and key to domain.crt, domain.key fields
-// of a Tailscale Kubernetes node's state Secret.
+// of a Lanhc Kubernetes node's state Secret.
 func (s *Store) WriteTLSCertAndKey(domain string, cert, key []byte) (err error) {
 	if s.certShareMode == "ro" {
 		s.logf("[unexpected] TLS cert and key write in read-only mode")
@@ -267,12 +267,12 @@ func (s *Store) updateSecret(data map[string][]byte, secretName string) (err err
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer func() {
 		if err != nil {
-			if err := s.client.Event(ctx, eventTypeWarning, reasonTailscaleStateUpdateFailed, err.Error()); err != nil {
-				s.logf("kubestore: error creating tailscaled state update Event: %v", err)
+			if err := s.client.Event(ctx, eventTypeWarning, reasonLanhcStateUpdateFailed, err.Error()); err != nil {
+				s.logf("kubestore: error creating lanhcd state update Event: %v", err)
 			}
 		} else {
-			if err := s.client.Event(ctx, eventTypeNormal, reasonTailscaleStateUpdated, "Successfully updated tailscaled state Secret"); err != nil {
-				s.logf("kubestore: error creating tailscaled state Event: %v", err)
+			if err := s.client.Event(ctx, eventTypeNormal, reasonLanhcStateUpdated, "Successfully updated lanhcd state Secret"); err != nil {
+				s.logf("kubestore: error creating lanhcd state Event: %v", err)
 			}
 		}
 		cancel()
@@ -374,12 +374,12 @@ func (s *Store) loadState() (err error) {
 		if st, ok := err.(*kubeapi.Status); ok && st.Code == 404 {
 			return ipn.ErrStateNotExist
 		}
-		if err := s.client.Event(ctx, eventTypeWarning, reasonTailscaleStateLoadFailed, err.Error()); err != nil {
+		if err := s.client.Event(ctx, eventTypeWarning, reasonLanhcStateLoadFailed, err.Error()); err != nil {
 			s.logf("kubestore: error creating Event: %v", err)
 		}
 		return err
 	}
-	if err := s.client.Event(ctx, eventTypeNormal, reasonTailscaleStateLoaded, "Successfully loaded tailscaled state from Secret"); err != nil {
+	if err := s.client.Event(ctx, eventTypeNormal, reasonLanhcStateLoaded, "Successfully loaded lanhcd state from Secret"); err != nil {
 		s.logf("kubestore: error creating Event: %v", err)
 	}
 	data, err := s.maybeStripAttestationKeyFromProfile(secret.Data)
@@ -391,10 +391,10 @@ func (s *Store) loadState() (err error) {
 }
 
 // maybeStripAttestationKeyFromProfile removes the hardware attestation key
-// field from serialized Tailscale profile. This is done to recover from a bug
+// field from serialized Lanhc profile. This is done to recover from a bug
 // introduced in 1.92, where node-bound hardware attestation keys were added to
-// Tailscale states stored in Kubernetes Secrets.
-// See https://github.com/tailscale/tailscale/issues/18302
+// Lanhc states stored in Kubernetes Secrets.
+// See https://github.com/lanhc/lanhc/issues/18302
 // TODO(irbekrm): it would be good if we could somehow determine when we no
 // longer need to run this check.
 func (s *Store) maybeStripAttestationKeyFromProfile(data map[string][]byte) (map[string][]byte, error) {
@@ -435,7 +435,7 @@ func (s *Store) maybeStripAttestationKeyFromProfile(data map[string][]byte) (map
 
 const currentProfileKey = "_current-profile"
 
-// extractPrefs returns the key at which Tailscale prefs are stored in the
+// extractPrefs returns the key at which Lanhc prefs are stored in the
 // provided Secret data.
 func extractPrefsKey(data map[string][]byte) string {
 	return string(data[currentProfileKey])
@@ -506,7 +506,7 @@ func (s *Store) canPatchSecret(secret string) bool {
 }
 
 // certSecretSelector returns a label selector that can be used to list all
-// Secrets that aren't Tailscale state Secrets and contain TLS certificates for
+// Secrets that aren't Lanhc state Secrets and contain TLS certificates for
 // HTTPS endpoints that this node serves.
 // Currently (7/2025) this only applies to the Kubernetes Operator's ProxyGroup
 // when spec.Type is "ingress" or "kube-apiserver".
@@ -522,7 +522,7 @@ func (s *Store) certSecretSelector() map[string]string {
 	return map[string]string{
 		kubetypes.LabelSecretType:   kubetypes.LabelSecretTypeCerts,
 		kubetypes.LabelManaged:      "true",
-		"tailscale.com/proxy-group": pgName,
+		"lanhc.com/proxy-group": pgName,
 	}
 }
 

@@ -55,12 +55,12 @@ import (
 
 	"github.com/hdevalence/ed25519consensus"
 	"golang.org/x/crypto/blake2s"
-	"tailscale.com/feature"
-	"tailscale.com/net/netutil"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/httpm"
-	"tailscale.com/util/must"
-	"tailscale.com/util/progresstracking"
+	"lanhc.com/feature"
+	"lanhc.com/net/netutil"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/httpm"
+	"lanhc.com/util/must"
+	"lanhc.com/util/progresstracking"
 )
 
 const (
@@ -239,7 +239,7 @@ func (c *Client) Download(ctx context.Context, srcPath, dstPath string) error {
 	if !VerifyAny(sigPub, msg, sig) {
 		// Best-effort clean up of downloaded package.
 		os.Remove(dstPathUnverified)
-		return fmt.Errorf("signature %q for file %q does not validate with the current release signing key; either you are under attack, or attempting to download an old version of Tailscale which was signed with an older signing key", sigURL, srcURL)
+		return fmt.Errorf("signature %q for file %q does not validate with the current release signing key; either you are under attack, or attempting to download an old version of Lanhc which was signed with an older signing key", sigURL, srcURL)
 	}
 	c.logf("Signature OK")
 
@@ -285,7 +285,7 @@ func (c *Client) ValidateLocalBinary(srcURLPath, localFilePath string) error {
 
 	msg := binary.LittleEndian.AppendUint64(hash, uint64(hashLen))
 	if !VerifyAny(sigPub, msg, sig) {
-		return fmt.Errorf("signature %q for file %q does not validate with the current release signing key; either you are under attack, or attempting to download an old version of Tailscale which was signed with an older signing key", sigURL, localFilePath)
+		return fmt.Errorf("signature %q for file %q does not validate with the current release signing key; either you are under attack, or attempting to download an old version of Lanhc which was signed with an older signing key", sigURL, localFilePath)
 	}
 	c.logf("Signature OK")
 
@@ -307,7 +307,7 @@ func (c *Client) signingKeys() ([]ed25519.PublicKey, error) {
 		return nil, err
 	}
 	if !VerifyAny(c.roots, raw, sig) {
-		return nil, fmt.Errorf("signature %q for key %q does not validate with any known root key; either you are under attack, or running a very old version of Tailscale with outdated root keys", sigURL, keyURL)
+		return nil, fmt.Errorf("signature %q for key %q does not validate with any known root key; either you are under attack, or running a very old version of Lanhc with outdated root keys", sigURL, keyURL)
 	}
 
 	keys, err := ParseSigningKeyBundle(raw)

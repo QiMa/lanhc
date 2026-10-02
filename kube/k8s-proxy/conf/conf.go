@@ -14,9 +14,9 @@ import (
 	"net/netip"
 
 	"github.com/tailscale/hujson"
-	"tailscale.com/kube/kubetypes"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/opt"
+	"lanhc.com/kube/kubetypes"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/opt"
 )
 
 const v1Alpha1 = "v1alpha1"
@@ -49,11 +49,11 @@ type VersionedConfig struct {
 }
 
 type ConfigV1Alpha1 struct {
-	AuthKey            *string  `json:",omitempty"` // Tailscale auth key to use.
-	State              *string  `json:",omitempty"` // Path to the Tailscale state.
+	AuthKey            *string  `json:",omitempty"` // Lanhc auth key to use.
+	State              *string  `json:",omitempty"` // Path to the Lanhc state.
 	LogLevel           *string  `json:",omitempty"` // "debug", "info". Defaults to "info".
 	App                *string  `json:",omitempty"` // e.g. kubetypes.AppProxyGroupKubeAPIServer
-	ServerURL          *string  `json:",omitempty"` // URL of the Tailscale coordination server.
+	ServerURL          *string  `json:",omitempty"` // URL of the Lanhc coordination server.
 	LocalAddr          *string  `json:",omitempty"` // The address to use for serving HTTP health checks and metrics (defaults to all interfaces).
 	LocalPort          *uint16  `json:",omitempty"` // The port to use for serving HTTP health checks and metrics (defaults to 9002).
 	MetricsEnabled     opt.Bool `json:",omitempty"` // Serve metrics on <LocalAddr>:<LocalPort>/metrics.
@@ -61,9 +61,9 @@ type ConfigV1Alpha1 struct {
 
 	// TODO(tomhjp): The remaining fields should all be reloadable during
 	// runtime, but currently missing most of the APIServerProxy fields.
-	Hostname          *string               `json:",omitempty"` // Tailscale device hostname.
-	AcceptRoutes      opt.Bool              `json:",omitempty"` // Accepts routes advertised by other Tailscale nodes.
-	AdvertiseServices []string              `json:",omitempty"` // Tailscale Services to advertise.
+	Hostname          *string               `json:",omitempty"` // Lanhc device hostname.
+	AcceptRoutes      opt.Bool              `json:",omitempty"` // Accepts routes advertised by other Lanhc nodes.
+	AdvertiseServices []string              `json:",omitempty"` // Lanhc Services to advertise.
 	APIServerProxy    *APIServerProxyConfig `json:",omitempty"` // Config specific to the API Server proxy.
 	StaticEndpoints   []netip.AddrPort      `json:",omitempty"` // StaticEndpoints are additional, user-defined endpoints that this node should advertise amongst its wireguard endpoints.
 }
@@ -71,8 +71,8 @@ type ConfigV1Alpha1 struct {
 type APIServerProxyConfig struct {
 	Enabled     opt.Bool                      `json:",omitempty"` // Whether to enable the API Server proxy.
 	Mode        *kubetypes.APIServerProxyMode `json:",omitempty"` // "auth" or "noauth" mode.
-	ServiceName *tailcfg.ServiceName          `json:",omitempty"` // Name of the Tailscale Service to advertise.
-	IssueCerts  opt.Bool                      `json:",omitempty"` // Whether this replica should issue TLS certs for the Tailscale Service.
+	ServiceName *tailcfg.ServiceName          `json:",omitempty"` // Name of the Lanhc Service to advertise.
+	IssueCerts  opt.Bool                      `json:",omitempty"` // Whether this replica should issue TLS certs for the Lanhc Service.
 }
 
 // Load reads and parses the config file at the provided path on disk.

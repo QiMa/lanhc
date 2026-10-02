@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"tailscale.com/types/key"
-	"tailscale.com/types/tkatype"
+	"lanhc.com/types/key"
+	"lanhc.com/types/tkatype"
 )
 
 func TestComputeChainCandidates(t *testing.T) {

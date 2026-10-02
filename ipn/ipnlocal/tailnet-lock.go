@@ -23,24 +23,24 @@ import (
 	"slices"
 	"time"
 
-	"tailscale.com/envknob"
-	"tailscale.com/health"
-	"tailscale.com/health/healthmsg"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tka"
-	"tailscale.com/tsconst"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/persist"
-	"tailscale.com/types/tkatype"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
-	"tailscale.com/util/testenv"
+	"lanhc.com/envknob"
+	"lanhc.com/health"
+	"lanhc.com/health/healthmsg"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tka"
+	"lanhc.com/tsconst"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/persist"
+	"lanhc.com/types/tkatype"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
+	"lanhc.com/util/testenv"
 )
 
 // TODO(tom): RPC retry/backoff was broken and has been removed. Fix?
@@ -86,7 +86,7 @@ func (b *LocalBackend) initTKALocked() error {
 		// As we're switching profiles, we need to reset the TKA to nil.
 		b.tka = nil
 	}
-	root := b.TailscaleVarRoot()
+	root := b.LanhcVarRoot()
 	if root == "" {
 		b.tka = nil
 		b.logf("cannot fetch existing TKA state; no state directory for tailnet-lock")
@@ -118,7 +118,7 @@ func (b *LocalBackend) initTKALocked() error {
 
 // noTailnetLockStateDirWarnable is a Warnable to warn the user that Tailnet Lock data
 // (in particular, the list of AUMs in the TKA state) is being stored in memory and will
-// be lost when tailscaled restarts.
+// be lost when lanhcd restarts.
 var noTailnetLockStateDirWarnable = health.Register(&health.Warnable{
 	Code:     "no-tailnet-lock-state-dir",
 	Title:    "No statedir for Tailnet Lock",
@@ -522,7 +522,7 @@ func (b *LocalBackend) tkaApplyDisablementLocked(secret []byte) error {
 //
 // b.mu must be held.
 func (b *LocalBackend) chonkPathLocked() string {
-	return filepath.Join(b.TailscaleVarRoot(), "tka-profiles", string(b.pm.CurrentProfile().ID()))
+	return filepath.Join(b.LanhcVarRoot(), "tka-profiles", string(b.pm.CurrentProfile().ID()))
 }
 
 // tkaBootstrapFromGenesisLocked initializes the local (on-disk) state of the
@@ -548,7 +548,7 @@ func (b *LocalBackend) tkaBootstrapFromGenesisLocked(g tkatype.MarshaledAUM, per
 		}
 	}
 
-	root := b.TailscaleVarRoot()
+	root := b.LanhcVarRoot()
 	var storage tka.CompactableChonk
 	if root == "" {
 		b.health.SetUnhealthy(noTailnetLockStateDirWarnable, nil)
@@ -670,12 +670,12 @@ func tkaStateFromPeer(p tailcfg.NodeView) ipnstate.TKAPeer {
 		Name:         p.Name(),
 		ID:           p.ID(),
 		StableID:     p.StableID(),
-		TailscaleIPs: make([]netip.Addr, 0, p.Addresses().Len()),
+		LanhcIPs: make([]netip.Addr, 0, p.Addresses().Len()),
 		NodeKey:      p.Key(),
 	}
 	for _, addr := range p.Addresses().All() {
-		if addr.IsSingleIP() && tsaddr.IsTailscaleIP(addr.Addr()) {
-			fp.TailscaleIPs = append(fp.TailscaleIPs, addr.Addr())
+		if addr.IsSingleIP() && tsaddr.IsLanhcIP(addr.Addr()) {
+			fp.LanhcIPs = append(fp.LanhcIPs, addr.Addr())
 		}
 	}
 	var decoded tka.NodeKeySignature
@@ -706,7 +706,7 @@ func (b *LocalBackend) TailnetLockInit(keys []tka.Key, disablementValues [][]byt
 	b.mu.Unlock()
 
 	if ourNodeKey.IsZero() || nlPriv.IsZero() {
-		return errors.New("no node-key: is tailscale logged in?")
+		return errors.New("no node-key: is lanhc logged in?")
 	}
 
 	var entropy [16]byte
@@ -902,7 +902,7 @@ func (b *LocalBackend) TailnetLockModify(addKeys, removeKeys []tka.Key) (err err
 		ourNodeKey = p.Persist().PublicNodeKey()
 	}
 	if ourNodeKey.IsZero() {
-		return errors.New("no node-key: is tailscale logged in?")
+		return errors.New("no node-key: is lanhc logged in?")
 	}
 
 	var nlPriv key.NLPrivate
@@ -997,7 +997,7 @@ func (b *LocalBackend) TailnetLockDisable(secret []byte) error {
 	}
 
 	if ourNodeKey.IsZero() {
-		return errors.New("no node-key: is tailscale logged in?")
+		return errors.New("no node-key: is lanhc logged in?")
 	}
 	_, err = b.tkaDoDisablement(ourNodeKey, head, secret)
 	return err
@@ -1201,7 +1201,7 @@ func (b *LocalBackend) TailnetLockSubmitRecoveryAUM(aum *tka.AUM) error {
 		ourNodeKey = p.Persist().PublicNodeKey()
 	}
 	if ourNodeKey.IsZero() {
-		return errors.New("no node-key: is tailscale logged in?")
+		return errors.New("no node-key: is lanhc logged in?")
 	}
 
 	b.mu.Unlock()

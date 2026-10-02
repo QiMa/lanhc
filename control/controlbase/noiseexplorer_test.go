@@ -4,7 +4,7 @@
 // https://source.symbolic.software/noiseexplorer/noiseexplorer for
 // more information.
 //
-// This file is used here to verify that Tailscale's implementation of
+// This file is used here to verify that Lanhc's implementation of
 // Noise IK is interoperable with another implementation.
 //lint:file-ignore SA4006 not our code.
 

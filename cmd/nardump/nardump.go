@@ -15,7 +15,7 @@ import (
 	"log"
 	"os"
 
-	"tailscale.com/cmd/nardump/nardump"
+	"lanhc.com/cmd/nardump/nardump"
 )
 
 var sri = flag.Bool("sri", false, "print SRI")

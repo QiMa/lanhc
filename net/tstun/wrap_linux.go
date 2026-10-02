@@ -15,9 +15,9 @@ import (
 	"gvisor.dev/gvisor/pkg/tcpip"
 	"gvisor.dev/gvisor/pkg/tcpip/checksum"
 	"gvisor.dev/gvisor/pkg/tcpip/header"
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/envknob"
-	"tailscale.com/net/tsaddr"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/envknob"
+	"lanhc.com/net/tsaddr"
 )
 
 // SetLinkFeaturesPostUp configures link features on t based on select TS_TUN_
@@ -72,8 +72,8 @@ func (t *Wrapper) ApplyGROKnobs(knobs *controlknobs.Knobs) {
 }
 
 func probeTCPGRO(dev tun.GRODevice) error {
-	ipPort := netip.MustParseAddrPort(tsaddr.TailscaleServiceIPString + ":0")
-	fingerprint := []byte("tailscale-probe-tun-gro")
+	ipPort := netip.MustParseAddrPort(tsaddr.LanhcServiceIPString + ":0")
+	fingerprint := []byte("lanhc-probe-tun-gro")
 	segmentSize := len(fingerprint)
 	iphLen := 20
 	tcphLen := 20

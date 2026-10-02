@@ -22,8 +22,8 @@ import (
 	"sync"
 
 	"golang.org/x/crypto/ssh"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/mak"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/mak"
 )
 
 // keyTypes are the SSH key types that we either try to read from the
@@ -32,13 +32,13 @@ import (
 var keyTypes = []string{"rsa", "ecdsa", "ed25519"}
 
 // getHostKeys returns the SSH host keys, using system keys when running as root
-// and generating Tailscale-specific keys as needed.
+// and generating Lanhc-specific keys as needed.
 func getHostKeys(varRoot string, logf logger.Logf) ([]ssh.Signer, error) {
 	var existing map[string]ssh.Signer
 	if os.Geteuid() == 0 {
 		existing = getSystemHostKeys(logf)
 	}
-	return getTailscaleHostKeys(varRoot, existing)
+	return getLanhcHostKeys(varRoot, existing)
 }
 
 // getHostKeyPublicStrings returns the SSH host key public key strings.
@@ -54,10 +54,10 @@ func getHostKeyPublicStrings(varRoot string, logf logger.Logf) ([]string, error)
 	return keyStrings, nil
 }
 
-// getTailscaleHostKeys returns the three (rsa, ecdsa, ed25519) SSH host
+// getLanhcHostKeys returns the three (rsa, ecdsa, ed25519) SSH host
 // keys, reusing the provided ones in existing if present in the map.
-func getTailscaleHostKeys(varRoot string, existing map[string]ssh.Signer) (keys []ssh.Signer, err error) {
-	var keyDir string // lazily initialized $TAILSCALE_VAR/ssh dir.
+func getLanhcHostKeys(varRoot string, existing map[string]ssh.Signer) (keys []ssh.Signer, err error) {
+	var keyDir string // lazily initialized $LANHC_VAR/ssh dir.
 	for _, typ := range keyTypes {
 		if s, ok := existing[typ]; ok {
 			keys = append(keys, s)

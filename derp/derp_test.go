@@ -18,14 +18,14 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/derp"
-	"tailscale.com/derp/derpserver"
-	"tailscale.com/disco"
-	"tailscale.com/metrics"
-	"tailscale.com/net/memnet"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/must"
+	"lanhc.com/derp"
+	"lanhc.com/derp/derpserver"
+	"lanhc.com/disco"
+	"lanhc.com/metrics"
+	"lanhc.com/net/memnet"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/must"
 )
 
 type (

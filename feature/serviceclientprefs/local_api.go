@@ -8,11 +8,11 @@ import (
 	"errors"
 	"net/http"
 
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/feature/serviceclientprefs/serviceclient"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/localapi"
-	"tailscale.com/util/httpm"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/feature/serviceclientprefs/serviceclient"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/localapi"
+	"lanhc.com/util/httpm"
 )
 
 func init() {

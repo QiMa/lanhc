@@ -1,8 +1,8 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// TSMP is our ICMP-like "Tailscale Message Protocol" for signaling
-// Tailscale-specific messages between nodes. It uses IP protocol 99
+// TSMP is our ICMP-like "Lanhc Message Protocol" for signaling
+// Lanhc-specific messages between nodes. It uses IP protocol 99
 // (reserved for "any private encryption scheme") within
 // WireGuard's normal encryption between peers and never hits the host
 // network stack.
@@ -16,20 +16,20 @@ import (
 	"net/netip"
 
 	"go4.org/mem"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/key"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/key"
 )
 
 const minTSMPSize = 7 // the rejected body is 7 bytes
 
-// TailscaleRejectedHeader is a TSMP message that says that one
-// Tailscale node has rejected the connection from another. Unlike a
+// LanhcRejectedHeader is a TSMP message that says that one
+// Lanhc node has rejected the connection from another. Unlike a
 // TCP RST, this includes a reason.
 //
 // On the wire, after the IP header, it's currently 7 or 8 bytes:
 //   - '!'
 //   - IPProto byte (IANA protocol number: TCP or UDP)
-//   - byte stating rejection reason (see [TailscaleRejectReason] for valid values)
+//   - byte stating rejection reason (see [LanhcRejectReason] for valid values)
 //   - srcPort big endian uint16
 //   - dstPort big endian uint16
 //   - [optional] byte of flag bits:
@@ -37,20 +37,20 @@ const minTSMPSize = 7 // the rejected body is 7 bytes
 //
 // In the future it might also accept 16 byte IP flow src/dst IPs
 // after the header, if they're different than the IP-level ones.
-type TailscaleRejectedHeader struct {
+type LanhcRejectedHeader struct {
 	IPSrc  netip.Addr            // IPv4 or IPv6 header's src IP
 	IPDst  netip.Addr            // IPv4 or IPv6 header's dst IP
 	Src    netip.AddrPort        // rejected flow's src
 	Dst    netip.AddrPort        // rejected flow's dst
 	Proto  ipproto.Proto         // proto that was rejected (TCP or UDP)
-	Reason TailscaleRejectReason // why the connection was rejected
+	Reason LanhcRejectReason // why the connection was rejected
 
 	// MaybeBroken is whether the rejection is non-terminal (the
 	// client should not fail immediately). This is sent by a
 	// target when it's not sure whether it's totally broken, but
-	// it might be. For example, the target tailscaled might think
+	// it might be. For example, the target lanhcd might think
 	// its host firewall or IP forwarding aren't configured
-	// properly, but tailscaled might be wrong (not having enough
+	// properly, but lanhcd might be wrong (not having enough
 	// visibility into what the OS is doing). When true, the
 	// message is simply an FYI as a potential reason to use for
 	// later when the pendopen connection tracking timer expires.
@@ -59,7 +59,7 @@ type TailscaleRejectedHeader struct {
 
 const rejectFlagBitMaybeBroken = 0x1
 
-func (rh TailscaleRejectedHeader) String() string {
+func (rh LanhcRejectedHeader) String() string {
 	return fmt.Sprintf("TSMP-reject-flow{%s %s > %s}: %s", rh.Proto, rh.Src, rh.Dst, rh.Reason)
 }
 
@@ -67,7 +67,7 @@ func (rh TailscaleRejectedHeader) String() string {
 type TSMPType uint8
 
 const (
-	// TSMPTypeRejectedConn is the type byte for a [TailscaleRejectedHeader].
+	// TSMPTypeRejectedConn is the type byte for a [LanhcRejectedHeader].
 	TSMPTypeRejectedConn TSMPType = '!'
 
 	// TSMPTypePing is the type byte for a [TSMPPingRequest].
@@ -80,36 +80,36 @@ const (
 	TSMPTypeDiscoAdvertisement TSMPType = 'a'
 )
 
-type TailscaleRejectReason byte
+type LanhcRejectReason byte
 
 // IsZero reports whether r is the zero value, representing no rejection.
-func (r TailscaleRejectReason) IsZero() bool { return r == TailscaleRejectReasonNone }
+func (r LanhcRejectReason) IsZero() bool { return r == LanhcRejectReasonNone }
 
 const (
-	// TailscaleRejectReasonNone is the TailscaleRejectReason zero value.
-	TailscaleRejectReasonNone TailscaleRejectReason = 0
+	// LanhcRejectReasonNone is the LanhcRejectReason zero value.
+	LanhcRejectReasonNone LanhcRejectReason = 0
 
 	// RejectedDueToACLs means that the host rejected the connection due to ACLs.
-	RejectedDueToACLs TailscaleRejectReason = 'A'
+	RejectedDueToACLs LanhcRejectReason = 'A'
 
 	// RejectedDueToShieldsUp means that the host rejected the connection due to shields being up.
-	RejectedDueToShieldsUp TailscaleRejectReason = 'S'
+	RejectedDueToShieldsUp LanhcRejectReason = 'S'
 
 	// RejectedDueToIPForwarding means that the relay node's IP
 	// forwarding is disabled.
-	RejectedDueToIPForwarding TailscaleRejectReason = 'F'
+	RejectedDueToIPForwarding LanhcRejectReason = 'F'
 
 	// RejectedDueToHostFirewall means that the target host's
 	// firewall is blocking the traffic.
-	RejectedDueToHostFirewall TailscaleRejectReason = 'W'
+	RejectedDueToHostFirewall LanhcRejectReason = 'W'
 
 	// RejectedDueToUnknownAppConnectorTransitIP means that the connector host has no real IP
 	// mapping that matches the provided transit IP for this client, so the
 	// connector has no destination to forward the connection to.
-	RejectedDueToUnknownAppConnectorTransitIP TailscaleRejectReason = 'T'
+	RejectedDueToUnknownAppConnectorTransitIP LanhcRejectReason = 'T'
 )
 
-func (r TailscaleRejectReason) String() string {
+func (r LanhcRejectReason) String() string {
 	switch r {
 	case RejectedDueToACLs:
 		return "acl"
@@ -125,14 +125,14 @@ func (r TailscaleRejectReason) String() string {
 	return fmt.Sprintf("0x%02x", byte(r))
 }
 
-func (h TailscaleRejectedHeader) hasFlags() bool {
+func (h LanhcRejectedHeader) hasFlags() bool {
 	return h.MaybeBroken // the only one currently
 }
 
-func (h TailscaleRejectedHeader) Len() int {
+func (h LanhcRejectedHeader) Len() int {
 	v := 1 + // TSMPType byte
 		1 + // IPProto byte
-		1 + // TailscaleRejectReason byte
+		1 + // LanhcRejectReason byte
 		2*2 // 2 uint16 ports
 	if h.IPSrc.Is4() {
 		v += ip4HeaderLength
@@ -145,7 +145,7 @@ func (h TailscaleRejectedHeader) Len() int {
 	return v
 }
 
-func (h TailscaleRejectedHeader) Marshal(buf []byte) error {
+func (h LanhcRejectedHeader) Marshal(buf []byte) error {
 	if len(buf) < h.Len() {
 		return errSmallBuffer
 	}
@@ -187,18 +187,18 @@ func (h TailscaleRejectedHeader) Marshal(buf []byte) error {
 	return nil
 }
 
-// AsTailscaleRejectedHeader parses pp as an incoming rejection
+// AsLanhcRejectedHeader parses pp as an incoming rejection
 // connection TSMP message.
 //
 // ok reports whether pp was a valid TSMP rejection packet.
-func (pp *Parsed) AsTailscaleRejectedHeader() (h TailscaleRejectedHeader, ok bool) {
+func (pp *Parsed) AsLanhcRejectedHeader() (h LanhcRejectedHeader, ok bool) {
 	p := pp.Payload()
 	if len(p) < 7 || p[0] != byte(TSMPTypeRejectedConn) {
 		return
 	}
-	h = TailscaleRejectedHeader{
+	h = LanhcRejectedHeader{
 		Proto:  ipproto.Proto(p[1]),
-		Reason: TailscaleRejectReason(p[2]),
+		Reason: LanhcRejectReason(p[2]),
 		IPSrc:  pp.Src.Addr(),
 		IPDst:  pp.Dst.Addr(),
 		Src:    netip.AddrPortFrom(pp.Dst.Addr(), binary.BigEndian.Uint16(p[3:5])),

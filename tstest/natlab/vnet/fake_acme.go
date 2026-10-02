@@ -5,7 +5,7 @@ package vnet
 
 // This file implements a minimal fake ACME (RFC 8555) certificate authority
 // used by TestACMECertServeHTTPS in tstest/natlab/vmtest. It exists so that
-// natlab VM tests can exercise `tailscale cert` and `tailscale serve` end to
+// natlab VM tests can exercise `lanhc cert` and `lanhc serve` end to
 // end without reaching out to Let's Encrypt.
 //
 // Only the parts of ACME exercised by that test are implemented: the dns-01
@@ -35,7 +35,7 @@ import (
 	"sync"
 	"time"
 
-	"tailscale.com/util/httpm"
+	"lanhc.com/util/httpm"
 )
 
 // fakeACMEServer is an in-process fake ACME (RFC 8555) CA used by natlab
@@ -134,7 +134,7 @@ func newFakeACMEServer(baseURL string) *fakeACMEServer {
 }
 
 // directoryURL returns the ACME directory URL for s, suitable for setting
-// TS_DEBUG_ACME_DIRECTORY_URL in a tailscaled under test.
+// TS_DEBUG_ACME_DIRECTORY_URL in a lanhcd under test.
 func (s *fakeACMEServer) directoryURL() string {
 	return s.baseURL + "/directory"
 }
@@ -275,7 +275,7 @@ func (s *fakeACMEServer) serveAuthz(w http.ResponseWriter, r *http.Request) {
 // non-empty record satisfies the challenge. That is intentional for these
 // tests but is not how a real ACME server behaves.
 func (s *fakeACMEServer) serveChallenge(w http.ResponseWriter, r *http.Request) {
-	// Keep issuance pending long enough for `tailscale cert` to print the
+	// Keep issuance pending long enough for `lanhc cert` to print the
 	// cert-pending health warning it is watching for.
 	time.Sleep(3 * time.Second)
 

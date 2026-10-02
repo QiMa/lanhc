@@ -1,11 +1,11 @@
 # nginx-auth
 
-[![status: experimental](https://img.shields.io/badge/status-experimental-blue)](https://tailscale.com/kb/1167/release-stages/#experimental)
+[![status: experimental](https://img.shields.io/badge/status-experimental-blue)](https://lanhc.com/kb/1167/release-stages/#experimental)
 
-This is a tool that allows users to use Tailscale Whois authentication with
+This is a tool that allows users to use Lanhc Whois authentication with
 NGINX as a reverse proxy. This allows users that already have a bunch of
 services hosted on an internal NGINX server to point those domains to the
-Tailscale IP of the NGINX server and then seamlessly use Tailscale for
+Lanhc IP of the NGINX server and then seamlessly use Lanhc for
 authentication.
 
 Many thanks to [@zrail](https://twitter.com/zrail/status/1511788463586222087) on
@@ -31,7 +31,7 @@ Create an authentication location with the `internal` flag set:
 location /auth {
   internal;
 
-  proxy_pass http://unix:/run/tailscale.nginx-auth.sock;
+  proxy_pass http://unix:/run/lanhc.nginx-auth.sock;
   proxy_pass_request_body off;
 
   proxy_set_header Host $http_host;
@@ -45,11 +45,11 @@ Then add the following to the `location /` block:
 
 ```
 auth_request /auth;
-auth_request_set $auth_user $upstream_http_tailscale_user;
-auth_request_set $auth_name $upstream_http_tailscale_name;
-auth_request_set $auth_login $upstream_http_tailscale_login;
-auth_request_set $auth_tailnet $upstream_http_tailscale_tailnet;
-auth_request_set $auth_profile_picture $upstream_http_tailscale_profile_picture;
+auth_request_set $auth_user $upstream_http_lanhc_user;
+auth_request_set $auth_name $upstream_http_lanhc_name;
+auth_request_set $auth_login $upstream_http_lanhc_login;
+auth_request_set $auth_tailnet $upstream_http_lanhc_tailnet;
+auth_request_set $auth_profile_picture $upstream_http_lanhc_profile_picture;
 
 proxy_set_header X-Webauth-User "$auth_user";
 proxy_set_header X-Webauth-Name "$auth_name";
@@ -106,18 +106,18 @@ proxied requests:
 
 | Header                      | Example Value                                                      | Description                                                                   |
 | :------                     | :--------------                                                    | :----------                                                                   |
-| `Tailscale-User`            | `azurediamond@hunter2.net`                                         | The Tailscale username the remote machine is logged in as in user@host form   |
-| `Tailscale-Login`           | `azurediamond`                                                     | The user portion of the Tailscale username the remote machine is logged in as |
-| `Tailscale-Name`            | `Azure Diamond`                                                    | The "real name" of the Tailscale user the machine is logged in as             |
-| `Tailscale-Profile-Picture` | `https://i.kym-cdn.com/photos/images/newsfeed/001/065/963/ae0.png` | The profile picture provided by the Identity Provider your tailnet uses       |
-| `Tailscale-Tailnet`          | `hunter2.net`                                       | The tailnet name                                                              |
+| `Lanhc-User`            | `azurediamond@hunter2.net`                                         | The Lanhc username the remote machine is logged in as in user@host form   |
+| `Lanhc-Login`           | `azurediamond`                                                     | The user portion of the Lanhc username the remote machine is logged in as |
+| `Lanhc-Name`            | `Azure Diamond`                                                    | The "real name" of the Lanhc user the machine is logged in as             |
+| `Lanhc-Profile-Picture` | `https://i.kym-cdn.com/photos/images/newsfeed/001/065/963/ae0.png` | The profile picture provided by the Identity Provider your tailnet uses       |
+| `Lanhc-Tailnet`          | `hunter2.net`                                       | The tailnet name                                                              |
 
 Most of the time you can set `X-Webauth-User` to the contents of the
-`Tailscale-User` header, but some services may not accept a username with an `@`
-symbol in it. If this is the case, set `X-Webauth-User` to the `Tailscale-Login`
+`Lanhc-User` header, but some services may not accept a username with an `@`
+symbol in it. If this is the case, set `X-Webauth-User` to the `Lanhc-Login`
 header.
 
-The `Tailscale-Tailnet` header can help you identify which tailnet the session
+The `Lanhc-Tailnet` header can help you identify which tailnet the session
 is coming from. If you are using node sharing, this can help you make sure that
 you aren't giving administrative access to people outside your tailnet.
 
@@ -146,7 +146,7 @@ generic "forbidden" error page:
 </html>
 ```
 
-You can get the tailnet name from [the admin panel](https://login.tailscale.com/admin/dns).
+You can get the tailnet name from [the admin panel](https://login.lanhc.com/admin/dns).
 
 ## Building
 

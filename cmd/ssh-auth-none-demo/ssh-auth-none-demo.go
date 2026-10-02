@@ -3,9 +3,9 @@
 
 // ssh-auth-none-demo is a demo SSH server that's meant to run on the
 // public internet (at 188.166.70.128 port 2222) and
-// highlight the unique parts of the Tailscale SSH server so SSH
+// highlight the unique parts of the Lanhc SSH server so SSH
 // client authors can hit it easily and fix their SSH clients without
-// needing to set up Tailscale and Tailscale SSH.
+// needing to set up Lanhc and Lanhc SSH.
 //
 // Connections are allowed using any username except for "denyme". Connecting as
 // "denyme" will result in an authentication failure with error message.
@@ -62,7 +62,7 @@ func main() {
 
 	srv := &gliderssh.Server{
 		Addr:    *addr,
-		Version: "Tailscale",
+		Version: "Lanhc",
 		Handler: handleSessionPostSSHAuth,
 		ServerConfigCallback: func(ctx gliderssh.Context) *ssh.ServerConfig {
 			start := time.Now()
@@ -99,7 +99,7 @@ func main() {
 				},
 				BannerCallback: func(cm ssh.ConnMetadata) string {
 					log.Printf("Got connection from user %q, %q from %v", cm.User(), cm.ClientVersion(), cm.RemoteAddr())
-					return fmt.Sprintf("# Example URL in auth bannner for %q, %q: https://github.com/tailscale/tailscale\r\n", cm.User(), cm.ClientVersion())
+					return fmt.Sprintf("# Example URL in auth bannner for %q, %q: https://github.com/lanhc/lanhc\r\n", cm.User(), cm.ClientVersion())
 				},
 			}
 		},

@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-//go:build tailscale_go && (darwin || ios || android || ts_enable_sockstats)
+//go:build lanhc_go && (darwin || ios || android || ts_enable_sockstats)
 
 package sockstats
 
@@ -14,11 +14,11 @@ import (
 	"syscall"
 	"time"
 
-	"tailscale.com/net/netmon"
-	"tailscale.com/syncs"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/version"
+	"lanhc.com/net/netmon"
+	"lanhc.com/syncs"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/version"
 )
 
 const IsAvailable = true
@@ -159,7 +159,7 @@ func withSockStats(ctx context.Context, label Label, logf logger.Logf) context.C
 	willOverwrite := func(trace *net.SockTrace) {
 		if version.IsUnstableBuild() {
 			// Only spam about this in dev builds.
-			// See https://github.com/tailscale/tailscale/issues/13731 for known problems.
+			// See https://github.com/lanhc/lanhc/issues/13731 for known problems.
 			logf("sockstats: trace %q was overwritten by another", label)
 		}
 	}

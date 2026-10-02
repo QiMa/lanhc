@@ -22,24 +22,24 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	"tailscale.com/client/tailscale/v2"
+	lanhcclient "tailscale.com/client/tailscale/v2"
 
-	tsoperator "tailscale.com/k8s-operator"
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/k8s-operator/tsclient"
-	"tailscale.com/tstest"
+	tsoperator "lanhc.com/k8s-operator"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/k8s-operator/tsclient"
+	"lanhc.com/tstest"
 )
 
 const (
-	tsNamespace   = "tailscale"
-	tsLoginServer = "example.tailscale.com"
+	tsNamespace   = "lanhc"
+	tsLoginServer = "example.lanhc.com"
 )
 
 func TestRecorder(t *testing.T) {
 	tsr := &tsapi.Recorder{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:       "test",
-			Finalizers: []string{"tailscale.com/finalizer"},
+			Finalizers: []string{"lanhc.com/finalizer"},
 		},
 		Spec: tsapi.RecorderSpec{
 			Replicas: new(int32(3)),
@@ -135,7 +135,7 @@ func TestRecorder(t *testing.T) {
 
 		expectReconciled(t, reconciler, "", tsr.Name)
 
-		msg := `Recorder is invalid: custom ServiceAccount name "pre-existing-sa" specified but conflicts with a pre-existing ServiceAccount in the tailscale namespace`
+		msg := `Recorder is invalid: custom ServiceAccount name "pre-existing-sa" specified but conflicts with a pre-existing ServiceAccount in the lanhc namespace`
 		tsoperator.SetRecorderCondition(tsr, tsapi.RecorderReady, metav1.ConditionFalse, reasonRecorderInvalid, msg, 0, cl, zl.Sugar())
 		expectEqual(t, fc, tsr)
 		if expected := 0; reconciler.recorders.Len() != expected {
@@ -222,7 +222,7 @@ func TestRecorder(t *testing.T) {
 			})
 		}
 
-		tsClient.devices = []tailscale.Device{
+		tsClient.devices = []lanhcclient.Device{
 			{
 				ID:        "node-0",
 				Hostname:  "hostname-node-0",

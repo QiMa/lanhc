@@ -17,8 +17,8 @@ import (
 
 	gliderssh "github.com/tailscale/gliderssh"
 	"golang.org/x/sys/unix"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
 )
 
 // fakeSession is a minimal gliderssh.Session for exercising the incubator
@@ -50,9 +50,9 @@ func newTestSession(t *testing.T, acceptEnv []string, clientEnviron []string) *s
 			sshEnabled: true,
 			caps:       []tailcfg.NodeCapability{tailcfg.NodeAttrSSHEnvironmentVariables},
 		},
-		// tailscaledPath must be non-empty to take the incubator (be-child)
+		// lanhcdPath must be non-empty to take the incubator (be-child)
 		// path rather than the direct-exec fallback.
-		tailscaledPath: "/usr/sbin/tailscaled",
+		lanhcdPath: "/usr/sbin/lanhcd",
 	}
 	c := &conn{
 		srv:       srv,
@@ -225,7 +225,7 @@ func TestParseIncubatorArgsEnvFD(t *testing.T) {
 }
 
 // TestLoadForwardedEnvLegacyEncodedEnv covers the deprecated --encoded-env
-// compatibility path: an outdated parent tailscaled passes the accepted
+// compatibility path: an outdated parent lanhcd passes the accepted
 // environment as a quoted JSON argv flag, and the child must still decode it
 // into the user's environment and the "su -w" allowlist.
 func TestLoadForwardedEnvLegacyEncodedEnv(t *testing.T) {

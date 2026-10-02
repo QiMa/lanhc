@@ -7,9 +7,9 @@
 package lanhc
 
 // Isolated is false in upstream builds. In this mode the client keeps its
-// historical behaviour, including any official Tailscale endpoints that were
+// historical behaviour, including any official Lanhc endpoints that were
 // not injected at link time.
 const Isolated = false
 
 // OfficialAdminPageURL is the upstream admin page URL.
-func OfficialAdminPageURL() string { return "https://login.tailscale.com/admin" }
+func OfficialAdminPageURL() string { return "https://login.lanhc.com/admin" }

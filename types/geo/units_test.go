@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"tailscale.com/types/geo"
+	"lanhc.com/types/geo"
 )
 
 func TestDegrees(t *testing.T) {

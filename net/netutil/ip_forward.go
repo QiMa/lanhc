@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"strings"
 
-	"tailscale.com/net/netmon"
+	"lanhc.com/net/netmon"
 )
 
 // protocolsRequiredForForwarding reports whether IPv4 and/or IPv6 protocols are
@@ -53,7 +53,7 @@ func protocolsRequiredForForwarding(routes []netip.Prefix, state *netmon.State) 
 // for subnet routing and exit node functionality on any interface.
 // The state param must not be nil.
 // The routes should only be advertised routes, and should not contain the
-// nodes Tailscale IPs.
+// nodes Lanhc IPs.
 // It returns an error if it is unable to determine if IP forwarding is enabled.
 // It returns a warning describing configuration issues if IP forwarding is
 // non-functional or partly functional.
@@ -73,7 +73,7 @@ func CheckIPForwarding(routes []netip.Prefix, state *netmon.State) (warn, err er
 	if state == nil {
 		return nil, fmt.Errorf("Couldn't check system's IP forwarding configuration; no link state")
 	}
-	const kbLink = "\nSee https://tailscale.com/s/ip-forwarding"
+	const kbLink = "\nSee https://lanhc.com/s/ip-forwarding"
 	wantV4, wantV6 := protocolsRequiredForForwarding(routes, state)
 	if !wantV4 && !wantV6 {
 		return nil, nil
@@ -227,7 +227,7 @@ func ipForwardingEnabledLinux(p protocol, iface string) (bool, error) {
 		return false, fmt.Errorf("couldn't parse %s: %w", k, err)
 	}
 	// 0 = disabled, 1 = enabled, 2 = enabled (but uncommon)
-	// https://github.com/tailscale/tailscale/issues/8375
+	// https://github.com/lanhc/lanhc/issues/8375
 	if val < 0 || val > 2 {
 		return false, fmt.Errorf("unexpected value %d for %s", val, k)
 	}

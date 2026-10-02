@@ -5,7 +5,7 @@ import paths from "vite-tsconfig-paths"
 
 // Use a custom logger that filters out Vite's logging of server URLs, since
 // they are an attractive nuisance (we run a proxy in front of Vite, and the
-// tailscale web client should be accessed through that).
+// lanhc web client should be accessed through that).
 // Unfortunately there's no option to disable this logging, so the best we can
 // do it to ignore calls from a specific function.
 const filteringLogger = createLogger(undefined, { allowClearScreen: false })

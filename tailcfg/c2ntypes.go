@@ -41,7 +41,7 @@ type C2NSSHUsernamesResponse struct {
 
 // C2NUpdateResponse is the response (from node to control) from the /update
 // handler. It tells control the status of its request for the node to update
-// its Tailscale installation.
+// its Lanhc installation.
 type C2NUpdateResponse struct {
 	// Err is the error message, if any.
 	Err string `json:",omitempty"`

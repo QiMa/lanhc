@@ -1,0 +1,23 @@
+[Unit]
+Description=Lanhc node agent
+Documentation=https://lanhc.com/docs/
+Wants=network-pre.target
+After=network-pre.target NetworkManager.service systemd-resolved.service
+
+[Service]
+EnvironmentFile=/etc/default/lanhcd
+ExecStart=/usr/sbin/lanhcd --state=/var/lib/lanhc/lanhcd.state --socket=/run/lanhc/lanhcd.sock --port=${PORT} $FLAGS
+ExecStopPost=/usr/sbin/lanhcd --cleanup
+
+Restart=on-failure
+
+RuntimeDirectory=lanhc
+RuntimeDirectoryMode=0755
+StateDirectory=lanhc
+StateDirectoryMode=0700
+CacheDirectory=lanhc
+CacheDirectoryMode=0750
+Type=notify
+
+[Install]
+WantedBy=multi-user.target

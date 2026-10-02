@@ -2,28 +2,28 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 apiVersion: v2
-name: tailscale-operator
-description: A Helm chart for Tailscale Kubernetes operator
-home: https://github.com/tailscale/tailscale
+name: lanhc-operator
+description: A Helm chart for Lanhc Kubernetes operator
+home: https://github.com/lanhc/lanhc
 
 keywords:
-  - "tailscale"
+  - "lanhc"
   - "vpn"
   - "ingress"
   - "egress"
   - "wireguard"
 
 sources:
-- https://github.com/tailscale/tailscale
+- https://github.com/lanhc/lanhc
 
 type: application
 
 maintainers:
-  - name: tailscale-maintainers
-    url: https://tailscale.com/
+  - name: lanhc-maintainers
+    url: https://lanhc.com/
 
-# version will be set to Tailscale repo tag (without 'v') at release time.
+# version will be set to Lanhc repo tag (without 'v') at release time.
 version: 0.1.0
 
-# appVersion will be set to Tailscale repo tag at release time.
+# appVersion will be set to Lanhc repo tag at release time.
 appVersion: "stable"

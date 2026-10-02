@@ -12,17 +12,17 @@ import (
 	"time"
 
 	"github.com/creachadair/mds/shell"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstest"
-	"tailscale.com/tstest/natlab/vmtest"
-	"tailscale.com/tstest/natlab/vnet"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstest"
+	"lanhc.com/tstest/natlab/vmtest"
+	"lanhc.com/tstest/natlab/vnet"
 )
 
-// TestTailscaleSSH_Ubuntu exercises the Tailscale SSH server ("tailscale up
+// TestLanhcSSH_Ubuntu exercises the Lanhc SSH server ("lanhc up
 // --ssh", not a system sshd) on an Ubuntu node, with an Ubuntu node as the SSH
 // client. It tests logging in as both root and a non-root user, which
 // exercises the incubator's su-based login path.
-func TestTailscaleSSH_Ubuntu(t *testing.T) {
+func TestLanhcSSH_Ubuntu(t *testing.T) {
 	testSuite := newTestSuite(t, "ubuntu", vmtest.Ubuntu2404)
 
 	ubuntu := testSuite.server
@@ -43,11 +43,11 @@ func TestTailscaleSSH_Ubuntu(t *testing.T) {
 	testSuite.checkAutogroupNonroot(t, "ubuntu")
 }
 
-// TestTailscaleSSH_FreeBSD exercises the Tailscale SSH server ("tailscale up
+// TestLanhcSSH_FreeBSD exercises the Lanhc SSH server ("lanhc up
 // --ssh", not a system sshd) on a FreeBSD node, with an Ubuntu node as the SSH
 // client. It tests logging in as both root and a non-root user, which
 // exercises the incubator's su-based login path.
-func TestTailscaleSSH_FreeBSD(t *testing.T) {
+func TestLanhcSSH_FreeBSD(t *testing.T) {
 	testSuite := newTestSuite(t, "freebsd", vmtest.FreeBSD150)
 
 	freebsd := testSuite.server
@@ -68,14 +68,14 @@ func TestTailscaleSSH_FreeBSD(t *testing.T) {
 	testSuite.checkAutogroupNonroot(t, "freebsd")
 }
 
-// TestTailscaleSSH_Gokrazy exercises the gokrazy-specific cases in the
-// Tailscale SSH server ("tailscale up --ssh", not a system sshd), with an
+// TestLanhcSSH_Gokrazy exercises the gokrazy-specific cases in the
+// Lanhc SSH server ("lanhc up --ssh", not a system sshd), with an
 // Ubuntu node as the SSH client. util/osuser hard-codes the login shell to
 // /tmp/serial-busybox/ash and falls back to a synthesized root user (uid 0,
 // home dir "/") when user lookup fails, since gokrazy has no user database;
 // and the incubator's findSU refuses to use su on gokrazy, so sessions are
 // handled in-process.
-func TestTailscaleSSH_Gokrazy(t *testing.T) {
+func TestLanhcSSH_Gokrazy(t *testing.T) {
 	testSuite := newTestSuite(t, "gokrazy", vmtest.Gokrazy)
 
 	testSuite.waitSSH(t, "gokrazy", "root")
@@ -88,12 +88,12 @@ func TestTailscaleSSH_Gokrazy(t *testing.T) {
 	testSuite.check(t, "gokrazy nonexistent user maps to root", "nosuchuser", "pwd", "/")
 }
 
-// ssh runs cmd as user on the node at ip over Tailscale SSH, from the
+// ssh runs cmd as user on the node at ip over Lanhc SSH, from the
 // client node, returning the combined output and the ssh client's exit
 // code. The command run via Env.SSHExec always exits 0 so that its
 // transport-error (exit 255) retry loop doesn't kick in when a
-// Tailscale SSH connection is expected to fail.
-const exitMarker = "tailscale-ssh-exit="
+// Lanhc SSH connection is expected to fail.
+const exitMarker = "lanhc-ssh-exit="
 
 type sshTest struct {
 	client   *vmtest.Node
@@ -130,8 +130,8 @@ func (st *sshTest) ssh(t *testing.T, user string, cmd string) (string, int) {
 	return strings.TrimSpace(out[:i]), code
 }
 
-// waitSSH waits for the node's Tailscale SSH server to accept a
-// connection; the first one can race tailscaled's SSH server startup
+// waitSSH waits for the node's Lanhc SSH server to accept a
+// connection; the first one can race lanhcd's SSH server startup
 // and WireGuard path setup.
 func (st *sshTest) waitSSH(t *testing.T, name, user string) {
 	t.Helper()
@@ -139,11 +139,11 @@ func (st *sshTest) waitSSH(t *testing.T, name, user string) {
 	for {
 		out, code := st.ssh(t, user, "echo ok")
 		if code == 0 && strings.Contains(out, "ok") {
-			t.Logf("[%s] Tailscale SSH up as %s@%s", name, user, st.serverIP)
+			t.Logf("[%s] Lanhc SSH up as %s@%s", name, user, st.serverIP)
 			return
 		}
 		if time.Now().After(deadline) {
-			t.Fatalf("[%s] Tailscale SSH as %s@%s never came up; last output (exit %d):\n%s", name, user, st.serverIP, code, out)
+			t.Fatalf("[%s] Lanhc SSH as %s@%s never came up; last output (exit %d):\n%s", name, user, st.serverIP, code, out)
 		}
 		time.Sleep(2 * time.Second)
 	}
@@ -195,10 +195,10 @@ func newTestSuite(t *testing.T, serverName string, serverOS vmtest.OSImage) *ssh
 	t.Helper()
 	env := vmtest.New(t)
 	client := sshTestNode(env, "client", vmtest.Ubuntu2404)
-	server := sshTestNode(env, serverName, serverOS, vmtest.TailscaleSSH())
+	server := sshTestNode(env, serverName, serverOS, vmtest.LanhcSSH())
 	env.Start()
 
-	serverIP := tailscaleIP4(t, env, server)
+	serverIP := lanhcIP4(t, env, server)
 
 	return &sshTest{
 		client:   client,
@@ -221,15 +221,15 @@ func sshTestNode(env *vmtest.Env, name string, img vmtest.OSImage, opts ...any) 
 	return env.AddNode(name, opts...)
 }
 
-// tailscaleIP4 returns the node's IPv4 Tailscale address.
-func tailscaleIP4(t *testing.T, env *vmtest.Env, n *vmtest.Node) netip.Addr {
+// lanhcIP4 returns the node's IPv4 Lanhc address.
+func lanhcIP4(t *testing.T, env *vmtest.Env, n *vmtest.Node) netip.Addr {
 	t.Helper()
 	st := env.Status(n)
-	for _, ip := range st.Self.TailscaleIPs {
+	for _, ip := range st.Self.LanhcIPs {
 		if ip.Is4() {
 			return ip
 		}
 	}
-	t.Fatalf("no IPv4 Tailscale address for %s; have %v", n.Name(), st.Self.TailscaleIPs)
+	t.Fatalf("no IPv4 Lanhc address for %s; have %v", n.Name(), st.Self.LanhcIPs)
 	panic("unreachable")
 }

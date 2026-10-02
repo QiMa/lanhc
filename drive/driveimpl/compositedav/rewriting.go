@@ -11,7 +11,7 @@ import (
 	"regexp"
 	"strings"
 
-	"tailscale.com/drive/driveimpl/shared"
+	"lanhc.com/drive/driveimpl/shared"
 )
 
 var (

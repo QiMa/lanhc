@@ -13,17 +13,17 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsnet"
-	"tailscale.com/tstest"
-	"tailscale.com/tstest/integration"
-	"tailscale.com/tstest/integration/testcontrol"
-	"tailscale.com/tstest/largetailnet"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/wgengine/filter"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsnet"
+	"lanhc.com/tstest"
+	"lanhc.com/tstest/integration"
+	"lanhc.com/tstest/integration/testcontrol"
+	"lanhc.com/tstest/largetailnet"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/wgengine/filter"
 )
 
 // metricByName returns the [clientmetric.Metric] with the given name,

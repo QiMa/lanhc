@@ -12,16 +12,16 @@ import (
 	"time"
 
 	"golang.org/x/net/dns/dnsmessage"
-	"tailscale.com/metrics"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/appctype"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/nettype"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/mak"
+	"lanhc.com/metrics"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/appctype"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/nettype"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/mak"
 )
 
-var tsMBox = dnsmessage.MustNewName("support.tailscale.com.")
+var tsMBox = dnsmessage.MustNewName("support.lanhc.com.")
 
 // target describes the predicates which route some inbound
 // traffic to the app connector to a specific handler.

@@ -23,7 +23,7 @@ package tsnet
 //     [LocalBackend.UpdateNetmapDelta] where these regressions
 //     actually surface.
 //
-//   - [tstest/integration] does drive a real tailscaled but its harness
+//   - [tstest/integration] does drive a real lanhcd but its harness
 //     is heavier (forking the binary, no [testcontrol.Server.AddRawMapResponse]
 //     hook), and we want the precision of synthetic delta injection.
 //
@@ -38,14 +38,14 @@ import (
 	"testing"
 	"time"
 
-	"tailscale.com/tailcfg"
-	"tailscale.com/tka"
-	"tailscale.com/tstest"
-	"tailscale.com/tstest/integration/testcontrol"
-	"tailscale.com/types/key"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/tkatype"
-	"tailscale.com/util/must"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tka"
+	"lanhc.com/tstest"
+	"lanhc.com/tstest/integration/testcontrol"
+	"lanhc.com/types/key"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/tkatype"
+	"lanhc.com/util/must"
 )
 
 // setupTailnetLockedServer brings up a tsnet [Server] under a testcontrol
@@ -234,7 +234,7 @@ func injectPeersChangedAndAssertFiltered(t *testing.T, ctx context.Context, s *S
 // [tailcfg.Node.KeySignature].
 //
 // Updates #12542
-// Updates tailscale/corp#43767
+// Updates lanhc/corp#43767
 func TestTailnetLockFiltersUnsignedDeltaPeer(t *testing.T) {
 	tstest.ResourceCheck(t)
 	ctx, cancel := context.WithTimeout(t.Context(), 120*time.Second)
@@ -287,7 +287,7 @@ func TestTailnetLockFiltersUnsignedDeltaPeer(t *testing.T) {
 // here applied to a swap-in of an unsigned replacement.
 //
 // Updates #12542
-// Updates tailscale/corp#43767
+// Updates lanhc/corp#43767
 func TestTailnetLockFiltersUnsignedDeltaPeerReplacement(t *testing.T) {
 	tstest.ResourceCheck(t)
 	ctx, cancel := context.WithTimeout(t.Context(), 120*time.Second)
@@ -365,7 +365,7 @@ func TestTailnetLockFiltersUnsignedDeltaPeerReplacement(t *testing.T) {
 // the local trust state doesn't accept.
 //
 // Updates #12542
-// Updates tailscale/corp#43767
+// Updates lanhc/corp#43767
 func TestTailnetLockFiltersDeltaPeerWithInvalidSignature(t *testing.T) {
 	tstest.ResourceCheck(t)
 	ctx, cancel := context.WithTimeout(t.Context(), 120*time.Second)

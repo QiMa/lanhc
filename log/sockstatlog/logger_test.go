@@ -8,10 +8,10 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"tailscale.com/net/sockstats"
-	"tailscale.com/tstest"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/logid"
+	"lanhc.com/net/sockstats"
+	"lanhc.com/tstest"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/logid"
 )
 
 func TestResourceCleanup(t *testing.T) {

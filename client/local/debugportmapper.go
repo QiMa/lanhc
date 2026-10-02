@@ -16,7 +16,7 @@ import (
 	"strconv"
 	"time"
 
-	"tailscale.com/client/tailscale/apitype"
+	"lanhc.com/client/lanhc/apitype"
 )
 
 // DebugPortmapOpts contains options for the [Client.DebugPortmap] command.

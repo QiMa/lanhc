@@ -21,30 +21,30 @@ var DNSConfigKind = "DNSConfig"
 // +kubebuilder:printcolumn:name="NameserverIP",type="string",JSONPath=`.status.nameserver.ip`,description="Service IP address of the nameserver"
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
-// DNSConfig can be deployed to cluster to make a subset of Tailscale MagicDNS
+// DNSConfig can be deployed to cluster to make a subset of Lanhc MagicDNS
 // names resolvable by cluster workloads. Use this if: A) you need to refer to
-// tailnet services, exposed to cluster via Tailscale Kubernetes operator egress
+// tailnet services, exposed to cluster via Lanhc Kubernetes operator egress
 // proxies by the MagicDNS names of those tailnet services (usually because the
 // services run over HTTPS)
-// B) you have exposed a cluster workload to the tailnet using Tailscale Ingress
+// B) you have exposed a cluster workload to the tailnet using Lanhc Ingress
 // and you also want to refer to the workload from within the cluster over the
 // Ingress's MagicDNS name (usually because you have some callback component
 // that needs to use the same URL as that used by a non-cluster client on
 // tailnet).
-// When a DNSConfig is applied to a cluster, Tailscale Kubernetes operator will
+// When a DNSConfig is applied to a cluster, Lanhc Kubernetes operator will
 // deploy a nameserver for ts.net DNS names and automatically populate it with records
-// for any Tailscale egress or Ingress proxies deployed to that cluster.
+// for any Lanhc egress or Ingress proxies deployed to that cluster.
 // Currently you must manually update your cluster DNS configuration to add the
 // IP address of the deployed nameserver as a ts.net stub nameserver.
 // Instructions for how to do it:
 // https://kubernetes.io/docs/tasks/administer-cluster/dns-custom-nameservers/#configuration-of-stub-domain-and-upstream-nameserver-using-coredns (for CoreDNS),
 // https://cloud.google.com/kubernetes-engine/docs/how-to/kube-dns (for kube-dns).
-// Tailscale Kubernetes operator will write the address of a Service fronting
+// Lanhc Kubernetes operator will write the address of a Service fronting
 // the nameserver to dsnconfig.status.nameserver.ip.
 // DNSConfig is a singleton - you must not create more than one.
-// NB: if you want cluster workloads to be able to refer to Tailscale Ingress
+// NB: if you want cluster workloads to be able to refer to Lanhc Ingress
 // using its MagicDNS name, you must also annotate the Ingress resource with
-// tailscale.com/experimental-forward-cluster-traffic-via-ingress annotation to
+// lanhc.com/experimental-forward-cluster-traffic-via-ingress annotation to
 // ensure that the proxy created for the Ingress listens on its Pod IP address.
 type DNSConfig struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -56,7 +56,7 @@ type DNSConfig struct {
 	Spec DNSConfigSpec `json:"spec"`
 
 	// Status describes the status of the DNSConfig. This is set
-	// and managed by the Tailscale operator.
+	// and managed by the Lanhc operator.
 	// +optional
 	Status DNSConfigStatus `json:"status"`
 }
@@ -72,14 +72,14 @@ type DNSConfigList struct {
 
 type DNSConfigSpec struct {
 	// Configuration for a nameserver that can resolve ts.net DNS names
-	// associated with in-cluster proxies for Tailscale egress Services and
-	// Tailscale Ingresses. The operator will always deploy this nameserver
+	// associated with in-cluster proxies for Lanhc egress Services and
+	// Lanhc Ingresses. The operator will always deploy this nameserver
 	// when a DNSConfig is applied.
 	Nameserver *Nameserver `json:"nameserver"`
 }
 
 type Nameserver struct {
-	// Nameserver image. Defaults to tailscale/k8s-nameserver:unstable.
+	// Nameserver image. Defaults to lanhc/k8s-nameserver:unstable.
 	// +optional
 	Image *NameserverImage `json:"image,omitempty"`
 	// Service configuration.
@@ -95,7 +95,7 @@ type Nameserver struct {
 }
 
 type NameserverImage struct {
-	// Repo defaults to tailscale/k8s-nameserver.
+	// Repo defaults to lanhc/k8s-nameserver.
 	// +optional
 	Repo string `json:"repo,omitempty"`
 	// Tag defaults to unstable.

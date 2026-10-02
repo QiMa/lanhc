@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package tlstest contains code to help test Tailscale's TLS support without
+// Package tlstest contains code to help test Lanhc's TLS support without
 // depending on real WebPKI roots or certificates during tests.
 package tlstest
 
@@ -70,8 +70,8 @@ var testRootCAOncer = sync.OnceValue(func() []byte {
 	tpl := &x509.Certificate{
 		SerialNumber: big.NewInt(1),
 		Subject: pkix.Name{
-			CommonName:   "Tailscale Unit Test ECDSA Root",
-			Organization: []string{"Tailscale Test Org"},
+			CommonName:   "Lanhc Unit Test ECDSA Root",
+			Organization: []string{"Lanhc Test Org"},
 		},
 		NotBefore: now,
 		NotAfter:  now.AddDate(5, 0, 0),

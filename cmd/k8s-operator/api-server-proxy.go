@@ -10,7 +10,7 @@ import (
 	"log"
 	"os"
 
-	"tailscale.com/kube/kubetypes"
+	"lanhc.com/kube/kubetypes"
 )
 
 func parseAPIProxyMode() *kubetypes.APIServerProxyMode {

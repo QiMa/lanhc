@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package services manages graceful shutdown of Tailscale Services advertised
+// Package services manages graceful shutdown of Lanhc Services advertised
 // by Kubernetes clients.
 package services
 
@@ -10,10 +10,10 @@ import (
 	"fmt"
 	"time"
 
-	"tailscale.com/client/local"
-	"tailscale.com/ipn"
-	"tailscale.com/kube/localclient"
-	"tailscale.com/types/logger"
+	"lanhc.com/client/local"
+	"lanhc.com/ipn"
+	"lanhc.com/kube/localclient"
+	"lanhc.com/types/logger"
 )
 
 // EnsureServicesAdvertised is a function that gets called on containerboot
@@ -41,7 +41,7 @@ func EnsureServicesAdvertised(ctx context.Context, services []string, lc localcl
 	// primary no matter how long we wait. We would need a mechanism to await
 	// netmap updates for peers to know for sure.
 	//
-	// See https://tailscale.com/kb/1115/high-availability for more details.
+	// See https://lanhc.com/kb/1115/high-availability for more details.
 	// TODO(tomhjp): Wait for a netmap update instead of sleeping when control
 	// supports that.
 	select {
@@ -88,7 +88,7 @@ func EnsureServicesNotAdvertised(ctx context.Context, lc *local.Client, logf log
 	// primary no matter how long we wait. We would need a mechanism to await
 	// netmap updates for peers to know for sure.
 	//
-	// See https://tailscale.com/kb/1115/high-availability for more details.
+	// See https://lanhc.com/kb/1115/high-availability for more details.
 	// TODO(tomhjp): Wait for a netmap update instead of sleeping when control
 	// supports that.
 	select {

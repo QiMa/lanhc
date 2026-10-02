@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package hostinfo answers questions about the host environment that Tailscale is
+// Package hostinfo answers questions about the host environment that Lanhc is
 // running on.
 package hostinfo
 
@@ -19,15 +19,15 @@ import (
 	"time"
 
 	"go4.org/mem"
-	"tailscale.com/envknob"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/lazy"
-	"tailscale.com/types/opt"
-	"tailscale.com/util/cloudenv"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/lineiter"
-	"tailscale.com/version"
-	"tailscale.com/version/distro"
+	"lanhc.com/envknob"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/lazy"
+	"lanhc.com/types/opt"
+	"lanhc.com/util/cloudenv"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/lineiter"
+	"lanhc.com/version"
+	"lanhc.com/version/distro"
 )
 
 var started = time.Now()
@@ -435,15 +435,15 @@ type etcAptSrcResult struct {
 var etcAptSrcCache atomic.Value // of etcAptSrcResult
 
 // DisabledEtcAptSource reports whether Ubuntu (or similar) has disabled
-// the /etc/apt/sources.list.d/tailscale.list file contents upon upgrade
+// the /etc/apt/sources.list.d/lanhc.list file contents upon upgrade
 // to a new release of the distro.
 //
-// See https://github.com/tailscale/tailscale/issues/3177
+// See https://github.com/lanhc/lanhc/issues/3177
 func DisabledEtcAptSource() bool {
 	if runtime.GOOS != "linux" {
 		return false
 	}
-	const path = "/etc/apt/sources.list.d/tailscale.list"
+	const path = "/etc/apt/sources.list.d/lanhc.list"
 	fi, err := os.Stat(path)
 	if err != nil || !fi.Mode().IsRegular() {
 		return false
@@ -492,7 +492,7 @@ func IsSELinuxEnforcing() bool {
 func IsNATLabGuestVM() bool {
 	if runtime.GOOS == "linux" && distro.Get() == distro.Gokrazy {
 		cmdLine, _ := os.ReadFile("/proc/cmdline")
-		return bytes.Contains(cmdLine, []byte("tailscale-tta=1"))
+		return bytes.Contains(cmdLine, []byte("lanhc-tta=1"))
 	}
 	return false
 }

@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// The web-client command demonstrates serving the Tailscale web client over tsnet.
+// The web-client command demonstrates serving the Lanhc web client over tsnet.
 package main
 
 import (
@@ -9,12 +9,12 @@ import (
 	"log"
 	"net/http"
 
-	"tailscale.com/client/web"
-	"tailscale.com/tsnet"
+	"lanhc.com/client/web"
+	"lanhc.com/tsnet"
 )
 
 var (
-	addr = flag.String("addr", "localhost:8060", "address of Tailscale web client")
+	addr = flag.String("addr", "localhost:8060", "address of Lanhc web client")
 )
 
 func main() {
@@ -28,7 +28,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Serve the Tailscale web client.
+	// Serve the Lanhc web client.
 	ws, err := web.NewServer(web.ServerOpts{
 		Mode:        web.LoginServerMode,
 		LocalClient: lc,
@@ -37,7 +37,7 @@ func main() {
 		log.Fatal(err)
 	}
 	defer ws.Shutdown()
-	log.Printf("Serving Tailscale web client on http://%s", *addr)
+	log.Printf("Serving Lanhc web client on http://%s", *addr)
 	if err := http.ListenAndServe(*addr, ws); err != nil {
 		if err != http.ErrServerClosed {
 			log.Fatal(err)

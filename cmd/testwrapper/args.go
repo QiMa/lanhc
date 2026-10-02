@@ -85,7 +85,7 @@ func splitArgs(args []string) (pre, pkgs, post []string, _ error) {
 
 // cacheLink is whether the -cachelink flag is enabled.
 //
-// The -cachelink flag is Tailscale-specific addition to the "go test" command;
+// The -cachelink flag is Lanhc-specific addition to the "go test" command;
 // see https://github.com/tailscale/go/issues/149 and
 // https://github.com/golang/go/issues/77349.
 //

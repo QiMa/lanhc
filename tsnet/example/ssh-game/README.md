@@ -8,6 +8,6 @@ Usage:
 
 	go run ./tsnet/example/ssh-game
 
-Then from another Tailscale node:
+Then from another Lanhc node:
 
 	ssh -p 2222 <hostname>

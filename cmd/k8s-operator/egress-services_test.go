@@ -23,15 +23,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
-	tsapi "tailscale.com/k8s-operator/apis/v1alpha1"
-	"tailscale.com/kube/egressservices"
-	"tailscale.com/tstest"
-	"tailscale.com/tstime"
+	tsapi "lanhc.com/k8s-operator/apis/v1alpha1"
+	"lanhc.com/kube/egressservices"
+	"lanhc.com/tstest"
+	"lanhc.com/tstime"
 )
 
-func TestTailscaleEgressServices(t *testing.T) {
+func TestLanhcEgressServices(t *testing.T) {
 	pg := &tsapi.ProxyGroup{
-		TypeMeta: metav1.TypeMeta{Kind: "ProxyGroup", APIVersion: "tailscale.com/v1alpha1"},
+		TypeMeta: metav1.TypeMeta{Kind: "ProxyGroup", APIVersion: "lanhc.com/v1alpha1"},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "foo",
 			UID:  types.UID("1234-UID"),
@@ -169,7 +169,7 @@ func validateReadyService(t *testing.T, fc client.WithWatch, esr *egressSvcsReco
 		condition(tsapi.EgressSvcValid, metav1.ConditionTrue, "EgressSvcValid", "EgressSvcValid", clock),
 		condition(tsapi.EgressSvcConfigured, metav1.ConditionTrue, r, r, clock),
 	}
-	svc.ObjectMeta.Finalizers = []string{"tailscale.com/finalizer"}
+	svc.ObjectMeta.Finalizers = []string{"lanhc.com/finalizer"}
 	svc.Spec.ExternalName = fmt.Sprintf("%s.operator-ns.svc.cluster.local", name)
 	expectEqual(t, fc, svc)
 
@@ -208,11 +208,11 @@ func clusterIPSvc(name string, extNSvc *corev1.Service) *corev1.Service {
 			Protocol: port.Protocol,
 		}
 		if port.Name == "" {
-			ports[i].Name = "tailscale-unnamed"
+			ports[i].Name = "lanhc-unnamed"
 		}
 	}
 	ports = append(ports, corev1.ServicePort{
-		Name:       "tailscale-health-check",
+		Name:       "lanhc-health-check",
 		Port:       9002,
 		TargetPort: intstr.FromInt(9002),
 		Protocol:   "TCP",
@@ -247,7 +247,7 @@ func mustGetClusterIPSvc(t *testing.T, cl client.Client, name string) *corev1.Se
 
 func endpointSlice(name string, extNSvc, clusterIPSvc *corev1.Service, addrType discoveryv1.AddressType) *discoveryv1.EndpointSlice {
 	labels := egressSvcChildResourceLabels(extNSvc)
-	labels[discoveryv1.LabelManagedBy] = "tailscale.com"
+	labels[discoveryv1.LabelManagedBy] = "lanhc.com"
 	labels[discoveryv1.LabelServiceName] = name
 	suffix := "ipv4"
 	if addrType == discoveryv1.AddressTypeIPv6 {
@@ -321,9 +321,9 @@ func configFromCM(t *testing.T, cm *corev1.ConfigMap, svcName string) *egressser
 	return nil
 }
 
-func TestTailscaleEgressServicesDualStack(t *testing.T) {
+func TestLanhcEgressServicesDualStack(t *testing.T) {
 	pg := &tsapi.ProxyGroup{
-		TypeMeta: metav1.TypeMeta{Kind: "ProxyGroup", APIVersion: "tailscale.com/v1alpha1"},
+		TypeMeta: metav1.TypeMeta{Kind: "ProxyGroup", APIVersion: "lanhc.com/v1alpha1"},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "foo",
 			UID:  types.UID("1234-UID"),

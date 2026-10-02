@@ -5,8 +5,8 @@ import Foundation
 
 struct Notifications {
     // Stops the virtual machine and saves its state
-    static var stop = Notification.Name("io.tailscale.macvmhost.stop")
+    static var stop = Notification.Name("io.lanhc.macvmhost.stop")
 
     // Pauses the virtual machine and exits without saving its state
-    static var halt = Notification.Name("io.tailscale.macvmhost.halt")
+    static var halt = Notification.Name("io.lanhc.macvmhost.halt")
 }

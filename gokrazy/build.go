@@ -1,15 +1,15 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// This program builds the Tailscale Appliance Gokrazy image.
+// This program builds the Lanhc Appliance Gokrazy image.
 //
 // As of 2024-06-02 this is a exploratory work in progress and is
 // not intended for serious use.
 //
-// The build logic lives in tailscale.com/gokrazy/build; this is a thin
+// The build logic lives in lanhc.com/gokrazy/build; this is a thin
 // CLI wrapper around it.
 //
-// Tracking issue is https://github.com/tailscale/tailscale/issues/1866
+// Tracking issue is https://github.com/lanhc/lanhc/issues/1866
 package main
 
 import (
@@ -19,7 +19,7 @@ import (
 	"log"
 	"os"
 
-	"tailscale.com/gokrazy/build"
+	"lanhc.com/gokrazy/build"
 )
 
 var (

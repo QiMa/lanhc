@@ -12,14 +12,14 @@ import (
 	"sync/atomic"
 	"time"
 
-	"tailscale.com/envknob"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/net/netmon"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/netmap"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/mak"
+	"lanhc.com/envknob"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/net/netmon"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/netmap"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/mak"
 )
 
 var (
@@ -123,7 +123,7 @@ type NodeBackend interface {
 	Peers() []tailcfg.NodeView
 }
 
-// Pinger is the interface that wraps the [tailscale.com/ipn/ipnlocal.LocalBackend.Ping] method.
+// Pinger is the interface that wraps the [lanhc.com/ipn/ipnlocal.LocalBackend.Ping] method.
 type Pinger interface {
 	Ping(ip netip.Addr, pingType tailcfg.PingType, size int, cb func(*ipnstate.PingResult))
 }

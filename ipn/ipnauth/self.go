@@ -6,20 +6,20 @@ package ipnauth
 import (
 	"context"
 
-	"tailscale.com/ipn"
+	"lanhc.com/ipn"
 )
 
-// Self is a caller identity that represents the tailscaled itself and therefore
+// Self is a caller identity that represents the lanhcd itself and therefore
 // has unlimited access.
 var Self Actor = unrestricted{}
 
 // TODO is a caller identity used when the operation is performed on behalf of a user,
-// rather than by tailscaled itself, but the surrounding function is not yet extended
+// rather than by lanhcd itself, but the surrounding function is not yet extended
 // to accept an [Actor] parameter. It grants the same unrestricted access as [Self].
 var TODO Actor = unrestricted{}
 
 // unrestricted is an [Actor] that has unlimited access to the currently running
-// tailscaled instance. It's typically used for operations performed by tailscaled
+// lanhcd instance. It's typically used for operations performed by lanhcd
 // on its own, or upon a request from the control plane, rather on behalf of a user.
 type unrestricted struct{}
 
@@ -33,7 +33,7 @@ func (unrestricted) Username() (string, error) { return "", nil }
 func (unrestricted) Context() context.Context { return context.Background() }
 
 // ClientID implements [Actor].
-// It always returns (NoClientID, false) because the tailscaled itself
+// It always returns (NoClientID, false) because the lanhcd itself
 // is not a connected LocalAPI client.
 func (unrestricted) ClientID() (_ ClientID, ok bool) { return NoClientID, false }
 
@@ -46,18 +46,18 @@ func (unrestricted) CheckProfileAccess(_ ipn.LoginProfileView, _ ProfileAccess, 
 // IsLocalSystem implements [Actor].
 //
 // Deprecated: this method exists for compatibility with the current (as of 2025-01-28)
-// permission model and will be removed as we progress on tailscale/corp#18342.
+// permission model and will be removed as we progress on lanhc/corp#18342.
 func (unrestricted) IsLocalSystem() bool { return false }
 
 // IsLocalAdmin implements [Actor].
 //
 // Deprecated: this method exists for compatibility with the current (as of 2025-01-28)
-// permission model and will be removed as we progress on tailscale/corp#18342.
+// permission model and will be removed as we progress on lanhc/corp#18342.
 func (unrestricted) IsLocalAdmin(operatorUID string) bool { return false }
 
-// IsTailscaled reports whether the given Actor represents Tailscaled itself,
+// IsLanhcd reports whether the given Actor represents Lanhcd itself,
 // such as [Self] or a [TODO] placeholder actor.
-func IsTailscaled(a Actor) bool {
+func IsLanhcd(a Actor) bool {
 	_, ok := a.(unrestricted)
 	return ok
 }

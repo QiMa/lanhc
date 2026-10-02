@@ -16,9 +16,9 @@ import (
 	"strings"
 	"time"
 
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/syncs"
-	"tailscale.com/types/lazy"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/syncs"
+	"lanhc.com/types/lazy"
 )
 
 // CommonNonRoutableMetadataIP is the IP address of the metadata server
@@ -39,7 +39,7 @@ const AWSResolverIP = "169.254.169.253"
 const AzureResolverIP = "168.63.129.16"
 
 // Cloud is a recognize cloud environment with properties that
-// Tailscale can specialize for in places.
+// Lanhc can specialize for in places.
 type Cloud string
 
 const (

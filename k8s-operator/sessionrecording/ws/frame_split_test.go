@@ -18,10 +18,10 @@ import (
 	"time"
 
 	"go.uber.org/zap"
-	"tailscale.com/k8s-operator/sessionrecording/fakes"
-	"tailscale.com/k8s-operator/sessionrecording/tsrecorder"
-	"tailscale.com/sessionrecording"
-	"tailscale.com/tstest"
+	"lanhc.com/k8s-operator/sessionrecording/fakes"
+	"lanhc.com/k8s-operator/sessionrecording/tsrecorder"
+	"lanhc.com/sessionrecording"
+	"lanhc.com/tstest"
 )
 
 // segConn is a net.Conn whose Read returns pre-scripted segments, simulating

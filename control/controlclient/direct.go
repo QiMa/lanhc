@@ -31,48 +31,48 @@ import (
 	"time"
 
 	"go4.org/mem"
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/control/ts2021"
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/health"
-	"tailscale.com/hostinfo"
-	"tailscale.com/internal/lanhc"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/logtail"
-	"tailscale.com/net/dnscache"
-	"tailscale.com/net/dnsfallback"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/netutil"
-	"tailscale.com/net/netx"
-	"tailscale.com/net/tlsdial"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tka"
-	"tailscale.com/tstime"
-	"tailscale.com/types/events"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/persist"
-	"tailscale.com/types/tkatype"
-	"tailscale.com/types/views"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/singleflight"
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/util/syspolicy/policyclient"
-	"tailscale.com/util/testenv"
-	"tailscale.com/util/vizerror"
-	"tailscale.com/util/zstdframe"
-	"tailscale.com/wgengine/filter"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/control/ts2021"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/health"
+	"lanhc.com/hostinfo"
+	"lanhc.com/internal/lanhc"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/logtail"
+	"lanhc.com/net/dnscache"
+	"lanhc.com/net/dnsfallback"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/netutil"
+	"lanhc.com/net/netx"
+	"lanhc.com/net/tlsdial"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tka"
+	"lanhc.com/tstime"
+	"lanhc.com/types/events"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/persist"
+	"lanhc.com/types/tkatype"
+	"lanhc.com/types/views"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/singleflight"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/util/syspolicy/policyclient"
+	"lanhc.com/util/testenv"
+	"lanhc.com/util/vizerror"
+	"lanhc.com/util/zstdframe"
+	"lanhc.com/wgengine/filter"
 )
 
 // Direct is the client that connects to a tailcontrol server for a node.
 type Direct struct {
-	httpc             *http.Client // HTTP client used to do TLS requests to control (just https://controlplane.tailscale.com/key?v=123)
+	httpc             *http.Client // HTTP client used to do TLS requests to control (just https://controlplane.lanhc.com/key?v=123)
 	interceptedDial   *atomic.Bool // if non-nil, pointer to bool whether ScreenTime intercepted our dial
 	dialer            *tsdial.Dialer
 	dnsCache          *dnscache.Resolver
@@ -417,7 +417,7 @@ func NewDirect(opts Options) (*Direct, error) {
 		}
 		c.serverNoiseKey = key.NewMachine().Public() // prevent early error before hitting test client
 	}
-	if !lanhc.Isolated && strings.Contains(opts.ServerURL, "controlplane.tailscale.com") && envknob.Bool("TS_PANIC_IF_HIT_MAIN_CONTROL") {
+	if !lanhc.Isolated && strings.Contains(opts.ServerURL, "controlplane.lanhc.com") && envknob.Bool("TS_PANIC_IF_HIT_MAIN_CONTROL") {
 		c.panicOnUse = true
 	}
 
@@ -435,7 +435,7 @@ func NewDirect(opts Options) (*Direct, error) {
 		sess := c.streamingMapSession
 		c.mu.Unlock()
 		if sess != nil {
-			peerID, peerKey, ok = sess.PeerIDAndKeyByTailscaleIP(update.Src)
+			peerID, peerKey, ok = sess.PeerIDAndKeyByLanhcIP(update.Src)
 		}
 
 		if sess != nil && ok {
@@ -558,7 +558,7 @@ func (c *Direct) TryLogout(ctx context.Context) error {
 }
 
 func (c *Direct) TryLogin(ctx context.Context, flags LoginFlags) (url string, err error) {
-	if !lanhc.Isolated && strings.Contains(c.serverURL, "controlplane.tailscale.com") && envknob.Bool("TS_PANIC_IF_HIT_MAIN_CONTROL") {
+	if !lanhc.Isolated && strings.Contains(c.serverURL, "controlplane.lanhc.com") && envknob.Bool("TS_PANIC_IF_HIT_MAIN_CONTROL") {
 		panic(fmt.Sprintf("[unexpected] controlclient: TryLogin called on %s; tainted=%v", c.serverURL, c.panicOnUse))
 	}
 	c.logf("[v1] direct.TryLogin(flags=%v)", flags)
@@ -623,9 +623,9 @@ func (c *Direct) hostInfoLocked() *tailcfg.Hostinfo {
 var macOSScreenTime = health.Register(&health.Warnable{
 	Code:     "macos-screen-time-controlclient",
 	Severity: health.SeverityHigh,
-	Title:    "Tailscale blocked by Screen Time",
+	Title:    "Lanhc blocked by Screen Time",
 	Text: func(args health.Args) string {
-		return "macOS Screen Time seems to be blocking Tailscale. Try disabling Screen Time in System Settings > Screen Time > Content & Privacy > Access to Web Content."
+		return "macOS Screen Time seems to be blocking Lanhc. Try disabling Screen Time in System Settings > Screen Time > Content & Privacy > Access to Web Content."
 	},
 	ImpactsConnectivity: true,
 })
@@ -691,7 +691,7 @@ func (c *Direct) doLogin(ctx context.Context, opt loginOpt) (mustRegen bool, new
 		if expired {
 			c.logf("Old key expired -> regen=true")
 			if f, ok := feature.HookSystemdStatus.GetOk(); ok {
-				f("key expired; run 'tailscale up' to authenticate")
+				f("key expired; run 'lanhc up' to authenticate")
 			}
 			regen = true
 		}
@@ -1486,7 +1486,7 @@ const justKeepAliveStr = `{"KeepAlive":true}`
 // decodeMsg is responsible for uncompressing msg and unmarshaling into v.
 func (ms *mapSession) decodeMsg(compressedMsg []byte, v *tailcfg.MapResponse) error {
 	// Fast path for common case of keep-alive message.
-	// See tailscale/tailscale#17343.
+	// See lanhc/lanhc#17343.
 	if ms.keepAliveZ != nil && bytes.Equal(compressedMsg, ms.keepAliveZ) {
 		v.KeepAlive = true
 		return nil

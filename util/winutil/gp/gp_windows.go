@@ -79,7 +79,7 @@ func toRefreshPolicyFlags(force bool) uint32 {
 	return 0
 }
 
-var mgmtProductTailscale = unsafe.SliceData([]uint16{'T', 'a', 'i', 'l', 's', 'c', 'a', 'l', 'e', 0})
+var mgmtProductLanhc = unsafe.SliceData([]uint16{'T', 'a', 'i', 'l', 's', 'c', 'a', 'l', 'e', 0})
 
 // NotifyMachinePolicyChange sends a machine-scoped group policy change
 // notification which Windows broadcasts to group policy change subscribers.
@@ -87,5 +87,5 @@ var mgmtProductTailscale = unsafe.SliceData([]uint16{'T', 'a', 'i', 'l', 's', 'c
 func NotifyMachinePolicyChange() error {
 	// GenerateGPNotification is quasi-documented. Note that its implementation
 	// contains an access check ensuring that the calling user is LocalSystem!
-	return generateGPNotification(true, mgmtProductTailscale, 0)
+	return generateGPNotification(true, mgmtProductLanhc, 0)
 }

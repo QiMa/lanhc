@@ -13,8 +13,8 @@ import (
 	"os"
 	"runtime"
 
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/ipn"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/ipn"
 )
 
 // Config describes a config file.
@@ -46,7 +46,7 @@ const VMUserDataPath = "vm:user-data"
 // metadata service, or a build without the relevant cloud support. It reports
 // "no config was provided", as distinct from "a config was provided but is
 // invalid" (which Load returns as an unwrapped parse/validate error). Callers
-// that want to boot unconfigured when no config is present (e.g. tailscaled's
+// that want to boot unconfigured when no config is present (e.g. lanhcd's
 // "optional:" -config prefix) can check for it with errors.Is.
 var ErrNoConfig = errors.New("no config present")
 

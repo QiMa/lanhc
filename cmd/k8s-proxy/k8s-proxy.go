@@ -29,27 +29,27 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/utils/strings/slices"
-	"tailscale.com/client/local"
-	"tailscale.com/cmd/k8s-proxy/internal/config"
-	"tailscale.com/health"
-	"tailscale.com/hostinfo"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/store"
+	"lanhc.com/client/local"
+	"lanhc.com/cmd/k8s-proxy/internal/config"
+	"lanhc.com/health"
+	"lanhc.com/hostinfo"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/store"
 
 	// we need to import this package so that the `kube:` ipn store gets registered
-	_ "tailscale.com/ipn/store/kubestore"
-	apiproxy "tailscale.com/k8s-operator/api-proxy"
-	"tailscale.com/kube/certs"
-	healthz "tailscale.com/kube/health"
-	"tailscale.com/kube/k8s-proxy/conf"
-	"tailscale.com/kube/kubeclient"
-	"tailscale.com/kube/kubetypes"
-	klc "tailscale.com/kube/localclient"
-	"tailscale.com/kube/metrics"
-	"tailscale.com/kube/services"
-	"tailscale.com/kube/state"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsnet"
+	_ "lanhc.com/ipn/store/kubestore"
+	apiproxy "lanhc.com/k8s-operator/api-proxy"
+	"lanhc.com/kube/certs"
+	healthz "lanhc.com/kube/health"
+	"lanhc.com/kube/k8s-proxy/conf"
+	"lanhc.com/kube/kubeclient"
+	"lanhc.com/kube/kubetypes"
+	klc "lanhc.com/kube/localclient"
+	"lanhc.com/kube/metrics"
+	"lanhc.com/kube/services"
+	"lanhc.com/kube/state"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsnet"
 )
 
 const (
@@ -86,7 +86,7 @@ func run(logger *zap.SugaredLogger) error {
 	}
 
 	// serveCtx to live for the lifetime of the process, only gets cancelled
-	// once the Tailscale Service has been drained
+	// once the Lanhc Service has been drained
 	serveCtx, serveCancel := context.WithCancel(context.Background())
 	defer serveCancel()
 
@@ -301,7 +301,7 @@ func run(logger *zap.SugaredLogger) error {
 		}
 
 		if cfg.Parsed.HealthCheckEnabled.EqualBool(true) {
-			ipV4, ipV6 := ts.TailscaleIPs()
+			ipV4, ipV6 := ts.LanhcIPs()
 			var v4, v6 string
 			if ipV4.IsValid() {
 				v4 = ipV4.String()
@@ -358,7 +358,7 @@ func run(logger *zap.SugaredLogger) error {
 
 	var cm *certs.CertManager
 	if shouldIssueCerts(cfg) {
-		logger.Infof("Will issue TLS certs for Tailscale Service")
+		logger.Infof("Will issue TLS certs for Lanhc Service")
 		cm = certs.NewCertManager(klc.New(lc), logger.Infof)
 	}
 	if err := setServeConfig(ctx, lc, cm, apiServerProxyService(cfg)); err != nil {
@@ -501,14 +501,14 @@ func shouldIssueCerts(cfg *conf.Config) bool {
 }
 
 // setServeConfig sets up serve config such that it's serving for the passed in
-// Tailscale Service, and does nothing if it's already up to date.
+// Lanhc Service, and does nothing if it's already up to date.
 func setServeConfig(ctx context.Context, lc *local.Client, cm *certs.CertManager, name tailcfg.ServiceName) error {
 	existingServeConfig, err := lc.GetServeConfig(ctx)
 	if err != nil {
 		return fmt.Errorf("error getting existing serve config: %w", err)
 	}
 
-	// Ensure serve config is cleared if no Tailscale Service.
+	// Ensure serve config is cleared if no Lanhc Service.
 	if name == "" {
 		if reflect.DeepEqual(*existingServeConfig, ipn.ServeConfig{}) {
 			// Already up to date.

@@ -7,7 +7,7 @@
 
 package buildfeatures
 
-// HasDoctor is whether the binary was built with support for modular feature "Diagnose possible issues with Tailscale and its host environment".
+// HasDoctor is whether the binary was built with support for modular feature "Diagnose possible issues with Lanhc and its host environment".
 // Specifically, it's whether the binary was NOT built with the "ts_omit_doctor" build tag.
 // It's a const so it can be used for dead code elimination.
 const HasDoctor = true

@@ -1,6 +1,6 @@
 # Run a single natlab smoke test on every PR. The full natlab suite
 # is opt-in and lives in .github/workflows/natlab-test.yml.
-# See https://github.com/tailscale/tailscale/issues/13038
+# See https://github.com/lanhc/lanhc/issues/13038
 name: "natlab-basic"
 
 concurrency:

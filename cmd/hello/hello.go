@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // The hello binary runs hello.ts.net.
-package main // import "tailscale.com/cmd/hello"
+package main // import "lanhc.com/cmd/hello"
 
 import (
 	"log"
 
-	"tailscale.com/cmd/hello/helloserver"
+	"lanhc.com/cmd/hello/helloserver"
 )
 
 func main() {

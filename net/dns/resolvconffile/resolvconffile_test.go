@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"tailscale.com/util/dnsname"
+	"lanhc.com/util/dnsname"
 )
 
 func TestParse(t *testing.T) {
@@ -44,17 +44,17 @@ func TestParse(t *testing.T) {
 		{in: `# nameserver 192.168.0.100`, want: &Config{}},
 		{in: `nameserver192.168.0.100`, wantErr: true},
 
-		{in: `search tailscale.com`,
+		{in: `search lanhc.com`,
 			want: &Config{
-				SearchDomains: []dnsname.FQDN{"tailscale.com."},
+				SearchDomains: []dnsname.FQDN{"lanhc.com."},
 			},
 		},
-		{in: `search tailscale.com # comment`,
+		{in: `search lanhc.com # comment`,
 			want: &Config{
-				SearchDomains: []dnsname.FQDN{"tailscale.com."},
+				SearchDomains: []dnsname.FQDN{"lanhc.com."},
 			},
 		},
-		{in: `searchtailscale.com`, wantErr: true},
+		{in: `searchlanhc.com`, wantErr: true},
 		{in: `search`, wantErr: true},
 
 		// Issue 6875: there can be multiple search domains, and even if they're

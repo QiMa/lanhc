@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // Package dnsfallback contains a DNS fallback mechanism
-// for starting up Tailscale when the system DNS is broken or otherwise unavailable.
+// for starting up Lanhc when the system DNS is broken or otherwise unavailable.
 //
 // The data is backed by a JSON file `dns-fallback-servers.json` that is updated
 // by `update-dns-fallbacks.go`:
@@ -25,16 +25,16 @@ import (
 	"sync/atomic"
 	"time"
 
-	"tailscale.com/atomicfile"
-	"tailscale.com/feature"
-	"tailscale.com/health"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/netns"
-	"tailscale.com/net/netutil"
-	"tailscale.com/net/tlsdial"
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/logger"
-	"tailscale.com/util/slicesx"
+	"lanhc.com/atomicfile"
+	"lanhc.com/feature"
+	"lanhc.com/health"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/netns"
+	"lanhc.com/net/netutil"
+	"lanhc.com/net/tlsdial"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/logger"
+	"lanhc.com/util/slicesx"
 )
 
 // MakeLookupFunc creates a function that can be used to resolve hostnames
@@ -128,8 +128,8 @@ func lookup(ctx context.Context, host string, logf logger.Logf, ht *health.Track
 	return nil, fmt.Errorf("no DNS fallback candidates remain for %q", host)
 }
 
-// serverName and serverIP of are, say, "derpN.tailscale.com".
-// queryName is the name being sought (e.g. "controlplane.tailscale.com"), passed as hint.
+// serverName and serverIP of are, say, "derpN.lanhc.com".
+// queryName is the name being sought (e.g. "controlplane.lanhc.com"), passed as hint.
 //
 // ht may be nil.
 func bootstrapDNSMap(ctx context.Context, serverName string, serverIP netip.Addr, queryName string, logf logger.Logf, ht *health.Tracker, netMon *netmon.Monitor) (dnsMap, error) {
@@ -162,7 +162,7 @@ func bootstrapDNSMap(ctx context.Context, serverName string, serverIP netip.Addr
 }
 
 // dnsMap is the JSON type returned by the DERP /bootstrap-dns handler:
-// https://derp10.tailscale.com/bootstrap-dns
+// https://derp10.lanhc.com/bootstrap-dns
 type dnsMap map[string][]netip.Addr
 
 // GetDERPMap returns a fallback DERP map that is always available, useful for basic
@@ -247,7 +247,7 @@ func UpdateCache(c *tailcfg.DERPMap, logf logger.Logf) {
 	cachedDERPMap.Store(c)
 
 	// Don't try writing if we don't have a cache path set; this can happen
-	// when we don't have a state path (e.g. /var/lib/tailscale) configured.
+	// when we don't have a state path (e.g. /var/lib/lanhc) configured.
 	if cachePath != "" {
 		err = atomicfile.WriteFile(cachePath, d, 0600)
 		if err != nil {

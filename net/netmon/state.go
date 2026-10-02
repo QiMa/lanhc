@@ -14,14 +14,14 @@ import (
 	"sort"
 	"strings"
 
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/hostinfo"
-	"tailscale.com/internal/lanhc"
-	"tailscale.com/net/netaddr"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/util/mak"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/hostinfo"
+	"lanhc.com/internal/lanhc"
+	"lanhc.com/net/netaddr"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/util/mak"
 )
 
 // forceAllIPv6Endpoints is a debug knob that when set forces the client to
@@ -36,7 +36,7 @@ var LoginEndpointForProxyDetermination = func() string {
 	if lanhc.Isolated {
 		return ""
 	}
-	return "https://controlplane.tailscale.com/"
+	return "https://controlplane.lanhc.com/"
 }()
 
 func isUp(nif *net.Interface) bool       { return nif.Flags&net.FlagUp != 0 }
@@ -47,8 +47,8 @@ func isProblematicInterface(nif *net.Interface) bool {
 	// Don't try to send disco/etc packets over zerotier; they effectively
 	// DoS each other by doing traffic amplification, both of them
 	// preferring/trying to use each other for transport. See:
-	// https://github.com/tailscale/tailscale/issues/1208
-	// TODO(https://github.com/tailscale/tailscale/issues/18824): maybe exclude
+	// https://github.com/lanhc/lanhc/issues/1208
+	// TODO(https://github.com/lanhc/lanhc/issues/18824): maybe exclude
 	// "WireGuard tunnel 0" as well on Windows (NetBird), but the name seems too
 	// generic where there is not a platform standard (on Linux wt0 is at least
 	// explicitly different from the WireGuard conventional default of wg0).
@@ -75,7 +75,7 @@ func LocalAddresses() (regular, loopback []netip.Addr, err error) {
 		if !isUp(stdIf) || isProblematicInterface(stdIf) {
 			// Skip down interfaces and ones that are
 			// problematic that we don't want to try to
-			// send Tailscale traffic over.
+			// send Lanhc traffic over.
 			continue
 		}
 		ifcIsLoopback := isLoopback(stdIf)
@@ -98,7 +98,7 @@ func LocalAddresses() (regular, loopback []netip.Addr, err error) {
 				// very well be something we can route to
 				// directly, because both nodes are
 				// behind the same CGNAT router.
-				if tsaddr.IsTailscaleIP(ip) {
+				if tsaddr.IsLanhcIP(ip) {
 					continue
 				}
 				if ip.IsLoopback() || ifcIsLoopback {
@@ -273,11 +273,11 @@ type State struct {
 	Interface    map[string]Interface
 
 	// HaveV6 is whether this machine has an IPv6 Global or Unique Local Address
-	// which might provide connectivity on a non-Tailscale interface that's up.
+	// which might provide connectivity on a non-Lanhc interface that's up.
 	HaveV6 bool
 
 	// HaveV4 is whether the machine has some non-localhost,
-	// non-link-local IPv4 address on a non-Tailscale interface that's up.
+	// non-link-local IPv4 address on a non-Lanhc interface that's up.
 	HaveV4 bool
 
 	// IsExpensive is whether the current network interface is
@@ -557,34 +557,34 @@ func netAddrsEqual(a, b []net.Addr) bool {
 	return true
 }
 
-func hasTailscaleIP(pfxs []netip.Prefix) bool {
+func hasLanhcIP(pfxs []netip.Prefix) bool {
 	for _, pfx := range pfxs {
-		if tsaddr.IsTailscaleIP(pfx.Addr()) {
+		if tsaddr.IsLanhcIP(pfx.Addr()) {
 			return true
 		}
 	}
 	return false
 }
 
-func isTailscaleInterface(name string, ips []netip.Prefix) bool {
-	// Sandboxed macOS and Plan9 (and anything else that explicitly calls SetTailscaleInterfaceProps).
-	tsIfName, err := TailscaleInterfaceName()
+func isLanhcInterface(name string, ips []netip.Prefix) bool {
+	// Sandboxed macOS and Plan9 (and anything else that explicitly calls SetLanhcInterfaceProps).
+	tsIfName, err := LanhcInterfaceName()
 	if err == nil {
-		// If we've been told the Tailscale interface name, use that.
+		// If we've been told the Lanhc interface name, use that.
 		return name == tsIfName
 	}
 
-	// The sandboxed app should (as of 1.92) set the tun interface name via SetTailscaleInterfaceProps
+	// The sandboxed app should (as of 1.92) set the tun interface name via SetLanhcInterfaceProps
 	// early in the startup process.  The non-sandboxed app does not.
 	// TODO (barnstar):  If Wireguard created the tun device on darwin, it should know the name and it should
 	// be explicitly set instead checking addresses here.
-	if runtime.GOOS == "darwin" && strings.HasPrefix(name, "utun") && hasTailscaleIP(ips) {
+	if runtime.GOOS == "darwin" && strings.HasPrefix(name, "utun") && hasLanhcIP(ips) {
 		return true
 	}
 
 	// Windows, Linux...
-	return name == "Tailscale" || // as it is on Windows
-		strings.HasPrefix(name, "tailscale") // TODO: use --tun flag value, etc; see TODO in method doc
+	return name == "Lanhc" || // as it is on Windows
+		strings.HasPrefix(name, "lanhc") // TODO: use --tun flag value, etc; see TODO in method doc
 }
 
 // getPAC, if non-nil, returns the current PAC file URL.
@@ -594,7 +594,7 @@ var getPAC func() string
 //
 // It does not set the returned State.IsExpensive. The caller can populate that.
 //
-// optTSInterfaceName is the name of the Tailscale interface, if known.
+// optTSInterfaceName is the name of the Lanhc interface, if known.
 func getState(optTSInterfaceName string) (*State, error) {
 	s := &State{
 		InterfaceIPs: make(map[string][]netip.Prefix),
@@ -611,7 +611,7 @@ func getState(optTSInterfaceName string) (*State, error) {
 			return
 		}
 
-		if !ifUp || isTSInterfaceName || isTailscaleInterface(ni.Name, pfxs) {
+		if !ifUp || isTSInterfaceName || isLanhcInterface(ni.Name, pfxs) {
 			return
 		}
 
@@ -795,7 +795,7 @@ func isUsableV4(ip netip.Addr) bool {
 // (fc00::/7) are in some environments used with address translation.
 func isUsableV6(ip netip.Addr) bool {
 	return v6Global1.Contains(ip) ||
-		(ip.Is6() && ip.IsPrivate() && !tsaddr.TailscaleULARange().Contains(ip))
+		(ip.Is6() && ip.IsPrivate() && !tsaddr.LanhcULARange().Contains(ip))
 }
 
 var (
@@ -890,18 +890,18 @@ func DefaultRouteInterface() (string, error) {
 }
 
 // DefaultRoute returns details of the network interface that owns
-// the default route, not including any tailscale interfaces.
+// the default route, not including any lanhc interfaces.
 func DefaultRoute() (DefaultRouteDetails, error) {
 	return defaultRoute()
 }
 
-// HasCGNATInterface reports whether there are any non-Tailscale interfaces that
+// HasCGNATInterface reports whether there are any non-Lanhc interfaces that
 // use a CGNAT IP range.
 func (m *Monitor) HasCGNATInterface() (bool, error) {
 	hasCGNATInterface := false
 	cgnatRange := tsaddr.CGNATRange()
 	err := ForeachInterface(func(i Interface, pfxs []netip.Prefix) {
-		if hasCGNATInterface || !i.IsUp() || isTailscaleInterface(i.Name, pfxs) {
+		if hasCGNATInterface || !i.IsUp() || isLanhcInterface(i.Name, pfxs) {
 			return
 		}
 		if slices.ContainsFunc(pfxs, cgnatRange.Overlaps) {

@@ -5,7 +5,7 @@
 
 package controlclient
 
-import "tailscale.com/metrics"
+import "lanhc.com/metrics"
 
 var patchifyMissStats = metrics.NewLabelMap("counter_patchify_miss", "why")
 

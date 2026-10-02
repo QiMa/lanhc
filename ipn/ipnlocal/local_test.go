@@ -29,58 +29,58 @@ import (
 	memro "go4.org/mem"
 	"go4.org/netipx"
 	"golang.org/x/net/dns/dnsmessage"
-	"tailscale.com/appc"
-	"tailscale.com/appc/appctest"
-	"tailscale.com/control/controlclient"
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/drive"
-	"tailscale.com/drive/driveimpl"
-	"tailscale.com/feature"
-	_ "tailscale.com/feature/condregister/portmapper"
-	"tailscale.com/health"
-	"tailscale.com/hostinfo"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/conffile"
-	"tailscale.com/ipn/ipnauth"
-	"tailscale.com/ipn/ipnlocal/netmapcache"
-	"tailscale.com/ipn/store/mem"
-	"tailscale.com/net/netcheck"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsd"
-	"tailscale.com/tstest"
-	"tailscale.com/tstest/deptest"
-	"tailscale.com/tstest/typewalk"
-	"tailscale.com/tstime"
-	"tailscale.com/types/appctype"
-	"tailscale.com/types/dnstype"
-	"tailscale.com/types/ipproto"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/logid"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/opt"
-	"tailscale.com/types/persist"
-	"tailscale.com/types/views"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/eventbus/eventbustest"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/must"
-	"tailscale.com/util/set"
-	"tailscale.com/util/syspolicy"
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/util/syspolicy/policyclient"
-	"tailscale.com/util/syspolicy/policytest"
-	"tailscale.com/util/syspolicy/rsop"
-	"tailscale.com/util/syspolicy/setting"
-	"tailscale.com/util/syspolicy/source"
-	"tailscale.com/wgengine"
-	"tailscale.com/wgengine/filter"
-	"tailscale.com/wgengine/filter/filtertype"
-	"tailscale.com/wgengine/wgcfg"
+	"lanhc.com/appc"
+	"lanhc.com/appc/appctest"
+	"lanhc.com/control/controlclient"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/drive"
+	"lanhc.com/drive/driveimpl"
+	"lanhc.com/feature"
+	_ "lanhc.com/feature/condregister/portmapper"
+	"lanhc.com/health"
+	"lanhc.com/hostinfo"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/conffile"
+	"lanhc.com/ipn/ipnauth"
+	"lanhc.com/ipn/ipnlocal/netmapcache"
+	"lanhc.com/ipn/store/mem"
+	"lanhc.com/net/netcheck"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsd"
+	"lanhc.com/tstest"
+	"lanhc.com/tstest/deptest"
+	"lanhc.com/tstest/typewalk"
+	"lanhc.com/tstime"
+	"lanhc.com/types/appctype"
+	"lanhc.com/types/dnstype"
+	"lanhc.com/types/ipproto"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/logid"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/opt"
+	"lanhc.com/types/persist"
+	"lanhc.com/types/views"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/eventbus/eventbustest"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/must"
+	"lanhc.com/util/set"
+	"lanhc.com/util/syspolicy"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/util/syspolicy/policyclient"
+	"lanhc.com/util/syspolicy/policytest"
+	"lanhc.com/util/syspolicy/rsop"
+	"lanhc.com/util/syspolicy/setting"
+	"lanhc.com/util/syspolicy/source"
+	"lanhc.com/wgengine"
+	"lanhc.com/wgengine/filter"
+	"lanhc.com/wgengine/filter/filtertype"
+	"lanhc.com/wgengine/wgcfg"
 )
 
 func inRemove(ip netip.Addr) bool {
@@ -137,7 +137,7 @@ func TestShrinkDefaultRoute(t *testing.T) {
 			out: []string{
 				"fe80::1",
 				"ff00::1",
-				tsaddr.TailscaleULARange().Addr().String(),
+				tsaddr.LanhcULARange().Addr().String(),
 			},
 			localIPFn: func(ip netip.Addr) bool { return !inRemove(ip) && ip.Is6() },
 		},
@@ -1926,9 +1926,9 @@ func TestStatusPeerCapabilities(t *testing.T) {
 
 // TestStatusWithoutPeersSelfUserProfile verifies that the self user's
 // UserProfile is reported in Status.User even when peers are omitted, so that
-// callers like `tailscale status --peers=false` can resolve the self node's
+// callers like `lanhc status --peers=false` can resolve the self node's
 // owner to a login name rather than a bare user ID.
-// Regression test for https://github.com/tailscale/tailscale/issues/19894.
+// Regression test for https://github.com/lanhc/lanhc/issues/19894.
 func TestStatusWithoutPeersSelfUserProfile(t *testing.T) {
 	b := newTestLocalBackend(t)
 	const selfUID = tailcfg.UserID(42)
@@ -1962,9 +1962,9 @@ func TestStatusWithoutPeersSelfUserProfile(t *testing.T) {
 	}
 }
 
-// legacyBackend was the interface between Tailscale frontends
-// (e.g. cmd/tailscale, iOS/MacOS/Windows GUIs) and the tailscale
-// backend (e.g. cmd/tailscaled) running on the same machine.
+// legacyBackend was the interface between Lanhc frontends
+// (e.g. cmd/lanhc, iOS/MacOS/Windows GUIs) and the lanhc
+// backend (e.g. cmd/lanhcd) running on the same machine.
 // (It has nothing to do with the interface between the backends
 // and the cloud control plane.)
 type legacyBackend interface {
@@ -3062,7 +3062,7 @@ func TestDNSConfigForNetmapForExitNodeConfigs(t *testing.T) {
 			ExitNodeDNSResolvers: wgResolvers,
 			Hostinfo:             (&tailcfg.Hostinfo{}).View(),
 		}).View(),
-		// regular tailscale exit node with DNS capabilities
+		// regular lanhc exit node with DNS capabilities
 		(&tailcfg.Node{
 			Cap:      26,
 			ID:       2,
@@ -3143,7 +3143,7 @@ func TestDNSConfigForNetmapForExitNodeConfigs(t *testing.T) {
 			wantRoutes:           nil,
 		},
 
-		// When at tailscale exit node is in use,
+		// When at lanhc exit node is in use,
 		// only routes that reference resolvers with the UseWithExitNode should be installed,
 		// as well as routes with 0-length resolver lists, which should be installed in all cases.
 		{
@@ -3289,7 +3289,7 @@ func TestProfileMkdirAll(t *testing.T) {
 
 	t.Run("ProfileRoot", func(t *testing.T) {
 		b := newTestBackend(t)
-		want := filepath.Join(b.TailscaleVarRoot(), "profile-data", "id0")
+		want := filepath.Join(b.LanhcVarRoot(), "profile-data", "id0")
 
 		got, err := b.ProfileMkdirAll(b.CurrentProfile().ID())
 		if err != nil || got != want {
@@ -3304,7 +3304,7 @@ func TestProfileMkdirAll(t *testing.T) {
 
 	t.Run("ProfileSubdir", func(t *testing.T) {
 		b := newTestBackend(t)
-		want := filepath.Join(b.TailscaleVarRoot(), "profile-data", "id0", "a", "b")
+		want := filepath.Join(b.LanhcVarRoot(), "profile-data", "id0", "a", "b")
 
 		got, err := b.ProfileMkdirAll(b.CurrentProfile().ID(), "a", "b")
 		if err != nil || got != want {
@@ -3490,7 +3490,7 @@ func TestReconfigureAppConnector(t *testing.T) {
 			Name: "example.ts.net",
 			Tags: []string{"tag:example"},
 			CapMap: (tailcfg.NodeCapMap)(map[tailcfg.NodeCapability][]tailcfg.RawMessage{
-				"tailscale.com/app-connectors": {tailcfg.RawMessage(appCfg)},
+				"lanhc.com/app-connectors": {tailcfg.RawMessage(appCfg)},
 			}),
 		}).View(),
 	}
@@ -4323,8 +4323,8 @@ func TestApplySysPolicy(t *testing.T) {
 				pkey.EnableIncomingConnections: "never",
 				pkey.EnableServerMode:          "always",
 				pkey.ExitNodeAllowLANAccess:    "always",
-				pkey.EnableTailscaleDNS:        "always",
-				pkey.EnableTailscaleSubnets:    "always",
+				pkey.EnableLanhcDNS:        "always",
+				pkey.EnableLanhcSubnets:    "always",
 			},
 		},
 		{
@@ -4344,8 +4344,8 @@ func TestApplySysPolicy(t *testing.T) {
 				pkey.EnableIncomingConnections: "never",
 				pkey.EnableServerMode:          "always",
 				pkey.ExitNodeAllowLANAccess:    "never",
-				pkey.EnableTailscaleDNS:        "never",
-				pkey.EnableTailscaleSubnets:    "never",
+				pkey.EnableLanhcDNS:        "never",
+				pkey.EnableLanhcSubnets:    "never",
 			},
 		},
 		{
@@ -4372,8 +4372,8 @@ func TestApplySysPolicy(t *testing.T) {
 				pkey.EnableIncomingConnections: "always",
 				pkey.EnableServerMode:          "never",
 				pkey.ExitNodeAllowLANAccess:    "always",
-				pkey.EnableTailscaleDNS:        "never",
-				pkey.EnableTailscaleSubnets:    "always",
+				pkey.EnableLanhcDNS:        "never",
+				pkey.EnableLanhcSubnets:    "always",
 			},
 		},
 		{
@@ -4398,8 +4398,8 @@ func TestApplySysPolicy(t *testing.T) {
 				pkey.EnableIncomingConnections: "user-decides",
 				pkey.EnableServerMode:          "user-decides",
 				pkey.ExitNodeAllowLANAccess:    "user-decides",
-				pkey.EnableTailscaleDNS:        "user-decides",
-				pkey.EnableTailscaleSubnets:    "user-decides",
+				pkey.EnableLanhcDNS:        "user-decides",
+				pkey.EnableLanhcSubnets:    "user-decides",
 			},
 		},
 		{
@@ -5302,10 +5302,10 @@ func TestValidPopBrowserURL(t *testing.T) {
 		popBrowserURL string
 		want          bool
 	}{
-		{"saas_login", "https://login.tailscale.com", "https://login.tailscale.com/a/foo", true},
-		{"saas_controlplane", "https://controlplane.tailscale.com", "https://controlplane.tailscale.com/a/foo", true},
-		{"saas_root", "https://login.tailscale.com", "https://tailscale.com/", true},
-		{"saas_bad_hostname", "https://login.tailscale.com", "https://example.com/a/foo", false},
+		{"saas_login", "https://login.lanhc.com", "https://login.lanhc.com/a/foo", true},
+		{"saas_controlplane", "https://controlplane.lanhc.com", "https://controlplane.lanhc.com/a/foo", true},
+		{"saas_root", "https://login.lanhc.com", "https://lanhc.com/", true},
+		{"saas_bad_hostname", "https://login.lanhc.com", "https://example.com/a/foo", false},
 		{"localhost", "http://localhost", "http://localhost/a/foo", true},
 		{"custom_control_url_https", "https://example.com", "https://example.com/a/foo", true},
 		{"custom_control_url_https_diff_domain", "https://example.com", "https://other.com/a/foo", true},
@@ -5976,7 +5976,7 @@ func TestSuggestExitNode(t *testing.T) {
 			wantLocation: sanJose.View(),
 		},
 		{
-			// Regression test for https://github.com/tailscale/tailscale/issues/17661
+			// Regression test for https://github.com/lanhc/lanhc/issues/17661
 			name: "exits-no-home-DERP-random-selection",
 			lastReport: &netcheck.Report{
 				RegionLatency: map[int]time.Duration{
@@ -7532,7 +7532,7 @@ func TestConfigFileReload(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			dir := t.TempDir()
-			path := filepath.Join(dir, "tailscale.conf")
+			path := filepath.Join(dir, "lanhc.conf")
 
 			// Write initial config
 			initialJSON, err := json.Marshal(tc.initial.Parsed)
@@ -7818,7 +7818,7 @@ func TestUpdatePrefsOnSysPolicyChange(t *testing.T) {
 				AdvertiseRoutes: []netip.Prefix{tsaddr.AllIPv4(), tsaddr.AllIPv6()},
 			},
 			stringSettings: []source.TestSetting[string]{
-				source.TestSettingOf(pkey.EnableTailscaleDNS, "always"),
+				source.TestSettingOf(pkey.EnableLanhcDNS, "always"),
 				source.TestSettingOf(pkey.ExitNodeID, "foo"),
 				source.TestSettingOf(pkey.EnableRunExitNode, "always"),
 			},
@@ -8492,9 +8492,9 @@ func TestDeps(t *testing.T) {
 	deptest.DepChecker{
 		OnImport: func(pkg string) {
 			switch pkg {
-			case "tailscale.com/util/syspolicy",
-				"tailscale.com/util/syspolicy/setting",
-				"tailscale.com/util/syspolicy/rsop":
+			case "lanhc.com/util/syspolicy",
+				"lanhc.com/util/syspolicy/setting",
+				"lanhc.com/util/syspolicy/rsop":
 				t.Errorf("ipn/ipnlocal: importing syspolicy package %q is not allowed; only policyclient and its deps should be used by ipn/ipnlocal", pkg)
 			}
 		},
@@ -8913,7 +8913,7 @@ func TestRouteAllDisabled(t *testing.T) {
 		AllowedIPs: []netip.Prefix{
 			pp("100.80.207.38/32"),
 
-			// If one IP in the Tailscale ULA range is added, the
+			// If one IP in the Lanhc ULA range is added, the
 			// entire range is added to the router config.
 			pp("fd7a:115c:a1e0::2501:9b83/128"),
 
@@ -8927,7 +8927,7 @@ func TestRouteAllDisabled(t *testing.T) {
 			// A /28 is a subnet route, added only with RouteAll.
 			pp("100.64.0.0/28"),
 
-			// Single IPs outside the Tailscale CGNAT/ULA ranges are
+			// Single IPs outside the Lanhc CGNAT/ULA ranges are
 			// subnet routes too.
 			pp("192.168.0.45/32"),
 			pp("fd7a:115c:b1e0::2501:9b83/128"),
@@ -9278,7 +9278,7 @@ func TestShouldUseOneCGNATRoute(t *testing.T) {
 		want      bool
 	}{
 		{
-			name:      "android/tailscale-cgnat",
+			name:      "android/lanhc-cgnat",
 			versionOS: "android",
 			ifaces: []netmon.Interface{
 				makeInterface(1, "lo", "127.0.0.1/8"),
@@ -9300,14 +9300,14 @@ func TestShouldUseOneCGNATRoute(t *testing.T) {
 			want:   false,
 		},
 		{
-			name:      "linux/tailscale-cgnat",
+			name:      "linux/lanhc-cgnat",
 			versionOS: "linux",
 			ifaces: []netmon.Interface{
 				makeInterface(1, "lo", "127.0.0.1/8"),
 				makeInterface(2, "eth0", "10.203.33.114/23"),
-				makeInterface(3, "tailscale0", "100.95.71.186/32"),
+				makeInterface(3, "lanhc0", "100.95.71.186/32"),
 			},
-			tsName:  "tailscale0",
+			tsName:  "lanhc0",
 			tsIndex: 3,
 			want:    false,
 		},
@@ -9317,14 +9317,14 @@ func TestShouldUseOneCGNATRoute(t *testing.T) {
 			ifaces: []netmon.Interface{
 				makeInterface(1, "lo", "127.0.0.1/8"),
 				makeInterface(2, "eth0", "100.124.0.1/32"),
-				makeInterface(3, "tailscale0", "100.95.71.186/32"),
+				makeInterface(3, "lanhc0", "100.95.71.186/32"),
 			},
-			tsName:  "tailscale0",
+			tsName:  "lanhc0",
 			tsIndex: 3,
 			want:    false,
 		},
 		{
-			name:      "macOS/tailscale-cgnat",
+			name:      "macOS/lanhc-cgnat",
 			versionOS: "macOS",
 			ifaces: []netmon.Interface{
 				makeInterface(1, "lo0", "127.0.0.1/8"),
@@ -9348,7 +9348,7 @@ func TestShouldUseOneCGNATRoute(t *testing.T) {
 			want:    false,
 		},
 		{
-			name:      "plan9/tailscale-cgnat",
+			name:      "plan9/lanhc-cgnat",
 			versionOS: "plan9",
 			ifaces: []netmon.Interface{
 				makeInterface(1, "/net/ipifc/0", "127.0.0.1/8"),
@@ -9372,14 +9372,14 @@ func TestShouldUseOneCGNATRoute(t *testing.T) {
 			want:    true,
 		},
 		{
-			name:      "windows/tailscale-cgnat",
+			name:      "windows/lanhc-cgnat",
 			versionOS: "windows",
 			ifaces: []netmon.Interface{
 				makeInterface(1, "Loopback Pseudo-Interface 1", "127.0.0.1/8"),
 				makeInterface(2, "Wi-Fi", "10.203.33.114/23"),
-				makeInterface(3, "Tailscale", "100.95.71.186/32"),
+				makeInterface(3, "Lanhc", "100.95.71.186/32"),
 			},
-			tsName:  "Tailscale",
+			tsName:  "Lanhc",
 			tsIndex: 3,
 			want:    false,
 		},
@@ -9389,9 +9389,9 @@ func TestShouldUseOneCGNATRoute(t *testing.T) {
 			ifaces: []netmon.Interface{
 				makeInterface(1, "Loopback Pseudo-Interface 1", "127.0.0.1/8"),
 				makeInterface(2, "Wi-Fi", "100.124.0.1/32"),
-				makeInterface(3, "Tailscale", "100.95.71.186/32"),
+				makeInterface(3, "Lanhc", "100.95.71.186/32"),
 			},
-			tsName:  "Tailscale",
+			tsName:  "Lanhc",
 			tsIndex: 3,
 			want:    false,
 		},
@@ -9408,13 +9408,13 @@ func TestShouldUseOneCGNATRoute(t *testing.T) {
 				return tt.ifaces, nil
 			})
 
-			// Stub out the Tailscale interface properties.
-			tsName, _ := netmon.TailscaleInterfaceName()
-			tsIndex, _ := netmon.TailscaleInterfaceIndex()
+			// Stub out the Lanhc interface properties.
+			tsName, _ := netmon.LanhcInterfaceName()
+			tsIndex, _ := netmon.LanhcInterfaceIndex()
 			t.Cleanup(func() {
-				netmon.SetTailscaleInterfaceProps(tsName, tsIndex)
+				netmon.SetLanhcInterfaceProps(tsName, tsIndex)
 			})
-			netmon.SetTailscaleInterfaceProps(tt.tsName, tt.tsIndex)
+			netmon.SetLanhcInterfaceProps(tt.tsName, tt.tsIndex)
 
 			got := shouldUseOneCGNATRoute(t.Logf, nil, nil, tt.versionOS)
 			if got != tt.want {

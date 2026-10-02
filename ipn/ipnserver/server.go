@@ -22,20 +22,20 @@ import (
 	"sync/atomic"
 	"unicode"
 
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/ipn/ipnauth"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/localapi"
-	"tailscale.com/net/netmon"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/logid"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
-	"tailscale.com/util/testenv"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/ipn/ipnauth"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/localapi"
+	"lanhc.com/net/netmon"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/logid"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
+	"lanhc.com/util/testenv"
 )
 
 // Server is an IPN backend and its set of 0 or more active localhost
@@ -120,7 +120,7 @@ func (s *Server) awaitBackend(ctx context.Context) (_ *ipnlocal.LocalBackend, ok
 // serveServerStatus serves the /server-status endpoint which reports whether
 // the LocalBackend is up yet.
 // This is primarily for the Windows GUI, because wintun can take awhile to
-// come up. See https://github.com/tailscale/tailscale/issues/6522.
+// come up. See https://github.com/lanhc/lanhc/issues/6522.
 func (s *Server) serveServerStatus(w http.ResponseWriter, r *http.Request) {
 	if !buildfeatures.HasDebug && runtime.GOOS != "windows" {
 		http.Error(w, feature.ErrUnavailable.Error(), http.StatusNotFound)
@@ -237,7 +237,7 @@ func (s *Server) serveHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	io.WriteString(w, "<html><title>Tailscale</title><body><h1>Tailscale</h1>This is the local Tailscale daemon.\n")
+	io.WriteString(w, "<html><title>Lanhc</title><body><h1>Lanhc</h1>This is the local Lanhc daemon.\n")
 }
 
 // inUseOtherUserError is the error type for when the server is in use
@@ -262,14 +262,14 @@ func (s *Server) checkConnIdentityLocked(ci ipnauth.Actor) error {
 		}
 		if active != nil {
 			// Always allow Windows SYSTEM user to connect,
-			// even if Tailscale is currently being used by another user.
+			// even if Lanhc is currently being used by another user.
 			if ci.IsLocalSystem() {
 				return nil
 			}
 
 			if ci.UserID() != active.UserID() {
 				var b strings.Builder
-				b.WriteString("Tailscale already in use")
+				b.WriteString("Lanhc already in use")
 				if username, err := active.Username(); err == nil {
 					fmt.Fprintf(&b, " by %s", username)
 				}
@@ -290,7 +290,7 @@ func (s *Server) checkConnIdentityLocked(ci ipnauth.Actor) error {
 // the server is in use by a different user.
 //
 // This is primarily used for the Windows GUI, to block until one user's done
-// controlling the tailscaled process.
+// controlling the lanhcd process.
 func (s *Server) blockWhileIdentityInUse(ctx context.Context, actor ipnauth.Actor) error {
 	inUse := func() bool {
 		s.mu.Lock()
@@ -309,7 +309,7 @@ func (s *Server) blockWhileIdentityInUse(ctx context.Context, actor ipnauth.Acto
 			// this, we can check again after registering the waiter.
 			//
 			// This method is planned for complete removal as part of the
-			// multi-user improvements in tailscale/corp#18342,
+			// multi-user improvements in lanhc/corp#18342,
 			// and this approach should be fine as a temporary solution.
 			<-ready
 		}
@@ -322,10 +322,10 @@ func (s *Server) blockWhileIdentityInUse(ctx context.Context, actor ipnauth.Acto
 }
 
 // Permissions returns the actor's permissions for accessing
-// the Tailscale local daemon API. The operatorUID is only used on
+// the Lanhc local daemon API. The operatorUID is only used on
 // Unix-like platforms and specifies the ID of a local user
 // (in the os/user.User.Uid string form) who is allowed
-// to operate tailscaled without being root or using sudo.
+// to operate lanhcd without being root or using sudo.
 //
 // Sandboxed macos clients must directly supply, or be able to read,
 // an explicit token. Permission is inferred by validating that
@@ -343,7 +343,7 @@ func (a *actor) Permissions(operatorUID string) (read, write bool) {
 		// new connection in [Server.addActiveHTTPRequest]. Therefore, it's
 		// acceptable to permit read and write access without any additional
 		// checks here. Note that this permission model is being changed in
-		// tailscale/corp#18342.
+		// lanhc/corp#18342.
 		return true, true
 	case "js", "plan9":
 		return true, true
@@ -490,7 +490,7 @@ func (s *Server) SetLocalBackend(lb *ipnlocal.LocalBackend) {
 	s.mu.Unlock()
 
 	// TODO(bradfitz): send status update to GUI long poller waiter. See
-	// https://github.com/tailscale/tailscale/issues/6522
+	// https://github.com/lanhc/lanhc/issues/6522
 }
 
 // Run runs the server, accepting connections from ln forever.
@@ -548,7 +548,7 @@ func (s *Server) Run(ctx context.Context, ln net.Listener) error {
 }
 
 // ServeHTMLStatus serves an HTML status page at http://localhost:41112/ for
-// Windows and via $DEBUG_LISTENER/debug/ipn when tailscaled's --debug flag
+// Windows and via $DEBUG_LISTENER/debug/ipn when lanhcd's --debug flag
 // is used to run a debug server.
 func (s *Server) ServeHTMLStatus(w http.ResponseWriter, r *http.Request) {
 	if !buildfeatures.HasDebug {

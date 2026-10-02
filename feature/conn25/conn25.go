@@ -25,28 +25,28 @@ import (
 
 	"go4.org/netipx"
 	"golang.org/x/net/dns/dnsmessage"
-	"tailscale.com/appc"
-	"tailscale.com/envknob"
-	"tailscale.com/feature"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/ipnext"
-	"tailscale.com/ipn/ipnlocal"
-	"tailscale.com/ipn/localapi"
-	"tailscale.com/net/packet"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/net/tstun"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tstime"
-	"tailscale.com/types/appctype"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/views"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/set"
-	"tailscale.com/util/testenv"
-	"tailscale.com/wgengine/filter"
+	"lanhc.com/appc"
+	"lanhc.com/envknob"
+	"lanhc.com/feature"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/ipnext"
+	"lanhc.com/ipn/ipnlocal"
+	"lanhc.com/ipn/localapi"
+	"lanhc.com/net/packet"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/net/tstun"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tstime"
+	"lanhc.com/types/appctype"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/views"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/set"
+	"lanhc.com/util/testenv"
+	"lanhc.com/wgengine/filter"
 )
 
 // featureName is the name of the feature implemented by this package.
@@ -90,7 +90,7 @@ func init() {
 }
 
 func handleConnectorTransitIP(h ipnlocal.PeerAPIHandler, w http.ResponseWriter, r *http.Request) {
-	// TODO(tailscale/corp#39033): Remove for alpha release.
+	// TODO(lanhc/corp#39033): Remove for alpha release.
 	if !envknob.UseWIPCode() && !testenv.InTest() {
 		w.WriteHeader(http.StatusNotImplemented)
 		return
@@ -104,7 +104,7 @@ func handleConnectorTransitIP(h ipnlocal.PeerAPIHandler, w http.ResponseWriter, 
 }
 
 func handleHookReplyToDNSQueries(h ipnlocal.PeerAPIHandler) bool {
-	// TODO(tailscale/corp#39033): Remove for alpha release.
+	// TODO(lanhc/corp#39033): Remove for alpha release.
 	if !envknob.UseWIPCode() && !testenv.InTest() {
 		return false
 	}
@@ -132,7 +132,7 @@ func (e *extension) Name() string {
 
 // Init implements [ipnext.Extension].
 func (e *extension) Init(host ipnext.Host) error {
-	// TODO(tailscale/corp#39033): Remove for alpha release.
+	// TODO(lanhc/corp#39033): Remove for alpha release.
 	if !envknob.UseWIPCode() && !testenv.InTest() {
 		return ipnext.SkipExtension
 	}
@@ -220,7 +220,7 @@ func (e *extension) installHooks(dph *datapathHandler) error {
 		}
 		return dph.HandlePacketFromWireGuard(p, tun)
 	}
-	tun.OnUnmappedTransitIPMessage = func(pkt packet.TailscaleRejectedHeader) {
+	tun.OnUnmappedTransitIPMessage = func(pkt packet.LanhcRejectedHeader) {
 		if !e.conn25.isConfigured() {
 			return
 		}
@@ -375,7 +375,7 @@ func (e *extension) handleHookReplyToDNSQueries(h ipnlocal.PeerAPIHandler) bool 
 	if !e.conn25.isConfigured() {
 		return false
 	}
-	// TODO(tailscale/corp#40076): verify the peer has access to the query's
+	// TODO(lanhc/corp#40076): verify the peer has access to the query's
 	// app (if any) domain.
 	return true
 }
@@ -491,7 +491,7 @@ func (c *Conn25) handleConnectorTransitIPRequest(n tailcfg.NodeView, ctipr Conne
 
 	var peerIPv4, peerIPv6 netip.Addr
 	for _, ip := range n.Addresses().All() {
-		if !ip.IsSingleIP() || !tsaddr.IsTailscaleIP(ip.Addr()) {
+		if !ip.IsSingleIP() || !tsaddr.IsLanhcIP(ip.Addr()) {
 			continue
 		}
 		if ip.Addr().Is4() && !peerIPv4.IsValid() {
@@ -634,8 +634,8 @@ type ConnectorTransitIPResponse struct {
 	TransitIPs []TransitIPResponse `json:"transitIPs,omitempty"`
 }
 
-const AppConnectorsExperimentalAttrName = "tailscale.com/app-connectors-experimental"
-const AppConnectorsExperimentalIPPoolsAttrName = "tailscale.com/app-connectors-experimental-ippools"
+const AppConnectorsExperimentalAttrName = "lanhc.com/app-connectors-experimental"
+const AppConnectorsExperimentalIPPoolsAttrName = "lanhc.com/app-connectors-experimental-ippools"
 
 // ipSets wraps all the IPSets the config needs.
 type ipSets struct {
@@ -775,7 +775,7 @@ func (c *client) transitIPForMagicIP(magicIP netip.Addr) (netip.Addr, bool) {
 
 // linkLocalAllow returns true if the provided packet with a link-local Dst address has a
 // Dst that is one of our transit IPs, and false otherwise.
-// Tailscale's wireguard filters drop link-local unicast packets (see [wgengine/filter/filter.go])
+// Lanhc's wireguard filters drop link-local unicast packets (see [wgengine/filter/filter.go])
 // but conn25 uses link-local addresses for transit IPs.
 // Let the filter know if this is one of our addresses and should be allowed.
 func (c *client) linkLocalAllow(p packet.Parsed) (bool, string) {

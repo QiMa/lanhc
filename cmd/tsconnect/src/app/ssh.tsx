@@ -21,7 +21,7 @@ export function SSH({ netMap, ipn }: { netMap: IPNNetMap; ipn: IPN }) {
     return sshSession
   }
   const sshPeers = netMap.peers.filter(
-    (p) => p.tailscaleSSHEnabled && p.online !== false
+    (p) => p.lanhcSSHEnabled && p.online !== false
   )
 
   if (sshPeers.length == 0) {
@@ -61,8 +61,8 @@ function NoSSHPeers() {
   return (
     <div class="container mx-auto px-4 text-center">
       None of your machines have{" "}
-      <a href="https://tailscale.com/kb/1193/tailscale-ssh/" class="link">
-        Tailscale SSH
+      <a href="https://lanhc.com/kb/1193/lanhc-ssh/" class="link">
+        Lanhc SSH
       </a>
       {" "}enabled. Give it a try!
     </div>

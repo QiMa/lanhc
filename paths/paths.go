@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // Package paths returns platform and user-specific default paths to
-// Tailscale files and directories.
+// Lanhc files and directories.
 package paths
 
 import (
@@ -11,42 +11,42 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"tailscale.com/syncs"
-	"tailscale.com/version/distro"
+	"lanhc.com/syncs"
+	"lanhc.com/version/distro"
 )
 
 // AppSharedDir is a string set by the iOS or Android app on start
 // containing a directory we can read/write in.
 var AppSharedDir syncs.AtomicValue[string]
 
-// DefaultTailscaledSocket returns the path to the tailscaled Unix socket
+// DefaultLanhcdSocket returns the path to the lanhcd Unix socket
 // or the empty string if there's no reasonable default.
-func DefaultTailscaledSocket() string {
+func DefaultLanhcdSocket() string {
 	if runtime.GOOS == "windows" {
-		return `\\.\pipe\ProtectedPrefix\Administrators\Tailscale\tailscaled`
+		return `\\.\pipe\ProtectedPrefix\Administrators\Lanhc\lanhcd`
 	}
 	if runtime.GOOS == "darwin" {
-		return "/var/run/tailscaled.socket"
+		return "/var/run/lanhcd.socket"
 	}
 	if runtime.GOOS == "plan9" {
-		return "/srv/tailscaled.sock"
+		return "/srv/lanhcd.sock"
 	}
 	switch distro.Get() {
 	case distro.Synology:
 		if distro.DSMVersion() == 6 {
-			return "/var/packages/Tailscale/etc/tailscaled.sock"
+			return "/var/packages/Lanhc/etc/lanhcd.sock"
 		}
 		// DSM 7 (and higher? or failure to detect.)
-		return "/var/packages/Tailscale/var/tailscaled.sock"
+		return "/var/packages/Lanhc/var/lanhcd.sock"
 	case distro.Gokrazy:
-		return "/perm/tailscaled/tailscaled.sock"
+		return "/perm/lanhcd/lanhcd.sock"
 	case distro.QNAP:
-		return "/tmp/tailscale/tailscaled.sock"
+		return "/tmp/lanhc/lanhcd.sock"
 	}
 	if fi, err := os.Stat("/var/run"); err == nil && fi.IsDir() {
-		return "/var/run/tailscale/tailscaled.sock"
+		return "/var/run/lanhc/lanhcd.sock"
 	}
-	return "tailscaled.sock"
+	return "lanhcd.sock"
 }
 
 // Overridden in init by OS-specific files.
@@ -58,37 +58,37 @@ var (
 	ensureStateDirPerms = func(string) error { return nil }
 )
 
-// DefaultTailscaledStateFile returns the default path to the
-// tailscaled state file, or the empty string if there's no reasonable
+// DefaultLanhcdStateFile returns the default path to the
+// lanhcd state file, or the empty string if there's no reasonable
 // default value.
-func DefaultTailscaledStateFile() string {
+func DefaultLanhcdStateFile() string {
 	if f := stateFileFunc; f != nil {
 		return f()
 	}
 	if runtime.GOOS == "windows" {
-		return filepath.Join(os.Getenv("ProgramData"), "Tailscale", "server-state.conf")
+		return filepath.Join(os.Getenv("ProgramData"), "Lanhc", "server-state.conf")
 	}
 	return ""
 }
 
-// DefaultTailscaledStateDir returns the default state directory
-// to use for tailscaled, for use when the user provided neither
+// DefaultLanhcdStateDir returns the default state directory
+// to use for lanhcd, for use when the user provided neither
 // a state directory or state file path to use.
 //
 // It returns the empty string if there's no reasonable default.
-func DefaultTailscaledStateDir() string {
+func DefaultLanhcdStateDir() string {
 	if runtime.GOOS == "plan9" {
 		home, err := os.UserHomeDir()
 		if err != nil {
 			log.Fatalf("failed to get home directory: %v", err)
 		}
-		return filepath.Join(home, "tailscale-state")
+		return filepath.Join(home, "lanhc-state")
 	}
-	return filepath.Dir(DefaultTailscaledStateFile())
+	return filepath.Dir(DefaultLanhcdStateFile())
 }
 
 // MakeAutomaticStateDir reports whether the platform
-// automatically creates the state directory for tailscaled
+// automatically creates the state directory for lanhcd
 // when it's absent.
 func MakeAutomaticStateDir() bool {
 	switch runtime.GOOS {
@@ -118,7 +118,7 @@ func MkStateDir(dirPath string) error {
 // It is only called on Windows.
 func LegacyStateFilePath() string {
 	if runtime.GOOS == "windows" {
-		return filepath.Join(os.Getenv("LocalAppData"), "Tailscale", "server-state.conf")
+		return filepath.Join(os.Getenv("LocalAppData"), "Lanhc", "server-state.conf")
 	}
 	return ""
 }

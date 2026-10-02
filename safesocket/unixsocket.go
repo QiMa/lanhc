@@ -35,8 +35,8 @@ func listen(path string) (net.Listener, error) {
 	c, err := net.Dial("unix", path)
 	if err == nil {
 		c.Close()
-		if tailscaledRunningUnderLaunchd() {
-			return nil, fmt.Errorf("%v: address already in use; tailscaled already running under launchd (to stop, run: $ sudo launchctl stop com.tailscale.tailscaled)", path)
+		if lanhcdRunningUnderLaunchd() {
+			return nil, fmt.Errorf("%v: address already in use; lanhcd already running under launchd (to stop, run: $ sudo launchctl stop com.lanhc.lanhcd)", path)
 		}
 		return nil, fmt.Errorf("%v: address already in use", path)
 	}
@@ -51,7 +51,7 @@ func listen(path string) (net.Listener, error) {
 		// If we're on a platform where we want the socket
 		// world-readable, open up the permissions on the
 		// just-created directory too, in case a umask ate
-		// it. This primarily affects running tailscaled by
+		// it. This primarily affects running lanhcd by
 		// hand as root in a shell, as there is no umask when
 		// running under systemd.
 		if perm == 0666 {
@@ -70,18 +70,18 @@ func listen(path string) (net.Listener, error) {
 	return pipe, err
 }
 
-func tailscaledRunningUnderLaunchd() bool {
+func lanhcdRunningUnderLaunchd() bool {
 	if runtime.GOOS != "darwin" {
 		return false
 	}
-	plist, err := exec.Command("launchctl", "list", "com.tailscale.tailscaled").Output()
+	plist, err := exec.Command("launchctl", "list", "com.lanhc.lanhcd").Output()
 	_ = plist // parse it? https://github.com/DHowett/go-plist if we need something.
 	running := err == nil
 	return running
 }
 
 // socketPermissionsForOS returns the permissions to use for the
-// tailscaled.sock.
+// lanhcd.sock.
 func socketPermissionsForOS() os.FileMode {
 	if PlatformUsesPeerCreds() {
 		return 0666

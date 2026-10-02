@@ -25,9 +25,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/studio-b12/gowebdav"
-	"tailscale.com/drive"
-	"tailscale.com/drive/driveimpl/shared"
-	"tailscale.com/tstest"
+	"lanhc.com/drive"
+	"lanhc.com/drive/driveimpl/shared"
+	"lanhc.com/tstest"
 )
 
 const (
@@ -63,7 +63,7 @@ func init() {
 }
 
 // The tests in this file simulate real-life Taildrive scenarios, but without
-// going over the Tailscale network stack.
+// going over the Lanhc network stack.
 func TestDirectoryListing(t *testing.T) {
 	s := newSystem(t)
 

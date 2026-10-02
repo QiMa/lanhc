@@ -1,19 +1,19 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package tsd (short for "Tailscale Daemon") contains a System type that
-// containing all the subsystems a Tailscale node (tailscaled or platform
+// Package tsd (short for "Lanhc Daemon") contains a System type that
+// containing all the subsystems a Lanhc node (lanhcd or platform
 // equivalent) uses.
 //
 // The goal of this package (as of 2023-05-03) is to eventually unify
-// initialization across tailscaled, tailscaled as a Windows services, the mac
+// initialization across lanhcd, lanhcd as a Windows services, the mac
 // GUI, tsnet, wasm, tests, and other places that wire up all the subsystems.
 // And doing so without weird optional interface accessors on some subsystems
 // that return other subsystems. It's all a work in progress.
 //
-// This package depends on nearly all parts of Tailscale, so it should not be
+// This package depends on nearly all parts of Lanhc, so it should not be
 // imported by (or thus passed to) any package that does not want to depend on
-// the world. In practice this means that only things like cmd/tailscaled,
+// the world. In practice this means that only things like cmd/lanhcd,
 // ipn/ipnlocal, and ipn/ipnserver should import this package.
 package tsd
 
@@ -23,27 +23,27 @@ import (
 	"net/http"
 	"reflect"
 
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/drive"
-	"tailscale.com/health"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/conffile"
-	"tailscale.com/net/dns"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/net/tstun"
-	"tailscale.com/proxymap"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/views"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/syspolicy/policyclient"
-	"tailscale.com/util/usermetric"
-	"tailscale.com/wgengine"
-	"tailscale.com/wgengine/magicsock"
-	"tailscale.com/wgengine/router"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/drive"
+	"lanhc.com/health"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/conffile"
+	"lanhc.com/net/dns"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/net/tstun"
+	"lanhc.com/proxymap"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/views"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/syspolicy/policyclient"
+	"lanhc.com/util/usermetric"
+	"lanhc.com/wgengine"
+	"lanhc.com/wgengine/magicsock"
+	"lanhc.com/wgengine/router"
 )
 
-// System contains all the subsystems of a Tailscale node (tailscaled, etc.)
+// System contains all the subsystems of a Lanhc node (lanhcd, etc.)
 //
 // A valid System value must always have a non-nil Bus populated.  Callers must
 // ensure this before using the value further. Call [NewSystem] to obtain a
@@ -81,7 +81,7 @@ type System struct {
 	// LocalBackend tracks the current config after any reloads.
 	InitialConfig *conffile.Config
 
-	// SocketPath is the path to the tailscaled Unix socket.
+	// SocketPath is the path to the lanhcd Unix socket.
 	// It is used to prevent serve from proxying to our own socket.
 	SocketPath string
 
@@ -172,7 +172,7 @@ func (s *System) Set(v any) {
 	}
 }
 
-// IsNetstackRouter reports whether Tailscale is either fully netstack based
+// IsNetstackRouter reports whether Lanhc is either fully netstack based
 // (without TUN) or is at least using netstack for routing.
 func (s *System) IsNetstackRouter() bool {
 	if v, ok := s.NetstackRouter.GetOK(); ok && v {
@@ -181,7 +181,7 @@ func (s *System) IsNetstackRouter() bool {
 	return s.IsNetstack()
 }
 
-// IsNetstack reports whether Tailscale is running as a netstack-based TUN-free engine.
+// IsNetstack reports whether Lanhc is running as a netstack-based TUN-free engine.
 func (s *System) IsNetstack() bool {
 	return s.onlyNetstack
 }
@@ -210,7 +210,7 @@ func (s *System) PolicyClientOrDefault() policyclient.Client {
 	return policyclient.Get()
 }
 
-// SubSystem represents some subsystem of the Tailscale node daemon.
+// SubSystem represents some subsystem of the Lanhc node daemon.
 //
 // A subsystem can be set to a value, and then later retrieved. A subsystem
 // value tracks whether it's been set and, once set, doesn't allow the value to

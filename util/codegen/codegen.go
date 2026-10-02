@@ -18,10 +18,10 @@ import (
 
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/imports"
-	"tailscale.com/util/mak"
+	"lanhc.com/util/mak"
 )
 
-var flagCopyright = flag.Bool("copyright", true, "add Tailscale copyright to generated file headers")
+var flagCopyright = flag.Bool("copyright", true, "add Lanhc copyright to generated file headers")
 
 // LoadTypes returns all named types in pkgName, keyed by their type name.
 func LoadTypes(buildTags string, pkgName string) (*packages.Package, map[string]types.Type, error) {

@@ -1,8 +1,8 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package ipnlocal is the heart of the Tailscale node agent that controls
-// all the other misc pieces of the Tailscale node.
+// Package ipnlocal is the heart of the Lanhc node agent that controls
+// all the other misc pieces of the Lanhc node.
 package ipnlocal
 
 import (
@@ -35,79 +35,79 @@ import (
 	"go4.org/mem"
 	"go4.org/netipx"
 	"golang.org/x/net/dns/dnsmessage"
-	"tailscale.com/appc"
-	"tailscale.com/client/tailscale/apitype"
-	"tailscale.com/control/controlclient"
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/drive"
-	"tailscale.com/envknob"
-	"tailscale.com/envknob/featureknob"
-	"tailscale.com/feature"
-	"tailscale.com/feature/buildfeatures"
-	"tailscale.com/health"
-	"tailscale.com/health/healthmsg"
-	"tailscale.com/hostinfo"
-	"tailscale.com/internal/lanhc"
-	"tailscale.com/ipn"
-	"tailscale.com/ipn/conffile"
-	"tailscale.com/ipn/ipnauth"
-	"tailscale.com/ipn/ipnext"
-	"tailscale.com/ipn/ipnstate"
-	"tailscale.com/log/sockstatlog"
-	"tailscale.com/logpolicy"
-	"tailscale.com/net/dns"
-	"tailscale.com/net/dnscache"
-	"tailscale.com/net/dnsfallback"
-	"tailscale.com/net/ipset"
-	"tailscale.com/net/netkernelconf"
-	"tailscale.com/net/netmon"
-	"tailscale.com/net/netns"
-	"tailscale.com/net/netutil"
-	"tailscale.com/net/packet"
-	"tailscale.com/net/routemanager"
-	"tailscale.com/net/traffic"
-	"tailscale.com/net/tsaddr"
-	"tailscale.com/net/tsdial"
-	"tailscale.com/paths"
-	"tailscale.com/syncs"
-	"tailscale.com/tailcfg"
-	"tailscale.com/tsd"
-	"tailscale.com/tstime"
-	"tailscale.com/types/appctype"
-	"tailscale.com/types/dnstype"
-	"tailscale.com/types/empty"
-	"tailscale.com/types/key"
-	"tailscale.com/types/logger"
-	"tailscale.com/types/logid"
-	"tailscale.com/types/netmap"
-	"tailscale.com/types/opt"
-	"tailscale.com/types/persist"
-	"tailscale.com/types/preftype"
-	"tailscale.com/types/views"
-	"tailscale.com/util/checkchange"
-	"tailscale.com/util/clientmetric"
-	"tailscale.com/util/dnsname"
-	"tailscale.com/util/eventbus"
-	"tailscale.com/util/execqueue"
-	"tailscale.com/util/goroutines"
-	"tailscale.com/util/mak"
-	"tailscale.com/util/osuser"
-	"tailscale.com/util/rands"
-	"tailscale.com/util/set"
-	"tailscale.com/util/slicesx"
-	"tailscale.com/util/syspolicy/pkey"
-	"tailscale.com/util/syspolicy/policyclient"
-	"tailscale.com/util/syspolicy/ptype"
-	"tailscale.com/util/testenv"
-	"tailscale.com/util/usermetric"
-	"tailscale.com/util/vizerror"
-	"tailscale.com/version"
-	"tailscale.com/version/distro"
-	"tailscale.com/wgengine"
-	"tailscale.com/wgengine/filter"
-	"tailscale.com/wgengine/magicsock"
-	"tailscale.com/wgengine/router"
-	"tailscale.com/wgengine/wgcfg"
+	"lanhc.com/appc"
+	"lanhc.com/client/lanhc/apitype"
+	"lanhc.com/control/controlclient"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/drive"
+	"lanhc.com/envknob"
+	"lanhc.com/envknob/featureknob"
+	"lanhc.com/feature"
+	"lanhc.com/feature/buildfeatures"
+	"lanhc.com/health"
+	"lanhc.com/health/healthmsg"
+	"lanhc.com/hostinfo"
+	"lanhc.com/internal/lanhc"
+	"lanhc.com/ipn"
+	"lanhc.com/ipn/conffile"
+	"lanhc.com/ipn/ipnauth"
+	"lanhc.com/ipn/ipnext"
+	"lanhc.com/ipn/ipnstate"
+	"lanhc.com/log/sockstatlog"
+	"lanhc.com/logpolicy"
+	"lanhc.com/net/dns"
+	"lanhc.com/net/dnscache"
+	"lanhc.com/net/dnsfallback"
+	"lanhc.com/net/ipset"
+	"lanhc.com/net/netkernelconf"
+	"lanhc.com/net/netmon"
+	"lanhc.com/net/netns"
+	"lanhc.com/net/netutil"
+	"lanhc.com/net/packet"
+	"lanhc.com/net/routemanager"
+	"lanhc.com/net/traffic"
+	"lanhc.com/net/tsaddr"
+	"lanhc.com/net/tsdial"
+	"lanhc.com/paths"
+	"lanhc.com/syncs"
+	"lanhc.com/tailcfg"
+	"lanhc.com/tsd"
+	"lanhc.com/tstime"
+	"lanhc.com/types/appctype"
+	"lanhc.com/types/dnstype"
+	"lanhc.com/types/empty"
+	"lanhc.com/types/key"
+	"lanhc.com/types/logger"
+	"lanhc.com/types/logid"
+	"lanhc.com/types/netmap"
+	"lanhc.com/types/opt"
+	"lanhc.com/types/persist"
+	"lanhc.com/types/preftype"
+	"lanhc.com/types/views"
+	"lanhc.com/util/checkchange"
+	"lanhc.com/util/clientmetric"
+	"lanhc.com/util/dnsname"
+	"lanhc.com/util/eventbus"
+	"lanhc.com/util/execqueue"
+	"lanhc.com/util/goroutines"
+	"lanhc.com/util/mak"
+	"lanhc.com/util/osuser"
+	"lanhc.com/util/rands"
+	"lanhc.com/util/set"
+	"lanhc.com/util/slicesx"
+	"lanhc.com/util/syspolicy/pkey"
+	"lanhc.com/util/syspolicy/policyclient"
+	"lanhc.com/util/syspolicy/ptype"
+	"lanhc.com/util/testenv"
+	"lanhc.com/util/usermetric"
+	"lanhc.com/util/vizerror"
+	"lanhc.com/version"
+	"lanhc.com/version/distro"
+	"lanhc.com/wgengine"
+	"lanhc.com/wgengine/filter"
+	"lanhc.com/wgengine/magicsock"
+	"lanhc.com/wgengine/router"
+	"lanhc.com/wgengine/wgcfg"
 )
 
 var controlDebugFlags = getControlDebugFlags()
@@ -132,7 +132,7 @@ type SSHServer interface {
 	// and closed if they'd no longer be accepted.
 	OnPolicyChange()
 
-	// Shutdown is called when tailscaled is shutting down.
+	// Shutdown is called when lanhcd is shutting down.
 	Shutdown()
 }
 
@@ -150,15 +150,15 @@ func RegisterNewSSHServer(fn newSSHServerFunc) {
 var HookListenSSH feature.Hook[func(net.Listener, *LocalBackend, logger.Logf) (net.Listener, error)]
 
 // ListenSSH wraps the given listener with an SSH server that authenticates
-// connections using Tailscale peer identity. The returned listener's Accept
+// connections using Lanhc peer identity. The returned listener's Accept
 // yields net.Conn values that are *tailssh.Session.
 //
 // If the ssh/tailssh package has not been linked (e.g. via
-// _ "tailscale.com/feature/ssh"), ListenSSH returns an error.
+// _ "lanhc.com/feature/ssh"), ListenSSH returns an error.
 func (b *LocalBackend) ListenSSH(ln net.Listener, logf logger.Logf) (net.Listener, error) {
 	fn, ok := HookListenSSH.GetOk()
 	if !ok {
-		return nil, errors.New("SSH support not available; import _ \"tailscale.com/feature/ssh\"")
+		return nil, errors.New("SSH support not available; import _ \"lanhc.com/feature/ssh\"")
 	}
 	return fn(ln, b, logf)
 }
@@ -212,13 +212,13 @@ var (
 	ErrProfileStorageUnavailable = errors.New("profile local data storage unavailable")
 )
 
-// LocalBackend is the glue between the major pieces of the Tailscale
+// LocalBackend is the glue between the major pieces of the Lanhc
 // network software: the cloud control plane (via controlclient), the
 // network data plane (via wgengine), and the user-facing UIs and CLIs
 // (collectively called "frontends", via LocalBackend's implementation
 // of the Backend interface).
 //
-// LocalBackend implements the overall state machine for the Tailscale
+// LocalBackend implements the overall state machine for the Lanhc
 // application. Frontends, controlclient and wgengine can feed events
 // into LocalBackend to advance the state machine, and advancing the
 // state machine generates events back out to zero or more components.
@@ -251,7 +251,7 @@ type LocalBackend struct {
 	// be true unless the disable-web-client node attribute has been set.
 	webClientAtomicBool atomic.Bool // TODO(nickkhyl): move to nodeBackend
 	// exposeRemoteWebClientAtomicBool controls whether the web client is exposed over
-	// Tailscale on port 5252.
+	// Lanhc on port 5252.
 	exposeRemoteWebClientAtomicBool atomic.Bool // TODO(nickkhyl): move to nodeBackend
 	shutdownCalled                  bool        // if Shutdown has been called
 	debugSink                       packet.CaptureSink
@@ -303,7 +303,7 @@ type LocalBackend struct {
 
 	// currentNodeAtomic is the current node context. It is always non-nil.
 	// It must be re-created when [LocalBackend] switches to a different profile/node
-	// (see tailscale/corp#28014 for a bug), but can be mutated in place (via its methods)
+	// (see lanhc/corp#28014 for a bug), but can be mutated in place (via its methods)
 	// while [LocalBackend] represents the same node.
 	//
 	// It is safe for reading with or without holding b.mu, but mutating it in place
@@ -438,7 +438,7 @@ type LocalBackend struct {
 	// or the user re-connects manually, switches to a different profile, etc.
 	// Notably, this is true when [pkey.AlwaysOnOverrideWithReason] is enabled,
 	// and the user has disconnected with a reason.
-	// See tailscale/corp#26146.
+	// See lanhc/corp#26146.
 	overrideAlwaysOn bool
 
 	// reconnectTimer is used to schedule a reconnect by setting [ipn.Prefs.WantRunning]
@@ -452,10 +452,10 @@ type LocalBackend struct {
 	// and the suggested exit node is not applied automatically.
 	//
 	// It is cleared when the user switches back to the state required by policy (typically, auto:any),
-	// or when switching profiles, connecting/disconnecting Tailscale, restarting the client,
+	// or when switching profiles, connecting/disconnecting Lanhc, restarting the client,
 	// or on similar events.
 	//
-	// See tailscale/corp#29969.
+	// See lanhc/corp#29969.
 	overrideExitNodePolicy bool
 
 	// hardwareAttested is whether backend should use a hardware-backed key to
@@ -515,12 +515,12 @@ type metrics struct {
 	approvedRoutes *usermetric.Gauge
 
 	// serveBytesInbound counts bytes received from peers on Serve connections
-	// for Tailscale Services, labeled by Service name. Plain (non-Service)
+	// for Lanhc Services, labeled by Service name. Plain (non-Service)
 	// serve and funnel traffic is not counted.
 	serveBytesInbound *usermetric.MultiLabelMap[serveLabels]
 
 	// serveBytesOutbound counts bytes sent to peers on Serve connections for
-	// Tailscale Services, labeled by Service name. Plain (non-Service) serve
+	// Lanhc Services, labeled by Service name. Plain (non-Service) serve
 	// and funnel traffic is not counted.
 	serveBytesOutbound *usermetric.MultiLabelMap[serveLabels]
 }
@@ -570,19 +570,19 @@ func NewLocalBackend(logf logger.Logf, logID logid.PublicID, sys *tsd.System, lo
 
 	m := metrics{
 		advertisedRoutes: sys.UserMetricsRegistry().NewGauge(
-			"tailscaled_advertised_routes", "Number of advertised network routes (e.g. by a subnet router)"),
+			"lanhcd_advertised_routes", "Number of advertised network routes (e.g. by a subnet router)"),
 		approvedRoutes: sys.UserMetricsRegistry().NewGauge(
-			"tailscaled_approved_routes", "Number of approved network routes (e.g. by a subnet router)"),
+			"lanhcd_approved_routes", "Number of approved network routes (e.g. by a subnet router)"),
 		serveBytesInbound: usermetric.NewMultiLabelMapWithRegistry[serveLabels](
 			sys.UserMetricsRegistry(),
-			"tailscaled_serve_inbound_bytes_total",
+			"lanhcd_serve_inbound_bytes_total",
 			"counter",
-			"Bytes received from peers on Serve connections for Tailscale Services, labeled by Tailscale Service name."),
+			"Bytes received from peers on Serve connections for Lanhc Services, labeled by Lanhc Service name."),
 		serveBytesOutbound: usermetric.NewMultiLabelMapWithRegistry[serveLabels](
 			sys.UserMetricsRegistry(),
-			"tailscaled_serve_outbound_bytes_total",
+			"lanhcd_serve_outbound_bytes_total",
 			"counter",
-			"Bytes sent to peers on Serve connections for Tailscale Services, labeled by Tailscale Service name."),
+			"Bytes sent to peers on Serve connections for Lanhc Services, labeled by Lanhc Service name."),
 	}
 
 	b := &LocalBackend{
@@ -696,7 +696,7 @@ func NewLocalBackend(logf logger.Logf, logID logid.PublicID, sys *tsd.System, lo
 	}
 
 	// Start the event bus late, once all the assignments above are done.
-	// (See previous race in tailscale/tailscale#17252)
+	// (See previous race in lanhc/lanhc#17252)
 	ec := b.Sys().Bus.Get().Client("ipnlocal.LocalBackend")
 	b.eventClient = ec
 	eventbus.SubscribeFunc(ec, b.onClientVersion)
@@ -713,7 +713,7 @@ func NewLocalBackend(logf logger.Logf, logID logid.PublicID, sys *tsd.System, lo
 	eventbus.SubscribeFunc(ec, b.onAppConnectorRouteUpdate)
 	eventbus.SubscribeFunc(ec, b.onAppConnectorStoreRoutes)
 	eventbus.SubscribeFunc(ec, b.onHomeDERPUpdate)
-	mConn.SetNetInfoCallback(b.setNetInfo) // TODO(tailscale/tailscale#17887): move to eventbus
+	mConn.SetNetInfoCallback(b.setNetInfo) // TODO(lanhc/lanhc#17887): move to eventbus
 
 	if buildfeatures.HasDrive {
 		if f, ok := hookInstallDriveRemoteSource.GetOk(); ok {
@@ -729,7 +729,7 @@ func (b *LocalBackend) onAppConnectorRouteUpdate(ru appctype.RouteUpdate) {
 	// one profile to arrive and be applied after a switch to another profile.
 	// We need to find a way to ensure that changes to the backend state are applied
 	// consistently in the presnce of profile changes, which currently may not happen in
-	// a single atomic step.  See: https://github.com/tailscale/tailscale/issues/17414
+	// a single atomic step.  See: https://github.com/lanhc/lanhc/issues/17414
 	b.appcTask.Add(func() {
 		if err := b.AdvertiseRoute(ru.Advertise...); err != nil {
 			b.logf("appc: failed to advertise routes: %v: %v", ru.Advertise, err)
@@ -1120,7 +1120,7 @@ func (b *LocalBackend) shouldPauseControlClientLocked(prefs ipn.PrefsView) bool 
 		return true
 	}
 
-	// If tailscaled is being restarted, but it is supposed to be stopped,
+	// If lanhcd is being restarted, but it is supposed to be stopped,
 	// it mustn’t pause until the initial netmap has been loaded.
 	isStopped := b.state == ipn.Stopped && b.NetMapNoPeers() != nil
 	if isStopped {
@@ -1151,7 +1151,7 @@ func (b *LocalBackend) DisconnectControl() {
 	b.mu.Unlock()
 
 	// The Shutdown call must not run while b.mu is held, per the deadlock
-	// history in tailscale/tailscale#18052: controlclient.Auto's
+	// history in lanhc/lanhc#18052: controlclient.Auto's
 	// goroutines deliver callbacks into LocalBackend through an execqueue
 	// whose RunSync holds the queue mutex while the callback acquires
 	// b.mu, and Auto.Shutdown acquires that same queue mutex, so calling
@@ -1192,7 +1192,7 @@ func (b *LocalBackend) linkChange(delta *netmon.ChangeDelta) {
 		case ipn.NoState, ipn.Stopped:
 			// Do nothing.
 		default:
-			// TODO(raggi,tailscale/corp#22574): authReconfig should be refactored such that we can call the
+			// TODO(raggi,lanhc/corp#22574): authReconfig should be refactored such that we can call the
 			// necessary operations here and avoid the need for asynchronous behavior that is racy and hard
 			// to test here, and do less extra work in these conditions.
 			b.goTracker.Go(b.authReconfig)
@@ -1496,7 +1496,7 @@ func (b *LocalBackend) updateStatusLocked(sb *ipnstate.StatusBuilder) {
 						s.ExitNodeStatus = &ipnstate.ExitNodeStatus{
 							ID:           prefs.ExitNodeID(),
 							Online:       exitPeer.Online().Get(),
-							TailscaleIPs: exitPeer.Addresses().AsSlice(),
+							LanhcIPs: exitPeer.Addresses().AsSlice(),
 						}
 					}
 				}
@@ -1504,13 +1504,13 @@ func (b *LocalBackend) updateStatusLocked(sb *ipnstate.StatusBuilder) {
 		}
 	})
 
-	var tailscaleIPs []netip.Addr
+	var lanhcIPs []netip.Addr
 	if nm != nil {
 		addrs := nm.GetAddresses()
 		for i := range addrs.Len() {
 			if addr := addrs.At(i); addr.IsSingleIP() {
-				sb.AddTailscaleIP(addr.Addr())
-				tailscaleIPs = append(tailscaleIPs, addr.Addr())
+				sb.AddLanhcIP(addr.Addr())
+				lanhcIPs = append(lanhcIPs, addr.Addr())
 			}
 		}
 	}
@@ -1529,7 +1529,7 @@ func (b *LocalBackend) updateStatusLocked(sb *ipnstate.StatusBuilder) {
 				peerStatusFromNode(ss, sn)
 				if cm := sn.CapMap(); cm.Len() > 0 {
 					ss.Capabilities = make([]tailcfg.NodeCapability, 1, cm.Len()+1)
-					ss.Capabilities[0] = "HTTPS://TAILSCALE.COM/s/DEPRECATED-NODE-CAPS#see-https://github.com/tailscale/tailscale/issues/11508"
+					ss.Capabilities[0] = "HTTPS://LANHC.COM/s/DEPRECATED-NODE-CAPS#see-https://github.com/lanhc/lanhc/issues/11508"
 					ss.CapMap = make(tailcfg.NodeCapMap, sn.CapMap().Len())
 					for k, v := range cm.All() {
 						ss.CapMap[k] = v.AsSlice()
@@ -1538,8 +1538,8 @@ func (b *LocalBackend) updateStatusLocked(sb *ipnstate.StatusBuilder) {
 					slices.Sort(ss.Capabilities[1:])
 				}
 			}
-			for _, addr := range tailscaleIPs {
-				ss.TailscaleIPs = append(ss.TailscaleIPs, addr)
+			for _, addr := range lanhcIPs {
+				ss.LanhcIPs = append(ss.LanhcIPs, addr)
 			}
 
 		} else {
@@ -1554,7 +1554,7 @@ func (b *LocalBackend) updateStatusLocked(sb *ipnstate.StatusBuilder) {
 
 	// Always add the self user's profile, even when peers are omitted, so that
 	// callers can resolve the self node's owner to a login name.
-	// See https://github.com/tailscale/tailscale/issues/19894.
+	// See https://github.com/lanhc/lanhc/issues/19894.
 	if nm != nil {
 		if up, ok := nm.UserProfiles[nm.User()]; ok {
 			sb.AddUser(nm.User(), up)
@@ -1579,11 +1579,11 @@ func (b *LocalBackend) populatePeerStatusLocked(sb *ipnstate.StatusBuilder) {
 	exitNodeID := b.pm.CurrentPrefs().ExitNodeID()
 	blankHostinfo := new(tailcfg.Hostinfo).View()
 	for _, p := range cn.Peers() {
-		tailscaleIPs := make([]netip.Addr, 0, p.Addresses().Len())
+		lanhcIPs := make([]netip.Addr, 0, p.Addresses().Len())
 		for i := range p.Addresses().Len() {
 			addr := p.Addresses().At(i)
-			if addr.IsSingleIP() && tsaddr.IsTailscaleIP(addr.Addr()) {
-				tailscaleIPs = append(tailscaleIPs, addr.Addr())
+			if addr.IsSingleIP() && tsaddr.IsLanhcIP(addr.Addr()) {
+				lanhcIPs = append(lanhcIPs, addr.Addr())
 			}
 		}
 		hostinfo := p.Hostinfo()
@@ -1594,7 +1594,7 @@ func (b *LocalBackend) populatePeerStatusLocked(sb *ipnstate.StatusBuilder) {
 			InNetworkMap:    true,
 			UserID:          p.User(),
 			AltSharerUserID: p.Sharer(),
-			TailscaleIPs:    tailscaleIPs,
+			LanhcIPs:    lanhcIPs,
 			HostName:        hostinfo.Hostname(),
 			DNSName:         p.Name(),
 			OS:              hostinfo.OS(),
@@ -1687,11 +1687,11 @@ func (b *LocalBackend) WhoIsNodeKey(k key.NodePublic) (n tailcfg.NodeView, u tai
 var debugWhoIs = envknob.RegisterBool("TS_DEBUG_WHOIS")
 
 // WhoIs reports the node and user who owns the node with the given IP:port.
-// If the IP address is a Tailscale IP, the provided port may be 0.
+// If the IP address is a Lanhc IP, the provided port may be 0.
 //
 // The 'proto' is used when looking up the IP:port in our proxy mapper; it
-// tracks which local IP:ports correspond to connections proxied by tailscaled,
-// and since tailscaled proxies both TCP and UDP, the 'proto' is needed to look
+// tracks which local IP:ports correspond to connections proxied by lanhcd,
+// and since lanhcd proxies both TCP and UDP, the 'proto' is needed to look
 // up the correct IP:port based on the connection's protocol. If not provided,
 // the lookup will be done for TCP and then UDP, in that order.
 //
@@ -1903,7 +1903,7 @@ func (b *LocalBackend) setControlClientStatusLocked(c controlclient.Client, st c
 	if prefs.ControlURL == "" {
 		// Once we get a message from the control plane, set
 		// our ControlURL pref explicitly. This causes a
-		// future "tailscale up" to start checking for
+		// future "lanhc up" to start checking for
 		// implicit setting reverts, which it doesn't do when
 		// ControlURL is blank.
 		prefs.ControlURL = prefs.ControlURLOrDefault(b.polc)
@@ -1934,7 +1934,7 @@ func (b *LocalBackend) setControlClientStatusLocked(c controlclient.Client, st c
 	// We primarily need this to apply syspolicy to the prefs if an implicit profile
 	// switch is about to happen.
 	// TODO(nickkhyl): remove this once we improve handling of implicit profile switching
-	// in tailscale/corp#28014 and we apply syspolicy when the switch actually happens.
+	// in lanhc/corp#28014 and we apply syspolicy when the switch actually happens.
 	if b.reconcilePrefsLocked(prefs) {
 		prefsChanged = true
 	}
@@ -2005,7 +2005,7 @@ func (b *LocalBackend) setControlClientStatusLocked(c controlclient.Client, st c
 	// Now complete the lock-free parts of what we started while locked.
 	if st.NetMap != nil {
 		if envknob.NoLogsNoSupport() && st.NetMap.HasCap(tailcfg.CapabilityDataPlaneAuditLogs) {
-			msg := "tailnet requires logging to be enabled. Remove --no-logs-no-support from tailscaled command line."
+			msg := "tailnet requires logging to be enabled. Remove --no-logs-no-support from lanhcd command line."
 			b.health.SetLocalLogConfigHealth(errors.New(msg))
 			// Get the current prefs again, since we unlocked above.
 			prefs := b.pm.CurrentPrefs().AsStruct()
@@ -2157,12 +2157,12 @@ var preferencePolicies = []preferencePolicyInfo{
 		set: func(p *ipn.Prefs, v bool) { p.ExitNodeAllowLANAccess = v },
 	},
 	{
-		key: pkey.EnableTailscaleDNS,
+		key: pkey.EnableLanhcDNS,
 		get: func(p ipn.PrefsView) bool { return p.CorpDNS() },
 		set: func(p *ipn.Prefs, v bool) { p.CorpDNS = v },
 	},
 	{
-		key: pkey.EnableTailscaleSubnets,
+		key: pkey.EnableLanhcSubnets,
 		get: func(p ipn.PrefsView) bool { return p.RouteAll() },
 		set: func(p *ipn.Prefs, v bool) { p.RouteAll = v },
 	},
@@ -2996,7 +2996,7 @@ func (b *LocalBackend) controlDebugFlags() []string {
 //
 // TODO(danderson): this function is trying to do too many things at
 // once: it loads state, or imports it, or updates prefs sometimes,
-// contains some settings that are one-shot things done by `tailscale
+// contains some settings that are one-shot things done by `lanhc
 // up` because we had nowhere else to put them, and there's no clear
 // guarantee that switching from one user's state to another is
 // actually a supported operation (it should be, but it's very unclear
@@ -3008,9 +3008,9 @@ func (b *LocalBackend) Start(opts ipn.Options) error {
 	// new one, so the old client can't race with the new one. Without
 	// this, an in-flight lite map update carrying stale Hostinfo (notably
 	// RequestTags) could be processed by the control plane after the new
-	// client's requests, which made retagging with "tailscale up
+	// client's requests, which made retagging with "lanhc up
 	// --advertise-tags" intermittently look like an invalid tag
-	// transition and log the node out (tailscale/tailscale#20365).
+	// transition and log the node out (lanhc/lanhc#20365).
 	//
 	// TODO(bradfitz,nickkhyl): this is still racy if Start is called
 	// concurrently: whichever call loses the race to reacquire b.mu
@@ -3378,9 +3378,9 @@ func (b *LocalBackend) updateFilterLocked(prefs ipn.PrefsView) {
 		logNetsB     netipx.IPSetBuilder
 		shieldsUp    = !prefs.Valid() || prefs.ShieldsUp() // Be conservative when not ready
 	)
-	// Log traffic for Tailscale IPs.
+	// Log traffic for Lanhc IPs.
 	logNetsB.AddPrefix(tsaddr.CGNATRange())
-	logNetsB.AddPrefix(tsaddr.TailscaleULARange())
+	logNetsB.AddPrefix(tsaddr.LanhcULARange())
 	logNetsB.RemovePrefix(tsaddr.ChromeOSVMRange())
 	if haveNetmap {
 		addrs = netMap.GetAddresses()
@@ -3550,14 +3550,14 @@ var removeFromDefaultRoute = []netip.Prefix{
 	netip.MustParsePrefix("169.254.0.0/16"),
 	// IPv4 multicast
 	netip.MustParsePrefix("224.0.0.0/4"),
-	// Tailscale IPv4 range
+	// Lanhc IPv4 range
 	tsaddr.CGNATRange(),
 	// IPv6 Link-local addresses
 	netip.MustParsePrefix("fe80::/10"),
 	// IPv6 multicast
 	netip.MustParsePrefix("ff00::/8"),
-	// Tailscale IPv6 range
-	tsaddr.TailscaleULARange(),
+	// Lanhc IPv6 range
+	tsaddr.LanhcULARange(),
 }
 
 // internalAndExternalInterfaces splits interface routes into "internal"
@@ -3580,7 +3580,7 @@ func internalAndExternalInterfacesFrom(il netmon.InterfaceList, goos string) (in
 	// and to remove any duplicate entries.
 	var internalBuilder, externalBuilder netipx.IPSetBuilder
 	if err := il.ForeachInterfaceAddress(func(iface netmon.Interface, pfx netip.Prefix) {
-		if tsaddr.IsTailscaleIP(pfx.Addr()) {
+		if tsaddr.IsLanhcIP(pfx.Addr()) {
 			return
 		}
 		if pfx.IsSingleIP() {
@@ -3624,7 +3624,7 @@ func internalAndExternalInterfacesFrom(il netmon.InterfaceList, goos string) (in
 func interfaceRoutes() (ips *netipx.IPSet, hostIPs []netip.Addr, err error) {
 	var b netipx.IPSetBuilder
 	if err := netmon.ForeachInterfaceAddress(func(_ netmon.Interface, pfx netip.Prefix) {
-		if tsaddr.IsTailscaleIP(pfx.Addr()) {
+		if tsaddr.IsLanhcIP(pfx.Addr()) {
 			return
 		}
 		if pfx.IsSingleIP() {
@@ -3864,7 +3864,7 @@ func (b *LocalBackend) WatchNotificationsAs(ctx context.Context, actor ipnauth.A
 	// wasteful. As a step towards making it efficient, they now set this
 	// NotifyWatchEngineUpdates bit to ask for us to send it to them only on
 	// change. That's not yet (as of 2022-11-26) plumbed everywhere in
-	// tailscaled yet, so just do the polling here. This ends up causing all IPN
+	// lanhcd yet, so just do the polling here. This ends up causing all IPN
 	// bus watchers to get the notification every 2 seconds instead of just the
 	// GUI client's bus watcher, but in practice there's only 1 total connection
 	// anyway. And if we're polling, at least the client isn't making a new HTTP
@@ -4252,7 +4252,7 @@ func (b *LocalBackend) hasPeerChangeWatcherLocked() bool {
 
 // setAuthURLLocked sets the authURL and triggers [LocalBackend.popBrowserAuthNow] if the URL has changed.
 // This method is called when a new authURL is received from the control plane, meaning that either a user
-// has started a new interactive login (e.g., by running `tailscale login` or clicking Login in the GUI),
+// has started a new interactive login (e.g., by running `lanhc login` or clicking Login in the GUI),
 // or the control plane was unable to authenticate this node non-interactively (e.g., due to key expiration).
 // A non-nil b.authActor indicates that an interactive login is in progress and was initiated by the specified actor.
 //
@@ -4334,9 +4334,9 @@ func (b *LocalBackend) validPopBrowserURLLocked(urlStr string) bool {
 	}
 	serverURL := b.sanitizedPrefsLocked().ControlURLOrDefault(b.polc)
 	if ipn.IsLoginServerSynonym(serverURL) && !lanhc.Isolated {
-		// When connected to the official Tailscale control plane, only allow
-		// URLs from tailscale.com or its subdomains.
-		if h := u.Hostname(); h != "tailscale.com" && !strings.HasSuffix(u.Hostname(), ".tailscale.com") {
+		// When connected to the official Lanhc control plane, only allow
+		// URLs from lanhc.com or its subdomains.
+		if h := u.Hostname(); h != "lanhc.com" && !strings.HasSuffix(u.Hostname(), ".lanhc.com") {
 			return false
 		}
 	} else if lanhc.Isolated && strings.HasSuffix(serverURL, ".lanhc.com") {
@@ -4586,7 +4586,7 @@ func (b *LocalBackend) State() ipn.State {
 //
 // Currently (as of 2024-08-26), this is only used on Windows.
 // We plan to remove it as part of the multi-user and unattended mode improvements
-// as we progress on tailscale/corp#18342.
+// as we progress on lanhc/corp#18342.
 func (b *LocalBackend) CheckIPNConnectionAllowed(actor ipnauth.Actor) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -4595,7 +4595,7 @@ func (b *LocalBackend) CheckIPNConnectionAllowed(actor ipnauth.Actor) error {
 		return nil
 	}
 	// Always allow Windows SYSTEM user to connect,
-	// even if Tailscale is currently being used by another user.
+	// even if Lanhc is currently being used by another user.
 	if actor.IsLocalSystem() {
 		return nil
 	}
@@ -4616,7 +4616,7 @@ func (b *LocalBackend) CheckIPNConnectionAllowed(actor ipnauth.Actor) error {
 	} else {
 		reason = "already in use"
 	}
-	return fmt.Errorf("Tailscale %s (%q); connection from %q not allowed",
+	return fmt.Errorf("Lanhc %s (%q); connection from %q not allowed",
 		reason, b.tryLookupUserName(string(b.pm.CurrentUserID())),
 		b.tryLookupUserName(string(uid)))
 }
@@ -4728,7 +4728,7 @@ func (b *LocalBackend) pingPeerAPI(ctx context.Context, ip netip.Addr) (peer tai
 		peer, ok = cn.PeerByID(nid)
 	}
 	if !ok {
-		return zero, "", fmt.Errorf("no peer found with Tailscale IP %v", ip)
+		return zero, "", fmt.Errorf("no peer found with Lanhc IP %v", ip)
 	}
 	if peer.Expired() {
 		return zero, "", errors.New("peer's node key has expired")
@@ -4859,7 +4859,7 @@ func (b *LocalBackend) switchToBestProfileLocked(reason string) {
 			b.logf("%s: staying on profile %q (%s)", reason, cp.UserProfile().LoginName, cp.ID())
 		}
 	case cp.ID() == "":
-		b.logf("%s: disconnecting Tailscale", reason)
+		b.logf("%s: disconnecting Lanhc", reason)
 	case background:
 		b.logf("%s: switching to background profile %q (%s)", reason, cp.UserProfile().LoginName, cp.ID())
 	default:
@@ -4888,10 +4888,10 @@ func (b *LocalBackend) switchToBestProfileLocked(reason string) {
 //
 // It returns a read-only view of the profile and whether it is considered
 // a background profile. A background profile is used when no OS user is actively
-// using Tailscale, such as when no GUI/CLI client is connected and Unattended Mode
+// using Lanhc, such as when no GUI/CLI client is connected and Unattended Mode
 // is enabled (see also [LocalBackend.getBackgroundProfileLocked]).
 //
-// An invalid view indicates no profile, meaning Tailscale should disconnect
+// An invalid view indicates no profile, meaning Lanhc should disconnect
 // and remain idle until a GUI or CLI client connects.
 // A valid profile view with an empty [ipn.ProfileID] indicates a new profile that
 // has not been persisted yet.
@@ -4900,7 +4900,7 @@ func (b *LocalBackend) switchToBestProfileLocked(reason string) {
 func (b *LocalBackend) resolveBestProfileLocked() (_ ipn.LoginProfileView, isBackground bool) {
 	// TODO(nickkhyl): delegate all of this to the extensions and remove the distinction
 	// between "foreground" and "background" profiles as we migrate away from the concept
-	// of a single "current user" on Windows. See tailscale/corp#18342.
+	// of a single "current user" on Windows. See lanhc/corp#18342.
 	//
 	// If a GUI/CLI client is connected, use the connected user's profile, which means
 	// either the current profile if owned by the user, or their default profile.
@@ -4908,7 +4908,7 @@ func (b *LocalBackend) resolveBestProfileLocked() (_ ipn.LoginProfileView, isBac
 		profile := b.pm.CurrentProfile()
 		// TODO(nickkhyl): check if the current profile is allowed on the device,
 		// such as when [pkey.Tailnet] policy setting requires a specific Tailnet.
-		// See tailscale/corp#26249.
+		// See lanhc/corp#26249.
 		if uid := b.currentUser.UserID(); profile.LocalUserID() != uid {
 			profile = b.pm.DefaultUserProfile(uid)
 		}
@@ -4918,7 +4918,7 @@ func (b *LocalBackend) resolveBestProfileLocked() (_ ipn.LoginProfileView, isBac
 	// Otherwise, if on Windows, use the background profile if one is set.
 	// This includes staying on the current profile if Unattended Mode is enabled
 	// or if AlwaysOn mode is enabled and the current user is still signed in.
-	// If the returned background profileID is "", Tailscale will disconnect
+	// If the returned background profileID is "", Lanhc will disconnect
 	// and remain idle until a GUI or CLI client connects.
 	if goos := envknob.GOOS(); goos == "windows" {
 		// If Unattended Mode is enabled for the current profile, keep using it.
@@ -4930,12 +4930,12 @@ func (b *LocalBackend) resolveBestProfileLocked() (_ ipn.LoginProfileView, isBac
 		return profile, true
 	}
 
-	// On other platforms, however, Tailscale continues to run in the background
+	// On other platforms, however, Lanhc continues to run in the background
 	// using the current profile.
 	//
 	// TODO(nickkhyl): check if the current profile is allowed on the device,
 	// such as when [pkey.Tailnet] policy setting requires a specific Tailnet.
-	// See tailscale/corp#26249.
+	// See lanhc/corp#26249.
 	return b.pm.CurrentProfile(), false
 }
 
@@ -4958,10 +4958,10 @@ func (b *LocalBackend) isConfigLocked_Locked() bool {
 
 func (b *LocalBackend) checkPrefsLocked(p *ipn.Prefs) error {
 	if b.isConfigLocked_Locked() {
-		return errors.New("can't reconfigure tailscaled when using a config file; config file is locked")
+		return errors.New("can't reconfigure lanhcd when using a config file; config file is locked")
 	}
 	var errs []error
-	if p.Hostname == "badhostname.tailscale." {
+	if p.Hostname == "badhostname.lanhc." {
 		// Keep this one just for testing.
 		errs = append(errs, errors.New("bad hostname [test]"))
 	}
@@ -4990,7 +4990,7 @@ func (b *LocalBackend) checkSSHPrefsLocked(p *ipn.Prefs) error {
 	if !p.RunSSH {
 		return nil
 	}
-	if err := featureknob.CanRunTailscaleSSH(); err != nil {
+	if err := featureknob.CanRunLanhcSSH(); err != nil {
 		return err
 	}
 	if runtime.GOOS == "linux" {
@@ -5002,9 +5002,9 @@ func (b *LocalBackend) checkSSHPrefsLocked(p *ipn.Prefs) error {
 	// Assume that we do have the SSH capability if don't have a netmap yet.
 	if !b.currentNode().SelfHasCapOr(tailcfg.CapabilitySSH, true) {
 		if b.isDefaultServerLocked() {
-			return errors.New("Unable to enable local Tailscale SSH server; not enabled on Tailnet. See https://tailscale.com/s/ssh")
+			return errors.New("Unable to enable local Lanhc SSH server; not enabled on Tailnet. See https://lanhc.com/s/ssh")
 		}
-		return errors.New("Unable to enable local Tailscale SSH server; not enabled on Tailnet.")
+		return errors.New("Unable to enable local Lanhc SSH server; not enabled on Tailnet.")
 	}
 	return nil
 }
@@ -5026,12 +5026,12 @@ func (b *LocalBackend) sshOnButUnusableHealthCheckMessageLocked() (healthMessage
 	isDefault := b.isDefaultServerLocked()
 
 	if !nm.HasCap(tailcfg.CapabilityAdmin) {
-		return healthmsg.TailscaleSSHOnBut + "access controls don't allow anyone to access this device. Ask your admin to update your tailnet's ACLs to allow access."
+		return healthmsg.LanhcSSHOnBut + "access controls don't allow anyone to access this device. Ask your admin to update your tailnet's ACLs to allow access."
 	}
 	if !isDefault {
-		return healthmsg.TailscaleSSHOnBut + "access controls don't allow anyone to access this device. Update your tailnet's ACLs to allow access."
+		return healthmsg.LanhcSSHOnBut + "access controls don't allow anyone to access this device. Update your tailnet's ACLs to allow access."
 	}
-	return healthmsg.TailscaleSSHOnBut + "access controls don't allow anyone to access this device. Update your tailnet's ACLs at https://tailscale.com/s/ssh-policy"
+	return healthmsg.LanhcSSHOnBut + "access controls don't allow anyone to access this device. Update your tailnet's ACLs at https://lanhc.com/s/ssh-policy"
 }
 
 func (b *LocalBackend) isDefaultServerLocked() bool {
@@ -5163,7 +5163,7 @@ func (b *LocalBackend) MaybeClearAppConnector(mp *ipn.MaskedPrefs) error {
 }
 
 // EditPrefs applies the changes in mp to the current prefs,
-// acting as the tailscaled itself rather than a specific user.
+// acting as the lanhcd itself rather than a specific user.
 func (b *LocalBackend) EditPrefs(mp *ipn.MaskedPrefs) (ipn.PrefsView, error) {
 	return b.EditPrefsAs(mp, ipnauth.Self)
 }
@@ -5191,10 +5191,10 @@ func (b *LocalBackend) checkEditPrefsAccessLocked(actor ipnauth.Actor, prefs ipn
 	var errs []error
 
 	if mp.RunSSHSet && mp.RunSSH && !envknob.CanSSHD() {
-		errs = append(errs, errors.New("Tailscale SSH server administratively disabled"))
+		errs = append(errs, errors.New("Lanhc SSH server administratively disabled"))
 	}
 
-	// Check if the user is allowed to disconnect Tailscale.
+	// Check if the user is allowed to disconnect Lanhc.
 	if mp.WantRunningSet && !mp.WantRunning && b.pm.CurrentPrefs().WantRunning() {
 		if err := actor.CheckProfileAccess(b.pm.CurrentProfile(), ipnauth.Disconnect, b.extHost.AuditLogger()); err != nil {
 			errs = append(errs, err)
@@ -5326,7 +5326,7 @@ func (b *LocalBackend) onEditPrefsLocked(_ ipnauth.Actor, mp *ipn.MaskedPrefs, o
 	}
 
 	if oldPrefs.WantRunning() != newPrefs.WantRunning() {
-		// Connecting to or disconnecting from Tailscale clears the override,
+		// Connecting to or disconnecting from Lanhc clears the override,
 		// unless the user is also explicitly changing the exit node (see below).
 		b.overrideExitNodePolicy = false
 	}
@@ -5554,7 +5554,7 @@ func (b *LocalBackend) setPrefsLocked(newp *ipn.Prefs) ipn.PrefsView {
 	} else if prefs.WantRunning() {
 		// Reset the always-on override if WantRunning is true in the new prefs,
 		// such as when the user toggles the Connected switch in the GUI
-		// or runs `tailscale up`.
+		// or runs `lanhc up`.
 		b.resetAlwaysOnOverrideLocked()
 	}
 
@@ -5604,7 +5604,7 @@ func (b *LocalBackend) GetPeerAPIPort(ip netip.Addr) (port uint16, ok bool) {
 // handlePeerAPIConn serves an already-accepted connection c.
 //
 // The remote parameter is the remote address.
-// The local parameter is the local address (either a Tailscale IPv4
+// The local parameter is the local address (either a Lanhc IPv4
 // or IPv6 IP and the peerapi port for that address).
 //
 // The connection will be closed by handlePeerAPIConn.
@@ -5628,8 +5628,8 @@ func (b *LocalBackend) isLocalIP(ip netip.Addr) bool {
 }
 
 var (
-	magicDNSIP   = tsaddr.TailscaleServiceIP()
-	magicDNSIPv6 = tsaddr.TailscaleServiceIPv6()
+	magicDNSIP   = tsaddr.LanhcServiceIP()
+	magicDNSIPv6 = tsaddr.LanhcServiceIPv6()
 )
 
 // Hook exclusively for serve.
@@ -5927,7 +5927,7 @@ func (b *LocalBackend) reconfigAppConnectorLocked(selfNode tailcfg.NodeView, pre
 	if !buildfeatures.HasAppConnectors {
 		return
 	}
-	const appConnectorCapName = "tailscale.com/app-connectors"
+	const appConnectorCapName = "lanhc.com/app-connectors"
 	defer func() {
 		if b.hostinfo != nil {
 			b.hostinfo.AppConnector.Set(b.appConnector != nil)
@@ -6122,7 +6122,7 @@ func (b *LocalBackend) authReconfigLocked() {
 	}
 
 	// Note: b.goos (set only by tests) speaks runtime.GOOS while
-	// version.OS is Tailscale-style ("macOS", "iOS"); they agree for
+	// version.OS is Lanhc-style ("macOS", "iOS"); they agree for
 	// the values tests pin ("linux", "windows"), which is all the
 	// override needs.
 	oneCGNATRoute := shouldUseOneCGNATRoute(b.logf, b.sys.NetMon.Get(), b.sys.ControlKnobs(), cmp.Or(b.goos, version.OS()))
@@ -6174,7 +6174,7 @@ func (b *LocalBackend) authReconfigLocked() {
 }
 
 // setDataPlanePeerRoutes pushes the route manager's outbound table and
-// this node's native Tailscale addresses into the engine's tun-layer
+// this node's native Lanhc addresses into the engine's tun-layer
 // data plane, which uses them for per-packet NAT rewrites and
 // jailed-filter selection. It must be called after every route manager
 // commit that can change the outbound table or the set of peers with
@@ -6190,7 +6190,7 @@ func (b *LocalBackend) setDataPlanePeerRoutes() {
 	if nb.routeMgr.HasDataPlaneAttrs() {
 		routes = nb.routeMgr.Outbound()
 		if nm := nb.NetMap(); nm != nil {
-			native4, native6 = tsaddr.FirstTailscaleAddrs(nm.GetAddresses().All())
+			native4, native6 = tsaddr.FirstLanhcAddrs(nm.GetAddresses().All())
 		}
 	}
 	b.e.SetPeerRoutes(native4, native6, routes)
@@ -6199,7 +6199,7 @@ func (b *LocalBackend) setDataPlanePeerRoutes() {
 // shouldUseOneCGNATRoute reports whether we should prefer to make one big
 // CGNAT /10 route rather than a /32 per peer.
 //
-// The versionOS is a Tailscale-style version ("iOS", "macOS") and not
+// The versionOS is a Lanhc-style version ("iOS", "macOS") and not
 // a runtime.GOOS.
 func shouldUseOneCGNATRoute(logf logger.Logf, mon *netmon.Monitor, controlKnobs *controlknobs.Knobs, versionOS string) bool {
 	if controlKnobs != nil {
@@ -6218,7 +6218,7 @@ func shouldUseOneCGNATRoute(logf logger.Logf, mon *netmon.Monitor, controlKnobs 
 	// Prefer a single CGNAT route on platforms where updateing the VPN
 	// configuration is espensive. On macOS, changing the network extension
 	// configuration can disrupt existing connections notably Chrome; see
-	// https://github.com/tailscale/tailscale/issues/3102). On Android, updating
+	// https://github.com/lanhc/lanhc/issues/3102). On Android, updating
 	// VpnService.Builder configuration requires establishing a new VPN interface,
 	// which tears down long lived TCP connections.
 	//
@@ -6244,8 +6244,8 @@ func (b *LocalBackend) SetTCPHandlerForFunnelFlow(h func(src netip.AddrPort, dst
 	b.getTCPHandlerForFunnelFlow = h
 }
 
-// SetVarRoot sets the root directory of Tailscale's writable
-// storage area . (e.g. "/var/lib/tailscale")
+// SetVarRoot sets the root directory of Lanhc's writable
+// storage area . (e.g. "/var/lib/lanhc")
 //
 // It should only be called before the LocalBackend is used.
 func (b *LocalBackend) SetVarRoot(dir string) {
@@ -6274,12 +6274,12 @@ func (b *LocalBackend) TryFlushLogs() bool {
 	return true
 }
 
-// TailscaleVarRoot returns the root directory of Tailscale's writable
-// storage area. (e.g. "/var/lib/tailscale")
+// LanhcVarRoot returns the root directory of Lanhc's writable
+// storage area. (e.g. "/var/lib/lanhc")
 //
 // It returns an empty string if there's no configured or discovered
 // location.
-func (b *LocalBackend) TailscaleVarRoot() string {
+func (b *LocalBackend) LanhcVarRoot() string {
 	if b.varRoot != "" {
 		return b.varRoot
 	}
@@ -6288,14 +6288,14 @@ func (b *LocalBackend) TailscaleVarRoot() string {
 		return paths.AppSharedDir.Load()
 	case "linux":
 		if distro.Get() == distro.Gokrazy {
-			return "/perm/tailscaled"
+			return "/perm/lanhcd"
 		}
 	}
 	return ""
 }
 
 // ProfileMkdirAll creates (if necessary) and returns the path of a directory
-// specific to the specified login profile, inside Tailscale's writable storage
+// specific to the specified login profile, inside Lanhc's writable storage
 // area. If subs are provided, they are joined to the base path to form the
 // subdirectory path.
 //
@@ -6308,7 +6308,7 @@ func (b *LocalBackend) ProfileMkdirAll(id ipn.ProfileID, subs ...string) (string
 	return b.profileMkdirAllLocked(id, subs...)
 }
 
-// ProfileDataDir is the directory name, under the Tailscale var root, that holds per-profile data.
+// ProfileDataDir is the directory name, under the Lanhc var root, that holds per-profile data.
 const ProfileDataDir = "profile-data"
 
 // profileDataPathLocked returns a path of a profile-specific (sub)directory
@@ -6321,7 +6321,7 @@ func (b *LocalBackend) profileDataPathLocked(id ipn.ProfileID, subs ...string) s
 	if id == "" {
 		panic("invalid empty profile ID")
 	}
-	vr := b.TailscaleVarRoot()
+	vr := b.LanhcVarRoot()
 	if vr == "" {
 		return ""
 	}
@@ -6334,7 +6334,7 @@ func (b *LocalBackend) profileMkdirAllLocked(id ipn.ProfileID, subs ...string) (
 	if id == "" {
 		return "", errProfileNotFound
 	}
-	if vr := b.TailscaleVarRoot(); vr == "" {
+	if vr := b.LanhcVarRoot(); vr == "" {
 		return "", ErrProfileStorageUnavailable
 	}
 
@@ -6416,7 +6416,7 @@ func (b *LocalBackend) initPeerAPIListenerLocked() {
 			b.logf("[v1] initPeerAPIListener: %d netmap addresses match existing listeners", addrs.Len())
 			// TODO(zofrex): This is fragile. It doesn't check what's actually in hostinfo, and if
 			// peerAPIListeners gets out of sync with hostinfo.Services, we won't get back into a good
-			// state. E.G. see tailscale/corp#27173.
+			// state. E.G. see lanhc/corp#27173.
 			return
 		}
 	}
@@ -6446,7 +6446,7 @@ func (b *LocalBackend) initPeerAPIListenerLocked() {
 		if !skipListen {
 			// We don't care about the error here.  Not all platforms set this.
 			// If ps.listen needs it, it will check for zero values and error out.
-			tsIfIndex, _ := netmon.TailscaleInterfaceIndex()
+			tsIfIndex, _ := netmon.LanhcInterfaceIndex()
 
 			ln, err = ps.listen(a.Addr(), tsIfIndex)
 			if err != nil {
@@ -6458,7 +6458,7 @@ func (b *LocalBackend) initPeerAPIListenerLocked() {
 				}
 				// Sandboxed macOS specifically requires the interface index to be non-zero.
 				if version.IsSandboxedMacOS() && tsIfIndex == 0 {
-					b.logf("[v1] peerapi listen(%q) error: interface index is 0 on darwin; try restarting tailscaled", a.Addr())
+					b.logf("[v1] peerapi listen(%q) error: interface index is 0 on darwin; try restarting lanhcd", a.Addr())
 					continue
 				}
 				b.logf("[unexpected] peerapi listen(%q) error: %v", a.Addr(), err)
@@ -6602,11 +6602,11 @@ func (b *LocalBackend) routerConfigLocked(cfg *wgcfg.Config, prefs ipn.PrefsView
 	v4, v6 := false, false
 
 	if slices.ContainsFunc(rs.LocalAddrs, tsaddr.PrefixIs4) {
-		rs.Routes = append(rs.Routes, netip.PrefixFrom(tsaddr.TailscaleServiceIP(), 32))
+		rs.Routes = append(rs.Routes, netip.PrefixFrom(tsaddr.LanhcServiceIP(), 32))
 		v4 = true
 	}
 	if slices.ContainsFunc(rs.LocalAddrs, tsaddr.PrefixIs6) {
-		rs.Routes = append(rs.Routes, netip.PrefixFrom(tsaddr.TailscaleServiceIPv6(), 128))
+		rs.Routes = append(rs.Routes, netip.PrefixFrom(tsaddr.LanhcServiceIPv6(), 128))
 		v6 = true
 	}
 	for vip := range vipServiceIPs {
@@ -6683,7 +6683,7 @@ func (b *LocalBackend) applyPrefsToHostinfoLocked(hi *tailcfg.Hostinfo, prefs ip
 		// a long time. But probably fine.
 		if f, ok := feature.HookGetSSHHostKeyPublicStrings.GetOk(); ok {
 			var err error
-			sshHostKeys, err = f(b.TailscaleVarRoot(), b.logf)
+			sshHostKeys, err = f(b.LanhcVarRoot(), b.logf)
 			if err != nil {
 				b.logf("warning: unable to get SSH host keys, SSH will appear as disabled for this node: %v", err)
 			}
@@ -6740,7 +6740,7 @@ func (b *LocalBackend) enterStateLocked(newState ipn.State) {
 	prefs := b.pm.CurrentPrefs()
 
 	// Some temporary (2024-05-05) debugging code to help us catch
-	// https://github.com/tailscale/tailscale/issues/11962 in the act.
+	// https://github.com/lanhc/lanhc/issues/11962 in the act.
 	if prefs.WantRunning() &&
 		prefs.ControlURLOrDefault(b.polc) == ipn.DefaultControlURL &&
 		envknob.Bool("TS_PANIC_IF_HIT_MAIN_CONTROL") {
@@ -6799,7 +6799,7 @@ func (b *LocalBackend) enterStateLocked(newState ipn.State) {
 		}
 
 		if newState == ipn.Stopped && authURL == "" {
-			feature.SystemdStatus("Stopped; run 'tailscale up' to log in")
+			feature.SystemdStatus("Stopped; run 'lanhc up' to log in")
 		}
 	case ipn.Starting, ipn.NeedsMachineAuth:
 		b.authReconfigLocked()
@@ -6938,7 +6938,7 @@ func (b *LocalBackend) stopEngineAndWaitLocked() {
 	if err != nil {
 		// TODO(braditz): our caller, popBrowserAuthNowLocked, probably
 		// should handle this somehow. For now, just log it.
-		// See tailscale/tailscale#18187
+		// See lanhc/lanhc#18187
 		b.logf("stopEngineAndWait: ResetAndStop error: %v", err)
 		return
 	}
@@ -6977,7 +6977,7 @@ func (b *LocalBackend) resetControlClientLocked() controlclient.Client {
 	// timer; synthesizing a new netmap while we don't have a control
 	// client will break things.
 	//
-	// See https://github.com/tailscale/tailscale/issues/7392
+	// See https://github.com/lanhc/lanhc/issues/7392
 	if b.nmExpiryTimer != nil {
 		b.nmExpiryTimer.Stop()
 		b.nmExpiryTimer = nil
@@ -7003,12 +7003,12 @@ func (b *LocalBackend) resetAuthURLLocked() {
 func (b *LocalBackend) ShouldRunSSH() bool { return b.sshAtomicBool.Load() && envknob.CanSSHD() }
 
 // ShouldRunWebClient reports whether the web client is being run
-// within this tailscaled instance. ShouldRunWebClient is safe to
+// within this lanhcd instance. ShouldRunWebClient is safe to
 // call regardless of whether b.mu is held or not.
 func (b *LocalBackend) ShouldRunWebClient() bool { return b.webClientAtomicBool.Load() }
 
 // ShouldExposeRemoteWebClient reports whether the web client should
-// accept connections via [tailscale IP]:5252 in addition to the default
+// accept connections via [lanhc IP]:5252 in addition to the default
 // behaviour of accepting local connections over 100.100.100.100.
 //
 // This function checks both the web client user pref via
@@ -7049,8 +7049,8 @@ func (b *LocalBackend) setExposeRemoteWebClientAtomicBoolLocked(prefs ipn.PrefsV
 }
 
 // ShouldHandleViaIP reports whether ip is an IPv6 address in the
-// Tailscale ULA's v6 "via" range embedding an IPv4 address to be forwarded to
-// by Tailscale.
+// Lanhc ULA's v6 "via" range embedding an IPv4 address to be forwarded to
+// by Lanhc.
 func (b *LocalBackend) ShouldHandleViaIP(ip netip.Addr) bool {
 	if f, ok := b.containsViaIPFuncAtomic.LoadOk(); ok {
 		return f(ip)
@@ -7273,7 +7273,7 @@ func (b *LocalBackend) resolveExitNodeInPrefsLocked(prefs *ipn.Prefs) (changed b
 
 // setNetMapLocked updates the LocalBackend state to reflect the newly
 // received nm. If nm is nil, it resets all configuration as though
-// Tailscale is turned off.
+// Lanhc is turned off.
 func (b *LocalBackend) setNetMapLocked(nm *netmap.NetworkMap) {
 	if buildfeatures.HasCacheNetMap {
 		// As a defensive measure, if something triggers a panic when we are
@@ -7282,7 +7282,7 @@ func (b *LocalBackend) setNetMapLocked(nm *netmap.NetworkMap) {
 		// a cycle. Importantly, we do not attempt to swallow or handle the panic,
 		// since that indicates a real bug.
 		//
-		// See https://github.com/tailscale/tailscale/issues/12639
+		// See https://github.com/lanhc/lanhc/issues/12639
 		defer func() {
 			if p := recover(); p != nil {
 				b.logf("WARNING: Panic while installing netmap; discardng caches")
@@ -7517,7 +7517,7 @@ func (b *LocalBackend) setDebugLogsByCapabilityLocked(caps set.Set[tailcfg.NodeC
 }
 
 // setTCPPortsInterceptedFromNetmapAndPrefsLocked calls setTCPPortsIntercepted with
-// the ports that tailscaled should handle as a function of b.netMap and b.prefs.
+// the ports that lanhcd should handle as a function of b.netMap and b.prefs.
 //
 // b.mu must be held.
 func (b *LocalBackend) setTCPPortsInterceptedFromNetmapAndPrefsLocked(prefs ipn.PrefsView) {
@@ -7690,7 +7690,7 @@ func (b *LocalBackend) CheckIPForwarding() error {
 }
 
 // CheckUDPGROForwarding checks if the machine is optimally configured to
-// forward UDP packets between the default route and Tailscale TUN interfaces.
+// forward UDP packets between the default route and Lanhc TUN interfaces.
 // It returns an error if the check fails or if suboptimal configuration is
 // detected. No error is returned if we are unable to gather the interface
 // names from the relevant subsystems.
@@ -7730,10 +7730,10 @@ func (b *LocalBackend) CheckUDPGROForwarding() error {
 
 // SetUDPGROForwarding enables UDP GRO forwarding for the default network
 // interface of this machine. It can be done to improve performance for nodes
-// acting as Tailscale subnet routers or exit nodes. Currently (9/5/2024) this
+// acting as Lanhc subnet routers or exit nodes. Currently (9/5/2024) this
 // functionality is considered experimental and only safe to use via explicit
 // user opt-in for ephemeral devices, such as containers.
-// https://tailscale.com/kb/1320/performance-best-practices#linux-optimizations-for-subnet-routers-and-exit-nodes
+// https://lanhc.com/kb/1320/performance-best-practices#linux-optimizations-for-subnet-routers-and-exit-nodes
 func (b *LocalBackend) SetUDPGROForwarding() error {
 	if b.sys.IsNetstackRouter() {
 		return errors.New("UDP GRO forwarding cannot be enabled in userspace mode")
@@ -7748,7 +7748,7 @@ func (b *LocalBackend) SetUDPGROForwarding() error {
 	}
 	netmonSys, ok := b.sys.NetMon.GetOK()
 	if !ok {
-		return errors.New("[unexpected] unable to retrieve tailscale netmon configuration")
+		return errors.New("[unexpected] unable to retrieve lanhc netmon configuration")
 	}
 	state := netmonSys.InterfaceState()
 	if state == nil {
@@ -7920,7 +7920,7 @@ func wireguardExitNodeDNSResolvers(nm *netmap.NetworkMap, peers map[tailcfg.Node
 func peerCanProxyDNS(p tailcfg.NodeView) bool {
 	if p.Cap() >= 26 {
 		// Actually added at 25
-		// (https://github.com/tailscale/tailscale/blob/3ae6f898cfdb58fd0e30937147dd6ce28c6808dd/tailcfg/tailcfg.go#L51)
+		// (https://github.com/lanhc/lanhc/blob/3ae6f898cfdb58fd0e30937147dd6ce28c6808dd/tailcfg/tailcfg.go#L51)
 		// so anything >= 26 can do it.
 		return true
 	}
@@ -8099,7 +8099,7 @@ func (s netLogNodeSource) NetLogIDs() (nodeID, domainID logid.PrivateID, logExit
 // [wgengine.NetLogSource].
 var _ wgengine.NetLogSource = netLogNodeSource{}
 
-// lookupPeerWireGuardString returns the Tailscale-conventional short string
+// lookupPeerWireGuardString returns the Lanhc-conventional short string
 // (e.g. "[IMTBr]") for the peer whose wireguard-go-formatted public key
 // string is wgString (e.g. "peer(IMTB…r7lM)"), or "", false if no current
 // peer matches. It is installed on the engine via [Engine.SetWGPeerLookup]
@@ -8145,16 +8145,16 @@ func (b *LocalBackend) sshServerOrInit() (_ SSHServer, err error) {
 
 var warnSyncDisabled = health.Register(&health.Warnable{
 	Code:     "sync-disabled",
-	Title:    "Tailscale Sync is Disabled",
+	Title:    "Lanhc Sync is Disabled",
 	Severity: health.SeverityHigh,
-	Text:     health.StaticMessage("Tailscale control plane syncing is disabled; run `tailscale set --sync` to restore"),
+	Text:     health.StaticMessage("Lanhc control plane syncing is disabled; run `lanhc set --sync` to restore"),
 })
 
 var warnSSHSELinuxWarnable = health.Register(&health.Warnable{
 	Code:     "ssh-unavailable-selinux-enabled",
-	Title:    "Tailscale SSH and SELinux",
+	Title:    "Lanhc SSH and SELinux",
 	Severity: health.SeverityLow,
-	Text:     health.StaticMessage("SELinux is enabled; Tailscale SSH may not work. See https://tailscale.com/s/ssh-selinux"),
+	Text:     health.StaticMessage("SELinux is enabled; Lanhc SSH may not work. See https://lanhc.com/s/ssh-selinux"),
 })
 
 // warnNoSNATWithExitNode is a warnable for when a node is advertising as an
@@ -8206,7 +8206,7 @@ func (b *LocalBackend) handleSSHConn(c net.Conn) (err error) {
 }
 
 // HandleQuad100Port80Conn serves http://100.100.100.100/ on port 80 (and
-// the equivalent tsaddr.TailscaleServiceIPv6 address).
+// the equivalent tsaddr.LanhcServiceIPv6 address).
 func (b *LocalBackend) HandleQuad100Port80Conn(c net.Conn) error {
 	var s http.Server
 	s.Handler = http.HandlerFunc(b.handleQuad100Port80Conn)
@@ -8216,9 +8216,9 @@ func (b *LocalBackend) HandleQuad100Port80Conn(c net.Conn) error {
 func validQuad100Host(h string) bool {
 	switch h {
 	case "",
-		tsaddr.TailscaleServiceIPString,
-		tsaddr.TailscaleServiceIPv6String,
-		"[" + tsaddr.TailscaleServiceIPv6String + "]":
+		tsaddr.LanhcServiceIPString,
+		tsaddr.LanhcServiceIPv6String,
+		"[" + tsaddr.LanhcServiceIPv6String + "]":
 		return true
 	}
 	return false
@@ -8239,7 +8239,7 @@ func (b *LocalBackend) handleQuad100Port80Conn(w http.ResponseWriter, r *http.Re
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	io.WriteString(w, "<h1>Tailscale</h1>\n")
+	io.WriteString(w, "<h1>Lanhc</h1>\n")
 	nm := b.currentNode().NetMap()
 	if nm == nil {
 		io.WriteString(w, "No netmap.\n")
@@ -8282,14 +8282,14 @@ func (b *LocalBackend) SetDevStateStore(key, value string) error {
 }
 
 // ShouldInterceptTCPPort reports whether the given TCP port number to a
-// Tailscale IP (not a subnet router, service IP, etc) should be intercepted by
-// Tailscaled and handled in-process.
+// Lanhc IP (not a subnet router, service IP, etc) should be intercepted by
+// Lanhcd and handled in-process.
 func (b *LocalBackend) ShouldInterceptTCPPort(port uint16) bool {
 	return b.shouldInterceptTCPPortAtomic.Load()(port)
 }
 
 // ShouldInterceptVIPServiceTCPPort reports whether the given TCP port number
-// to a VIP service should be intercepted by Tailscaled and handled in-process.
+// to a VIP service should be intercepted by Lanhcd and handled in-process.
 func (b *LocalBackend) ShouldInterceptVIPServiceTCPPort(ap netip.AddrPort) bool {
 	if !buildfeatures.HasServe {
 		return false
@@ -8459,7 +8459,7 @@ func (b *LocalBackend) GetPeerEndpointChanges(ctx context.Context, ip netip.Addr
 		return nil, fmt.Errorf("no matching peer")
 	}
 	if pip.IsSelf {
-		return nil, fmt.Errorf("%v is local Tailscale IP", ip)
+		return nil, fmt.Errorf("%v is local Lanhc IP", ip)
 	}
 	peer := pip.Node
 
@@ -8663,7 +8663,7 @@ func allowedAutoRoute(ipp netip.Prefix) bool {
 			return false
 		}
 	}
-	// TODO(raggi): exclude tailscale service IPs and so on as well.
+	// TODO(raggi): exclude lanhc service IPs and so on as well.
 	return true
 }
 
@@ -8793,7 +8793,7 @@ func suggestExitNode(preferredDERP int, regionLatency map[int]time.Duration, rp 
 	default:
 		// The control plane will always strip the `traffic-steering`
 		// node attribute if it isn’t enabled for this tailnet, even if
-		// it is set in the policy file: tailscale/corp#34401
+		// it is set in the policy file: lanhc/corp#34401
 		res, err = suggestExitNodeUsingDERP(preferredDERP, regionLatency, nb, prevSuggestion, selectRegion, selectNode, allowList)
 	}
 	if err != nil {
@@ -9209,7 +9209,7 @@ func (b *LocalBackend) stateEncrypted() opt.Bool {
 			sp, _ := b.polc.GetBoolean(pkey.EncryptState, true)
 			return opt.NewBool(sp)
 		default:
-			// Probably self-compiled tailscaled, we don't use the Keychain
+			// Probably self-compiled lanhcd, we don't use the Keychain
 			// there.
 			return opt.NewBool(false)
 		}

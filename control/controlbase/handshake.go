@@ -20,7 +20,7 @@ import (
 	chp "golang.org/x/crypto/chacha20poly1305"
 	"golang.org/x/crypto/curve25519"
 	"golang.org/x/crypto/hkdf"
-	"tailscale.com/types/key"
+	"lanhc.com/types/key"
 )
 
 const (
@@ -39,7 +39,7 @@ const (
 	// This mixing verifies that both clients agree that they're
 	// executing the control protocol at a specific version that
 	// matches the advertised version in the cleartext packet header.
-	protocolVersionPrefix = "Tailscale Control Protocol v"
+	protocolVersionPrefix = "Lanhc Control Protocol v"
 	invalidNonce          = ^uint64(0)
 )
 

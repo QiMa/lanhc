@@ -6,8 +6,8 @@
 package batching
 
 import (
-	"tailscale.com/control/controlknobs"
-	"tailscale.com/types/nettype"
+	"lanhc.com/control/controlknobs"
+	"lanhc.com/types/nettype"
 )
 
 // TryUpgradeToConn is no-op on all platforms except linux.

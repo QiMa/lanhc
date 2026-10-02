@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Package controlclient implements the client for the Tailscale
+// Package controlclient implements the client for the Lanhc
 // control plane.
 //
 // It handles authentication, port picking, and collects the local
@@ -11,8 +11,8 @@ package controlclient
 import (
 	"context"
 
-	"tailscale.com/tailcfg"
-	"tailscale.com/types/key"
+	"lanhc.com/tailcfg"
+	"lanhc.com/types/key"
 )
 
 // LoginFlags is a bitmask of options to change the behavior of Client.Login
@@ -27,7 +27,7 @@ const (
 	// LocalBackendStartKeyOSNeutral instructs NewLocalBackend to start the
 	// LocalBackend without any OS-dependent StateStore StartKey behavior.
 	//
-	// See https://github.com/tailscale/tailscale/issues/6973.
+	// See https://github.com/lanhc/lanhc/issues/6973.
 	LocalBackendStartKeyOSNeutral
 )
 

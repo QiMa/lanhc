@@ -5,7 +5,7 @@
 
 package lanhc
 
-// Isolated is true in lanhc downstream builds. Code guards official Tailscale
+// Isolated is true in lanhc downstream builds. Code guards official Lanhc
 // endpoints behind this constant so the compiler can drop the literals
 // entirely; see the lanhc build script, which passes -tags lanhc_isolated.
 const Isolated = true

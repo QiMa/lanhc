@@ -11,7 +11,7 @@ spec:
     image: nginx
   - name: ts-sidecar
     imagePullPolicy: Always
-    image: "ghcr.io/tailscale/tailscale:latest"
+    image: "ghcr.io/lanhc/lanhc:latest"
     securityContext:
       runAsUser: 1000
       runAsGroup: 1000
@@ -24,7 +24,7 @@ spec:
     - name: TS_AUTHKEY
       valueFrom:
         secretKeyRef:
-          name: tailscale-auth
+          name: lanhc-auth
           key: TS_AUTHKEY
           optional: true
     - name: POD_NAME

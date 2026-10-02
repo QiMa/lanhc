@@ -1,7 +1,7 @@
 // Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
 
-// cigocacher is an opinionated-to-Tailscale client for gocached. It connects
+// cigocacher is an opinionated-to-Lanhc client for gocached. It connects
 // at a URL like "https://ci-gocached-azure-1.corp.ts.net:31364", but that is
 // stored in a GitHub actions variable so that its hostname can be updated for
 // all branches at the same time in sync with the actual infrastructure.
