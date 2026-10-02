@@ -30,7 +30,7 @@ import (
 
 // DefaultServerURL is the default coordination server base URL,
 // used when ClientOpts.ServerURL is empty.
-const DefaultServerURL = ipn.DefaultControlURL
+var DefaultServerURL = ipn.DefaultControlURL
 
 // ClientOpts contains options for creating a new Client.
 type ClientOpts struct {

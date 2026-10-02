@@ -22,6 +22,7 @@ import (
 	"tailscale.com/atomicfile"
 	"tailscale.com/drive"
 	"tailscale.com/feature/buildfeatures"
+	"tailscale.com/internal/lanhc"
 	"tailscale.com/ipn/ipnstate"
 	"tailscale.com/net/netaddr"
 	"tailscale.com/net/tsaddr"
@@ -38,8 +39,31 @@ import (
 
 // DefaultControlURL is the URL base of the control plane
 // ("coordination server") for use when no explicit one is configured.
-// The default control plane is the hosted version run by Tailscale.com.
-const DefaultControlURL = "https://controlplane.tailscale.com"
+//
+// This is a variable, not a constant, so that a downstream build can point
+// the stock client at its own control plane at link time:
+//
+//	go build -ldflags "-X tailscale.com/ipn.DefaultControlURL=https://example.com"
+//
+// The value can also be injected at link time (the lanhc build script does
+// this). In isolated downstream builds the official literal below is compiled
+// out entirely, and the injected value is used instead.
+var DefaultControlURL = func() string {
+	if lanhc.Isolated {
+		return ""
+	}
+	return "https://controlplane.tailscale.com"
+}()
+
+// DefaultAdminURL, when non-empty, overrides the admin web site that the
+// client points users at. It exists for downstream builds whose control plane
+// has a management console of its own, so the build can say so at link time:
+//
+//	go build -ldflags "-X tailscale.com/ipn.DefaultAdminURL=https://console.example.com"
+//
+// Empty (the upstream default) keeps the historical behaviour of deriving the
+// admin URL from the control server.
+var DefaultAdminURL = ""
 
 var (
 	// ErrExitNodeIDAlreadySet is returned from (*Prefs).SetExitNodeIP when the
@@ -49,7 +73,17 @@ var (
 
 // IsLoginServerSynonym reports whether a URL is a drop-in replacement
 // for the primary Tailscale login server.
+//
+// NOTE: the downstream control plane injected into DefaultControlURL must NOT
+// match here. A match makes callers such as validPopBrowserURLLocked restrict
+// the URLs the control server may send to *.tailscale.com, which would reject
+// the downstream login/console URL.
 func IsLoginServerSynonym(val any) bool {
+	if lanhc.Isolated {
+		// Downstream build: the official servers are not used and their
+		// literals are compiled out.
+		return false
+	}
 	return val == "https://login.tailscale.com" || val == "https://controlplane.tailscale.com"
 }
 
@@ -776,7 +810,8 @@ func (p *Prefs) ControlURLOrDefault(polc policyclient.Client) string {
 	}
 
 	if controlURL != "" {
-		if controlURL != DefaultControlURL && IsLoginServerSynonym(controlURL) {
+		if DefaultControlURL != "" && controlURL != DefaultControlURL && IsLoginServerSynonym(controlURL) {
+			// A leftover official default: prefer this build's control plane.
 			return DefaultControlURL
 		}
 		return controlURL
@@ -803,10 +838,16 @@ func (p PrefsView) AdminPageURL(polc policyclient.Client) string { return p.ж.A
 
 // AdminPageURL returns the admin web site URL for the current ControlURL.
 func (p *Prefs) AdminPageURL(polc policyclient.Client) string {
+	if DefaultAdminURL != "" && !IsLoginServerSynonym(p.ControlURLOrDefault(polc)) {
+		// Downstream build: the control plane is not the official one, so its
+		// management console lives somewhere we already know. Keep deriving the
+		// URL for an official control plane so the upstream behaviour is intact.
+		return DefaultAdminURL
+	}
 	url := p.ControlURLOrDefault(polc)
 	if IsLoginServerSynonym(url) {
 		// TODO(crawshaw): In future release, make this https://console.tailscale.com
-		url = "https://login.tailscale.com"
+		return lanhc.OfficialAdminPageURL()
 	}
 	return url + "/admin"
 }

@@ -18,6 +18,7 @@ import (
 	"tailscale.com/feature"
 	"tailscale.com/feature/buildfeatures"
 	"tailscale.com/hostinfo"
+	"tailscale.com/internal/lanhc"
 	"tailscale.com/net/netaddr"
 	"tailscale.com/net/tsaddr"
 	"tailscale.com/util/mak"
@@ -30,7 +31,13 @@ var forceAllIPv6Endpoints = envknob.RegisterBool("TS_DEBUG_FORCE_ALL_IPV6_ENDPOI
 
 // LoginEndpointForProxyDetermination is the URL used for testing
 // which HTTP proxy the system should use.
-var LoginEndpointForProxyDetermination = "https://controlplane.tailscale.com/"
+// Injected at link time by the downstream build; empty keeps the stock value.
+var LoginEndpointForProxyDetermination = func() string {
+	if lanhc.Isolated {
+		return ""
+	}
+	return "https://controlplane.tailscale.com/"
+}()
 
 func isUp(nif *net.Interface) bool       { return nif.Flags&net.FlagUp != 0 }
 func isLoopback(nif *net.Interface) bool { return nif.Flags&net.FlagLoopback != 0 }
@@ -630,7 +637,7 @@ func getState(optTSInterfaceName string) (*State, error) {
 		}
 	}
 
-	if buildfeatures.HasUseProxy && s.AnyInterfaceUp() {
+	if buildfeatures.HasUseProxy && s.AnyInterfaceUp() && LoginEndpointForProxyDetermination != "" {
 		req, err := http.NewRequest("GET", LoginEndpointForProxyDetermination, nil)
 		if err != nil {
 			return nil, err

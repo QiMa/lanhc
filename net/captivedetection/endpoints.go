@@ -12,6 +12,7 @@ import (
 	"slices"
 
 	"go4.org/mem"
+	"tailscale.com/internal/lanhc"
 	"tailscale.com/net/dnsfallback"
 	"tailscale.com/tailcfg"
 	"tailscale.com/types/logger"
@@ -113,6 +114,16 @@ func availableEndpoints(derpMap *tailcfg.DERPMap, preferredDERPRegionID int, log
 
 	// Let's also try the default Tailscale coordination server and admin console.
 	// These are likely to be blocked on some networks.
+	//
+	// Downstream builds use the DERP nodes in the map (including the embedded
+	// lanhc DERP) instead; appending official Tailscale endpoints here would
+	// defeat isolation, so the literals are compiled out.
+	if lanhc.Isolated {
+		slices.SortFunc(endpoints, func(x, y Endpoint) int {
+			return cmp.Compare(x.Provider, y.Provider)
+		})
+		return endpoints
+	}
 	appendTailscaleEndpoint := func(urlString string) {
 		u, err := url.Parse(urlString)
 		if err != nil {

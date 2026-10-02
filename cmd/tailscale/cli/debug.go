@@ -35,6 +35,7 @@ import (
 	_ "tailscale.com/feature/condregister/useproxy"
 	"tailscale.com/health"
 	"tailscale.com/hostinfo"
+	"tailscale.com/internal/lanhc"
 	"tailscale.com/ipn"
 	"tailscale.com/net/ace"
 	"tailscale.com/net/dnscache"
@@ -309,7 +310,11 @@ func debugCmd() *ffcli.Command {
 				ShortHelp:  "Debug ts2021 protocol connectivity",
 				FlagSet: (func() *flag.FlagSet {
 					fs := newFlagSet("ts2021")
-					fs.StringVar(&ts2021Args.host, "host", "controlplane.tailscale.com", "hostname of control plane")
+					ts2021Host := "controlplane.tailscale.com"
+					if lanhc.Isolated {
+						ts2021Host = strings.TrimPrefix(strings.TrimPrefix(ipn.DefaultControlURL, "https://"), "http://")
+					}
+					fs.StringVar(&ts2021Args.host, "host", ts2021Host, "hostname of control plane")
 					fs.IntVar(&ts2021Args.version, "version", int(tailcfg.CurrentCapabilityVersion), "protocol version")
 					fs.BoolVar(&ts2021Args.verbose, "verbose", false, "be extra verbose")
 					fs.StringVar(&ts2021Args.aceHost, "ace", "", "if non-empty, use this ACE server IP/hostname as a candidate path")
@@ -1027,7 +1032,7 @@ func runVia(ctx context.Context, args []string) error {
 }
 
 var ts2021Args struct {
-	host    string // "controlplane.tailscale.com"
+	host    string // upstream default: "controlplane.tailscale.com"
 	version int    // 27 or whatever
 	verbose bool
 	aceHost string // if non-empty, FQDN of https ACE server to use ("ace.example.com")

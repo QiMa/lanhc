@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"time"
 
+	"tailscale.com/internal/lanhc"
 	"tailscale.com/util/syspolicy/internal/loggerx"
 	"tailscale.com/util/syspolicy/pkey"
 	"tailscale.com/util/syspolicy/policyclient"
@@ -182,11 +183,16 @@ func convertPolicySettingValueTo[T setting.ValueType](value any, def T) (T, erro
 //
 // See https://github.com/tailscale/tailscale/issues/2798 for some background.
 func SelectControlURL(reg, disk string) string {
-	const def = "https://controlplane.tailscale.com"
-
-	// Prior to Dec 2020's commit 739b02e6, the installer
-	// wrote a LoginURL value of https://login.tailscale.com to the registry.
-	const oldRegDef = "https://login.tailscale.com"
+	// Injected at link time by the downstream build (empty for the stock
+	// build, which uses this function's historical behavior below).
+	var def = ""
+	if !lanhc.Isolated {
+		def = "https://controlplane.tailscale.com"
+	}
+	oldRegDef := "https://login.tailscale.com"
+	if lanhc.Isolated {
+		oldRegDef = ""
+	}
 
 	// If they have an explicit value in the registry, use it,
 	// unless it's an old default value from an old installer.

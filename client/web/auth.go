@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"tailscale.com/client/tailscale/apitype"
+	"tailscale.com/internal/lanhc"
 	"tailscale.com/ipn/ipnstate"
 	"tailscale.com/tailcfg"
 )
@@ -198,6 +199,10 @@ func (s *Server) controlSupportsCheckMode(ctx context.Context) bool {
 	controlURL, err := url.Parse(prefs.ControlURLOrDefault(s.polc))
 	if err != nil {
 		return true
+	}
+	if lanhc.Isolated {
+		// lanhc downstream build: the console is on lanhc.com, not tailscale.com.
+		return controlURL.Host == "console.lanhc.com"
 	}
 	return strings.HasSuffix(controlURL.Host, ".tailscale.com") ||
 		controlURL.Host == "control.tailscale" // for natlab tests

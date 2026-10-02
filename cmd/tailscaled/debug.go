@@ -25,6 +25,7 @@ import (
 	"tailscale.com/feature"
 	"tailscale.com/feature/buildfeatures"
 	"tailscale.com/health"
+	"tailscale.com/internal/lanhc"
 	"tailscale.com/ipn"
 	"tailscale.com/net/netmon"
 	"tailscale.com/tailcfg"
@@ -151,7 +152,11 @@ func changeDeltaWatcher(ec *eventbus.Client, ctx context.Context, dump func(st *
 
 func getURL(ctx context.Context, urlStr string) error {
 	if urlStr == "login" {
-		urlStr = "https://login.tailscale.com"
+		if lanhc.Isolated {
+			urlStr = ipn.DefaultControlURL
+		} else {
+			urlStr = "https://login.tailscale.com"
+		}
 	}
 	log.SetOutput(os.Stdout)
 	ctx = httptrace.WithClientTrace(ctx, &httptrace.ClientTrace{

@@ -47,6 +47,7 @@ import (
 	"tailscale.com/health"
 	"tailscale.com/health/healthmsg"
 	"tailscale.com/hostinfo"
+	"tailscale.com/internal/lanhc"
 	"tailscale.com/ipn"
 	"tailscale.com/ipn/conffile"
 	"tailscale.com/ipn/ipnauth"
@@ -4332,16 +4333,22 @@ func (b *LocalBackend) validPopBrowserURLLocked(urlStr string) bool {
 		return false
 	}
 	serverURL := b.sanitizedPrefsLocked().ControlURLOrDefault(b.polc)
-	if ipn.IsLoginServerSynonym(serverURL) {
+	if ipn.IsLoginServerSynonym(serverURL) && !lanhc.Isolated {
 		// When connected to the official Tailscale control plane, only allow
 		// URLs from tailscale.com or its subdomains.
 		if h := u.Hostname(); h != "tailscale.com" && !strings.HasSuffix(u.Hostname(), ".tailscale.com") {
 			return false
 		}
-		// When using a different ControlURL, we cannot be sure what legitimate
-		// PopBrowserURLs they will send. Allow any domain there to avoid
-		// breaking existing user setups.
+	} else if lanhc.Isolated && strings.HasSuffix(serverURL, ".lanhc.com") {
+		// Downstream build: the control plane is lanhc, so only accept its own
+		// control/admin hosts. The lanhc console lives on a sibling domain.
+		if h := u.Hostname(); !strings.HasSuffix(h, ".lanhc.com") {
+			return false
+		}
 	}
+	// When using a different ControlURL, we cannot be sure what legitimate
+	// PopBrowserURLs they will send. Allow any domain there to avoid
+	// breaking existing user setups.
 	switch u.Scheme {
 	case "https":
 		return true

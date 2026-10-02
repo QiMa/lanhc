@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"tailscale.com/internal/lanhc"
 	"tailscale.com/tstime"
 	"tailscale.com/types/logid"
 	"tailscale.com/util/eventbus"
@@ -15,7 +16,20 @@ import (
 
 // DefaultHost is the default host name to upload logs to when
 // Config.BaseURL isn't provided.
-const DefaultHost = "log.tailscale.com"
+//
+// It is a variable, not a constant, so that a downstream build can point the
+// stock client at its own log server (or at nothing) at link time:
+//
+//	go build -ldflags "-X tailscale.com/logtail.DefaultHost="
+//
+// The upstream default is the hosted log service run by Tailscale. The
+// initializer is compiled out entirely in isolated downstream builds.
+var DefaultHost = func() string {
+	if lanhc.Isolated {
+		return ""
+	}
+	return "log.tailscale.com"
+}()
 
 const defaultFlushDelay = 2 * time.Second
 

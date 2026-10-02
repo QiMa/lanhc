@@ -31,6 +31,7 @@ import (
 	"tailscale.com/feature/buildfeatures"
 	"tailscale.com/health"
 	"tailscale.com/hostinfo"
+	"tailscale.com/internal/lanhc"
 	"tailscale.com/net/bakedroots"
 	"tailscale.com/net/tlsdial/blockblame"
 )
@@ -115,9 +116,10 @@ func Config(ht *health.Tracker, base *tls.Config) *tls.Config {
 	conf.VerifyConnection = func(cs tls.ConnectionState) (retErr error) {
 		dialedHost := cs.ServerName
 
-		if dialedHost == "log.tailscale.com" && hostinfo.IsNATLabGuestVM() {
-			// Allow log.tailscale.com TLS MITM for integration tests when
-			// the client's running within a NATLab VM.
+		if !lanhc.Isolated && strings.HasSuffix(dialedHost, ".tailscale.com") && hostinfo.IsNATLabGuestVM() {
+			// Allow official log endpoint TLS MITM for integration tests when
+			// the client's running within a NATLab VM. This branch is dead in
+			// downstream builds that never dial official hosts.
 			return nil
 		}
 

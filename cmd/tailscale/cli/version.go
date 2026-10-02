@@ -11,6 +11,7 @@ import (
 
 	"github.com/peterbourgon/ff/v3/ffcli"
 	"tailscale.com/feature"
+	"tailscale.com/internal/lanhc"
 	"tailscale.com/ipn/ipnstate"
 	"tailscale.com/version"
 )
@@ -23,7 +24,11 @@ var versionCmd = &ffcli.Command{
 		fs := newFlagSet("version")
 		fs.BoolVar(&versionArgs.daemon, "daemon", false, "also print local node's daemon version")
 		fs.BoolVar(&versionArgs.json, "json", false, "output in JSON format")
-		fs.BoolVar(&versionArgs.upstream, "upstream", false, "fetch and print the latest upstream release version from pkgs.tailscale.com")
+		upstreamHelp := "fetch and print the latest upstream release version from pkgs.tailscale.com"
+		if lanhc.Isolated {
+			upstreamHelp = "fetch and print the latest upstream release version"
+		}
+		fs.BoolVar(&versionArgs.upstream, "upstream", false, upstreamHelp)
 		fs.StringVar(&versionArgs.track, "track", "", `which track to check for updates: "stable", "release-candidate", or "unstable" (dev); empty means same as current`)
 		return fs
 	})(),

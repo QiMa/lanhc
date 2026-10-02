@@ -18,6 +18,7 @@ import (
 
 	"github.com/peterbourgon/ff/v3/ffcli"
 	"tailscale.com/envknob"
+	"tailscale.com/internal/lanhc"
 	"tailscale.com/ipn/ipnstate"
 	"tailscale.com/net/tsaddr"
 	"tailscale.com/paths"
@@ -48,7 +49,7 @@ The 'tailscale ssh' wrapper adds a few things:
 }
 
 func runSSH(ctx context.Context, args []string) error {
-	if runtime.GOOS == "darwin" && version.IsMacAppStore() && !envknob.UseWIPCode() {
+	if !lanhc.Isolated && runtime.GOOS == "darwin" && version.IsMacAppStore() && !envknob.UseWIPCode() {
 		return errors.New("The 'tailscale ssh' subcommand is not available on macOS builds distributed through the App Store or TestFlight.\nInstall the Standalone variant of Tailscale (download it from https://pkgs.tailscale.com), or use the regular 'ssh' client instead.")
 	}
 	if len(args) == 0 {

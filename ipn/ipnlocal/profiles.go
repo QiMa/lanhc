@@ -18,6 +18,7 @@ import (
 	"tailscale.com/envknob"
 	"tailscale.com/feature"
 	"tailscale.com/health"
+	"tailscale.com/internal/lanhc"
 	"tailscale.com/ipn"
 	"tailscale.com/ipn/ipnext"
 	"tailscale.com/tailcfg"
@@ -700,8 +701,8 @@ func (pm *profileManager) loadSavedPrefs(k ipn.StateKey) (ipn.PrefsView, error) 
 
 	// Ignore any old stored preferences for https://login.tailscale.com
 	// as the control server that would override the new default of
-	// controlplane.tailscale.com.
-	if savedPrefs.ControlURL != "" &&
+	// controlplane.tailscale.com. (Compiled out in isolated builds.)
+	if !lanhc.Isolated && savedPrefs.ControlURL != "" &&
 		savedPrefs.ControlURL != ipn.DefaultControlURL &&
 		ipn.IsLoginServerSynonym(savedPrefs.ControlURL) {
 		savedPrefs.ControlURL = ""
