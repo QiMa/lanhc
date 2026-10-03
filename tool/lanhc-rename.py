@@ -182,6 +182,7 @@ WIRE_PROTOCOL_RESTORATIONS = [
     ('Sec-Lanhc', 'Sec-Tailscale'),
     # Windows 会话管理器 IPC 窗口类名（GUI 与 lanhcd 之间）
     ('Lanhc-SessionManager', 'Tailscale-SessionManager'),
+    ('Lanhc Control Protocol v', 'Tailscale Control Protocol v'),
     # 注意: log/sockstatlog 的 collection 名不还原。ts_omit_logtail 已关闭官方
     # 日志上传，保留 lanhc 名字既符合隔离策略，也避免产物里出现 .tailscale.io。
 ]
