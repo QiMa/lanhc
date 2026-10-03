@@ -16,6 +16,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"lanhc.com/tsweb"
 )
 
 //go:embed build
@@ -69,9 +71,11 @@ func assetsHandler(devMode bool) (_ http.Handler, cleanup func()) {
 }
 
 func openPrecompressedFile(w http.ResponseWriter, r *http.Request, path string, fs fs.FS) (fs.File, error) {
-	if f, err := fs.Open(path + ".gz"); err == nil {
-		w.Header().Set("Content-Encoding", "gzip")
-		return f, nil
+	if tsweb.AcceptsEncoding(r, "gzip") {
+		if f, err := fs.Open(path + ".gz"); err == nil {
+			w.Header().Set("Content-Encoding", "gzip")
+			return f, nil
+		}
 	}
 	return fs.Open(path) // fallback
 }

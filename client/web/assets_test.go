@@ -4,6 +4,8 @@
 package web
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
 	"io"
 	"net/http"
@@ -24,19 +26,7 @@ import (
 func TestAssetsHandlerServesLocalBrandedClient(t *testing.T) {
 	t.Setenv("TS_DEBUG_WEB_CLIENT_DEV", "")
 
-	s, err := NewServer(ServerOpts{
-		Mode: ManageServerMode,
-		NewAuthURL: func(context.Context, tailcfg.NodeID) (*tailcfg.WebClientAuthResponse, error) {
-			return nil, nil
-		},
-		WaitAuthURL: func(context.Context, string, tailcfg.NodeID) (*tailcfg.WebClientAuthResponse, error) {
-			return nil, nil
-		},
-	})
-	if err != nil {
-		t.Fatalf("NewServer: %v", err)
-	}
-	defer s.Shutdown()
+	s := newTestServer(t)
 
 	const indexScriptHash = "sha384-Qv0SDOms+LGX2fjgbkznbrQVBb/S9C6OnmI0t+SkJqJ6B7FL8p2I6WlmYbsSyhx/"
 
@@ -108,4 +98,89 @@ func TestAssetsHandlerServesLocalBrandedClient(t *testing.T) {
 	if !strings.Contains(body, "<title>Lanhc</title>") {
 		t.Errorf("GET /login/some-client-route: fallback response missing <title>Lanhc</title>")
 	}
+}
+
+// TestAssetsHandlerServesPrecompressedAssets ensures that the JS and CSS
+// assets produced by the local Vite build are precompressed and served with
+// Content-Encoding: gzip when the client advertises gzip support, while still
+// falling back to the uncompressed assets for clients that do not.
+func TestAssetsHandlerServesPrecompressedAssets(t *testing.T) {
+	t.Setenv("TS_DEBUG_WEB_CLIENT_DEV", "")
+
+	s := newTestServer(t)
+
+	r := httptest.NewRequest(http.MethodGet, "http://"+tsaddr.LanhcServiceIPString+"/", nil)
+	w := httptest.NewRecorder()
+	s.ServeHTTP(w, r)
+	index := w.Body.String()
+
+	assetRefRE := regexp.MustCompile(`\./assets/[A-Za-z0-9_.-]+\.js`)
+	refs := assetRefRE.FindAllString(index, -1)
+	if len(refs) == 0 {
+		t.Fatalf("GET /: found no JS asset reference in index.html")
+	}
+	jsPath := strings.TrimPrefix(refs[0], ".")
+
+	get := func(t *testing.T, acceptEncoding string) (*http.Response, []byte) {
+		t.Helper()
+		r := httptest.NewRequest(http.MethodGet, "http://"+tsaddr.LanhcServiceIPString+jsPath, nil)
+		if acceptEncoding != "" {
+			r.Header.Set("Accept-Encoding", acceptEncoding)
+		}
+		w := httptest.NewRecorder()
+		s.ServeHTTP(w, r)
+		res := w.Result()
+		body, err := io.ReadAll(res.Body)
+		res.Body.Close()
+		if err != nil {
+			t.Fatalf("reading %q body: %v", jsPath, err)
+		}
+		return res, body
+	}
+
+	res, compressed := get(t, "gzip")
+	if got := res.Header.Get("Content-Encoding"); got != "gzip" {
+		t.Errorf("GET %s with Accept-Encoding: gzip: got Content-Encoding %q, want %q", jsPath, got, "gzip")
+	}
+	if got := res.Header.Get("Vary"); !strings.Contains(got, "Accept-Encoding") {
+		t.Errorf("GET %s: got Vary %q, want it to contain Accept-Encoding", jsPath, got)
+	}
+	zr, err := gzip.NewReader(bytes.NewReader(compressed))
+	if err != nil {
+		t.Fatalf("gzip.NewReader(%s): %v", jsPath, err)
+	}
+	decompressed, err := io.ReadAll(zr)
+	if err != nil {
+		t.Fatalf("decompressing %s: %v", jsPath, err)
+	}
+	zr.Close()
+	if !strings.Contains(string(decompressed), "M 0 0 L 64 0 L 64 64 L 0 64") {
+		t.Errorf("GET %s with Accept-Encoding: gzip: decompressed bundle is missing the local vector icon path data", jsPath)
+	}
+
+	res, uncompressed := get(t, "")
+	if got := res.Header.Get("Content-Encoding"); got != "" {
+		t.Errorf("GET %s without Accept-Encoding: got Content-Encoding %q, want none", jsPath, got)
+	}
+	if len(uncompressed) <= len(compressed) {
+		t.Errorf("GET %s: uncompressed size %d is not larger than compressed size %d", jsPath, len(uncompressed), len(compressed))
+	}
+}
+
+func newTestServer(t *testing.T) *Server {
+	t.Helper()
+	s, err := NewServer(ServerOpts{
+		Mode: ManageServerMode,
+		NewAuthURL: func(context.Context, tailcfg.NodeID) (*tailcfg.WebClientAuthResponse, error) {
+			return nil, nil
+		},
+		WaitAuthURL: func(context.Context, string, tailcfg.NodeID) (*tailcfg.WebClientAuthResponse, error) {
+			return nil, nil
+		},
+	})
+	if err != nil {
+		t.Fatalf("NewServer: %v", err)
+	}
+	t.Cleanup(s.Shutdown)
+	return s
 }

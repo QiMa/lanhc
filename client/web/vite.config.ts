@@ -1,5 +1,8 @@
 /// <reference types="vitest" />
-import { createLogger, defineConfig } from "vite"
+import * as fs from "node:fs"
+import * as path from "node:path"
+import { gzipSync } from "node:zlib"
+import { createLogger, defineConfig, type Plugin } from "vite"
 import svgr from "vite-plugin-svgr"
 import paths from "vite-tsconfig-paths"
 
@@ -17,13 +20,41 @@ filteringLogger.info = (...args) => {
   originalInfoLog.apply(filteringLogger, args)
 }
 
+// gzipAssets precompresses the JS and CSS assets emitted by the production
+// build so the Go server can serve them with Content-Encoding: gzip without
+// compressing them on every request. The server still keeps the uncompressed
+// copies as a fallback for clients that do not advertise gzip support.
+const gzipAssets = (): Plugin => {
+  let outDir = ""
+  return {
+    name: "lanhc-gzip-assets",
+    apply: "build",
+    configResolved(config) {
+      outDir = config.build.outDir
+    },
+    closeBundle() {
+      const assetsDir = path.join(outDir, "assets")
+      if (!fs.existsSync(assetsDir)) {
+        return
+      }
+      for (const name of fs.readdirSync(assetsDir)) {
+        if (!name.endsWith(".js") && !name.endsWith(".css")) {
+          continue
+        }
+        const assetPath = path.join(assetsDir, name)
+        fs.writeFileSync(
+          assetPath + ".gz",
+          gzipSync(fs.readFileSync(assetPath), { level: 9 })
+        )
+      }
+    },
+  }
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
   base: "./",
-  plugins: [
-    paths(),
-    svgr(),
-  ],
+  plugins: [gzipAssets(), paths(), svgr()],
   build: {
     outDir: "build",
     sourcemap: false,
