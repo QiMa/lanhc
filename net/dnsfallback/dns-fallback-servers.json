@@ -11,7 +11,7 @@
 					"HostName": "headscale.lanhc.com",
 					"CertName": "headscale.lanhc.com",
 					"IPv4": "112.48.30.123",
-					"CanPort80": true
+					"CanPort80": false
 				}
 			]
 		}

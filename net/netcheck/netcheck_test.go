@@ -989,7 +989,9 @@ func TestNodeAddrResolve(t *testing.T) {
 	dn := &tailcfg.DERPNode{
 		Name:     "derptest1a",
 		RegionID: 901,
-		HostName: "lanhc.com",
+		// Needs to resolve to both IPv4 and IPv6 addresses for the
+		// IPv4/IPv6 sub-tests below; google.com has both record types.
+		HostName: "google.com",
 		// No IPv4 or IPv6 addrs
 	}
 	dnV4Only := &tailcfg.DERPNode{
