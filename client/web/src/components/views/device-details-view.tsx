@@ -86,7 +86,7 @@ export default function DeviceDetailsView({
                 </td>
               </tr>
               <tr>
-                <td>Lanhc version</td>
+                <td>蓝核AI智控台 版本</td>
                 <td>{node.IPNVersion}</td>
               </tr>
               <tr>
@@ -108,7 +108,7 @@ export default function DeviceDetailsView({
           <table>
             <tbody>
               <tr>
-                <td>Lanhc IPv4</td>
+                <td>蓝核AI智控台 IPv4</td>
                 <td>
                   <QuickCopy
                     primaryActionValue={node.IPv4}
@@ -119,7 +119,7 @@ export default function DeviceDetailsView({
                 </td>
               </tr>
               <tr>
-                <td>Lanhc IPv6</td>
+                <td>蓝核AI智控台 IPv6</td>
                 <td>
                   <QuickCopy
                     primaryActionValue={node.IPv6}
@@ -211,8 +211,8 @@ export default function DeviceDetailsView({
             WireGuard is a registered trademark of Jason A. Donenfeld.
           </p>
           <p>
-            © {new Date().getFullYear()} Lanhc Inc. All rights reserved.
-            Lanhc is a registered trademark of Lanhc Inc.
+            © {new Date().getFullYear()} 蓝核AI智控台 Inc. 保留所有权利。
+            蓝核AI智控台 是 蓝核AI智控台 Inc. 的注册商标。
           </p>
         </footer>
       </div>
@@ -239,10 +239,9 @@ function DisconnectDialog() {
           setLocation("/disconnected")
         }}
       >
-        Logging out of this device will disconnect it from your tailnet and
-        expire its node key. You won’t be able to use this web interface until
-        you re-authenticate the device from either the Lanhc app or the
-        Lanhc command line interface.
+        从该设备退出登录会断开它与 tailnet 的连接，并使节点密钥过期。
+        在通过蓝核AI智控台应用或蓝核AI智控台命令行界面重新认证设备之前，
+        你将无法继续使用此 Web 界面。
       </Dialog.Form>
     </Dialog>
   )

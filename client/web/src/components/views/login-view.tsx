@@ -22,7 +22,7 @@ export default function LoginView({ data }: { data: NodeData }) {
           <div className="mb-6">
             <h3 className="text-3xl font-semibold mb-3">Connect</h3>
             <p className="text-gray-700">
-              Your device is disconnected from Lanhc.
+              你的设备已与蓝核AI智控台断开连接。
             </p>
           </div>
           <Button
@@ -30,7 +30,7 @@ export default function LoginView({ data }: { data: NodeData }) {
             className="w-full mb-4"
             intent="primary"
           >
-            Connect to Lanhc
+            连接到蓝核AI智控台
           </Button>
         </>
       ) : data.IPv4 ? (
@@ -65,7 +65,7 @@ export default function LoginView({ data }: { data: NodeData }) {
           <div className="mb-6">
             <h3 className="text-3xl font-semibold mb-3">Log in</h3>
             <p className="text-gray-700">
-              Get started by logging in to your Lanhc network.
+              登录你的蓝核AI智控台网络即可开始。
               Or,&nbsp;learn&nbsp;more at{" "}
               <a
                 href="https://lanhc.com/"

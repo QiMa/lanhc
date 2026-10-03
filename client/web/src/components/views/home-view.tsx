@@ -84,7 +84,7 @@ export default function HomeView({
           <SettingsCard
             link="/subnets"
             title="Subnet router"
-            body="Add devices to your tailnet without installing Lanhc on them."
+            body="无需在设备上安装蓝核AI智控台即可将设备添加到 tailnet。"
             badge={
               allSubnetRoutes
                 ? {
@@ -110,8 +110,8 @@ export default function HomeView({
         {node.Features["ssh"] && (
           <SettingsCard
             link="/ssh"
-            title="Lanhc SSH server"
-            body="Run a Lanhc SSH server on this device and allow other devices in your tailnet to SSH into it."
+            title="蓝核AI智控台 SSH 服务器"
+            body="在此设备上运行蓝核AI智控台 SSH 服务器，允许 tailnet 中其他设备通过 SSH 接入。"
             badge={
               node.RunningSSHServer
                 ? {
@@ -126,7 +126,7 @@ export default function HomeView({
         {/* <SettingsCard
         link="/serve"
         title="Share local content"
-        body="Share local ports, services, and content to your Lanhc network or to the broader internet."
+        body="将本地端口、服务与内容共享到你的蓝核AI智控台网络或更广泛的互联网。"
       /> */}
       </div>
     </div>

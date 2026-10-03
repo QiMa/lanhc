@@ -95,7 +95,7 @@ export const featureDescription = (f: Feature) => {
     case "use-exit-node":
       return "Using an exit node"
     case "ssh":
-      return "Running a Lanhc SSH server"
+      return "正在运行蓝核AI智控台 SSH 服务器"
     case "auto-update":
       return "Auto updating client versions"
     default:

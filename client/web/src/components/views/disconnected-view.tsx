@@ -12,9 +12,8 @@ export default function DisconnectedView() {
     <>
       <LanhcIcon className="mx-auto" />
       <p className="mt-12 text-center text-text-muted">
-        You logged out of this device. To reconnect it you will have to
-        re-authenticate the device from either the Lanhc app or the
-        Lanhc command line interface.
+        你已从该设备退出登录。要重新连接，需要通过蓝核AI智控台应用或
+        蓝核AI智控台命令行界面重新认证设备。
       </p>
     </>
   )

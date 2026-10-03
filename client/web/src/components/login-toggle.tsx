@@ -258,7 +258,7 @@ function LoginModeContent({
             ) : (
               // ACLs don't allow access to this user specifically.
               <>
-                Cannot access this device’s Lanhc IP. Make sure you are
+                无法访问此设备的蓝核AI智控台 IP。请确认你
                 connected to your tailnet, and that your policy file allows
                 access.
               </>

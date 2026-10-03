@@ -95,13 +95,13 @@ func TestWebClientOverNetstack(t *testing.T) {
 	}
 
 	res, index := get(t, "/", "")
-	if !strings.Contains(string(index), "<title>Lanhc</title>") {
-		t.Errorf("GET /: index.html missing <title>Lanhc</title>")
+	if !strings.Contains(string(index), "<title>蓝核AI智控台</title>") {
+		t.Errorf("GET /: index.html missing <title>蓝核AI智控台</title>")
 	}
 	if strings.Contains(string(index), "Tailscale") {
 		t.Errorf("GET /: index.html still contains upstream branding")
 	}
-	const indexScriptHash = "sha384-Qv0SDOms+LGX2fjgbkznbrQVBb/S9C6OnmI0t+SkJqJ6B7FL8p2I6WlmYbsSyhx/"
+	const indexScriptHash = "sha384-bV6+O7IwJd2L1XjKcT0uc9KCrwed7t7XTEPIsuoRTeK/Bpb0r9QX8FZOUIX8kobN"
 	if csp := res.Header.Get("Content-Security-Policy"); !strings.Contains(csp, indexScriptHash) {
 		t.Errorf("GET /: Content-Security-Policy %q does not contain script hash %q", csp, indexScriptHash)
 	}
@@ -136,7 +136,7 @@ func TestWebClientOverNetstack(t *testing.T) {
 
 	// Unknown client-side routes fall back to index.html.
 	_, body := get(t, "/login/some-client-route", "")
-	if !strings.Contains(string(body), "<title>Lanhc</title>") {
-		t.Errorf("GET /login/some-client-route: fallback response missing <title>Lanhc</title>")
+	if !strings.Contains(string(body), "<title>蓝核AI智控台</title>") {
+		t.Errorf("GET /login/some-client-route: fallback response missing <title>蓝核AI智控台</title>")
 	}
 }

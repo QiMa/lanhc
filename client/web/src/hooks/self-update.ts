@@ -77,7 +77,7 @@ export function useInstallUpdate(currentVersion: string, cv?: VersionInfo) {
               if (up.version === currentVersion && tsAwayForPolls > 0) {
                 setUpdateState(UpdateState.Failed)
                 appendUpdateLog(
-                  "ERROR: Update failed, still running Lanhc " + up.version
+                  "ERROR: 更新失败，当前仍在运行 蓝核AI智控台 " + up.version
                 )
                 if (up.message) appendUpdateLog("ERROR: " + up.message)
               } else {

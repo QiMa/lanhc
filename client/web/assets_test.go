@@ -29,7 +29,7 @@ func TestAssetsHandlerServesLocalBrandedClient(t *testing.T) {
 
 	s := newTestServer(t)
 
-	const indexScriptHash = "sha384-Qv0SDOms+LGX2fjgbkznbrQVBb/S9C6OnmI0t+SkJqJ6B7FL8p2I6WlmYbsSyhx/"
+	const indexScriptHash = "sha384-bV6+O7IwJd2L1XjKcT0uc9KCrwed7t7XTEPIsuoRTeK/Bpb0r9QX8FZOUIX8kobN"
 
 	get := func(t *testing.T, path string) (*http.Response, string) {
 		t.Helper()
@@ -49,8 +49,8 @@ func TestAssetsHandlerServesLocalBrandedClient(t *testing.T) {
 	if res.StatusCode != http.StatusOK {
 		t.Fatalf("GET /: got status %d, want %d", res.StatusCode, http.StatusOK)
 	}
-	if !strings.Contains(index, "<title>Lanhc</title>") {
-		t.Errorf("GET /: index.html missing <title>Lanhc</title>")
+	if !strings.Contains(index, "<title>蓝核AI智控台</title>") {
+		t.Errorf("GET /: index.html missing <title>蓝核AI智控台</title>")
 	}
 	if strings.Contains(index, "Tailscale") {
 		t.Errorf("GET /: index.html still contains upstream branding %q", "Tailscale")
@@ -96,8 +96,8 @@ func TestAssetsHandlerServesLocalBrandedClient(t *testing.T) {
 	if res.StatusCode != http.StatusOK {
 		t.Errorf("GET /login/some-client-route: got status %d, want %d", res.StatusCode, http.StatusOK)
 	}
-	if !strings.Contains(body, "<title>Lanhc</title>") {
-		t.Errorf("GET /login/some-client-route: fallback response missing <title>Lanhc</title>")
+	if !strings.Contains(body, "<title>蓝核AI智控台</title>") {
+		t.Errorf("GET /login/some-client-route: fallback response missing <title>蓝核AI智控台</title>")
 	}
 }
 

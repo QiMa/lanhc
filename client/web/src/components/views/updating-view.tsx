@@ -44,7 +44,7 @@ export function UpdatingView({
             <CheckCircleIcon />
             <h1 className="text-2xl m-3">Update complete!</h1>
             <p className="text-gray-400">
-              You updated Lanhc
+              你已更新蓝核AI智控台
               {versionInfo && versionInfo.LatestVersion
                 ? ` to ${versionInfo.LatestVersion}`
                 : null}
@@ -63,7 +63,7 @@ export function UpdatingView({
             <CheckCircleIcon />
             <h1 className="text-2xl m-3">Up to date!</h1>
             <p className="text-gray-400">
-              You are already running Lanhc {currentVersion}, which is the
+              你当前正在运行 蓝核AI智控台 {currentVersion}，这是
               newest version available.
             </p>
             <Button

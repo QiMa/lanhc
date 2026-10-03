@@ -20,9 +20,9 @@ export default function SSHView({
 
   return (
     <>
-      <h1 className="mb-1">Lanhc SSH server</h1>
+      <h1 className="mb-1">蓝核AI智控台 SSH 服务器</h1>
       <p className="description mb-10">
-        Run a Lanhc SSH server on this device and allow other devices in
+        在此设备上运行蓝核AI智控台 SSH 服务器，并允许
         your tailnet to SSH into it.{" "}
         <a
           href="https://lanhc.com/kb/1193/lanhc-ssh/"
@@ -49,7 +49,7 @@ export default function SSHView({
               }
             />
             <div className="text-black text-sm font-medium leading-tight">
-              Run Lanhc SSH server
+              运行蓝核AI智控台 SSH 服务器
             </div>
           </label>
         ) : (

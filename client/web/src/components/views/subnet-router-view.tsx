@@ -45,7 +45,7 @@ export default function SubnetRouterView({
     <>
       <h1 className="mb-1">Subnet router</h1>
       <p className="description mb-5">
-        Add devices to your tailnet without installing Lanhc.{" "}
+        无需安装蓝核AI智控台即可向 tailnet 添加设备。
         <a
           href="https://lanhc.com/kb/1019/subnets/"
           className="text-blue-700"
