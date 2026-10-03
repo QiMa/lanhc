@@ -22,6 +22,7 @@ import (
 	_ "lanhc.com/feature/ssh"
 	_ "lanhc.com/health"
 	_ "lanhc.com/hostinfo"
+	_ "lanhc.com/internal/lanhc"
 	_ "lanhc.com/ipn"
 	_ "lanhc.com/ipn/conffile"
 	_ "lanhc.com/ipn/ipnlocal"

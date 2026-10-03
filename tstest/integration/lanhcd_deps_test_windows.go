@@ -30,6 +30,7 @@ import (
 	_ "lanhc.com/feature/condregister"
 	_ "lanhc.com/health"
 	_ "lanhc.com/hostinfo"
+	_ "lanhc.com/internal/lanhc"
 	_ "lanhc.com/ipn"
 	_ "lanhc.com/ipn/auditlog"
 	_ "lanhc.com/ipn/conffile"
