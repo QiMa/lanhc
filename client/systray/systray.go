@@ -124,7 +124,7 @@ func (menu *Menu) init() {
 
 	// dbus wants a file path for notification icons, so copy to a temp file.
 	menu.notificationIcon, _ = os.CreateTemp("", "lanhc-systray.png")
-	io.Copy(menu.notificationIcon, connected.renderWithBorder(3))
+	io.Copy(menu.notificationIcon, brandConnected.renderWithBorder(3))
 
 	menu.bgCtx, menu.bgCancel = context.WithCancel(context.Background())
 	go menu.watchIPNBus()
@@ -175,7 +175,7 @@ lanhc systray
 
 See https://lanhc.com/kb/1597/linux-systray for more information.`)
 	}
-	setAppIcon(disconnected)
+	setAppIcon(brandDisconnected)
 
 	menu.rebuild()
 
@@ -266,7 +266,7 @@ func (menu *Menu) rebuild() {
 			}
 		} else {
 			setTooltip(fmt.Sprintf("Connected to %s", menu.status.CurrentTailnet.Name))
-			setAppIcon(connected)
+			setAppIcon(brandConnected)
 		}
 		menu.connect.SetTitle("Connected")
 		menu.connect.Disable()
@@ -277,7 +277,7 @@ func (menu *Menu) rebuild() {
 		setAppIcon(loading)
 	default:
 		setTooltip("Disconnected")
-		setAppIcon(disconnected)
+		setAppIcon(brandDisconnected)
 	}
 
 	if menu.readonly {

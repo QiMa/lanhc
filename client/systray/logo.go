@@ -8,10 +8,12 @@ package systray
 import (
 	"bytes"
 	"context"
+	_ "embed"
 	"image"
 	"image/color"
 	"image/png"
 	"log"
+	"math"
 	"runtime"
 	"sync"
 	"time"
@@ -26,6 +28,11 @@ type tsLogo struct {
 	// dots represents the state of the 3x3 dot grid in the logo.
 	// A 0 represents a gray dot, any other value is a white dot.
 	dots [9]byte
+
+	// brand renders the lanhc brand mark instead of the 3x3 dot grid.
+	// on selects the colored (true) or grayscale (false) variant.
+	brand bool
+	on    bool
 
 	// dotMask returns an image mask to be used when rendering the logo dots.
 	dotMask func(dc *gg.Context, borderUnits int, radius int) *image.Alpha
@@ -48,6 +55,11 @@ var (
 		1, 1, 1,
 		0, 1, 0,
 	}}
+
+	// brandConnected and brandDisconnected use the lanhc brand mark in
+	// colored and grayscale variants respectively.
+	brandConnected    = tsLogo{brand: true, on: true}
+	brandDisconnected = tsLogo{brand: true, on: false}
 
 	// loading is a special tsLogo value that is not meant to be rendered directly,
 	// but indicates that the loading animation should be shown.
@@ -218,6 +230,27 @@ var (
 	gray = darkGray
 )
 
+//go:embed lanhc-tray.png
+var embedTrayLogo string
+
+var (
+	trayLogoOnce sync.Once
+	trayLogoImg  image.Image
+)
+
+// trayLogoImage lazily decodes the embedded lanhc brand mark.
+func trayLogoImage() image.Image {
+	trayLogoOnce.Do(func() {
+		img, err := png.Decode(bytes.NewReader([]byte(embedTrayLogo)))
+		if err != nil {
+			log.Printf("systray: decode lanhc-tray.png: %v", err)
+			return
+		}
+		trayLogoImg = img
+	})
+	return trayLogoImg
+}
+
 // SetTheme sets the color theme of the systray icon.
 //
 // Supported themes are:
@@ -248,6 +281,46 @@ func SetTheme(theme string) {
 	}
 }
 
+// drawBrand scales the embedded lanhc brand mark into the logo canvas.
+// Disconnected state is desaturated to a single gray tone while the colored
+// variant retains the original brand palette.
+func (logo tsLogo) drawBrand(dc *gg.Context, borderUnits, radius, dim int) {
+	img := trayLogoImage()
+	if img == nil {
+		return
+	}
+	if !logo.on {
+		img = toGrayscale(img)
+	}
+
+	content := radius * 8 // dot grid occupies the middle 8/10ths of the canvas
+	src := img.Bounds()
+	scale := math.Min(float64(content)/float64(src.Dx()), float64(content)/float64(src.Dy()))
+	dw := float64(src.Dx()) * scale
+	dh := float64(src.Dy()) * scale
+
+	dc.Push()
+	dc.Translate((float64(dim)-dw)/2, (float64(dim)-dh)/2)
+	dc.Scale(scale, scale)
+	dc.DrawImage(img, 0, 0)
+	dc.Pop()
+}
+
+// toGrayscale returns a luminance-weighted grayscale copy of img while
+// preserving its alpha channel.
+func toGrayscale(src image.Image) image.Image {
+	b := src.Bounds()
+	dst := image.NewNRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+	for y := range b.Dy() {
+		for x := range b.Dx() {
+			r, g, bl, a := src.At(b.Min.X+x, b.Min.Y+y).RGBA()
+			luma := (299*int(r>>8) + 587*int(g>>8) + 114*int(bl>>8)) / 1000
+			dst.SetNRGBA(x, y, color.NRGBA{R: uint8(luma), G: uint8(luma), B: uint8(luma), A: uint8(a >> 8)})
+		}
+	}
+	return dst
+}
+
 // render returns a PNG image of the logo.
 func (logo tsLogo) render() *bytes.Buffer {
 	const borderUnits = 1
@@ -271,17 +344,21 @@ func (logo tsLogo) renderWithBorder(borderUnits int) *bytes.Buffer {
 		dc.InvertMask()
 	}
 
-	for y := range 3 {
-		for x := range 3 {
-			px := (borderUnits + 1 + 3*x) * radius
-			py := (borderUnits + 1 + 3*y) * radius
-			col := fg
-			if logo.dots[y*3+x] == 0 {
-				col = gray
+	if logo.brand {
+		logo.drawBrand(dc, borderUnits, radius, dim)
+	} else {
+		for y := range 3 {
+			for x := range 3 {
+				px := (borderUnits + 1 + 3*x) * radius
+				py := (borderUnits + 1 + 3*y) * radius
+				col := fg
+				if logo.dots[y*3+x] == 0 {
+					col = gray
+				}
+				dc.DrawCircle(float64(px), float64(py), radius)
+				dc.SetColor(col)
+				dc.Fill()
 			}
-			dc.DrawCircle(float64(px), float64(py), radius)
-			dc.SetColor(col)
-			dc.Fill()
 		}
 	}
 

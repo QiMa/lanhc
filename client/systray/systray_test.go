@@ -6,6 +6,8 @@
 package systray
 
 import (
+	"bytes"
+	"image/png"
 	"testing"
 
 	"lanhc.com/ipn/ipnstate"
@@ -143,5 +145,50 @@ func TestRecommendedIsActive(t *testing.T) {
 				t.Errorf("recommendedIsActive; got %v, want %v", isExitNodeActive, tt.isActive)
 			}
 		})
+	}
+}
+
+func TestBrandIconStates(t *testing.T) {
+	t.Parallel()
+
+	conn := brandConnected.render()
+	disc := brandDisconnected.render()
+	if conn.Len() == 0 || disc.Len() == 0 {
+		t.Fatal("brand icons rendered empty")
+	}
+
+	connImg, err := png.Decode(bytes.NewReader(conn.Bytes()))
+	if err != nil {
+		t.Fatalf("decoding connected icon: %v", err)
+	}
+	discImg, err := png.Decode(bytes.NewReader(disc.Bytes()))
+	if err != nil {
+		t.Fatalf("decoding disconnected icon: %v", err)
+	}
+
+	// Connected must keep the brand colors; disconnected must be grayscale.
+	// Compare the same pixel in both to make sure they are actually different.
+	b := connImg.Bounds()
+	colored, gray := 0, 0
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			if _, _, _, a := connImg.At(x, y).RGBA(); a == 0 {
+				continue
+			}
+			r, g, bl, _ := connImg.At(x, y).RGBA()
+			if r>>8 != g>>8 || g>>8 != bl>>8 {
+				colored++
+			}
+			r, g, bl, _ = discImg.At(x, y).RGBA()
+			if r == g && g == bl {
+				gray++
+			}
+		}
+	}
+	if colored == 0 {
+		t.Error("connected icon has no colored pixels")
+	}
+	if gray == 0 {
+		t.Error("disconnected icon has no grayscale pixels")
 	}
 }
