@@ -16,6 +16,7 @@ import (
 
 	"lanhc.com/net/tsaddr"
 	"lanhc.com/tailcfg"
+	"lanhc.com/util/httpm"
 )
 
 // TestAssetsHandlerServesLocalBrandedClient is a smoke test for the web
@@ -32,7 +33,7 @@ func TestAssetsHandlerServesLocalBrandedClient(t *testing.T) {
 
 	get := func(t *testing.T, path string) (*http.Response, string) {
 		t.Helper()
-		r := httptest.NewRequest(http.MethodGet, "http://"+tsaddr.LanhcServiceIPString+path, nil)
+		r := httptest.NewRequest(httpm.GET, "http://"+tsaddr.LanhcServiceIPString+path, nil)
 		w := httptest.NewRecorder()
 		s.ServeHTTP(w, r)
 		res := w.Result()
@@ -109,7 +110,7 @@ func TestAssetsHandlerServesPrecompressedAssets(t *testing.T) {
 
 	s := newTestServer(t)
 
-	r := httptest.NewRequest(http.MethodGet, "http://"+tsaddr.LanhcServiceIPString+"/", nil)
+	r := httptest.NewRequest(httpm.GET, "http://"+tsaddr.LanhcServiceIPString+"/", nil)
 	w := httptest.NewRecorder()
 	s.ServeHTTP(w, r)
 	index := w.Body.String()
@@ -123,7 +124,7 @@ func TestAssetsHandlerServesPrecompressedAssets(t *testing.T) {
 
 	get := func(t *testing.T, acceptEncoding string) (*http.Response, []byte) {
 		t.Helper()
-		r := httptest.NewRequest(http.MethodGet, "http://"+tsaddr.LanhcServiceIPString+jsPath, nil)
+		r := httptest.NewRequest(httpm.GET, "http://"+tsaddr.LanhcServiceIPString+jsPath, nil)
 		if acceptEncoding != "" {
 			r.Header.Set("Accept-Encoding", acceptEncoding)
 		}

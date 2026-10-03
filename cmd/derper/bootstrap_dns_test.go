@@ -82,8 +82,8 @@ func getBootstrapDNS(t *testing.T, q string) map[string][]net.IP {
 func TestUnpublishedDNS(t *testing.T) {
 	nettest.SkipIfNoNetwork(t)
 
-	const published = "login.lanhc.com"
-	const unpublished = "log.lanhc.com"
+	const published = "example.com"
+	const unpublished = "example.org"
 
 	prev1, prev2 := *bootstrapDNS, *unpublishedDNS
 	*bootstrapDNS = published

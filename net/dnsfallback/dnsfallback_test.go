@@ -47,14 +47,14 @@ func TestCache(t *testing.T) {
 			},
 
 			// Intentionally attempt to "overwrite" something
-			1: {
-				RegionID:   1,
-				RegionCode: "r1",
-				RegionName: "r1",
+			999: {
+				RegionID:   999,
+				RegionCode: "headscale",
+				RegionName: "Headscale Embedded DERP",
 				Nodes: []*tailcfg.DERPNode{{
-					Name:     "1c",
-					RegionID: 1,
-					HostName: "derp1c.lanhc.com",
+					Name:     "999c",
+					RegionID: 999,
+					HostName: "headscale.lanhc.com",
 					IPv4:     "127.0.0.1",
 					IPv6:     "::1",
 				}},
@@ -89,7 +89,7 @@ func TestCache(t *testing.T) {
 	}
 
 	// Verify that our cache can't override a statically-baked-in DERP server.
-	n0 := dm.Regions[1].Nodes[0]
+	n0 := dm.Regions[999].Nodes[0]
 	if n0.IPv4 == "127.0.0.1" || n0.IPv6 == "::1" {
 		t.Errorf("got %+v; expected no overwrite for node", n0)
 	}
@@ -99,7 +99,7 @@ func TestCache(t *testing.T) {
 	// we don't accidentally start allowing overwrites due to some of the
 	// test's assumptions changing out from underneath us as we update the
 	// JSON file of fallback servers.
-	if getStaticDERPMap().Regions[1].Nodes[0].HostName != "derp1c.lanhc.com" {
+	if getStaticDERPMap().Regions[999].Nodes[0].HostName != "headscale.lanhc.com" {
 		t.Errorf("DERP server has a different name; please update this test")
 	}
 }

@@ -17,6 +17,7 @@ import (
 
 	"golang.org/x/net/proxy"
 	"lanhc.com/tstest"
+	"lanhc.com/util/httpm"
 )
 
 // TestWebClientOverNetstack is an end-to-end test of the management web client
@@ -66,7 +67,7 @@ func TestWebClientOverNetstack(t *testing.T) {
 			res     *http.Response
 		)
 		if err := tstest.WaitFor(20*time.Second, func() error {
-			req, err := http.NewRequest(http.MethodGet, baseURL+path, nil)
+			req, err := http.NewRequest(httpm.GET, baseURL+path, nil)
 			if err != nil {
 				return err
 			}

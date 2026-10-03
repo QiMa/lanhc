@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"lanhc.com/util/httpm"
 )
 
 // newMux wires the read-only agent API. Every endpoint is intentionally GET
@@ -55,7 +57,7 @@ func newMux() *http.ServeMux {
 	})
 
 	mux.HandleFunc("/v1/exec", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
+		if r.Method != httpm.POST {
 			writeErr(w, http.StatusMethodNotAllowed, "POST required")
 			return
 		}

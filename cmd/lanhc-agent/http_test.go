@@ -5,16 +5,17 @@ package main
 
 import (
 	"encoding/json"
-	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"lanhc.com/util/httpm"
 )
 
 func get(t *testing.T, path string) (*httptest.ResponseRecorder, map[string]any) {
 	t.Helper()
 	rec := httptest.NewRecorder()
-	newMux().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, path, nil))
+	newMux().ServeHTTP(rec, httptest.NewRequest(httpm.GET, path, nil))
 	var body map[string]any
 	if rec.Body.Len() > 0 {
 		if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
@@ -65,7 +66,7 @@ func TestLogsUnknownScope(t *testing.T) {
 func TestExecRejectsFreeform(t *testing.T) {
 	payload := `{"template_id":"smartctl-info","param":"device","value":"/dev/sda; reboot"}`
 	rec := httptest.NewRecorder()
-	newMux().ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/v1/exec", strings.NewReader(payload)))
+	newMux().ServeHTTP(rec, httptest.NewRequest(httpm.POST, "/v1/exec", strings.NewReader(payload)))
 	if rec.Code != 400 || !strings.Contains(rec.Body.String(), "forbidden") {
 		t.Fatalf("expected 400 forbidden, got %d %s", rec.Code, rec.Body.String())
 	}
@@ -74,7 +75,7 @@ func TestExecRejectsFreeform(t *testing.T) {
 func TestExecRejectsUnknownTemplate(t *testing.T) {
 	payload := `{"template_id":"sh","param":"device","value":"/dev/sda"}`
 	rec := httptest.NewRecorder()
-	newMux().ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/v1/exec", strings.NewReader(payload)))
+	newMux().ServeHTTP(rec, httptest.NewRequest(httpm.POST, "/v1/exec", strings.NewReader(payload)))
 	if rec.Code != 400 || !strings.Contains(rec.Body.String(), "unknown command template") {
 		t.Fatalf("expected 400 unknown template, got %d %s", rec.Code, rec.Body.String())
 	}
