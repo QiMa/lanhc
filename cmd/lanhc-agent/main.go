@@ -10,7 +10,7 @@
 //
 // Usage:
 //
-//	lanhc-agent -hostname r930-01-agent -dir /var/lib/lanhc-agent -listen :8088
+//	TS_AUTHKEY=<tagged-preauthkey> lanhc-agent -dir /var/lib/lanhc-agent
 //	lanhc-agent -selfcheck            # collect local data without joining a tailnet
 package main
 
@@ -22,9 +22,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
+	"lanhc.com/ipn"
 	"lanhc.com/tsnet"
 )
 
@@ -32,12 +34,12 @@ var version = "0.1.0"
 
 func main() {
 	var (
-		hostname  = flag.String("hostname", "lanhc-agent", "tailnet hostname to register")
-		dir       = flag.String("dir", "/var/lib/lanhc-agent", "state directory for the embedded node")
-		control   = flag.String("control-url", "", "control server URL (defaults to the client's built-in lanhc control plane)")
-		authKey   = flag.String("auth-key", "", "auth key for first enrollment (optional if already enrolled)")
-		listen    = flag.String("listen", ":8088", "tailnet address to listen on")
-		advertise = flag.String("tags", "tag:lanhc-agent", "comma-separated ACL tags to advertise")
+		hostname  = flag.String("hostname", envOr("LANHC_AGENT_HOSTNAME", defaultHostname()), "tailnet hostname to register")
+		dir       = flag.String("dir", envOr("LANHC_AGENT_DIR", "/var/lib/lanhc-agent"), "state directory for the embedded node")
+		control   = flag.String("control-url", envOr("LANHC_AGENT_CONTROL_URL", ""), "control server URL (defaults to the compiled-in lanhc control plane)")
+		authKey   = flag.String("auth-key", "", "auth key for first enrollment (reads TS_AUTHKEY too)")
+		listen    = flag.String("listen", envOr("LANHC_AGENT_LISTEN", ":8088"), "tailnet address to listen on")
+		advertise = flag.String("tags", envOr("LANHC_AGENT_TAGS", ""), "comma-separated ACL tags to request (usually leave empty; tags come from the preauthkey)")
 		selfCheck = flag.Bool("selfcheck", false, "collect and print local data, then exit (no tailnet)")
 	)
 	flag.Parse()
@@ -47,10 +49,15 @@ func main() {
 		return
 	}
 
+	controlURL := strings.TrimSpace(*control)
+	if controlURL == "" {
+		controlURL = ipn.DefaultControlURL
+	}
+
 	s := &tsnet.Server{
 		Hostname:   *hostname,
 		Dir:        *dir,
-		ControlURL: *control,
+		ControlURL: controlURL,
 		AuthKey:    *authKey,
 		Logf:       func(format string, args ...any) { log.Printf("[tsnet] "+format, args...) },
 	}
@@ -82,6 +89,25 @@ func main() {
 	if err := srv.Serve(ln); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("lanhc-agent: %v", err)
 	}
+}
+
+func envOr(key, fallback string) string {
+	if v := strings.TrimSpace(os.Getenv(key)); v != "" {
+		return v
+	}
+	return fallback
+}
+
+func defaultHostname() string {
+	host, err := os.Hostname()
+	if err != nil || host == "" {
+		return "lanhc-agent"
+	}
+	host = strings.TrimSuffix(host, ".local")
+	if strings.HasSuffix(host, "-agent") {
+		return host
+	}
+	return host + "-agent"
 }
 
 func splitTags(s string) []string {

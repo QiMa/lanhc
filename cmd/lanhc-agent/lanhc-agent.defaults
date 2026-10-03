@@ -1,0 +1,12 @@
+# lanhc-agent 环境变量（systemd 读取，首次上线只填 TS_AUTHKEY 即可）
+TS_AUTHKEY=
+# 可选：目标节点名（默认 <本机主机名>-agent）
+#LANHC_AGENT_HOSTNAME=
+# 可选：控制面地址（默认使用编译进二进制里的正式控制面）
+#LANHC_AGENT_CONTROL_URL=
+# 可选：状态目录（默认 /var/lib/lanhc-agent，已由 StateDirectory 管理）
+#LANHC_AGENT_DIR=
+# 可选：监听地址（默认 :8088，只落在 tailnet 网卡）
+#LANHC_AGENT_LISTEN=
+# 可选：额外请求的 ACL tags（默认留空，tag 由 preauthkey 下发更简单）
+#LANHC_AGENT_TAGS=

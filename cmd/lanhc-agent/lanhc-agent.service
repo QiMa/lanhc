@@ -1,0 +1,23 @@
+[Unit]
+Description=lanhc-agent（设备侧只读取证伴随进程）
+Documentation=https://console.lanhc.com
+After=network-online.target lanhcd.service
+Wants=network-online.target
+PartOf=lanhcd.service
+
+[Service]
+Type=simple
+# 首次注册：把一次性 preauthkey 填到 /etc/default/lanhc-agent 的 TS_AUTHKEY，
+# 注册成功后可以留空，节点身份保存在 /var/lib/lanhc-agent 下。
+EnvironmentFile=-/etc/default/lanhc-agent
+ExecStart=/usr/local/bin/lanhc-agent
+Restart=on-failure
+RestartSec=5s
+StateDirectory=lanhc-agent
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
