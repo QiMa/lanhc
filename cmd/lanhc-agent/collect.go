@@ -1,3 +1,6 @@
+// Copyright (c) Tailscale Inc & contributors
+// SPDX-License-Identifier: BSD-3-Clause
+
 // Collectors for lanhc-agent. Every collector is read-only and must tolerate
 // missing tools: a server without smartctl or journalctl should still answer
 // inventory/health instead of failing the whole request.

@@ -1,3 +1,6 @@
+// Copyright (c) Tailscale Inc & contributors
+// SPDX-License-Identifier: BSD-3-Clause
+
 // Command lanhc-agent is the device-side companion to lanhc. It joins the same
 // tailnet via tsnet and exposes a small, read-only HTTP API so ops-runner can
 // collect evidence without SSH or a free-form shell.

@@ -59,6 +59,11 @@ func TestLicenseHeaders(t *testing.T) {
 		case ".git", "node_modules", "tempfork":
 			return filepath.SkipDir
 		}
+		if strings.HasPrefix(filepath.ToSlash(path), "third_party/") {
+			// Vendored third-party modules keep their upstream license
+			// headers, so don't require the Lanhc header here.
+			return filepath.SkipDir
+		}
 		switch base {
 		case "zsyscall_windows.go":
 			// Generated code.
