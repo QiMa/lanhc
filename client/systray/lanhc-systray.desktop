@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
 Version=1.0
-Name=Lanhc System Tray
-Comment=Lanhc system tray applet for managing Lanhc
+Name=蓝核AI智控台 系统托盘
+Comment=蓝核AI智控台 托盘程序
 Exec=/usr/bin/lanhc systray
 TryExec=/usr/bin/lanhc
 Terminal=false

@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # This script detects the current operating system, and installs
-# Lanhc according to that OS's conventions.
+# 蓝核AI智控台（根据各操作系统惯例）
 #
 # Environment variables:
 #   TRACK: Set to "stable" or "unstable" (default: stable)
@@ -297,14 +297,14 @@ main() {
 				PACKAGETYPE="apk"
 				;;
 			nixos)
-				echo "Please add Lanhc to your NixOS configuration directly:"
+				echo "请直接在 NixOS 配置中添加蓝核AI智控台："
 				echo
 				echo "services.lanhc.enable = true;"
 				exit 1
 				;;
 			bazzite)
-				echo "Bazzite comes with Lanhc installed by default."
-				echo "Please enable Lanhc by running the following commands as root:"
+				echo "Bazzite 默认已安装蓝核AI智控台。"
+				echo "请以 root 身份运行以下命令启用蓝核AI智控台："
 				echo
 				echo "ujust enable-lanhc"
 				echo "lanhc up"
@@ -347,12 +347,12 @@ main() {
 				fi
 				;;
 			steamos)
-				echo "To install Lanhc on SteamOS, please follow the instructions here:"
+				echo "要在 SteamOS 上安装蓝核AI智控台，请按这里的说明操作："
 				echo "https://github.com/lanhc-dev/deck-lanhc"
 				exit 1
 				;;
 			kde-linux)
-				echo "The maintainers of KDE Linux provide documentation on multiple ways to install Lanhc. These instructions are not officially supported by Lanhc:"
+				echo "KDE Linux 维护者提供了多种安装蓝核AI智控台的方式。以下说明不受蓝核AI智控台官方支持："
 				echo "https://linux.kde.org/docs/more-software/#lanhc"
 				exit 1
 				;;
@@ -535,9 +535,9 @@ main() {
 
 	# Prepare package name with optional version
 	if [ -n "$LANHC_VERSION" ]; then
-		echo "Installing Lanhc $LANHC_VERSION for $OSVERSION, using method $PACKAGETYPE"
+		echo "正在安装 蓝核AI智控台 $LANHC_VERSION（$OSVERSION，使用 $PACKAGETYPE）"
 	else
-		echo "Installing Lanhc for $OSVERSION, using method $PACKAGETYPE"
+		echo "正在安装 蓝核AI智控台（$OSVERSION，使用 $PACKAGETYPE）"
 	fi
 	case "$PACKAGETYPE" in
 		apt)
@@ -657,7 +657,7 @@ main() {
 		pacman)
 			set -x
 			if [ -n "$LANHC_VERSION" ]; then
-				echo "Warning: Arch Linux maintains their own Lanhc package. Version pinning may not work as expected, as the target version may no longer be available."
+				echo "警告：Arch Linux 维护自己的 蓝核AI智控台 软件包。由于目标版本可能不再可用，版本锁定可能无法按预期工作。"
 				$SUDO pacman -S "lanhc=$LANHC_VERSION" --noconfirm
 			else
 				$SUDO pacman -S lanhc --noconfirm
@@ -668,7 +668,7 @@ main() {
 		pkg)
 			set -x
 			if [ -n "$LANHC_VERSION" ]; then
-				echo "Warning: FreeBSD maintains their own Lanhc package. Version pinning may not work as expected, as the target version may no longer be available."
+				echo "警告：FreeBSD 维护自己的 蓝核AI智控台 软件包。由于目标版本可能不再可用，版本锁定可能无法按预期工作。"
 				$SUDO pkg install --yes "lanhc-$LANHC_VERSION"
 			else
 				$SUDO pkg install --yes lanhc
@@ -688,7 +688,7 @@ main() {
 				fi
 			fi
 			if [ -n "$LANHC_VERSION" ]; then
-				echo "Warning: Alpine Linux maintains their own Lanhc package. Version pinning may not work as expected, as the target version may no longer be available."
+				echo "警告：Alpine Linux 维护自己的 蓝核AI智控台 软件包。由于目标版本可能不再可用，版本锁定可能无法按预期工作。"
 				$SUDO apk add "lanhc=$LANHC_VERSION"
 			else
 				$SUDO apk add lanhc
@@ -700,7 +700,7 @@ main() {
 		xbps)
 			set -x
 			if [ -n "$LANHC_VERSION" ]; then
-				echo "Warning: Void Linux maintains their own Lanhc package. Version pinning may not work as expected, as the target version may no longer be available."
+				echo "警告：Void Linux 维护自己的 蓝核AI智控台 软件包。由于目标版本可能不再可用，版本锁定可能无法按预期工作。"
 				$SUDO xbps-install "lanhc-$LANHC_VERSION" -y
 			else
 				$SUDO xbps-install lanhc -y
@@ -710,7 +710,7 @@ main() {
 		emerge)
 			set -x
 			if [ -n "$LANHC_VERSION" ]; then
-				echo "Warning: Gentoo maintains their own Lanhc package. Version pinning may not work as expected, as the target version may no longer be available."
+				echo "警告：Gentoo 维护自己的 蓝核AI智控台 软件包。由于目标版本可能不再可用，版本锁定可能无法按预期工作。"
 				$SUDO emerge --ask=n "=net-vpn/lanhc-$LANHC_VERSION"
 			else
 				$SUDO emerge --ask=n net-vpn/lanhc
@@ -728,7 +728,7 @@ main() {
 			;;
 	esac
 
-	echo "Installation complete! Log in to start using Lanhc by running:"
+	echo "安装完成！运行以下命令登录并开始使用蓝核AI智控台："
 	echo
 	if [ -z "$SUDO" ]; then
 		echo "lanhc up"

@@ -59,8 +59,8 @@ func installSystemDaemonWindows(args []string) (err error) {
 		StartType:    mgr.StartAutomatic,
 		ErrorControl: mgr.ErrorNormal,
 		Dependencies: serviceDependencies,
-		DisplayName:  serviceName,
-		Description:  "Connects this computer to others on the Lanhc network.",
+		DisplayName:  "蓝核AI智控台",
+		Description:  "连接此计算机到蓝核AI智控台网络中的其他设备。",
 	}
 
 	service, err = m.CreateService(serviceName, exe, c)

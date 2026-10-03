@@ -1,7 +1,7 @@
 # Name of the packaged application.
 QPKG_NAME="Lanhc"
 # Name of the display application.
-#QPKG_DISPLAY_NAME=""
+QPKG_DISPLAY_NAME="蓝核AI智控台"
 # Version of the packaged application.
 QPKG_VER="$QPKG_VER"
 # Author or maintainer of the package

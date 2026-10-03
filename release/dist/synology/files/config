@@ -2,7 +2,7 @@
 	".url": {
 		"SYNO.SDS.Lanhc": {
 			"type": "url",
-			"title": "Lanhc",
+			"title": "蓝核AI智控台",
 			"icon": "PACKAGE_ICON_256.PNG",
 			"url": "webman/3rdparty/Lanhc/index.cgi/",
 			"urlTarget": "_syno_lanhc"

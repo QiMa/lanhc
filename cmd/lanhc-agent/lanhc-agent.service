@@ -1,5 +1,5 @@
 [Unit]
-Description=lanhc-agent（设备侧只读取证伴随进程）
+Description=蓝核AI智控台（设备侧只读取证伴随进程）
 Documentation=https://console.lanhc.com
 After=network-online.target lanhcd.service
 Wants=network-online.target

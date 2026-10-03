@@ -1,5 +1,5 @@
 [Unit]
-Description=Lanhc NGINX Authentication service
+Description=蓝核AI智控台 NGINX 认证服务
 After=nginx.service
 Wants=nginx.service
 

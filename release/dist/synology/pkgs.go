@@ -143,7 +143,7 @@ func (t *target) mkInfo(b *dist.Build, uncompressedSz int64) []byte {
 	f("version", fmt.Sprintf("%s-%d", b.Version.Short, b.Version.Synology[t.dsmVersionInt()]))
 	f("arch", t.filenameArch)
 	f("description", "Connect all your devices using WireGuard, without the hassle.")
-	f("displayname", "Lanhc")
+	f("displayname", "蓝核AI智控台")
 	f("maintainer", "Lanhc, Inc.")
 	f("maintainer_url", "https://github.com/lanhc/lanhc")
 	f("create_time", b.Time.Format("20060102-15:04:05"))

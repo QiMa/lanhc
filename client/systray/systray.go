@@ -182,7 +182,7 @@ See https://lanhc.com/kb/1597/linux-systray for more information.`)
 	menu.mu.Lock()
 	if menu.readonly {
 		fmt.Fprintln(os.Stderr, `
-No permission to manage Lanhc. Set operator by running:
+无权管理蓝核AI智控台。可通过以下命令设置 operator：
 
 sudo lanhc set --operator=$USER
 
@@ -232,7 +232,7 @@ func (menu *Menu) rebuild() {
 	systray.ResetMenu()
 
 	if menu.readonly {
-		const readonlyMsg = "No permission to manage Lanhc.\nSee lanhc.com/s/cli-operator"
+		const readonlyMsg = "无权管理蓝核AI智控台。\n参见 lanhc.com/s/cli-operator"
 		m := systray.AddMenuItem(readonlyMsg, "")
 		onClick(ctx, m, func(_ context.Context) {
 			webbrowser.Open("https://lanhc.com/s/cli-operator")
@@ -594,7 +594,7 @@ func (menu *Menu) sendNotification(title, content string) {
 	}
 	timeout := 3 * time.Second
 	obj := conn.Object("org.freedesktop.Notifications", "/org/freedesktop/Notifications")
-	call := obj.Call("org.freedesktop.Notifications.Notify", 0, "Lanhc", uint32(0),
+	call := obj.Call("org.freedesktop.Notifications.Notify", 0, "蓝核AI智控台", uint32(0),
 		menu.notificationIcon.Name(), title, content, []string{}, map[string]dbus.Variant{}, int32(timeout.Milliseconds()))
 	if call.Err != nil {
 		log.Printf("dbus: %v", call.Err)

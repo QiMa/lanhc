@@ -1,4 +1,6 @@
-# Lanhc
+# 蓝核AI智控台
+
+Lanhc (蓝核AI智控台)
 
 https://lanhc.com
 

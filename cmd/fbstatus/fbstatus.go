@@ -587,7 +587,7 @@ func (st *uiState) render() {
 	y := textTop + 3*lineH + shortSide/40
 
 	if len(st.ips) > 0 {
-		drawCenteredScaled(img, "Lanhc IPs:", dimColor, w/2, y, 2)
+		drawCenteredScaled(img, "蓝核AI智控台 IP:", dimColor, w/2, y, 2)
 		y += 2 * lineH
 		for _, a := range st.ips {
 			drawCenteredScaled(img, a.String(), fgColor, w/2, y, 2)

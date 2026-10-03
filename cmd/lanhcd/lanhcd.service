@@ -1,5 +1,5 @@
 [Unit]
-Description=Lanhc node agent
+Description=蓝核AI智控台 节点代理
 Documentation=https://lanhc.com/docs/
 Wants=network-pre.target
 After=network-pre.target NetworkManager.service systemd-resolved.service

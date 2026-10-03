@@ -1,5 +1,5 @@
 [Unit]
-Description=Lanhc System Tray
+Description=蓝核AI智控台 系统托盘
 Documentation=https://lanhc.com/kb/1597/linux-systray
 Requires=dbus.service
 After=dbus.service

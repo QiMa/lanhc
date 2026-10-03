@@ -1,5 +1,5 @@
 [Unit]
-Description=Wait for Lanhc to be online
+Description=等待蓝核AI智控台上线
 After=lanhcd.service
 Requires=lanhcd.service
 
