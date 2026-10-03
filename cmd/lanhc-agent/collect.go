@@ -13,7 +13,6 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 )
 
@@ -191,17 +190,6 @@ func memUsedPct() (mem, swap float64) {
 		swap = 100 * float64(swapTotal-swapFree) / float64(swapTotal)
 	}
 	return mem, swap
-}
-
-func diskUsedPct(path string) float64 {
-	var st syscall.Statfs_t
-	if err := syscall.Statfs(path, &st); err != nil {
-		return 0
-	}
-	if st.Blocks == 0 {
-		return 0
-	}
-	return 100 * float64(st.Blocks-st.Bavail) / float64(st.Blocks)
 }
 
 // collectSMART prefers JSON output (smartctl -j) and falls back to raw text.
