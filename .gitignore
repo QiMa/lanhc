@@ -42,7 +42,6 @@ ssh/tailssh/testcontainers/lanhcd
 # Ignore web client node modules
 .vite/
 client/web/node_modules
-client/web/build/assets
 
 /gocross
 /dist

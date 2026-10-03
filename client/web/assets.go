@@ -4,6 +4,7 @@
 package web
 
 import (
+	"embed"
 	"io"
 	"io/fs"
 	"log"
@@ -15,9 +16,10 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
-	prebuilt "github.com/tailscale/web-client-prebuilt"
 )
+
+//go:embed build
+var embedded embed.FS
 
 var start = time.Now()
 
@@ -28,7 +30,10 @@ func assetsHandler(devMode bool) (_ http.Handler, cleanup func()) {
 		return devServerProxy(), cleanup
 	}
 
-	fsys := prebuilt.FS()
+	fsys, err := fs.Sub(embedded, "build")
+	if err != nil {
+		log.Fatalf("enumerating embedded web client assets: %v", err)
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := strings.TrimPrefix(r.URL.Path, "/")
 		f, err := openPrecompressedFile(w, r, path, fsys)

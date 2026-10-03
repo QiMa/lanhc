@@ -349,7 +349,7 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 			// This hash corresponds to the inline script in index.html that runs when the react app is unavailable.
 			// It was generated from https://csplite.com/csp/sha/.
 			// If the contents of the script are changed, this hash must be updated.
-			const indexScriptHash = "sha384-CW2AYVfS14P7QHZN27thEkMLKiCj3YNURPoLc1elwiEkMVHeuYTWkJOEki1F3nZc"
+			const indexScriptHash = "sha384-Qv0SDOms+LGX2fjgbkznbrQVBb/S9C6OnmI0t+SkJqJ6B7FL8p2I6WlmYbsSyhx/"
 
 			w.Header().Set("X-Frame-Options", "DENY")
 			w.Header().Set("Content-Security-Policy", "default-src 'self'; img-src * data:; script-src 'self' '"+indexScriptHash+"'")
