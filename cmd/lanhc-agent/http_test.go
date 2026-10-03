@@ -47,6 +47,11 @@ func TestDiskListEndpoint(t *testing.T) {
 	if rec.Code != 200 || body["collected_at"] == nil {
 		t.Fatalf("unexpected disk list response: %d %v", rec.Code, body)
 	}
+	// disks must always be a JSON array, never null: callers (telemetry
+	// collectors) treat null as "no data" and would silently skip the host.
+	if _, ok := body["disks"].([]any); !ok {
+		t.Fatalf("expected disks array, got %T (%v)", body["disks"], body["disks"])
+	}
 }
 
 func TestSmartRequiresDevice(t *testing.T) {

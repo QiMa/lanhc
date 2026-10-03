@@ -201,33 +201,39 @@ func memUsedPct() (mem, swap float64) {
 // the real SMART targets live behind /dev/bus/0 with "-d megaraid,N".
 func collectDiskList() map[string]any {
 	res := map[string]any{"collected_at": time.Now().UTC().Format(time.RFC3339)}
-	var disks []map[string]string
-	if lookPath("smartctl") {
-		out, err := runCommand("smartctl", "--scan-open")
-		res["scan_open"] = out
-		if err == nil {
-			for _, line := range strings.Split(out, "\n") {
-				line = strings.TrimSpace(line)
-				if line == "" || strings.HasPrefix(line, "#") {
-					continue
-				}
-				dev := ""
-				typ := ""
-				label := ""
-				if i := strings.Index(line, " -d "); i >= 0 {
-					dev = strings.TrimSpace(line[:i])
-					rest := line[i+4:]
-					if j := strings.Index(rest, " # "); j >= 0 {
-						typ = strings.TrimSpace(rest[:j])
-						label = strings.TrimSpace(rest[j+3:])
-					} else {
-						typ = strings.TrimSpace(rest)
-					}
-				}
-				if dev != "" && typ != "" {
-					disks = append(disks, map[string]string{"device": dev, "type": typ, "label": label})
-				}
+	disks := []map[string]string{}
+	if !lookPath("smartctl") {
+		res["disks"] = disks
+		res["error"] = "smartctl not installed"
+		return res
+	}
+	out, err := runCommand("smartctl", "--scan-open")
+	res["scan_open"] = out
+	if err != nil {
+		res["disks"] = disks
+		res["error"] = "smartctl --scan-open failed: " + err.Error()
+		return res
+	}
+	for _, line := range strings.Split(out, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		dev := ""
+		typ := ""
+		label := ""
+		if i := strings.Index(line, " -d "); i >= 0 {
+			dev = strings.TrimSpace(line[:i])
+			rest := line[i+4:]
+			if j := strings.Index(rest, " # "); j >= 0 {
+				typ = strings.TrimSpace(rest[:j])
+				label = strings.TrimSpace(rest[j+3:])
+			} else {
+				typ = strings.TrimSpace(rest)
 			}
+		}
+		if dev != "" && typ != "" {
+			disks = append(disks, map[string]string{"device": dev, "type": typ, "label": label})
 		}
 	}
 	res["disks"] = disks
