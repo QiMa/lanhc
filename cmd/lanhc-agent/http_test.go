@@ -42,6 +42,13 @@ func TestHealthEndpoint(t *testing.T) {
 	}
 }
 
+func TestDiskListEndpoint(t *testing.T) {
+	rec, body := get(t, "/v1/disk/list")
+	if rec.Code != 200 || body["collected_at"] == nil {
+		t.Fatalf("unexpected disk list response: %d %v", rec.Code, body)
+	}
+}
+
 func TestSmartRequiresDevice(t *testing.T) {
 	rec, body := get(t, "/v1/disk/smart")
 	if rec.Code != 400 || !strings.Contains(body["error"].(string), "dev") {

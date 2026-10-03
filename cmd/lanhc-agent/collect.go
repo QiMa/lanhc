@@ -195,16 +195,64 @@ func memUsedPct() (mem, swap float64) {
 	return mem, swap
 }
 
+// collectDiskList returns the physical devices smartctl can actually address,
+// including RAID members behind a PERC/DELL controller. The block devices from
+// /sys/block are not enough on such hosts: /dev/sda is a virtual volume, while
+// the real SMART targets live behind /dev/bus/0 with "-d megaraid,N".
+func collectDiskList() map[string]any {
+	res := map[string]any{"collected_at": time.Now().UTC().Format(time.RFC3339)}
+	var disks []map[string]string
+	if lookPath("smartctl") {
+		out, err := runCommand("smartctl", "--scan-open")
+		res["scan_open"] = out
+		if err == nil {
+			for _, line := range strings.Split(out, "\n") {
+				line = strings.TrimSpace(line)
+				if line == "" || strings.HasPrefix(line, "#") {
+					continue
+				}
+				dev := ""
+				typ := ""
+				label := ""
+				if i := strings.Index(line, " -d "); i >= 0 {
+					dev = strings.TrimSpace(line[:i])
+					rest := line[i+4:]
+					if j := strings.Index(rest, " # "); j >= 0 {
+						typ = strings.TrimSpace(rest[:j])
+						label = strings.TrimSpace(rest[j+3:])
+					} else {
+						typ = strings.TrimSpace(rest)
+					}
+				}
+				if dev != "" && typ != "" {
+					disks = append(disks, map[string]string{"device": dev, "type": typ, "label": label})
+				}
+			}
+		}
+	}
+	res["disks"] = disks
+	return res
+}
+
 // collectSMART prefers JSON output (smartctl -j) and falls back to raw text.
 // A degraded second-hand disk shows itself in counters over time, not in one read,
-// so we always return the full attribute set.
-func collectSMART(device string) map[string]any {
+// so we always return the full attribute set. deviceType is optional and is
+// passed as smartctl -d (e.g. "megaraid,0" for PERC H730 virtual disks).
+func collectSMART(device, deviceType string) map[string]any {
 	res := map[string]any{"device": device, "collected_at": time.Now().UTC().Format(time.RFC3339)}
+	if deviceType != "" {
+		res["device_type"] = deviceType
+	}
 	if !lookPath("smartctl") {
 		res["error"] = "smartctl not installed"
 		return res
 	}
-	out, err := runCommand("smartctl", "-j", "-a", device)
+	args := []string{"-j", "-a"}
+	if deviceType != "" {
+		args = append(args, "-d", deviceType)
+	}
+	args = append(args, device)
+	out, err := runCommand("smartctl", args...)
 	if err == nil {
 		var parsed map[string]any
 		if jerr := json.Unmarshal([]byte(out), &parsed); jerr == nil {
@@ -212,7 +260,12 @@ func collectSMART(device string) map[string]any {
 			return res
 		}
 	}
-	raw, rerr := runCommand("smartctl", "-a", device)
+	rawArgs := []string{"-a"}
+	if deviceType != "" {
+		rawArgs = append(rawArgs, "-d", deviceType)
+	}
+	rawArgs = append(rawArgs, device)
+	raw, rerr := runCommand("smartctl", rawArgs...)
 	res["raw"] = raw
 	if rerr != nil {
 		res["error"] = rerr.Error()

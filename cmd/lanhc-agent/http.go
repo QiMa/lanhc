@@ -35,13 +35,18 @@ func newMux() *http.ServeMux {
 		writeJSON(w, http.StatusOK, collectHealth())
 	})
 
+	mux.HandleFunc("/v1/disk/list", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, collectDiskList())
+	})
+
 	mux.HandleFunc("/v1/disk/smart", func(w http.ResponseWriter, r *http.Request) {
 		device := r.URL.Query().Get("dev")
 		if device == "" {
 			writeErr(w, http.StatusBadRequest, "dev query parameter is required, e.g. /dev/sda")
 			return
 		}
-		writeJSON(w, http.StatusOK, collectSMART(device))
+		deviceType := r.URL.Query().Get("type")
+		writeJSON(w, http.StatusOK, collectSMART(device, deviceType))
 	})
 
 	mux.HandleFunc("/v1/logs", func(w http.ResponseWriter, r *http.Request) {

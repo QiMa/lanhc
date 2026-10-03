@@ -77,7 +77,8 @@ lanhc-agent -selfcheck
 | GET | `/v1/healthz` | 存活 |
 | GET | `/v1/inventory` | 主机/OS/内核/CPU/内存/磁盘拓扑 |
 | GET | `/v1/health` | load、内存、交换、根分区、failed systemd units |
-| GET | `/v1/disk/smart?dev=/dev/sda` | SMART 全量（smartctl -j） |
+| GET | `/v1/disk/list` | `smartctl --scan-open` 可寻址物理盘（含 PERC/DELL RAID 成员） |
+| GET | `/v1/disk/smart?dev=/dev/sda` | SMART 全量（smartctl -j），可加 `&type=megaraid,N` 指定 `-d` |
 | GET | `/v1/logs?scope=dmesg\|journal\|mce\|edac&tail=500` | 受限日志摘要 |
 | POST | `/v1/exec` | 仅模板化命令 `smartctl-long` / `smartctl-info` |
 
