@@ -57,5 +57,7 @@ client/web/node_modules
 
 # Ignore syncthing state directory.
 /.stfolder
-fbstatus
-gafpush
+# Binaries produced by `go build ./cmd/fbstatus` and `./cmd/gafpush`.
+# Anchored so they don't hide the cmd/ source directories.
+/fbstatus
+/gafpush
