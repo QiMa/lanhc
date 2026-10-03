@@ -7,6 +7,7 @@ package systray
 
 import (
 	"bytes"
+	"image"
 	"image/png"
 	"testing"
 
@@ -190,5 +191,21 @@ func TestBrandIconStates(t *testing.T) {
 	}
 	if gray == 0 {
 		t.Error("disconnected icon has no grayscale pixels")
+	}
+
+	// The brand mark must sit on a transparent canvas so it blends into the
+	// taskbar instead of showing a black square.
+	for _, corner := range []image.Point{
+		connImg.Bounds().Min,
+		{X: connImg.Bounds().Max.X - 1, Y: connImg.Bounds().Min.Y},
+		{X: connImg.Bounds().Min.X, Y: connImg.Bounds().Max.Y - 1},
+		{X: connImg.Bounds().Max.X - 1, Y: connImg.Bounds().Max.Y - 1},
+	} {
+		if _, _, _, a := connImg.At(corner.X, corner.Y).RGBA(); a != 0 {
+			t.Errorf("connected icon corner %v is not transparent: alpha=%d", corner, a)
+		}
+		if _, _, _, a := discImg.At(corner.X, corner.Y).RGBA(); a != 0 {
+			t.Errorf("disconnected icon corner %v is not transparent: alpha=%d", corner, a)
+		}
 	}
 }

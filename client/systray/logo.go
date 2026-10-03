@@ -334,9 +334,14 @@ func (logo tsLogo) renderWithBorder(borderUnits int) *bytes.Buffer {
 	dim := radius * (8 + borderUnits*2)
 
 	dc := gg.NewContext(dim, dim)
-	dc.DrawRectangle(0, 0, float64(dim), float64(dim))
-	dc.SetColor(bg)
-	dc.Fill()
+	// Brand marks carry their own colors and are drawn on a transparent
+	// canvas so they blend into any taskbar background. The dot-grid states
+	// keep the themed backdrop they have always used.
+	if !logo.brand {
+		dc.DrawRectangle(0, 0, float64(dim), float64(dim))
+		dc.SetColor(bg)
+		dc.Fill()
+	}
 
 	if logo.dotMask != nil {
 		mask := logo.dotMask(dc, borderUnits, radius)
