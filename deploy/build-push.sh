@@ -6,7 +6,7 @@
 #   ./deploy/build-push.sh 1.102.5+lanhc11     # 显式指定版本
 #
 # 步骤：
-#   1. 调用 ../build-tailscale-custom.sh 构建发行包
+#   1. 调用本仓库 deploy/build-tailscale-custom.sh 构建发行包
 #   2. 上传到发行目录 /lucky/lanhc-hugo/lanhc/（对外 https://lanhc.com/lanhc/）
 #   3. 归档旧版、刷新稳定别名、重算 SHA256SUMS 并校验
 #
@@ -22,7 +22,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-SRC_ROOT="$(cd "$REPO_ROOT/.." && pwd)"
 
 BASE_VERSION="$(sed 's/^v//' "$REPO_ROOT/VERSION.txt" | tr -d '[:space:]')"
 OUT="${OUT:-/home/dev/out/lanhc}"
@@ -45,13 +44,13 @@ if [ -z "$VERSION" ]; then
 fi
 
 echo "==> 构建版本 ${VERSION}"
-cd "$SRC_ROOT"
 OUT="$OUT" \
 VERSION="$VERSION" \
+REPO="$REPO_ROOT" \
 TARGETS="${TARGETS:-linux/amd64 linux/arm64}" \
 CONTROL_URL="${CONTROL_URL:-https://headscale.lanhc.com}" \
 ADMIN_URL="${ADMIN_URL:-https://console.lanhc.com}" \
-bash "$SRC_ROOT/build-tailscale-custom.sh"
+bash "$REPO_ROOT/deploy/build-tailscale-custom.sh"
 
 if [ "$NO_UPLOAD" = "1" ]; then
   echo "==> --no-upload：跳过上传与归档，产物在 $OUT"
