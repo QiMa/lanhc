@@ -81,10 +81,10 @@ for f in lanhc_[0-9]*+lanhc*_linux_amd64.tar.gz \
 done
 
 for f in lanhc_${VERSION}_linux_amd64.tar.gz lanhc_${VERSION}_linux_arm64.tar.gz; do
-  [ -f "$f" ] && cp -f "$f" "${f#_${VERSION}}"
+  [ -f "$f" ] && cp -f "$f" "${f/_${VERSION}/}"
 done
 for f in lanhc_${VERSION}_windows_amd64.zip lanhc_${VERSION}_windows_arm64.zip; do
-  [ -f "$f" ] && cp -f "$f" "${f#_${VERSION}}"
+  [ -f "$f" ] && cp -f "$f" "${f/_${VERSION}/}"
 done
 
 printf '%s\n' "$BASE_VERSION" > tailscale-version.txt
