@@ -62,7 +62,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/tailscale/setec/types/api"
+	"lanhc.com/third_party/setec/types/api"
 )
 
 // Client is a raw client to the secret management server.

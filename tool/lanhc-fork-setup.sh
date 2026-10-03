@@ -40,15 +40,13 @@ mkdir -p third_party/setec/client/setec third_party/setec/types/api
 cp "$SETEC"/client/setec/{cache.go,client.go,fields.go,fileclient.go,store.go,watcher.go} third_party/setec/client/setec/
 cp "$SETEC"/types/api/api.go third_party/setec/types/api/
 cp "$SETEC"/LICENSE third_party/setec/LICENSE
-cat > third_party/setec/go.mod <<'GOMOD'
-module github.com/tailscale/setec
-
-go 1.24.0
-GOMOD
-sed -i 's#tailscale\.com/atomicfile#lanhc.com/atomicfile#g; s#tailscale\.com/types/logger#lanhc.com/types/logger#g' third_party/setec/client/setec/*.go
-if ! grep -q 'replace github.com/tailscale/setec' go.mod; then
-  printf '\nreplace github.com/tailscale/setec => ./third_party/setec\n' >> go.mod
-fi
+# The vendored package is absorbed into the lanhc.com module so the main go.mod
+# can remain replace-free. Drop the nested module and rewrite the upstream
+# imports to their lanhc.com/third_party/... counterparts.
+python3 -c "import os; os.unlink('third_party/setec/go.mod')" 2>/dev/null || true
+sed -i 's#tailscale\.com/atomicfile#lanhc.com/atomicfile#g; s#tailscale\.com/types/logger#lanhc.com/types/logger#g; s#github\.com/tailscale/setec/types/api#lanhc.com/third_party/setec/types/api#g' third_party/setec/client/setec/*.go
+sed -i 's#github\.com/tailscale/setec/client/setec#lanhc.com/third_party/setec/client/setec#g' cmd/derper/derper.go cmd/derpprobe/derpprobe.go
+go mod edit -droprequire=github.com/tailscale/setec -dropreplace=github.com/tailscale/setec
 
 # --- 改名残留修正 ----------------------------------------------------------
 python3 - <<'PYEOF'

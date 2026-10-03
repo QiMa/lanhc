@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/creachadair/msync/throttle"
-	"github.com/tailscale/setec/types/api"
+	"lanhc.com/third_party/setec/types/api"
 	"lanhc.com/types/logger"
 )
 

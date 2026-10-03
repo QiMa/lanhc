@@ -41,9 +41,6 @@ FROM golang:1.26-alpine AS build-env
 WORKDIR /go/src/lanhc
 
 COPY go.mod go.sum ./
-# go.mod has a replace directive pointing at third_party/setec, so its go.mod
-# must be present before we can download modules.
-COPY third_party/ ./third_party/
 RUN go mod download
 
 # Pre-build some stuff before the following COPY line invalidates the Docker cache.

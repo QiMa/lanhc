@@ -109,7 +109,6 @@ require (
 	github.com/tailscale/netlink v1.1.1-0.20240822203006-4d49adab4de7
 	github.com/tailscale/peercred v0.0.0-20250107143737-35a0c7bd7edc
 	github.com/tailscale/policybottest v0.0.0-20260626205140-6863b672b210
-	github.com/tailscale/setec v0.0.0-20251203133219-2ab774e4129a
 	github.com/tailscale/ts-gokrazy v0.0.0-20260630224145-b83088f2e52e
 	github.com/tailscale/wf v0.0.0-20240214030419-6fbb0a674ee6
 	github.com/tailscale/wireguard-go v0.0.0-20260715223240-2e01ba5b00f0
@@ -529,5 +528,3 @@ require (
 )
 
 tool github.com/stacklok/frizbee
-
-replace github.com/tailscale/setec => ./third_party/setec

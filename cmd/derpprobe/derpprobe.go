@@ -16,8 +16,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/tailscale/setec/client/setec"
 	"lanhc.com/prober"
+	"lanhc.com/third_party/setec/client/setec"
 	"lanhc.com/tsweb"
 	"lanhc.com/types/key"
 	"lanhc.com/version"
