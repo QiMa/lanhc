@@ -8,12 +8,12 @@
 # Required-Stop:
 # Default-Start:
 # Default-Stop:
-# Short-Description:    Lanhc Mesh Wireguard VPN
+# Short-Description:    蓝核AI智控台 Mesh WireGuard VPN
 ### END INIT INFO
 
 set -e
 
-# /etc/init.d/lanhc: start and stop the Lanhc VPN service
+# /etc/init.d/lanhc: 启动和停止蓝核AI智控台 VPN 服务
 
 test -x /usr/sbin/lanhcd || exit 0
 
@@ -30,7 +30,7 @@ export PATH="${PATH:+$PATH:}/usr/sbin:/sbin"
 
 case "$1" in
   start)
-        log_daemon_msg "Starting Lanhc VPN" "lanhcd" || true
+        log_daemon_msg "正在启动蓝核AI智控台 VPN" "lanhcd" || true
         if start-stop-daemon --start --oknodo --name lanhcd -m --pidfile /run/lanhcd.pid --background \
                 --exec /usr/sbin/lanhcd -- \
                 --state=/var/lib/lanhc/lanhcd.state \
@@ -43,7 +43,7 @@ case "$1" in
         fi
         ;;
   stop)
-        log_daemon_msg "Stopping Lanhc VPN" "lanhcd" || true
+        log_daemon_msg "正在停止蓝核AI智控台 VPN" "lanhcd" || true
         if start-stop-daemon --stop --remove-pidfile --pidfile /run/lanhcd.pid --exec /usr/sbin/lanhcd; then
             log_end_msg 0 || true
         else
