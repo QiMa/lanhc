@@ -39,7 +39,9 @@ func lanhcToolchainRev() (gitHash string, ok bool) {
 		return "", false
 	}
 	for _, s := range bi.Settings {
-		if s.Key == "lanhc.toolchain.rev" {
+		// The Tailscale Go fork that we build with stamps this key as
+		// "tailscale.toolchain.rev"; keep it in sync with the toolchain.
+		if s.Key == "tailscale.toolchain.rev" {
 			return s.Value, true
 		}
 	}

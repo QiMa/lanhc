@@ -20,5 +20,5 @@ func NewShardValue[T any]() *ShardValue[T] {
 
 // One yields a pointer to a single shard value with best-effort P-locality.
 func (sp *ShardValue[T]) One(f func(*T)) {
-	f(&sp.shards[runtime.LanhcCurrentP()%len(sp.shards)])
+	f(&sp.shards[runtime.TailscaleCurrentP()%len(sp.shards)])
 }

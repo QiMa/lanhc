@@ -47,9 +47,9 @@ func TestLanhcToolchainRev(t *testing.T) {
 	}
 	rev := lanhcToolchainRev()
 	if rev == "" {
-		t.Fatal("lanhc.toolchain.rev is empty in build info; expected non-empty when using tsgo")
+		t.Fatal("tailscale.toolchain.rev is empty in build info; expected non-empty when using tsgo")
 	}
-	t.Logf("lanhc.toolchain.rev = %s", rev)
+	t.Logf("tailscale.toolchain.rev = %s", rev)
 }
 
 func TestPrepExeNameForCmp(t *testing.T) {

@@ -19,9 +19,9 @@ func TestToolchainMatches(t *testing.T) {
 	want := strings.TrimSpace(GoToolchainRev)
 	if tsRev != want {
 		if os.Getenv("TS_PERMIT_TOOLCHAIN_MISMATCH") == "1" {
-			t.Logf("lanhc.toolchain.rev = %q, want %q; but ignoring due to TS_PERMIT_TOOLCHAIN_MISMATCH=1", tsRev, want)
+			t.Logf("tailscale.toolchain.rev = %q, want %q; but ignoring due to TS_PERMIT_TOOLCHAIN_MISMATCH=1", tsRev, want)
 			return
 		}
-		t.Errorf("lanhc.toolchain.rev = %q, want %q; permit with TS_PERMIT_TOOLCHAIN_MISMATCH=1", tsRev, want)
+		t.Errorf("tailscale.toolchain.rev = %q, want %q; permit with TS_PERMIT_TOOLCHAIN_MISMATCH=1", tsRev, want)
 	}
 }

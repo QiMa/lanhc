@@ -14,7 +14,7 @@ import (
 func init() {
 	tsRev, ok := lanhcToolchainRev()
 	if !ok {
-		panic("binary built with lanhc_go build tag but failed to read build info or find lanhc.toolchain.rev in build info")
+		panic("binary built with lanhc_go build tag but failed to read build info or find tailscale.toolchain.rev in build info")
 	}
 	want := strings.TrimSpace(GoToolchainRev)
 	// Also permit the "next" toolchain rev, which is used in the main branch and will eventually become the new "current" rev.
@@ -22,7 +22,7 @@ func init() {
 	wantAlt := strings.TrimSpace(GoToolchainNextRev)
 	if tsRev != want && tsRev != wantAlt {
 		if os.Getenv("TS_PERMIT_TOOLCHAIN_MISMATCH") == "1" {
-			fmt.Fprintf(os.Stderr, "lanhc.toolchain.rev = %q, want %q; but ignoring due to TS_PERMIT_TOOLCHAIN_MISMATCH=1\n", tsRev, want)
+			fmt.Fprintf(os.Stderr, "tailscale.toolchain.rev = %q, want %q; but ignoring due to TS_PERMIT_TOOLCHAIN_MISMATCH=1\n", tsRev, want)
 			return
 		}
 		panic(fmt.Sprintf("binary built with lanhc_go build tag but Go toolchain %q doesn't match github.com/lanhc/lanhc expected value %q; override this failure with TS_PERMIT_TOOLCHAIN_MISMATCH=1", tsRev, want))
