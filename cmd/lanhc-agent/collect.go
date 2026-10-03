@@ -25,9 +25,9 @@ type Inventory struct {
 	OS           string            `json:"os"`
 	Kernel       string            `json:"kernel,omitempty"`
 	Arch         string            `json:"arch"`
-	UptimeSec    float64           `json:"uptime_sec,omitempty"`
+	UptimeSec    float64           `json:"uptime_sec,omitzero"`
 	CPUCount     int               `json:"cpu_count"`
-	MemTotalKB   int64             `json:"mem_total_kb,omitempty"`
+	MemTotalKB   int64             `json:"mem_total_kb,omitzero"`
 	LanhcIPs     []string          `json:"lanhc_ips,omitempty"`
 	LanhcBackend string            `json:"lanhc_backend,omitempty"`
 	Disks        []Disk            `json:"disks,omitempty"`
@@ -37,15 +37,15 @@ type Inventory struct {
 
 type Disk struct {
 	Name       string  `json:"name"`
-	SizeGB     float64 `json:"size_gb,omitempty"`
-	Rotational *bool   `json:"rotational,omitempty"`
+	SizeGB     float64 `json:"size_gb,omitzero"`
+	Rotational *bool   `json:"rotational,omitzero"`
 }
 
 type Health struct {
 	LoadAvg     []float64 `json:"load_avg,omitempty"`
-	MemUsedPct  float64   `json:"mem_used_pct,omitempty"`
-	SwapUsedPct float64   `json:"swap_used_pct,omitempty"`
-	RootUsedPct float64   `json:"root_used_pct,omitempty"`
+	MemUsedPct  float64   `json:"mem_used_pct,omitzero"`
+	SwapUsedPct float64   `json:"swap_used_pct,omitzero"`
+	RootUsedPct float64   `json:"root_used_pct,omitzero"`
 	FailedUnits []string  `json:"failed_units,omitempty"`
 	Errors      []string  `json:"errors,omitempty"`
 	CollectedAt string    `json:"collected_at"`
