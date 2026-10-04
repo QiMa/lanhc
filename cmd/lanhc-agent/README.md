@@ -98,7 +98,20 @@ WSL2 里 `lanhc-agent` 以普通用户运行时打不开 `/dev/sd*`（`Msft Virt
 Disk`，非真实 ATA 盘），导致 `agent_disks` 返回 `smartctl not installed`。
 这不是 agent 缺陷，物理机装 `smartmontools` 后即为真实 SMART 数据。
 
-本地金丝雀可用 `tools/smartctl-wsl2.sh` 作为 `PATH` 中的 `smartctl`，它保持
-与原生 smartctl 完全一致的 CLI 契约，缺原生工具时经 privileged 一次性容器
-枚举 `/dev`。真实 ATA 属性在 WSL2 仍不可用，仅验证 agent 链路与遥测不上报
-假数据。
+本地金丝雀用一条命令装好 shim（无需 sudo）：
+
+```sh
+cmd/lanhc-agent/tools/install-smartctl-wsl2.sh ~/bin
+```
+
+脚本会构建 `lanhc/smartmontools:7.4` 并把 `smartctl-wsl2.sh` 装成 `~/bin/smartctl`；
+它保持与原生 smartctl 完全一致的 CLI 契约，缺原生工具时经 privileged 一次性
+容器枚举 `/dev`。确认 `~/bin` 在 `PATH` 中后重启 `lanhc-agent`，`agent_disks`
+即从「smartctl not installed」变为正常枚举 `/dev/sd*`（WSL2 虚拟盘会进一步
+回报设备不可读，而不是伪造 SMART 值）。
+
+生产物理机不要用 shim，直接装发行版 smartmontools：
+
+```sh
+sudo apt-get install -y smartmontools   # Debian/Ubuntu
+```
