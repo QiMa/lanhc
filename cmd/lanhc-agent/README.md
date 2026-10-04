@@ -92,6 +92,22 @@ lanhc-agent -selfcheck
 - `ProtectSystem=full` / `ProtectHome=true` / `NoNewPrivileges=true`，即使被攻破也只读系统。
 - `PartOf=lanhcd.service`，跟随 lanhcd 一起启停。
 
+## Windows 节点（`gengbao` 类）
+
+Windows 节点没有 systemd，`lanhc-agent.exe` 用计划任务常驻：
+
+```powershell
+# 在目标 Windows 机器上（管理员 PowerShell）
+Invoke-WebRequest https://lanhc.com/lanhc/lanhc-agent-windows-amd64.zip -OutFile $env:TEMP\lanhc-agent.zip
+Expand-Archive $env:TEMP\lanhc-agent.zip $env:TEMP\lanhc-agent
+Set-Location $env:TEMP\lanhc-agent
+$env:TS_AUTHKEY='hskey-auth-...'
+powershell -ExecutionPolicy Bypass -File .\install-lanhc-agent.ps1
+```
+
+首次注册需带 `-AuthKey`（`TS_AUTHKEY`），后续计划任务
+`LanhcAgent` 会随登录自动启动并沿用同一 state。
+
 ## WSL2 金丝雀的 smartctl
 
 WSL2 里 `lanhc-agent` 以普通用户运行时打不开 `/dev/sd*`（`Msft Virtual
