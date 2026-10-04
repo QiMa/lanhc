@@ -54,6 +54,18 @@ func TestDiskListEndpoint(t *testing.T) {
 	}
 }
 
+func TestGPUEndpoint(t *testing.T) {
+	rec, body := get(t, "/v1/gpu")
+	if rec.Code != 200 || body["collected_at"] == nil {
+		t.Fatalf("unexpected gpu response: %d %v", rec.Code, body)
+	}
+	// gpus must always be a JSON array, never null: telemetry treats null as
+	// "no data" and would silently skip the host.
+	if _, ok := body["gpus"].([]any); !ok {
+		t.Fatalf("expected gpus array, got %T (%v)", body["gpus"], body["gpus"])
+	}
+}
+
 func TestSmartRequiresDevice(t *testing.T) {
 	rec, body := get(t, "/v1/disk/smart")
 	if rec.Code != 400 || !strings.Contains(body["error"].(string), "dev") {

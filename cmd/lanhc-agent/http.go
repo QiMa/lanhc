@@ -49,6 +49,10 @@ func newMux() *http.ServeMux {
 		writeJSON(w, http.StatusOK, collectSMART(device, deviceType))
 	})
 
+	mux.HandleFunc("/v1/gpu", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, collectGPUs())
+	})
+
 	mux.HandleFunc("/v1/logs", func(w http.ResponseWriter, r *http.Request) {
 		scope := r.URL.Query().Get("scope")
 		if scope == "" {

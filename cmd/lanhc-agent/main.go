@@ -145,6 +145,17 @@ func runSelfCheck() {
 		inv.Hostname, inv.OS, inv.Arch, inv.CPUCount, inv.MemTotalKB/1024, inv.UptimeSec)
 	fmt.Printf("  disks=%d failed_units=%d root_used=%.1f%% mem_used=%.1f%%\n",
 		len(inv.Disks), len(health.FailedUnits), health.RootUsedPct, health.MemUsedPct)
+	gpus := collectGPUs()
+	switch {
+	case gpus.Error != "" && len(gpus.GPUs) == 0:
+		fmt.Printf("  gpus=0 (%s)\n", gpus.Error)
+	default:
+		fmt.Printf("  gpus=%d", len(gpus.GPUs))
+		for _, g := range gpus.GPUs {
+			fmt.Printf(" [%d %s %.0f%% %.0f\u00b0C]", g.Index, g.Name, g.UtilPct, g.TemperatureC)
+		}
+		fmt.Println()
+	}
 	if len(health.FailedUnits) > 0 {
 		fmt.Printf("  failed: %v\n", health.FailedUnits)
 	}

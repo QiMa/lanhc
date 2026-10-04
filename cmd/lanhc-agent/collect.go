@@ -11,6 +11,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"net"
 	"os"
 	"os/exec"
 	"runtime"
@@ -31,6 +32,7 @@ type Inventory struct {
 	CPUCount     int               `json:"cpu_count"`
 	MemTotalKB   int64             `json:"mem_total_kb,omitzero"`
 	LanhcIPs     []string          `json:"lanhc_ips,omitempty"`
+	LocalIPs     []string          `json:"local_ips,omitempty"`
 	LanhcBackend string            `json:"lanhc_backend,omitempty"`
 	Disks        []Disk            `json:"disks,omitempty"`
 	CollectedAt  string            `json:"collected_at"`
@@ -103,7 +105,65 @@ func collectInventory() Inventory {
 		}
 	}
 	inv.Disks = collectDisks()
+	inv.LocalIPs = collectLocalIPs()
 	return inv
+}
+
+// tailnetNet is the lanhc/headscale CGNAT range (100.64.0.0/10) plus the
+// fd7a:115c:a1e0::/48 ULA prefix. Those addresses are already shown as the
+// node's tailnet IP; localIPs is specifically the *other* addresses a device
+// holds on its LAN, which is what an operator needs to reach it out of band.
+var (
+	tailnetV4 = mustCIDR("100.64.0.0/10")
+	tailnetV6 = mustCIDR("fd7a:115c:a1e0::/48")
+)
+
+func mustCIDR(s string) *net.IPNet {
+	_, n, err := net.ParseCIDR(s)
+	if err != nil {
+		return nil
+	}
+	return n
+}
+
+func isTailnetIP(ip net.IP) bool {
+	if tailnetV4 != nil && tailnetV4.Contains(ip) {
+		return true
+	}
+	return tailnetV6 != nil && tailnetV6.Contains(ip)
+}
+
+// collectLocalIPs returns non-loopback, non-tailnet addresses from the host's
+// interfaces. Interfaces the agent cannot inspect are skipped, never fatal.
+func collectLocalIPs() []string {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return nil
+	}
+	var out []string
+	for _, iface := range ifaces {
+		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+		for _, addr := range addrs {
+			ip, _, err := net.ParseCIDR(addr.String())
+			if err != nil || ip == nil {
+				continue
+			}
+			if ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() {
+				continue
+			}
+			if isTailnetIP(ip) {
+				continue
+			}
+			out = append(out, ip.String())
+		}
+	}
+	return out
 }
 
 func parseKB(line string) int64 {
