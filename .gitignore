@@ -61,3 +61,6 @@ client/web/node_modules
 # Anchored so they don't hide the cmd/ source directories.
 /fbstatus
 /gafpush
+# Binary produced by `go build ./cmd/lanhc-agent`.
+# Anchored so it doesn't hide the cmd/lanhc-agent source directory.
+/lanhc-agent
