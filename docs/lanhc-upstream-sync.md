@@ -11,7 +11,9 @@
 - `origin`：本地上游 Tailscale 仓库，路径为 `/home/dev/src/tailscale`，用于工具自检和取上游 tag，不是日常 fetch remote。
 - 推送永远使用映射 `lanhc-main:main`，不把 `lanhc-main` 暴露为远端分支名。
 
-当前基线：`v1.102.4`。`lanhc-main` 相对 `v1.102.4` 领先 22 个定制提交。
+当前基线：上游内容等价于 `v1.102.5`。`lanhc-main` 以 `v1.102.4` 为父，
+领先 32 个定制提交；同步 `v1.102.5` 时是以单个提交重放上游差分，因此
+本仓库的 `v1.102.5` tag（指向上游提交）不是 `HEAD` 的祖先，属正常现象。
 
 ## 同步步骤
 
@@ -79,6 +81,55 @@ GIT_SSH_COMMAND='ssh -o ConnectTimeout=15 -o StrictHostKeyChecking=accept-new' \
 
 推送后确认 CI 全绿。Windows runner 有时因队列无 runner 而一直 `queued`，
 不影响本地构建验证。
+
+## 已知漏洞扫描（source-scan / govulncheck）
+
+GitHub Actions 的 `govulncheck` workflow（`.github/workflows/govulncheck.yml`）
+每天 12:00 UTC 定时在最新 `main` 上跑 `govulncheck -test ./...`，命中已知漏洞
+时以非零状态退出，所以在 Actions 里常显示为失败。该 job 不阻塞 push 或 PR。
+
+本地复现（国内网络 `sum.golang.google.cn` 不可达，需要关掉校验并换代理）：
+
+```bash
+cd /home/dev/src/lanhc
+export PATH=$PWD/tool/:$PATH GOPROXY=https://goproxy.cn,direct GOSUMDB=off
+./tool/go install golang.org/x/vuln/cmd/govulncheck@0782b76014f15f24e22a438f30f308df42899ba1
+"$(./tool/go env GOPATH)/bin/govulncheck" -test ./...
+```
+
+截至同步到 `v1.102.5` 时，本仓库与上游的依赖版本对照：
+
+| 模块 | lanhc (v1.102.5) | 上游 v1.102.5 | 上游 main | 修复版本 |
+| --- | --- | --- | --- | --- |
+| `github.com/containerd/containerd` | v1.7.29 | v1.7.29 | 已移除 | v1.7.36（部分无修复） |
+| `golang.org/x/crypto` | v0.54.0 | v0.54.0 | v0.57.0 | v0.55.0 / v0.56.0（部分无修复） |
+| `github.com/prometheus/prometheus` | v0.49.2-0.20240125... | 同左 | v0.314.0 | v0.305.2 / v0.311.3 |
+| `github.com/cilium/ebpf` | v0.16.0 | v0.16.0 | v0.22.0 | v0.22.0 |
+| `oras.land/oras-go/v2` | v2.6.0 | v2.6.0 | v2.6.1 | v2.6.2 |
+| `github.com/go-git/go-git/v5` | v5.17.1 | v5.17.1 | v5.19.1 | v5.18.0 / v5.19.1 |
+| `github.com/go-git/go-billy/v5` | v5.8.0 | v5.8.0 | v5.9.0 | v5.9.0 |
+| `github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream` | v1.6.8 | v1.6.8 | v1.7.20 | v1.7.8 |
+| `go.opentelemetry.io/otel` | v1.39.0 | v1.39.0 | v1.44.0 | v1.41.0 |
+
+要点：
+
+- 这些问题在已发布的上游 `v1.102.5` / `v1.103.0-pre` 里同样存在，lanhc 并没有
+  落后于上游的已发布版本；修复基本都还在上游未发版的 `main` 上。
+- `go mod why github.com/containerd/containerd` 显示 `main module does not need
+  package`，`oras.land/oras-go/v2` 经由 `cmd/k8s-operator/e2e` -> helm 引入：
+  这些是构建/测试期依赖，不进入分发出的 lanhc 二进制。
+- 即使升到上游 `main`，`oras.land/oras-go/v2` 仍是 v2.6.1，低于修复版本
+  v2.6.2，说明该项上游自己也还没修完。
+
+处理策略：不要手工 `go get` 大范围升级依赖，这会破坏与上游的同步基线
+（同步脚本按 tag 差分重放，手工改依赖会持续冲突）。正确做法是等上游
+`v1.103.0` 正式发版后执行：
+
+```bash
+tool/lanhc-sync-upstream.sh v1.102.5 v1.103.0
+```
+
+一次性带上上游的依赖修复。
 
 ## 上游变更较大时的注意事项
 
