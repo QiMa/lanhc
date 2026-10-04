@@ -91,3 +91,14 @@ lanhc-agent -selfcheck
 - `StateDirectory=lanhc-agent` 自动创建 `/var/lib/lanhc-agent`。
 - `ProtectSystem=full` / `ProtectHome=true` / `NoNewPrivileges=true`，即使被攻破也只读系统。
 - `PartOf=lanhcd.service`，跟随 lanhcd 一起启停。
+
+## WSL2 金丝雀的 smartctl
+
+WSL2 里 `lanhc-agent` 以普通用户运行时打不开 `/dev/sd*`（`Msft Virtual
+Disk`，非真实 ATA 盘），导致 `agent_disks` 返回 `smartctl not installed`。
+这不是 agent 缺陷，物理机装 `smartmontools` 后即为真实 SMART 数据。
+
+本地金丝雀可用 `tools/smartctl-wsl2.sh` 作为 `PATH` 中的 `smartctl`，它保持
+与原生 smartctl 完全一致的 CLI 契约，缺原生工具时经 privileged 一次性容器
+枚举 `/dev`。真实 ATA 属性在 WSL2 仍不可用，仅验证 agent 链路与遥测不上报
+假数据。
